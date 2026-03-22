@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { generateReactHelpers } from "@uploadthing/react";
 import { useState } from "react";
-import { AuthCard } from "#/components/auth/auth-card";
 import { AuthLayout } from "#/components/auth/auth-layout";
 import { FormError } from "#/components/auth/form-error";
 import { MarqueeBadge } from "#/components/auth/marquee-badge";
@@ -38,14 +37,20 @@ const STEPS: StepConfig[] = [
 
 function OnboardingPage() {
 	const [currentStep, setCurrentStep] = useState(0);
+	const [cardUnlocked, setCardUnlocked] = useState(false);
 	const navigate = useNavigate();
 
 	const StepComponent = STEPS[currentStep].component;
-	const isFullWidthStep = currentStep === 2; // Taste profile
+	const isFullWidthStep = currentStep === 2;
 
 	function handleNext() {
 		if (currentStep < STEPS.length - 1) {
-			setCurrentStep((s) => s + 1);
+			const nextStep = currentStep + 1;
+			setCurrentStep(nextStep);
+			if (nextStep === 2) {
+				// Release height constraint after card transition finishes
+				setTimeout(() => setCardUnlocked(true), 750);
+			}
 		} else {
 			navigate({ to: "/app" });
 		}
@@ -54,17 +59,20 @@ function OnboardingPage() {
 	return (
 		<AuthLayout>
 			<MarqueeBadge text="Setting Up" />
-			{isFullWidthStep ? (
-				<div className="w-full max-w-6xl mx-auto px-4">
-					<StepIndicator steps={STEPS.length} current={currentStep} />
-					<StepComponent onNext={handleNext} />
-				</div>
-			) : (
-				<AuthCard>
-					<StepIndicator steps={STEPS.length} current={currentStep} />
-					<StepComponent onNext={handleNext} />
-				</AuthCard>
-			)}
+			<div
+				className={`w-full rounded-xl border backdrop-blur-xl transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+					isFullWidthStep
+						? "max-w-6xl border-transparent bg-transparent px-4 backdrop-blur-none"
+						: "max-w-[400px] border-drive-in-border bg-drive-in-card/80 px-8 py-10"
+				} ${isFullWidthStep && !cardUnlocked ? "overflow-hidden" : ""}`}
+				style={{
+					maxHeight:
+						isFullWidthStep && !cardUnlocked ? "300px" : "none",
+				}}
+			>
+				<StepIndicator steps={STEPS.length} current={currentStep} />
+				<StepComponent onNext={handleNext} />
+			</div>
 		</AuthLayout>
 	);
 }

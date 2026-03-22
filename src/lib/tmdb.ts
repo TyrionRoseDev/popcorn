@@ -30,7 +30,7 @@ async function tmdbFetch<T>(
 	}
 
 	const response = await fetch(url.toString(), {
-		headers: { Authorization: `Bearer ${env.TMDB_API_KEY}` },
+		headers: { Authorization: `Bearer ${env.TMDB_READ_ACCESS_TOKEN}` },
 	});
 
 	if (!response.ok) {

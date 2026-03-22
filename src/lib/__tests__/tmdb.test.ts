@@ -13,7 +13,7 @@ vi.stubGlobal("fetch", mockFetch);
 
 // Mock env to avoid needing real env vars in tests
 vi.mock("#/env", () => ({
-	env: { TMDB_API_KEY: "test-api-key" },
+	env: { TMDB_READ_ACCESS_TOKEN: "test-api-key" },
 }));
 
 beforeEach(() => {

@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import type { FeedItem } from "#/lib/feed-assembler";
 import { getTmdbImageUrl } from "#/lib/tmdb";
 
@@ -26,19 +26,20 @@ export function SelectionFooter({
 	return (
 		<div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#FF2D78]/20 bg-[#0a0a0a]/95 shadow-[0_-4px_24px_rgba(0,0,0,0.5)] backdrop-blur-xl">
 			<div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
-				<div className="flex min-w-0 flex-1 items-center gap-1">
-					{entries.map(([key, item], i) => {
-						const posterUrl = getTmdbImageUrl(item.posterPath, "w92");
-						const overlap = i >= 5;
+				{/* Poster thumbnails with × */}
+				<div className="flex flex-1 gap-1.5 overflow-x-auto">
+					{entries.map(([key, item]) => {
+						const posterUrl = getTmdbImageUrl(
+							item.posterPath,
+							"w92",
+						);
 						return (
-							<button
+							<div
 								key={key}
-								type="button"
-								onClick={() => onDeselect(key)}
-								className={`group relative shrink-0 ${overlap ? "-ml-3" : ""}`}
-								title={`Remove ${item.title}`}
+								className="group relative shrink-0"
+								title={item.title}
 							>
-								<div className="h-12 w-8 overflow-hidden rounded border-[1.5px] border-[#FF2D78] transition-opacity group-hover:opacity-60">
+								<div className="h-11 w-[30px] overflow-hidden rounded">
 									{posterUrl ? (
 										<img
 											src={posterUrl}
@@ -49,18 +50,27 @@ export function SelectionFooter({
 										<div className="h-full w-full bg-cream/10" />
 									)}
 								</div>
-							</button>
+								<button
+									type="button"
+									onClick={() => onDeselect(key)}
+									className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#0a0a0a] border border-cream/20 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-cream/10"
+								>
+									<X className="h-2.5 w-2.5 text-cream/70" />
+								</button>
+							</div>
 						);
 					})}
 				</div>
 
+				{/* Count */}
 				<span className="shrink-0 text-sm text-cream/50">
 					<span className="font-bold text-[#FF2D78]">
 						{selectedTitles.size}
-					</span>{" "}
-					/ {MIN_TITLES}-{MAX_TITLES}
+					</span>
+					/{MAX_TITLES}
 				</span>
 
+				{/* Continue */}
 				<button
 					type="button"
 					onClick={onContinue}

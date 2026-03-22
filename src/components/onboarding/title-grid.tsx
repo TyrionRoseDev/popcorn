@@ -1,7 +1,7 @@
 import { Loader2 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { FeedItem } from "#/lib/feed-assembler";
-import { TitleCard } from "./title-card";
+import { TitleCard, type GenreColorMap } from "./title-card";
 
 interface TitleGridProps {
 	items: FeedItem[];
@@ -12,6 +12,7 @@ interface TitleGridProps {
 	isFetchingNextPage: boolean;
 	fetchNextPage: () => void;
 	isLoading: boolean;
+	genreColors?: GenreColorMap;
 }
 
 function titleKey(item: FeedItem) {
@@ -27,6 +28,7 @@ export function TitleGrid({
 	isFetchingNextPage,
 	fetchNextPage,
 	isLoading,
+	genreColors = {},
 }: TitleGridProps) {
 	const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -85,6 +87,7 @@ export function TitleGrid({
 						isSelected={selectedTitles.has(titleKey(item))}
 						onToggle={() => onToggleTitle(item)}
 						selectionDisabled={atMax}
+						genreColors={genreColors}
 					/>
 				))}
 			</div>

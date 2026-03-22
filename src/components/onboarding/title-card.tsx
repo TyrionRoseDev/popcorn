@@ -1,13 +1,18 @@
 import { Check } from "lucide-react";
 import type { FeedItem } from "#/lib/feed-assembler";
-import { getGenreNameByTmdbId } from "#/lib/genre-map";
+import { getGenreNameByTmdbId, getUnifiedIdByTmdbId } from "#/lib/genre-map";
 import { getTmdbImageUrl } from "#/lib/tmdb";
+
+export interface GenreColorMap {
+	[unifiedGenreId: number]: { bg: string; text: string };
+}
 
 interface TitleCardProps {
 	item: FeedItem;
 	isSelected: boolean;
 	onToggle: () => void;
 	selectionDisabled?: boolean;
+	genreColors?: GenreColorMap;
 }
 
 export function TitleCard({
@@ -15,6 +20,7 @@ export function TitleCard({
 	isSelected,
 	onToggle,
 	selectionDisabled = false,
+	genreColors = {},
 }: TitleCardProps) {
 	const posterUrl = getTmdbImageUrl(item.posterPath);
 	const canSelect = !selectionDisabled || isSelected;
@@ -77,14 +83,23 @@ export function TitleCard({
 				</p>
 
 				<div className="mt-2 flex flex-wrap gap-1">
-					{item.genreIds.slice(0, 3).map((genreId) => (
-						<span
-							key={genreId}
-							className="rounded-full bg-cream/[0.06] px-2 py-0.5 text-[10px] text-cream/40"
-						>
-							{getGenreNameByTmdbId(genreId)}
-						</span>
-					))}
+					{item.genreIds.slice(0, 3).map((genreId) => {
+						const unifiedId = getUnifiedIdByTmdbId(genreId);
+						const color =
+							unifiedId !== null ? genreColors[unifiedId] : null;
+						return (
+							<span
+								key={genreId}
+								className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+									color
+										? `${color.bg} ${color.text}`
+										: "bg-cream/[0.06] text-cream/40"
+								}`}
+							>
+								{getGenreNameByTmdbId(genreId)}
+							</span>
+						);
+					})}
 				</div>
 			</div>
 		</button>

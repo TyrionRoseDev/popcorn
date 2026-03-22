@@ -61,3 +61,18 @@ for (const genre of UNIFIED_GENRES) {
 export function getGenreNameByTmdbId(tmdbGenreId: number): string {
 	return tmdbIdToName.get(tmdbGenreId) ?? String(tmdbGenreId);
 }
+
+/**
+ * Reverse lookup: given a TMDB genre ID, return the unified genre ID.
+ */
+const tmdbIdToUnifiedId = new Map<number, number>();
+for (const genre of UNIFIED_GENRES) {
+	if (genre.movieGenreId !== null && !tmdbIdToUnifiedId.has(genre.movieGenreId))
+		tmdbIdToUnifiedId.set(genre.movieGenreId, genre.id);
+	if (genre.tvGenreId !== null && !tmdbIdToUnifiedId.has(genre.tvGenreId))
+		tmdbIdToUnifiedId.set(genre.tvGenreId, genre.id);
+}
+
+export function getUnifiedIdByTmdbId(tmdbGenreId: number): number | null {
+	return tmdbIdToUnifiedId.get(tmdbGenreId) ?? null;
+}

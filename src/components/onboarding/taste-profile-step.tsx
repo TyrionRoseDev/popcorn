@@ -1,15 +1,25 @@
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { useTRPC } from "#/integrations/trpc/react";
-import type { FeedItem } from "#/lib/feed-assembler";
+import { type FeedItem, deduplicateFeed } from "#/lib/feed-assembler";
 import { GenrePills } from "./genre-pills";
 import { SearchBar } from "./search-bar";
 import { SelectionFooter } from "./selection-footer";
+import type { GenreColorMap } from "./title-card";
 import { TitleGrid } from "./title-grid";
 
 const MIN_GENRES = 3;
 const MAX_TITLES = 10;
+
+const NEON_COLORS: { bg: string; text: string }[] = [
+	{ bg: "bg-[#FF2D78]/15", text: "text-[#FF2D78]" },
+	{ bg: "bg-[#00E5FF]/15", text: "text-[#00E5FF]" },
+	{ bg: "bg-[#FFB800]/15", text: "text-[#FFB800]" },
+	{ bg: "bg-[#FF2D78]/15", text: "text-[#FF2D78]" },
+	{ bg: "bg-[#00E5FF]/15", text: "text-[#00E5FF]" },
+];
 
 function titleKey(item: FeedItem) {
 	return `${item.tmdbId}-${item.mediaType}`;
@@ -57,8 +67,12 @@ export function TasteProfileStep({ onNext }: { onNext: () => void }) {
 
 	const saveMutation = useMutation(
 		trpc.tasteProfile.saveTasteProfile.mutationOptions({
-			onSuccess: () => onNext(),
+			onSuccess: () => {
+				console.log("[TasteProfile] Save successful, navigating...");
+				onNext();
+			},
 			onError: (error) => {
+				console.error("[TasteProfile] Save failed:", error);
 				toast.error(error.message || "Failed to save. Please try again.");
 			},
 		}),
@@ -68,9 +82,22 @@ export function TasteProfileStep({ onNext }: { onNext: () => void }) {
 
 	const activeQuery = isSearchMode ? searchQueryResult : feedQuery;
 	const items = useMemo(
-		() => activeQuery.data?.pages.flatMap((page) => page.items) ?? [],
+		() =>
+			deduplicateFeed(
+				activeQuery.data?.pages.flatMap((page) => page.items) ?? [],
+			),
 		[activeQuery.data],
 	);
+
+	// Map selected genre IDs to neon colors for card genre tags
+	const genreColors = useMemo(() => {
+		const map: GenreColorMap = {};
+		const selected = Array.from(selectedGenres);
+		for (let i = 0; i < selected.length; i++) {
+			map[selected[i]] = NEON_COLORS[i % NEON_COLORS.length];
+		}
+		return map;
+	}, [selectedGenres]);
 
 	// --- Handlers ---
 
@@ -112,14 +139,28 @@ export function TasteProfileStep({ onNext }: { onNext: () => void }) {
 	}, []);
 
 	const handleContinue = useCallback(() => {
-		saveMutation.mutate({
+		const payload = {
 			genreIds: Array.from(selectedGenres),
 			titles: Array.from(selectedTitles.values()).map((item) => ({
 				tmdbId: item.tmdbId,
 				mediaType: item.mediaType,
 			})),
-		});
+		};
+		console.log("[TasteProfile] Saving:", payload);
+		saveMutation.mutate(payload);
 	}, [selectedGenres, selectedTitles, saveMutation]);
+
+	// --- Client mount (for portal) ---
+	const [mounted, setMounted] = useState(false);
+	useEffect(() => setMounted(true), []);
+
+	// --- Transition delay ---
+	// Wait for card break-open animation before showing content below heading
+	const [ready, setReady] = useState(false);
+	useEffect(() => {
+		const timer = setTimeout(() => setReady(true), 750);
+		return () => clearTimeout(timer);
+	}, []);
 
 	// --- Empty states ---
 
@@ -136,51 +177,36 @@ export function TasteProfileStep({ onNext }: { onNext: () => void }) {
 				Pick 3-5 genres, then choose 3-10 movies or shows you love
 			</p>
 
-			{/* Search */}
-			<div className="mb-4">
-				<SearchBar value={searchQuery} onChange={setSearchQuery} />
-			</div>
-
-			{/* Genre pills */}
+			{/* Everything below fades in after card transition */}
 			<div
-				className={`mb-6 ${isSearchMode ? "opacity-40 pointer-events-none" : ""}`}
+				className="transition-opacity duration-500"
+				style={{ opacity: ready ? 1 : 0 }}
 			>
-				{genresQuery.data ? (
-					<GenrePills
-						genres={genresQuery.data}
-						selected={selectedGenres}
-						onToggle={handleGenreToggle}
-						disabled={isSearchMode}
-					/>
-				) : (
-					<div className="flex flex-wrap gap-2">
-						{[
-							"s1",
-							"s2",
-							"s3",
-							"s4",
-							"s5",
-							"s6",
-							"s7",
-							"s8",
-							"s9",
-							"s10",
-							"s11",
-							"s12",
-						].map((id) => (
-							<div
-								key={id}
-								className="h-9 w-20 animate-pulse rounded-full bg-cream/5"
-							/>
-						))}
-					</div>
-				)}
-			</div>
+				{/* Search */}
+				<div className="mb-4">
+					<SearchBar value={searchQuery} onChange={setSearchQuery} />
+				</div>
 
-			{/* Empty state or grid */}
-			{emptyMessage && !isSearchMode ? (
-				<div className="py-16 text-center text-cream/30">{emptyMessage}</div>
-			) : (
+				{/* Genre pills */}
+				<div
+					className={`mb-6 ${isSearchMode ? "opacity-40 pointer-events-none" : ""}`}
+				>
+					{genresQuery.data && (
+						<GenrePills
+							genres={genresQuery.data}
+							selected={selectedGenres}
+							onToggle={handleGenreToggle}
+							disabled={isSearchMode}
+						/>
+					)}
+				</div>
+
+				{/* Empty state or grid */}
+				{emptyMessage && !isSearchMode ? (
+					<div className="py-16 text-center text-cream/30">
+						{emptyMessage}
+					</div>
+				) : (
 				<TitleGrid
 					items={items}
 					selectedTitles={selectedTitles}
@@ -190,6 +216,7 @@ export function TasteProfileStep({ onNext }: { onNext: () => void }) {
 					isFetchingNextPage={activeQuery.isFetchingNextPage}
 					fetchNextPage={() => activeQuery.fetchNextPage()}
 					isLoading={activeQuery.isLoading}
+					genreColors={genreColors}
 				/>
 			)}
 
@@ -215,14 +242,19 @@ export function TasteProfileStep({ onNext }: { onNext: () => void }) {
 					</button>
 				</div>
 			)}
+			</div>
 
-			{/* Selection footer */}
-			<SelectionFooter
-				selectedTitles={selectedTitles}
-				onDeselect={handleDeselect}
-				onContinue={handleContinue}
-				isSaving={saveMutation.isPending}
-			/>
+			{/* Selection footer — portaled to body to escape containing block */}
+			{mounted &&
+				createPortal(
+					<SelectionFooter
+						selectedTitles={selectedTitles}
+						onDeselect={handleDeselect}
+						onContinue={handleContinue}
+						isSaving={saveMutation.isPending}
+					/>,
+					document.body,
+				)}
 		</div>
 	);
 }

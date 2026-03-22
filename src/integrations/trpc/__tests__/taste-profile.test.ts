@@ -7,7 +7,7 @@ import type {
 
 // Mock env
 vi.mock("#/env", () => ({
-	env: { TMDB_API_KEY: "test-api-key" },
+	env: { TMDB_READ_ACCESS_TOKEN: "test-api-key" },
 }));
 
 // Mock TMDB functions
