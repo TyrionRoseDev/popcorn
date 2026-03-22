@@ -31,7 +31,7 @@ export function SearchResults(props: SearchResultsProps) {
 	const navigate = useNavigate();
 	const trpc = useTRPC();
 
-	const filterProps = { type, genre, yearMin, yearMax };
+	const filterProps = { type, genre, yearMin, yearMax, rating };
 
 	const { data, isLoading, isError } = useQuery({
 		...trpc.search.results.queryOptions({
