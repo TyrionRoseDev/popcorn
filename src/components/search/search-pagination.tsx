@@ -68,7 +68,16 @@ export function SearchPagination({
 		e.preventDefault();
 		navigate({
 			to: "/app/search",
-			search: (prev) => ({ ...prev, page }),
+			search: (prev) => ({
+				q: prev.q ?? "",
+				type: prev.type ?? "all",
+				sort: prev.sort ?? "relevance",
+				page,
+				genre: prev.genre,
+				yearMin: prev.yearMin,
+				yearMax: prev.yearMax,
+				rating: prev.rating,
+			}),
 		});
 		window.scrollTo({ top: 0, behavior: "smooth" });
 	}

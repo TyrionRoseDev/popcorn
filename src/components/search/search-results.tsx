@@ -77,9 +77,14 @@ export function SearchResults(props: SearchResultsProps) {
 						navigate({
 							to: "/app/search",
 							search: (prev) => ({
-								...prev,
+								q: prev.q ?? "",
+								type: prev.type ?? "all",
 								sort: e.target.value as typeof sort,
 								page: 1,
+								genre: prev.genre,
+								yearMin: prev.yearMin,
+								yearMax: prev.yearMax,
+								rating: prev.rating,
 							}),
 						})
 					}

@@ -26,7 +26,16 @@ export function SearchBar({ initialValue }: SearchBarProps) {
 		debounceRef.current = setTimeout(() => {
 			navigate({
 				to: "/app/search",
-				search: (prev) => ({ ...prev, q: newValue, page: 1 }),
+				search: (prev) => ({
+					q: newValue,
+					type: prev.type ?? "all",
+					sort: prev.sort ?? "relevance",
+					page: 1,
+					genre: prev.genre,
+					yearMin: prev.yearMin,
+					yearMax: prev.yearMax,
+					rating: prev.rating,
+				}),
 			});
 		}, 300);
 	}

@@ -50,7 +50,17 @@ function FilterControls({
 	function updateFilter(updates: Record<string, unknown>) {
 		navigate({
 			to: "/app/search",
-			search: (prev) => ({ ...prev, ...updates, page: 1 }),
+			search: (prev) => ({
+				q: prev.q ?? "",
+				type: prev.type ?? "all",
+				sort: prev.sort ?? "relevance",
+				page: 1,
+				genre: prev.genre,
+				yearMin: prev.yearMin,
+				yearMax: prev.yearMax,
+				rating: prev.rating,
+				...updates,
+			}),
 		});
 	}
 
@@ -58,9 +68,9 @@ function FilterControls({
 		navigate({
 			to: "/app/search",
 			search: (prev) => ({
-				q: prev.q,
-				type: "all",
-				sort: prev.sort,
+				q: prev.q ?? "",
+				type: "all" as const,
+				sort: prev.sort ?? "relevance",
 				page: 1,
 			}),
 		});
