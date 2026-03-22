@@ -1,0 +1,28 @@
+{
+  "projectName": "popcorn",
+  "mode": "file-router",
+  "typescript": true,
+  "packageManager": "bun",
+  "includeExamples": false,
+  "tailwind": true,
+  "addOnOptions": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "envVarValues": {},
+  "git": true,
+  "routerOnly": false,
+  "version": 1,
+  "framework": "react",
+  "chosenAddOns": [
+    "biome",
+    "compiler",
+    "drizzle",
+    "shadcn",
+    "t3env",
+    "tRPC",
+    "better-auth",
+    "tanstack-query"
+  ]
+}
