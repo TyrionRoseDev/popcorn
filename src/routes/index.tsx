@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { FilmStrip } from "#/components/film-strip";
 import { MarqueeBoard, MarqueeBoardRow } from "#/components/marquee-board";
 import { RetroOverlays } from "#/components/retro-overlays";
@@ -29,7 +29,10 @@ const FEATURES = [
 
 function LandingPage() {
 	return (
-		<div className="relative min-h-screen bg-drive-in-bg text-cream/85" style={{ overflowX: "clip" }}>
+		<div
+			className="relative min-h-screen bg-drive-in-bg text-cream/85"
+			style={{ overflowX: "clip" }}
+		>
 			<RetroOverlays />
 
 			{/* ========== HERO ========== */}
@@ -103,10 +106,10 @@ function LandingPage() {
 						Log In
 					</Link>
 					<Link
-						to="/signup"
+						to="/login"
 						className="rounded border-[1.5px] border-neon-cyan/25 px-8 py-3.5 font-display text-[15px] tracking-wide text-neon-cyan/60 no-underline transition-all duration-300 hover:border-neon-cyan/45 hover:text-neon-cyan/85 hover:shadow-[0_0_20px_rgba(0,229,255,0.15)]"
 					>
-						Create an Account
+						Get Started
 					</Link>
 				</div>
 			</section>

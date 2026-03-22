@@ -1,5 +1,5 @@
-import { useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
+import { useRef } from "react";
 
 const BULB_COUNT = 16;
 const BULBS = Array.from({ length: BULB_COUNT }, (_, i) => i);
