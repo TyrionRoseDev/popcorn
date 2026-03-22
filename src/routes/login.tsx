@@ -27,7 +27,7 @@ function LoginPage() {
 		try {
 			const { error: authError } = await authClient.signIn.magicLink({
 				email,
-				callbackURL: "/app",
+				callbackURL: "/app/search",
 			});
 			if (authError) {
 				setError(authError.message ?? "Something went wrong");
@@ -47,7 +47,7 @@ function LoginPage() {
 		try {
 			const { error: authError } = await authClient.signIn.magicLink({
 				email,
-				callbackURL: "/app",
+				callbackURL: "/app/search",
 			});
 			if (authError) {
 				setError(authError.message ?? "Something went wrong");
