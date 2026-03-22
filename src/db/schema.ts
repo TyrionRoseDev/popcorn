@@ -1,5 +1,13 @@
 import { relations } from "drizzle-orm";
-import { boolean, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+	boolean,
+	index,
+	integer,
+	pgTable,
+	text,
+	timestamp,
+	uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -76,9 +84,52 @@ export const verification = pgTable(
 	(table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+export const userGenre = pgTable(
+	"user_genre",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		genreId: integer("genre_id").notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("user_genre_unique").on(table.userId, table.genreId),
+		index("user_genre_userId_idx").on(table.userId),
+	],
+);
+
+export const userTitle = pgTable(
+	"user_title",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		tmdbId: integer("tmdb_id").notNull(),
+		mediaType: text("media_type").notNull(), // 'movie' | 'tv'
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("user_title_unique").on(
+			table.userId,
+			table.tmdbId,
+			table.mediaType,
+		),
+		index("user_title_userId_idx").on(table.userId),
+	],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
+	genres: many(userGenre),
+	titles: many(userTitle),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -91,6 +142,20 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const accountRelations = relations(account, ({ one }) => ({
 	user: one(user, {
 		fields: [account.userId],
+		references: [user.id],
+	}),
+}));
+
+export const userGenreRelations = relations(userGenre, ({ one }) => ({
+	user: one(user, {
+		fields: [userGenre.userId],
+		references: [user.id],
+	}),
+}));
+
+export const userTitleRelations = relations(userTitle, ({ one }) => ({
+	user: one(user, {
+		fields: [userTitle.userId],
 		references: [user.id],
 	}),
 }));

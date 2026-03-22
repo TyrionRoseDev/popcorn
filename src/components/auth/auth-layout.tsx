@@ -1,8 +1,11 @@
 import { Link } from "@tanstack/react-router";
+import { RetroOverlays } from "#/components/retro-overlays";
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<div className="relative flex min-h-screen flex-col items-center justify-center bg-drive-in-bg px-4 py-20 text-cream/85">
+		<div className="relative flex min-h-screen flex-col items-center bg-drive-in-bg px-4 pt-[12vh] pb-20 text-cream/85">
+			<RetroOverlays />
+
 			{/* Vignette */}
 			<div
 				className="pointer-events-none absolute inset-0"
@@ -24,7 +27,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
 			/>
 
 			{/* Content */}
-			<div className="relative z-10 flex flex-col items-center">
+			<div className="relative z-10 flex w-full flex-col items-center">
 				{/* Logo */}
 				<Link to="/" className="mb-6 no-underline">
 					<h1

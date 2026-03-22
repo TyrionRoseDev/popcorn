@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { generateReactHelpers } from "@uploadthing/react";
 import { useState } from "react";
-import { AuthCard } from "#/components/auth/auth-card";
 import { AuthLayout } from "#/components/auth/auth-layout";
 import { FormError } from "#/components/auth/form-error";
 import { MarqueeBadge } from "#/components/auth/marquee-badge";
 import { StepIndicator } from "#/components/auth/step-indicator";
+import { TasteProfileStep } from "#/components/onboarding/taste-profile-step";
 import { authClient } from "#/lib/auth-client";
 import type { UploadRouter } from "#/lib/uploadthing";
 
@@ -32,17 +32,25 @@ interface StepConfig {
 const STEPS: StepConfig[] = [
 	{ label: "Username", component: UsernameStep },
 	{ label: "Avatar", component: AvatarStep },
+	{ label: "Taste", component: TasteProfileStep },
 ];
 
 function OnboardingPage() {
 	const [currentStep, setCurrentStep] = useState(0);
+	const [cardUnlocked, setCardUnlocked] = useState(false);
 	const navigate = useNavigate();
 
 	const StepComponent = STEPS[currentStep].component;
+	const isFullWidthStep = currentStep === 2;
 
 	function handleNext() {
 		if (currentStep < STEPS.length - 1) {
-			setCurrentStep((s) => s + 1);
+			const nextStep = currentStep + 1;
+			setCurrentStep(nextStep);
+			if (nextStep === 2) {
+				// Release height constraint after card transition finishes
+				setTimeout(() => setCardUnlocked(true), 750);
+			}
 		} else {
 			navigate({ to: "/app" });
 		}
@@ -51,10 +59,19 @@ function OnboardingPage() {
 	return (
 		<AuthLayout>
 			<MarqueeBadge text="Setting Up" />
-			<AuthCard>
+			<div
+				className={`w-full rounded-xl border backdrop-blur-xl transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+					isFullWidthStep
+						? "max-w-6xl border-transparent bg-transparent px-4 backdrop-blur-none"
+						: "max-w-[400px] border-drive-in-border bg-drive-in-card/80 px-8 py-10"
+				} ${isFullWidthStep && !cardUnlocked ? "overflow-hidden" : ""}`}
+				style={{
+					maxHeight: isFullWidthStep && !cardUnlocked ? "300px" : "none",
+				}}
+			>
 				<StepIndicator steps={STEPS.length} current={currentStep} />
 				<StepComponent onNext={handleNext} />
-			</AuthCard>
+			</div>
 		</AuthLayout>
 	);
 }
@@ -126,7 +143,6 @@ function UsernameStep({ onNext }: { onNext: () => void }) {
 
 function AvatarStep({ onNext }: { onNext: () => void }) {
 	const [preview, setPreview] = useState<string | null>(null);
-	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
 	const [isSavingAvatar, setIsSavingAvatar] = useState(false);
 
@@ -164,22 +180,8 @@ function AvatarStep({ onNext }: { onNext: () => void }) {
 		await startUpload([file]);
 	}
 
-	async function finalizeOnboarding() {
-		setLoading(true);
-		try {
-			const { error: updateError } = await authClient.updateUser({
-				onboardingCompleted: true,
-			});
-			if (updateError) {
-				setError(updateError.message ?? "Something went wrong");
-				return;
-			}
-			onNext();
-		} catch {
-			setError("Something went wrong");
-		} finally {
-			setLoading(false);
-		}
+	function handleContinue() {
+		onNext();
 	}
 
 	return (
@@ -219,18 +221,18 @@ function AvatarStep({ onNext }: { onNext: () => void }) {
 
 			<button
 				type="button"
-				onClick={finalizeOnboarding}
-				disabled={loading || isUploading || isSavingAvatar}
+				onClick={handleContinue}
+				disabled={isUploading || isSavingAvatar}
 				className="w-full rounded-lg border-[1.5px] border-neon-cyan/50 bg-neon-cyan/8 py-3 font-display text-[15px] tracking-wide text-neon-cyan shadow-[0_0_15px_rgba(0,229,255,0.12)] transition-all duration-300 hover:bg-neon-cyan/15 hover:shadow-[0_0_25px_rgba(0,229,255,0.25)] disabled:opacity-50"
 				style={{ textShadow: "0 0 10px rgba(0,229,255,0.3)" }}
 			>
-				{loading ? "Finishing..." : "Finish"}
+				Continue
 			</button>
 
 			<button
 				type="button"
-				onClick={finalizeOnboarding}
-				disabled={loading || isUploading || isSavingAvatar}
+				onClick={handleContinue}
+				disabled={isUploading || isSavingAvatar}
 				className="mt-3 block w-full text-sm text-cream/30 transition-colors hover:text-cream/50 disabled:opacity-50"
 			>
 				Skip for now
