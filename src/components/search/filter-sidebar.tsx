@@ -16,6 +16,7 @@ interface FilterProps {
 	genre?: number;
 	yearMin?: number;
 	yearMax?: number;
+	rating?: number;
 }
 
 const TYPE_OPTIONS = [
@@ -24,15 +25,24 @@ const TYPE_OPTIONS = [
 	{ value: "tv" as const, label: "TV Shows" },
 ];
 
+const RATING_OPTIONS = [5, 6, 7, 8, 9];
+
 function getActiveCount(props: FilterProps) {
 	return [
 		props.type !== "all",
 		props.genre !== undefined,
 		props.yearMin !== undefined || props.yearMax !== undefined,
+		props.rating !== undefined,
 	].filter(Boolean).length;
 }
 
-function FilterControls({ type, genre, yearMin, yearMax }: FilterProps) {
+function FilterControls({
+	type,
+	genre,
+	yearMin,
+	yearMax,
+	rating,
+}: FilterProps) {
 	const navigate = useNavigate();
 	const [localYearMin, setLocalYearMin] = useState(yearMin?.toString() ?? "");
 	const [localYearMax, setLocalYearMax] = useState(yearMax?.toString() ?? "");
@@ -172,8 +182,36 @@ function FilterControls({ type, genre, yearMin, yearMax }: FilterProps) {
 				</div>
 			</div>
 
+			{/* Rating */}
+			<div role="radiogroup" aria-label="Minimum rating filter">
+				<div className="mb-2.5 font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-pink">
+					Min Rating
+				</div>
+				<div className="flex flex-wrap gap-1.5">
+					{RATING_OPTIONS.map((r) => (
+						// biome-ignore lint/a11y/useSemanticElements: styled pill buttons intentionally use role="radio"
+						<button
+							key={r}
+							type="button"
+							role="radio"
+							aria-checked={rating === r}
+							onClick={() =>
+								updateFilter({ rating: rating === r ? undefined : r })
+							}
+							className={`rounded-md border px-2.5 py-1 text-xs transition-all ${
+								rating === r
+									? "border-neon-amber text-neon-amber bg-neon-amber/10"
+									: "border-cream/10 text-cream/40 hover:border-neon-amber/30 hover:text-cream/70"
+							}`}
+						>
+							{r}+
+						</button>
+					))}
+				</div>
+			</div>
+
 			{/* Clear */}
-			{getActiveCount({ type, genre, yearMin, yearMax }) > 0 && (
+			{getActiveCount({ type, genre, yearMin, yearMax, rating }) > 0 && (
 				<button
 					type="button"
 					onClick={clearFilters}
