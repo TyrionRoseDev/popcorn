@@ -120,20 +120,31 @@ export async function fetchTrending(page: number) {
 }
 
 export async function searchMulti(query: string, page: number) {
-	const response = await tmdbFetch<TmdbPagedResponse<TmdbSearchResult>>(
-		"/search/multi",
-		{
-			query,
-			page: String(page),
-			include_adult: "false",
-		},
-	);
+	const params = { query, page: String(page), include_adult: "false" };
 
-	// Filter out non-movie/tv results (e.g. person)
+	const [movieRes, tvRes] = await Promise.all([
+		tmdbFetch<TmdbPagedResponse<TmdbMovieResult>>("/search/movie", params),
+		tmdbFetch<TmdbPagedResponse<TmdbTvResult>>("/search/tv", params),
+	]);
+
+	const results: TmdbSearchResult[] = [
+		...movieRes.results.map((r) => ({
+			...r,
+			media_type: "movie" as const,
+		})),
+		...tvRes.results.map((r) => ({
+			...r,
+			media_type: "tv" as const,
+		})),
+	];
+
+	const total_results = movieRes.total_results + tvRes.total_results;
+	const total_pages = Math.ceil(total_results / 20);
+
 	return {
-		...response,
-		results: response.results.filter(
-			(r) => r.media_type === "movie" || r.media_type === "tv",
-		),
-	};
+		results,
+		page: movieRes.page,
+		total_pages,
+		total_results,
+	} satisfies TmdbPagedResponse<TmdbSearchResult>;
 }
