@@ -9,6 +9,7 @@ export const env = createEnv({
 		RESEND_API_KEY: z.string().min(1),
 		RESEND_FROM_EMAIL: z.string().email(),
 		UPLOADTHING_TOKEN: z.string().min(1),
+		TMDB_API_KEY: z.string().min(1),
 	},
 
 	clientPrefix: "VITE_",
