@@ -37,7 +37,7 @@ Primary size: `w500` for grid cards.
 
 ## Onboarding Integration
 
-The existing onboarding flow (steps 1-2) uses a compact `AuthLayout > AuthCard` wrapper. The taste profile step is a full-page experience (infinite scroll grid, floating footer, search) that does not fit inside `AuthCard`. This step must **break out of the `AuthCard` container** and render as a full-width layout within `AuthLayout` (keeping the overall auth chrome like logo and background).
+The existing onboarding flow (steps 1-2) uses a compact `AuthLayout > AuthCard` wrapper. The taste profile step is a full-page experience (infinite scroll grid, floating footer, search) that does not fit inside `AuthCard`. This step must **break out of the `AuthCard` container** and render as a full-width layout within `AuthLayout` (keeping the overall auth chrome like logo and background). Since `AuthLayout`'s content wrapper (`flex flex-col items-center`) doesn't constrain width for non-`AuthCard` children, the `TasteProfileStep` component must set its own width (e.g. `w-full max-w-6xl mx-auto px-4`).
 
 The existing avatar step (step 2) currently calls `authClient.updateUser({ onboardingCompleted: true })` via `finalizeOnboarding`. This must be **removed from step 2** — `onboardingCompleted` is now set server-side by `saveTasteProfile` in step 3. Step 2 should only save the avatar and call `onNext()`.
 
