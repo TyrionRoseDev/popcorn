@@ -46,7 +46,7 @@ function TitlePage() {
 
 	if (!data) return <TitlePageSkeleton />;
 
-	const posterUrl = getTmdbImageUrl(data.posterPath, "w500");
+	const posterUrl = getTmdbImageUrl(data.posterPath, "w342");
 
 	return (
 		<div>
@@ -65,31 +65,41 @@ function TitlePage() {
 							className="w-[160px] h-[240px] md:w-[220px] md:h-[330px] rounded-lg object-cover border border-neon-pink/20 shadow-[0_4px_20px_rgba(0,0,0,0.4)]"
 						/>
 					) : (
-						<div className="w-[160px] h-[240px] md:w-[220px] md:h-[330px] rounded-lg bg-gradient-to-br from-[#2a1a4e] to-[#1a3a5e] border border-neon-pink/20 shadow-[0_4px_20px_rgba(0,0,0,0.4)]" />
+						<div className="w-[160px] h-[240px] md:w-[220px] md:h-[330px] rounded-lg bg-gradient-to-br from-[#2a1a4e] to-[#1a3a5e] border border-neon-pink/20 shadow-[0_4px_20px_rgba(0,0,0,0.4)] flex items-center justify-center text-cream/20 text-xs">
+							No Poster
+						</div>
 					)}
 					<button
 						type="button"
 						onClick={() => {
-							// TODO: implement watchlist
+							// TODO: implement watchlist functionality
 						}}
-						className="w-[160px] md:w-[220px] h-11 rounded-md bg-neon-pink/10 border border-neon-pink/30 text-neon-pink font-mono-retro text-xs tracking-wider uppercase hover:bg-neon-pink/20 hover:border-neon-pink/50 hover:shadow-[0_0_15px_rgba(255,45,120,0.2)] transition-all cursor-pointer"
+						className="w-[160px] md:w-[220px] py-3 rounded-md bg-neon-pink text-white font-semibold text-sm tracking-wider shadow-[0_0_20px_rgba(255,45,120,0.3)] hover:shadow-[0_0_30px_rgba(255,45,120,0.5)] hover:-translate-y-0.5 transition-all cursor-pointer"
 					>
-						+ Watchlist
+						+ Add to Watchlist
 					</button>
 				</div>
 
 				{/* Content area */}
-				<div className="flex-1 min-w-0 space-y-5">
+				<div className="flex-1 min-w-0 flex flex-col gap-7">
 					{/* Title heading */}
 					<div>
 						<h1 className="font-display text-3xl md:text-4xl text-cream [text-shadow:0_0_30px_rgba(255,45,120,0.3),0_0_60px_rgba(255,45,120,0.15)]">
 							{data.title}
 						</h1>
-						<p className="mt-1.5 text-sm text-cream/50 font-mono-retro tracking-wide">
-							{[data.year, data.runtime, data.rating ? `${data.rating.toFixed(1)} / 10` : null]
-								.filter(Boolean)
-								.join(" \u00B7 ")}
-						</p>
+						<div className="flex items-center gap-2 text-sm text-cream/60 mt-1.5">
+							<span>{data.year}</span>
+							{data.runtime && (
+								<>
+									<span>&bull;</span>
+									<span>{data.runtime}</span>
+								</>
+							)}
+							<span>&bull;</span>
+							<span className="text-neon-amber [text-shadow:0_0_8px_rgba(255,184,0,0.5)]">
+								★ {data.rating.toFixed(1)}
+							</span>
+						</div>
 					</div>
 
 					<TitleInfoBar
