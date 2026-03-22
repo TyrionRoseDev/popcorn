@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { RetroOverlays } from "#/components/retro-overlays";
+import { SearchBar } from "#/components/search/search-bar";
+import { SearchLanding } from "#/components/search/search-landing";
+import { SearchResults } from "#/components/search/search-results";
 
 const searchParamsSchema = z.object({
 	q: z.string().default(""),
@@ -20,16 +24,35 @@ export const Route = createFileRoute("/app/search")({
 });
 
 function SearchPage() {
-	const search = Route.useSearch();
+	const { q, type, genre, yearMin, yearMax, rating, sort, page } =
+		Route.useSearch();
+	const hasQuery = q.trim().length > 0;
 
 	return (
-		<div className="min-h-screen bg-drive-in-bg">
-			<div className="mx-auto max-w-6xl px-4 py-10">
+		<div className="relative min-h-screen bg-drive-in-bg">
+			<RetroOverlays />
+
+			<div className="relative z-10 mx-auto max-w-6xl px-4 py-10">
 				<h1 className="font-display text-2xl text-cream mb-8">Search</h1>
-				<p className="text-cream/50">Search page — components coming next.</p>
-				<pre className="text-cream/30 text-xs mt-4">
-					{JSON.stringify(search, null, 2)}
-				</pre>
+
+				<div className="mb-8">
+					<SearchBar initialValue={q} />
+				</div>
+
+				{hasQuery ? (
+					<SearchResults
+						q={q}
+						type={type}
+						genre={genre}
+						yearMin={yearMin}
+						yearMax={yearMax}
+						rating={rating}
+						sort={sort}
+						page={page}
+					/>
+				) : (
+					<SearchLanding />
+				)}
 			</div>
 		</div>
 	);
