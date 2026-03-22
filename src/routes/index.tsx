@@ -5,7 +5,19 @@ import { RetroOverlays } from "#/components/retro-overlays";
 import { Spotlights } from "#/components/spotlight";
 import { TicketStub } from "#/components/ticket-stub";
 
-export const Route = createFileRoute("/")({ component: LandingPage });
+export const Route = createFileRoute("/")({
+	component: LandingPage,
+	head: () => ({
+		meta: [
+			{ title: "Popcorn — Your Drive-In Film Diary" },
+			{
+				name: "description",
+				content:
+					"Track films, build watchlists, and get smart picks. Best enjoyed with popcorn.",
+			},
+		],
+	}),
+});
 
 const FEATURES = [
 	"Film Diary",
@@ -80,7 +92,7 @@ function LandingPage() {
 				</h1>
 
 				{/* CTA buttons */}
-				<div className="relative z-10 mt-14 flex gap-4">
+				<div className="relative z-10 mt-14 flex flex-col items-center gap-4 sm:flex-row">
 					<Link
 						to="/login"
 						className="rounded border-[1.5px] border-neon-pink/50 px-8 py-3.5 font-display text-[15px] tracking-wide text-neon-pink no-underline transition-all duration-300 hover:bg-neon-pink/8 hover:shadow-[0_0_25px_rgba(255,45,120,0.3)]"
@@ -101,7 +113,7 @@ function LandingPage() {
 
 			{/* ========== TICKET → PROGRAMME SCROLL STORY ========== */}
 			<section
-				className="relative"
+				className="relative overflow-clip"
 				style={{ background: "#0a0a1e" }}
 			>
 				<div className="relative px-4 sm:px-8">

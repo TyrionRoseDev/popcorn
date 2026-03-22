@@ -1,14 +1,19 @@
-function SpotlightBeam({ className }: { className?: string }) {
+function SpotlightBeam({
+	className,
+	idPrefix,
+}: { className?: string; idPrefix: string }) {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 1000 900"
 			fill="none"
 			className={className}
+			aria-hidden="true"
+			focusable="false"
 		>
 			<defs>
 				<filter
-					id="bl-h"
+					id={`${idPrefix}-bl-h`}
 					colorInterpolationFilters="sRGB"
 					x="-200"
 					y="-200"
@@ -19,7 +24,7 @@ function SpotlightBeam({ className }: { className?: string }) {
 					<feGaussianBlur stdDeviation="110" />
 				</filter>
 				<filter
-					id="bl-m"
+					id={`${idPrefix}-bl-m`}
 					colorInterpolationFilters="sRGB"
 					x="-100"
 					y="-100"
@@ -30,7 +35,7 @@ function SpotlightBeam({ className }: { className?: string }) {
 					<feGaussianBlur stdDeviation="55" />
 				</filter>
 				<filter
-					id="bl-l"
+					id={`${idPrefix}-bl-l`}
 					colorInterpolationFilters="sRGB"
 					x="-50"
 					y="-50"
@@ -41,7 +46,7 @@ function SpotlightBeam({ className }: { className?: string }) {
 					<feGaussianBlur stdDeviation="25" />
 				</filter>
 				<linearGradient
-					id="bg"
+					id={`${idPrefix}-bg`}
 					x1="800"
 					y1="200"
 					x2="200"
@@ -52,7 +57,7 @@ function SpotlightBeam({ className }: { className?: string }) {
 					<stop offset="1" stopColor="#fff" />
 				</linearGradient>
 				<linearGradient
-					id="bgc"
+					id={`${idPrefix}-bgc`}
 					x1="700"
 					y1="300"
 					x2="250"
@@ -67,21 +72,21 @@ function SpotlightBeam({ className }: { className?: string }) {
 			</defs>
 			<path
 				d="M150 820 L600 80 L880 300 Z"
-				fill="url(#bg)"
+				fill={`url(#${idPrefix}-bg)`}
 				fillOpacity="0.35"
-				filter="url(#bl-h)"
+				filter={`url(#${idPrefix}-bl-h)`}
 			/>
 			<path
 				d="M150 820 L600 80 L880 300 Z"
-				fill="url(#bg)"
+				fill={`url(#${idPrefix}-bg)`}
 				fillOpacity="0.25"
-				filter="url(#bl-m)"
+				filter={`url(#${idPrefix}-bl-m)`}
 			/>
 			<path
 				d="M180 810 L580 130 L820 330 Z"
-				fill="url(#bgc)"
+				fill={`url(#${idPrefix}-bgc)`}
 				fillOpacity="0.45"
-				filter="url(#bl-l)"
+				filter={`url(#${idPrefix}-bl-l)`}
 			/>
 		</svg>
 	);
@@ -107,7 +112,7 @@ export function Spotlights() {
 					zIndex: 1,
 				}}
 			>
-				<SpotlightBeam />
+				<SpotlightBeam idPrefix="sl" />
 			</div>
 
 			{/* Right spotlight (mirrored) */}
@@ -128,7 +133,7 @@ export function Spotlights() {
 					zIndex: 1,
 				}}
 			>
-				<SpotlightBeam className="[transform:rotateY(180deg)]" />
+				<SpotlightBeam idPrefix="sr" className="[transform:rotateY(180deg)]" />
 			</div>
 		</div>
 	);
