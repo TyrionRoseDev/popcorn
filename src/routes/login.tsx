@@ -58,18 +58,18 @@ function LoginPage() {
       <AuthCard>
         {sent ? (
           <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-neon-cyan/30 text-3xl shadow-[0_0_20px_rgba(0,229,255,0.15)]">
+            <div className="mx-auto mb-6 flex h-18 w-18 items-center justify-center rounded-full border-2 border-neon-cyan/30 text-3xl shadow-[0_0_20px_rgba(0,229,255,0.15)]">
               ✉
             </div>
-            <h2 className="mb-1.5 font-display text-xl text-cream">
+            <h2 className="mb-2 font-display text-xl text-cream">
               Magic link sent!
             </h2>
-            <p className="mb-4 text-sm text-cream/50">
+            <p className="mb-6 text-sm text-cream/50">
               We sent a sign-in link to
               <br />
               <span className="text-neon-cyan">{email}</span>
             </p>
-            <p className="mb-4 text-xs text-cream/30">
+            <p className="mb-6 text-xs text-cream/30">
               Check your inbox and click the link to continue.
               <br />
               The link expires in 10 minutes.

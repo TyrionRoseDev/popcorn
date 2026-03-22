@@ -26,7 +26,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center">
         {/* Logo */}
-        <Link to="/" className="no-underline">
+        <Link to="/" className="mb-6 no-underline">
           <h1
             className="font-logo text-[clamp(2rem,8vw,3.5rem)] leading-none"
             style={{
