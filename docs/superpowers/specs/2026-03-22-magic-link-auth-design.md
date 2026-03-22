@@ -43,10 +43,10 @@ src/routes/
   index.tsx               (existing — landing page)
   login.tsx               (new — magic link form)
   api/auth/$.ts           (existing — better-auth handler)
-  _app/
+  app/
     route.tsx             (auth guard — checks session + onboardingCompleted)
     index.tsx             (/app — authenticated home)
-  _onboarding/
+  onboarding/
     route.tsx             (onboarding guard — checks session + !onboardingCompleted)
     index.tsx             (/onboarding — step-based flow)
 ```
@@ -55,7 +55,7 @@ src/routes/
 
 1. User enters email on `/login` → magic link sent → UI swaps to "check your email" state
 2. User clicks link in email → better-auth verifies token, creates session
-3. Magic link's `callbackURL` is set to `/app`. The `_app/route.tsx` auth guard handles the onboarding check:
+3. Magic link's `callbackURL` is set to `/app`. The `app/route.tsx` auth guard handles the onboarding check:
    - `onboardingCompleted === false` → redirect to `/onboarding`
    - `onboardingCompleted === true` → proceed to `/app`
 4. Onboarding is gated — user cannot navigate to `/app` until completed
@@ -63,8 +63,8 @@ src/routes/
 
 ### Auth Guards
 
-- `_app/route.tsx`: requires session AND `onboardingCompleted === true`. No session → `/login`. Not completed → `/onboarding`.
-- `_onboarding/route.tsx`: requires session AND `onboardingCompleted === false`. Already completed → `/app`. No session → `/login`.
+- `app/route.tsx`: requires session AND `onboardingCompleted === true`. No session → `/login`. Not completed → `/onboarding`.
+- `onboarding/route.tsx`: requires session AND `onboardingCompleted === false`. Already completed → `/app`. No session → `/login`.
 
 ## Login Page
 
