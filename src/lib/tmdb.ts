@@ -125,8 +125,8 @@ export async function discoverMoviesWithParams(
 ) {
 	return tmdbFetch<TmdbPagedResponse<TmdbMovieResult>>("/discover/movie", {
 		page: String(page),
-		include_adult: "false",
 		...params,
+		include_adult: "false",
 	});
 }
 
@@ -136,8 +136,8 @@ export async function discoverTvWithParams(
 ) {
 	return tmdbFetch<TmdbPagedResponse<TmdbTvResult>>("/discover/tv", {
 		page: String(page),
-		include_adult: "false",
 		...params,
+		include_adult: "false",
 	});
 }
 

@@ -13,7 +13,7 @@ import {
 
 // Mock global fetch
 const mockFetch = vi.fn();
-vi.stubGlobal("fetch", mockFetch);
+globalThis.fetch = mockFetch;
 
 // Mock env to avoid needing real env vars in tests
 vi.mock("#/env", () => ({
