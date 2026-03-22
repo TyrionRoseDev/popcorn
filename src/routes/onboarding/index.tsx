@@ -131,11 +131,17 @@ function AvatarStep({ onNext }: { onNext: () => void }) {
   const [preview, setPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isSavingAvatar, setIsSavingAvatar] = useState(false)
 
   const { startUpload, isUploading } = useUploadThing('avatarUploader', {
     onClientUploadComplete: async (res) => {
       if (res?.[0]) {
-        await authClient.updateUser({ avatarUrl: res[0].ufsUrl })
+        setIsSavingAvatar(true)
+        try {
+          await authClient.updateUser({ avatarUrl: res[0].ufsUrl })
+        } finally {
+          setIsSavingAvatar(false)
+        }
       }
     },
     onUploadError: (err) => {
@@ -213,14 +219,16 @@ function AvatarStep({ onNext }: { onNext: () => void }) {
         />
       </label>
 
-      {isUploading && (
-        <p className="mb-4 text-xs text-neon-cyan/60">Uploading...</p>
+      {(isUploading || isSavingAvatar) && (
+        <p className="mb-4 text-xs text-neon-cyan/60">
+          {isSavingAvatar ? 'Saving...' : 'Uploading...'}
+        </p>
       )}
 
       <button
         type="button"
         onClick={handleFinish}
-        disabled={loading || isUploading}
+        disabled={loading || isUploading || isSavingAvatar}
         className="w-full rounded-lg border-[1.5px] border-neon-cyan/50 bg-neon-cyan/8 py-3 font-display text-[15px] tracking-wide text-neon-cyan shadow-[0_0_15px_rgba(0,229,255,0.12)] transition-all duration-300 hover:bg-neon-cyan/15 hover:shadow-[0_0_25px_rgba(0,229,255,0.25)] disabled:opacity-50"
         style={{ textShadow: '0 0 10px rgba(0,229,255,0.3)' }}
       >
@@ -230,7 +238,7 @@ function AvatarStep({ onNext }: { onNext: () => void }) {
       <button
         type="button"
         onClick={handleSkip}
-        disabled={loading || isUploading}
+        disabled={loading || isUploading || isSavingAvatar}
         className="mt-3 block w-full text-sm text-cream/30 transition-colors hover:text-cream/50 disabled:opacity-50"
       >
         Skip for now

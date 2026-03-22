@@ -12,7 +12,7 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-  username: text("username"),
+  username: text("username").unique(),
   avatarUrl: text("avatar_url"),
   onboardingCompleted: boolean("onboarding_completed").default(false),
 });
