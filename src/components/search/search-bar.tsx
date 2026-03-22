@@ -16,6 +16,25 @@ export function SearchBar({ initialValue }: SearchBarProps) {
 		setValue(initialValue);
 	}, [initialValue]);
 
+	function doSearch(query: string) {
+		if (debounceRef.current) {
+			clearTimeout(debounceRef.current);
+		}
+		navigate({
+			to: "/app/search",
+			search: (prev) => ({
+				q: query,
+				type: prev.type ?? "all",
+				sort: prev.sort ?? "relevance",
+				page: 1,
+				genre: prev.genre,
+				yearMin: prev.yearMin,
+				yearMax: prev.yearMax,
+				rating: prev.rating,
+			}),
+		});
+	}
+
 	function handleChange(newValue: string) {
 		setValue(newValue);
 
@@ -24,19 +43,7 @@ export function SearchBar({ initialValue }: SearchBarProps) {
 		}
 
 		debounceRef.current = setTimeout(() => {
-			navigate({
-				to: "/app/search",
-				search: (prev) => ({
-					q: newValue,
-					type: prev.type ?? "all",
-					sort: prev.sort ?? "relevance",
-					page: 1,
-					genre: prev.genre,
-					yearMin: prev.yearMin,
-					yearMax: prev.yearMax,
-					rating: prev.rating,
-				}),
-			});
+			doSearch(newValue);
 		}, 300);
 	}
 
@@ -51,27 +58,41 @@ export function SearchBar({ initialValue }: SearchBarProps) {
 		});
 	}
 
+	function handleSubmit(e: React.FormEvent) {
+		e.preventDefault();
+		doSearch(value);
+	}
+
 	return (
-		<div className="relative">
+		<form onSubmit={handleSubmit} className="relative">
 			<Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/30" />
 			<input
-				type="search"
+				type="text"
 				aria-label="Search movies and TV shows"
 				value={value}
 				onChange={(e) => handleChange(e.target.value)}
 				placeholder="Search movies & TV shows..."
-				className="w-full rounded-xl border border-cream/12 bg-cream/6 py-3 pl-10 pr-10 text-[15px] text-cream placeholder:text-cream/30 outline-none transition-all duration-200 focus:border-neon-cyan/40 focus:shadow-[0_0_20px_rgba(0,229,255,0.1)]"
+				className="w-full rounded-xl border border-cream/12 bg-cream/6 py-3 pl-10 pr-20 text-[15px] text-cream placeholder:text-cream/30 outline-none transition-all duration-200 focus:border-neon-cyan/40 focus:shadow-[0_0_20px_rgba(0,229,255,0.1)]"
 			/>
-			{value && (
+			<div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+				{value && (
+					<button
+						type="button"
+						onClick={handleClear}
+						className="rounded-full p-1 text-cream/40 hover:text-cream/70 transition-colors"
+						aria-label="Clear search"
+					>
+						<X className="h-4 w-4" />
+					</button>
+				)}
 				<button
-					type="button"
-					onClick={handleClear}
-					className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-cream/40 hover:text-cream/70 transition-colors"
-					aria-label="Clear search"
+					type="submit"
+					className="rounded-lg bg-neon-cyan/15 p-1.5 text-neon-cyan transition-colors hover:bg-neon-cyan/25"
+					aria-label="Search"
 				>
-					<X className="h-4 w-4" />
+					<Search className="h-4 w-4" />
 				</button>
-			)}
-		</div>
+			</div>
+		</form>
 	);
 }
