@@ -6,29 +6,37 @@ A detail page for individual movies and TV shows, accessible from search results
 
 ## Route
 
-`/app/title/:mediaType/:tmdbId`
+**File:** `src/routes/app/title.$mediaType.$tmdbId.tsx` (flat file convention, matching existing project style)
+
+**URL:** `/app/title/:mediaType/:tmdbId`
 
 - `mediaType`: `"movie" | "tv"` (validated via Zod)
 - `tmdbId`: `number`
 - Sits under the `/app` layout (inherits navbar + auth guard)
-- `PosterCard` components in search results link here
+- `PosterCard` components in search results link here via `<Link>` wrapper
 
 ## Data Layer
 
-### New tRPC Procedure: `title.details`
+### New tRPC Router: `title`
+
+**Procedure:** `title.details` — `publicProcedure` (page is behind auth guard at the route level already)
 
 **Input:** `{ mediaType: "movie" | "tv", tmdbId: number }`
 
-Fetches three TMDB endpoints in parallel on the server:
+Fetches four TMDB endpoints in parallel on the server:
 - `/movie/{id}` or `/tv/{id}` — full details
-- `/movie/{id}/credits` or `/tv/{id}/credits` — cast
+- `/movie/{id}/credits` or `/tv/{id}/credits` — cast (capped to top 12 billed)
 - `/movie/{id}/videos` or `/tv/{id}/videos` — trailers (filtered for YouTube)
 - `/movie/{id}/release_dates` or `/tv/{id}/content_ratings` — content rating (US cert)
+
+If credits or videos calls fail, return empty arrays / null fallbacks. Only fail the entire request if the main details call fails.
+
+**TMDB image sizes:** Extend the `ImageSize` type in `src/lib/tmdb.ts` to include `w1280` for backdrop images.
 
 **Return type:**
 
 ```typescript
-interface TitleDetails {
+interface TitleData {
   tmdbId: number
   mediaType: "movie" | "tv"
   title: string
@@ -37,7 +45,7 @@ interface TitleDetails {
   year: string                    // e.g. "2008"
   runtime: string                 // "2h 32m" or "45m per episode"
   rating: number                  // vote_average
-  contentRating: string           // "PG-13", "TV-MA", etc.
+  contentRating: string           // "PG-13", "TV-MA", etc. — fallback to "NR" if unavailable
   genres: string[]                // genre names, not IDs
   posterPath: string | null
   backdropPath: string | null
@@ -57,6 +65,25 @@ interface TitleDetails {
 ```
 
 **Date formatting:** Only the year is displayed. If full dates are needed in the future, use UK format (DD/MM/YYYY).
+
+### Data Loading
+
+Use TanStack Router's route `loader` to prefetch `title.details` via tRPC, so the page renders with data immediately (no loading flash on navigation).
+
+## States
+
+### Loading State
+Use skeleton placeholders matching the page layout: a grey shimmer block for the hero, a skeleton rectangle for the poster, and animated lines for the text sections.
+
+### Error State
+- **404 (invalid tmdbId):** Show a "Title not found" message with a link back to search
+- **Server error:** Show a generic error message with a retry button
+
+### Missing Data Fallbacks
+- **No trailer (`trailerKey` is null):** Hide the play button entirely; hero shows just the backdrop
+- **No backdrop:** Fall back to a gradient matching the drive-in theme
+- **No poster:** Show a gradient placeholder with a film icon
+- **No cast photos:** Show gradient circle fallback per actor
 
 ## Page Layout
 
@@ -107,11 +134,11 @@ interface TitleDetails {
 All in `src/components/title/`:
 
 ### 1. `HeroTrailer`
-- Full-width backdrop image (TMDB `w1280`)
+- Full-width backdrop image (TMDB `w1280` — requires extending `ImageSize` type)
 - Film strip borders (top and bottom) with sprocket holes
 - Vignette overlay (radial gradient darkening edges)
-- Centered play button (neon-pink, glowing)
-- On click: swaps backdrop for YouTube iframe embed
+- Centered play button (neon-pink, glowing) — hidden if `trailerKey` is null
+- On click: swaps backdrop for YouTube iframe embed (use `youtube-nocookie.com` for privacy)
 - Bottom gradient fading to page background
 
 **Props:** `backdropPath`, `trailerKey`
@@ -130,7 +157,7 @@ All in `src/components/title/`:
 
 **Props:** `overview`
 
-### 4. `TitleDetails`
+### 4. `TitleMetadata`
 - Section label "DETAILS" in neon pink
 - Tagline in italics with pink left border
 - Director/creator row
@@ -146,30 +173,43 @@ All in `src/components/title/`:
 - Actor name (white, bold) + character name (muted gray) below each
 - Right-edge fade effect to hint at scrollable content
 - TMDB `w185` profile images, gradient fallback for missing photos
+- Display up to 12 cast members
 
 **Props:** `cast[]`
+
+### 6. `SectionDivider`
+- Simple styled `<hr>` element
+- Gradient line fading from neon-pink to neon-cyan to transparent
+
+**Props:** none
 
 ### Page Composition (in route file)
 
 ```tsx
-<HeroTrailer />
+<HeroTrailer backdropPath={data.backdropPath} trailerKey={data.trailerKey} />
 <div className="sidebar-layout">
   <div className="poster-sidebar">
-    <img />                    {/* poster, not its own component */}
-    <WatchlistButton />        {/* TODO: implement watchlist on click */}
+    <img />                    {/* poster image, not its own component */}
+    <button>+ Add to Watchlist</button>  {/* TODO: implement watchlist on click */}
   </div>
   <div className="content">
-    <TitleHeading />            {/* title + year/runtime/rating */}
+    {/* Title heading — inline in the route file, not a separate component */}
+    <div>
+      <h1>{data.title}</h1>
+      <span>{data.year} • {data.runtime} • ★ {data.rating}</span>
+    </div>
     <TitleInfoBar />
     <SectionDivider />
     <Synopsis />
     <SectionDivider />
-    <TitleDetails />
+    <TitleMetadata />
     <SectionDivider />
     <CastList />
   </div>
 </div>
 ```
+
+The title heading is rendered inline in the route file — it's just an `<h1>` and a metadata line, not complex enough for its own component.
 
 ## Styling & Theme
 
@@ -200,7 +240,7 @@ Uses existing design tokens from `src/styles.css`:
 
 ## Navigation
 
-- `PosterCard` components in search results will be updated to link to `/app/title/${mediaType}/${tmdbId}`
+- Wrap `PosterCard` in search results with a `<Link to="/app/title/$mediaType/$tmdbId">` — the card itself stays as-is, just wrapped in a link
 - Back navigation: browser back button (no custom back button needed since navbar is present)
 
 ## Mockup Reference
