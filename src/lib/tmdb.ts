@@ -119,6 +119,44 @@ export async function fetchTrending(page: number) {
 	);
 }
 
+export async function discoverMoviesWithParams(
+	page: number,
+	params: Record<string, string> = {},
+) {
+	return tmdbFetch<TmdbPagedResponse<TmdbMovieResult>>("/discover/movie", {
+		page: String(page),
+		include_adult: "false",
+		...params,
+	});
+}
+
+export async function discoverTvWithParams(
+	page: number,
+	params: Record<string, string> = {},
+) {
+	return tmdbFetch<TmdbPagedResponse<TmdbTvResult>>("/discover/tv", {
+		page: String(page),
+		include_adult: "false",
+		...params,
+	});
+}
+
+export async function searchMovies(query: string, page: number) {
+	return tmdbFetch<TmdbPagedResponse<TmdbMovieResult>>("/search/movie", {
+		query,
+		page: String(page),
+		include_adult: "false",
+	});
+}
+
+export async function searchTvShows(query: string, page: number) {
+	return tmdbFetch<TmdbPagedResponse<TmdbTvResult>>("/search/tv", {
+		query,
+		page: String(page),
+		include_adult: "false",
+	});
+}
+
 export async function searchMulti(query: string, page: number) {
 	const params = { query, page: String(page), include_adult: "false" };
 
