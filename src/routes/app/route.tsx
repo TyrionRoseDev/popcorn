@@ -41,7 +41,7 @@ function AppLayout() {
 						className="flex items-center gap-2 no-underline"
 					>
 						<span
-							className="font-logo text-lg leading-none"
+							className="font-logo text-2xl leading-none"
 							style={{
 								animationName: "neon-cycle",
 								animationDuration: "6s",

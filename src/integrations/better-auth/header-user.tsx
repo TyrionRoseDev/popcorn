@@ -1,4 +1,11 @@
 import { Link, useNavigate } from "@tanstack/react-router";
+import { LogOut } from "lucide-react";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "#/components/ui/dropdown-menu";
 import { authClient } from "#/lib/auth-client";
 
 export default function BetterAuthHeader() {
@@ -6,38 +13,50 @@ export default function BetterAuthHeader() {
 	const navigate = useNavigate();
 
 	if (isPending) {
-		return <div className="h-8 w-8 animate-pulse rounded-full bg-cream/10" />;
+		return <div className="h-9 w-9 animate-pulse rounded-full bg-cream/10" />;
 	}
 
 	if (session?.user) {
 		return (
-			<div className="flex items-center gap-2">
-				{session.user.avatarUrl ? (
-					<img
-						src={session.user.avatarUrl}
-						alt=""
-						className="h-8 w-8 rounded-full object-cover"
-					/>
-				) : (
-					<div className="flex h-8 w-8 items-center justify-center rounded-full bg-cream/10">
-						<span className="text-xs font-medium text-cream/60">
-							{session.user.username?.charAt(0).toUpperCase() ||
-								session.user.email?.charAt(0).toUpperCase() ||
-								"U"}
-						</span>
-					</div>
-				)}
-				<button
-					type="button"
-					onClick={async () => {
-						await authClient.signOut();
-						navigate({ to: "/" });
-					}}
-					className="rounded-lg border border-cream/15 bg-cream/5 px-3 py-1.5 text-xs font-medium text-cream/60 transition-colors hover:bg-cream/10 hover:text-cream/80"
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<button
+						type="button"
+						className="rounded-full outline-none transition-all hover:ring-2 hover:ring-neon-cyan/30 focus-visible:ring-2 focus-visible:ring-neon-cyan/30"
+					>
+						{session.user.avatarUrl ? (
+							<img
+								src={session.user.avatarUrl}
+								alt=""
+								className="h-9 w-9 rounded-full object-cover"
+							/>
+						) : (
+							<div className="flex h-9 w-9 items-center justify-center rounded-full bg-cream/10">
+								<span className="text-sm font-medium text-cream/60">
+									{session.user.username?.charAt(0).toUpperCase() ||
+										session.user.email?.charAt(0).toUpperCase() ||
+										"U"}
+								</span>
+							</div>
+						)}
+					</button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent
+					align="end"
+					className="border-cream/10 bg-drive-in-card"
 				>
-					Sign out
-				</button>
-			</div>
+					<DropdownMenuItem
+						onClick={async () => {
+							await authClient.signOut();
+							navigate({ to: "/" });
+						}}
+						className="text-cream/60 focus:bg-cream/5 focus:text-cream/80"
+					>
+						<LogOut className="mr-2 h-4 w-4" />
+						Sign out
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
 		);
 	}
 
