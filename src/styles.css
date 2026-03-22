@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&family=Righteous&family=Space+Mono:wght@400;700&display=swap');
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
@@ -119,6 +119,16 @@
 
 @theme inline {
   --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-logo: 'Bungee Shade', cursive;
+  --font-display: 'Righteous', cursive;
+  --font-mono-retro: 'Space Mono', monospace;
+  --color-neon-pink: #FF2D78;
+  --color-neon-cyan: #00E5FF;
+  --color-neon-amber: #FFB800;
+  --color-drive-in-bg: #050508;
+  --color-drive-in-card: #0a0a1e;
+  --color-drive-in-border: #1a1a2e;
+  --color-cream: #fffff0;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -173,7 +183,7 @@ body {
     radial-gradient(1050px 620px at 112% -12%, var(--hero-b), transparent 62%),
     radial-gradient(720px 380px at 50% 115%, rgba(79, 184, 178, 0.1), transparent 68%),
     linear-gradient(180deg, color-mix(in oklab, var(--sand) 68%, white) 0%, var(--foam) 44%, var(--bg-base) 100%);
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -343,5 +353,75 @@ a {
   body {
     background-color: var(--background);
     color: var(--foreground);
+  }
+}
+
+/* === Retro / Drive-In Animations === */
+
+@keyframes neon-cycle {
+  0%, 100% {
+    color: var(--color-neon-pink);
+    text-shadow: 0 0 7px rgba(255,45,120,0.5), 0 0 20px rgba(255,45,120,0.35), 0 0 45px rgba(255,45,120,0.2), 0 0 80px rgba(255,45,120,0.1);
+  }
+  33% {
+    color: var(--color-neon-cyan);
+    text-shadow: 0 0 7px rgba(0,229,255,0.5), 0 0 20px rgba(0,229,255,0.35), 0 0 45px rgba(0,229,255,0.2), 0 0 80px rgba(0,229,255,0.1);
+  }
+  66% {
+    color: var(--color-neon-amber);
+    text-shadow: 0 0 7px rgba(255,184,0,0.5), 0 0 20px rgba(255,184,0,0.35), 0 0 45px rgba(255,184,0,0.2), 0 0 80px rgba(255,184,0,0.1);
+  }
+}
+
+@keyframes marquee-pulse {
+  0%, 100% { border-color: rgba(255,184,0,0.3); text-shadow: 0 0 6px rgba(255,184,0,0.3); }
+  50% { border-color: rgba(255,184,0,0.6); text-shadow: 0 0 12px rgba(255,184,0,0.5); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: var(--o1, 0.15); transform: scale(1); }
+  50% { opacity: var(--o2, 0.9); transform: scale(1.3); }
+}
+
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  33% { transform: translate(-5px, 3px); }
+  66% { transform: translate(3px, -5px); }
+  100% { transform: translate(-3px, -3px); }
+}
+
+@keyframes vhs-scan {
+  0% { top: -2px; }
+  100% { top: 100%; }
+}
+
+@keyframes bulb-chase {
+  0%, 100% { opacity: 0.3; box-shadow: 0 0 3px rgba(255,184,0,0.2); }
+  50% { opacity: 1; box-shadow: 0 0 10px rgba(255,184,0,0.7); }
+}
+
+@keyframes footer-flicker {
+  0%, 91%, 94%, 97%, 100% { opacity: 1; }
+  92% { opacity: 0.4; }
+  93% { opacity: 0.9; }
+  95% { opacity: 0.5; }
+  96% { opacity: 1; }
+}
+
+@keyframes sway-left {
+  0% { transform: rotate(-10deg); }
+  100% { transform: rotate(16deg); }
+}
+
+@keyframes sway-right {
+  0% { transform: rotate(10deg); }
+  100% { transform: rotate(-16deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
