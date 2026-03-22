@@ -203,45 +203,43 @@ export function TasteProfileStep({ onNext }: { onNext: () => void }) {
 
 				{/* Empty state or grid */}
 				{emptyMessage && !isSearchMode ? (
-					<div className="py-16 text-center text-cream/30">
-						{emptyMessage}
-					</div>
+					<div className="py-16 text-center text-cream/30">{emptyMessage}</div>
 				) : (
-				<TitleGrid
-					items={items}
-					selectedTitles={selectedTitles}
-					onToggleTitle={handleTitleToggle}
-					maxTitles={MAX_TITLES}
-					hasNextPage={activeQuery.hasNextPage ?? false}
-					isFetchingNextPage={activeQuery.isFetchingNextPage}
-					fetchNextPage={() => activeQuery.fetchNextPage()}
-					isLoading={activeQuery.isLoading}
-					genreColors={genreColors}
-				/>
-			)}
+					<TitleGrid
+						items={items}
+						selectedTitles={selectedTitles}
+						onToggleTitle={handleTitleToggle}
+						maxTitles={MAX_TITLES}
+						hasNextPage={activeQuery.hasNextPage ?? false}
+						isFetchingNextPage={activeQuery.isFetchingNextPage}
+						fetchNextPage={() => activeQuery.fetchNextPage()}
+						isLoading={activeQuery.isLoading}
+						genreColors={genreColors}
+					/>
+				)}
 
-			{/* Search empty state */}
-			{isSearchMode && !searchQueryResult.isLoading && items.length === 0 && (
-				<div className="py-16 text-center text-cream/30">
-					No results for &ldquo;{searchQuery}&rdquo;
-				</div>
-			)}
+				{/* Search empty state */}
+				{isSearchMode && !searchQueryResult.isLoading && items.length === 0 && (
+					<div className="py-16 text-center text-cream/30">
+						No results for &ldquo;{searchQuery}&rdquo;
+					</div>
+				)}
 
-			{/* Error state */}
-			{activeQuery.isError && (
-				<div className="py-8 text-center">
-					<p className="mb-3 text-sm text-red-400">
-						Failed to load content. Please try again.
-					</p>
-					<button
-						type="button"
-						onClick={() => activeQuery.refetch()}
-						className="rounded-lg border border-cream/20 px-4 py-2 text-sm text-cream/60 hover:text-cream"
-					>
-						Retry
-					</button>
-				</div>
-			)}
+				{/* Error state */}
+				{activeQuery.isError && (
+					<div className="py-8 text-center">
+						<p className="mb-3 text-sm text-red-400">
+							Failed to load content. Please try again.
+						</p>
+						<button
+							type="button"
+							onClick={() => activeQuery.refetch()}
+							className="rounded-lg border border-cream/20 px-4 py-2 text-sm text-cream/60 hover:text-cream"
+						>
+							Retry
+						</button>
+					</div>
+				)}
 			</div>
 
 			{/* Selection footer — portaled to body to escape containing block */}

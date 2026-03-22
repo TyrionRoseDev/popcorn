@@ -85,8 +85,7 @@ export function TitleCard({
 				<div className="mt-2 flex flex-wrap gap-1">
 					{item.genreIds.slice(0, 3).map((genreId) => {
 						const unifiedId = getUnifiedIdByTmdbId(genreId);
-						const color =
-							unifiedId !== null ? genreColors[unifiedId] : null;
+						const color = unifiedId !== null ? genreColors[unifiedId] : null;
 						return (
 							<span
 								key={genreId}

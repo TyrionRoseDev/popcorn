@@ -29,10 +29,7 @@ export function SelectionFooter({
 				{/* Poster thumbnails with × */}
 				<div className="flex flex-1 gap-1.5 overflow-x-auto">
 					{entries.map(([key, item]) => {
-						const posterUrl = getTmdbImageUrl(
-							item.posterPath,
-							"w92",
-						);
+						const posterUrl = getTmdbImageUrl(item.posterPath, "w92");
 						return (
 							<div
 								key={key}

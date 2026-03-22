@@ -249,9 +249,7 @@ export const tasteProfileRouter = {
 		.query(async ({ input }) => {
 			const page = input.cursor ? Number.parseInt(input.cursor, 10) : 1;
 			const res = await searchMulti(input.query, page);
-			const items = deduplicateFeed(
-				res.results.map(mapSearchResultToFeedItem),
-			);
+			const items = deduplicateFeed(res.results.map(mapSearchResultToFeedItem));
 			const nextCursor = page < res.total_pages ? String(page + 1) : null;
 			return { items, nextCursor };
 		}),

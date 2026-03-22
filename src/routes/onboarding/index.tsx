@@ -66,8 +66,7 @@ function OnboardingPage() {
 						: "max-w-[400px] border-drive-in-border bg-drive-in-card/80 px-8 py-10"
 				} ${isFullWidthStep && !cardUnlocked ? "overflow-hidden" : ""}`}
 				style={{
-					maxHeight:
-						isFullWidthStep && !cardUnlocked ? "300px" : "none",
+					maxHeight: isFullWidthStep && !cardUnlocked ? "300px" : "none",
 				}}
 			>
 				<StepIndicator steps={STEPS.length} current={currentStep} />

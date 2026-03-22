@@ -32,9 +32,7 @@ export function GenrePills({
 		const baseDelay = 700;
 		const timers: ReturnType<typeof setTimeout>[] = [];
 		for (let i = 0; i <= genres.length; i++) {
-			timers.push(
-				setTimeout(() => setVisibleCount(i), baseDelay + i * 40),
-			);
+			timers.push(setTimeout(() => setVisibleCount(i), baseDelay + i * 40));
 		}
 		return () => timers.forEach(clearTimeout);
 	}, [genres.length]);
@@ -66,9 +64,7 @@ export function GenrePills({
 						}`}
 						style={{
 							opacity: isVisible ? 1 : 0,
-							transform: isVisible
-								? "translateY(0)"
-								: "translateY(8px)",
+							transform: isVisible ? "translateY(0)" : "translateY(8px)",
 						}}
 					>
 						{genre.name}
