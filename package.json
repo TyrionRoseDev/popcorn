@@ -71,6 +71,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.5",
+    "@react-email/preview-server": "^5.2.10",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/devtools-vite": "latest",
     "@testing-library/dom": "^10.4.1",

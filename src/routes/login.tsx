@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { Mail } from 'lucide-react'
 import { useState } from 'react'
 import { authClient } from '#/lib/auth-client'
 import { AuthLayout } from '#/components/auth/auth-layout'
@@ -58,8 +59,8 @@ function LoginPage() {
       <AuthCard>
         {sent ? (
           <div className="text-center">
-            <div className="mx-auto mb-6 flex h-18 w-18 items-center justify-center rounded-full border-2 border-neon-cyan/30 text-3xl shadow-[0_0_20px_rgba(0,229,255,0.15)]">
-              ✉
+            <div className="mx-auto mb-6 flex h-18 w-18 items-center justify-center rounded-full border-2 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,229,255,0.15)]">
+              <Mail className="h-8 w-8 text-neon-cyan/70" />
             </div>
             <h2 className="mb-2 font-display text-xl text-cream">
               Magic link sent!
