@@ -35,9 +35,15 @@ TMDB movie and TV genres use different IDs and names (e.g., movies: "Action" id:
 Base URL: `https://image.tmdb.org/t/p/{size}/{poster_path}`
 Primary size: `w500` for grid cards.
 
+## Onboarding Integration
+
+The existing onboarding flow (steps 1-2) uses a compact `AuthLayout > AuthCard` wrapper. The taste profile step is a full-page experience (infinite scroll grid, floating footer, search) that does not fit inside `AuthCard`. This step must **break out of the `AuthCard` container** and render as a full-width layout within `AuthLayout` (keeping the overall auth chrome like logo and background).
+
+The existing avatar step (step 2) currently calls `authClient.updateUser({ onboardingCompleted: true })` via `finalizeOnboarding`. This must be **removed from step 2** — `onboardingCompleted` is now set server-side by `saveTasteProfile` in step 3. Step 2 should only save the avatar and call `onNext()`.
+
 ## Page Layout
 
-Step 3 of onboarding (after username + avatar). Single continuous page, top to bottom:
+Step 3 of onboarding (after username + avatar). Single full-width page, top to bottom:
 
 1. **Step indicator** — existing `StepIndicator` component, now 3 of 3
 2. **Heading** — e.g. "What do you love watching?"
@@ -49,9 +55,9 @@ Step 3 of onboarding (after username + avatar). Single continuous page, top to b
 ### Card Design
 
 Each card shows:
-- Poster image (aspect ratio ~4:5, shorter than standard 2:3)
+- Poster image (aspect ratio ~4:5, shorter than TMDB's native 2:3 — achieved via `object-fit: cover` with overflow hidden on the image container)
 - Title + year (right-aligned)
-- Rating (stars) + runtime
+- Rating (stars)
 - Description (2 lines, truncated)
 - Genre tags (colored pills)
 
@@ -79,6 +85,7 @@ New `src/lib/tmdb.ts`:
 - Typed helper functions wrapping TMDB endpoints
 - Image URL builder utility
 - API key from environment variable `TMDB_API_KEY`
+- Authentication via bearer token (`Authorization: Bearer <token>` header)
 
 ### tRPC Router
 
@@ -89,7 +96,7 @@ New `tasteProfile` router added to the app router.
 | Procedure | Type | Input | Output |
 |-----------|------|-------|--------|
 | `getGenres` | query | none | `{id: number, name: string, movieGenreId: number \| null, tvGenreId: number \| null}[]` |
-| `getFeed` | query | `{genreIds: number[], cursor?: string}` | `{items: FeedItem[], nextCursor: string \| null}` |
+| `getFeed` | query | `{genreIds: number[], cursor?: string}` | `{items: FeedItem[], nextCursor: string \| null}` | `genreIds` are **unified IDs** from `getGenres`; the server resolves these to the corresponding TMDB movie/TV genre IDs via the mapping table before making discover calls. |
 | `search` | query | `{query: string, cursor?: string}` | `{items: FeedItem[], nextCursor: string \| null}` |
 | `saveTasteProfile` | mutation | `{genreIds: number[], titles: {tmdbId: number, mediaType: 'movie' \| 'tv'}[]}` | `{success: boolean}` |
 
@@ -104,11 +111,12 @@ New `tasteProfile` router added to the app router.
   overview: string
   year: string
   rating: number
-  runtime: string | null
   genreIds: number[]
   isTrending: boolean
 }
 ```
+
+Note: `runtime` is omitted — TMDB's discover and search endpoints don't return it, and fetching it would require an extra detail call per item. Not worth the cost for an onboarding picker.
 
 ### Feed Assembly Logic
 
@@ -227,6 +235,33 @@ Intersection observer on a sentinel `<div>` at the grid bottom. When visible, ca
 ### Navigation
 - Back to step 2 and return: selections preserved in component state
 - Hard refresh: step 3 starts fresh (acceptable)
+
+## Testing
+
+Tests use Vitest. Focus on logic that matters — no testing of trivial wiring or UI snapshot tests.
+
+### Server Tests
+
+| Test | What it verifies |
+|------|-----------------|
+| Feed interleaving | Given mock TMDB responses for N genres, verify output is round-robin interleaved with ~80/20 discover/trending ratio |
+| Feed deduplication | Items appearing in multiple genres are not duplicated in the feed |
+| Feed cursor pagination | Cursor correctly advances per-genre page counters, subsequent pages return new items |
+| Genre ID resolution | Unified genre IDs correctly resolve to the right TMDB movie and TV genre IDs |
+| `saveTasteProfile` validation | Rejects <3 or >5 genres, <3 or >10 titles. Accepts valid counts. |
+| `saveTasteProfile` persistence | Genres and titles are written to DB, `onboardingCompleted` set to true |
+| Search result mapping | TMDB multi-search response is correctly mapped to `FeedItem` shape, filtering out non-movie/tv results (e.g. person results) |
+
+### Client Tests
+
+| Test | What it verifies |
+|------|-----------------|
+| Genre pill selection limits | Cannot select more than 5, cannot deselect below 0 |
+| Title selection limits | Cannot select more than 10, can deselect |
+| Footer state | Continue button disabled when <3 titles, enabled when >=3 |
+| Search mode toggle | Entering search text disables genre pills, clearing restores them |
+
+Mock tRPC responses for client tests — don't hit real TMDB.
 
 ## Environment
 
