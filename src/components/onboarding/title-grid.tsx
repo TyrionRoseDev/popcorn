@@ -1,7 +1,7 @@
 import { Loader2 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { FeedItem } from "#/lib/feed-assembler";
-import { TitleCard, type GenreColorMap } from "./title-card";
+import { type GenreColorMap, TitleCard } from "./title-card";
 
 interface TitleGridProps {
 	items: FeedItem[];

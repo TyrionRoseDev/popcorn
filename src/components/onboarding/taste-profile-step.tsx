@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { useTRPC } from "#/integrations/trpc/react";
-import { type FeedItem, deduplicateFeed } from "#/lib/feed-assembler";
+import { deduplicateFeed, type FeedItem } from "#/lib/feed-assembler";
 import { GenrePills } from "./genre-pills";
 import { SearchBar } from "./search-bar";
 import { SelectionFooter } from "./selection-footer";
