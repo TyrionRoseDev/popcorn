@@ -1,8 +1,8 @@
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
-import type { FeedItem } from "#/lib/feed-assembler";
 import { useTRPC } from "#/integrations/trpc/react";
+import type { FeedItem } from "#/lib/feed-assembler";
 import { GenrePills } from "./genre-pills";
 import { SearchBar } from "./search-bar";
 import { SelectionFooter } from "./selection-footer";
@@ -154,9 +154,22 @@ export function TasteProfileStep({ onNext }: { onNext: () => void }) {
 					/>
 				) : (
 					<div className="flex flex-wrap gap-2">
-						{Array.from({ length: 12 }).map((_, i) => (
+						{[
+							"s1",
+							"s2",
+							"s3",
+							"s4",
+							"s5",
+							"s6",
+							"s7",
+							"s8",
+							"s9",
+							"s10",
+							"s11",
+							"s12",
+						].map((id) => (
 							<div
-								key={`genre-skeleton-${i}`}
+								key={id}
 								className="h-9 w-20 animate-pulse rounded-full bg-cream/5"
 							/>
 						))}
