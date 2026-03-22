@@ -21,19 +21,21 @@ export function RetroOverlays() {
 				<div
 					key={star.id}
 					className="absolute rounded-full bg-white"
-					style={{
-						top: star.top,
-						left: star.left,
-						width: `${star.size}px`,
-						height: `${star.size}px`,
-						animationName: "twinkle",
-						animationDuration: star.dur,
-						animationTimingFunction: "ease-in-out",
-						animationIterationCount: "infinite",
-						animationDelay: star.delay,
-						"--o1": star.o1,
-						"--o2": star.o2,
-					} as React.CSSProperties}
+					style={
+						{
+							top: star.top,
+							left: star.left,
+							width: `${star.size}px`,
+							height: `${star.size}px`,
+							animationName: "twinkle",
+							animationDuration: star.dur,
+							animationTimingFunction: "ease-in-out",
+							animationIterationCount: "infinite",
+							animationDelay: star.delay,
+							"--o1": star.o1,
+							"--o2": star.o2,
+						} as React.CSSProperties
+					}
 				/>
 			))}
 

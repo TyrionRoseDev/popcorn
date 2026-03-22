@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { FilmStrip } from "#/components/film-strip";
 import { MarqueeBoard, MarqueeBoardRow } from "#/components/marquee-board";
 import { RetroOverlays } from "#/components/retro-overlays";
@@ -29,7 +29,10 @@ const FEATURES = [
 
 function LandingPage() {
 	return (
-		<div className="relative min-h-screen bg-drive-in-bg text-cream/85" style={{ overflowX: "clip" }}>
+		<div
+			className="relative min-h-screen bg-drive-in-bg text-cream/85"
+			style={{ overflowX: "clip" }}
+		>
 			<RetroOverlays />
 
 			{/* ========== HERO ========== */}

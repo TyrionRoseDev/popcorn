@@ -1,5 +1,5 @@
-import { useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
+import { useRef } from "react";
 
 export function TicketStub() {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -14,7 +14,12 @@ export function TicketStub() {
 	const glowOpacity = useTransform(scrollYProgress, [0.3, 1], [0, 1]);
 
 	return (
-		<div ref={containerRef} aria-hidden="true" className="relative mx-auto max-w-md px-4" style={{ perspective: "800px" }}>
+		<div
+			ref={containerRef}
+			aria-hidden="true"
+			className="relative mx-auto max-w-md px-4"
+			style={{ perspective: "800px" }}
+		>
 			{/* Ambient glow behind ticket — intensifies on scroll */}
 			<motion.div
 				className="pointer-events-none absolute inset-0 -inset-x-8 -inset-y-4"
