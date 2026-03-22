@@ -1,4 +1,12 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	Outlet,
+	redirect,
+} from "@tanstack/react-router";
+import { Search } from "lucide-react";
+import { RetroOverlays } from "#/components/retro-overlays";
+import BetterAuthHeader from "#/integrations/better-auth/header-user";
 import { getSession } from "#/lib/auth-session";
 
 export const Route = createFileRoute("/app")({
@@ -15,5 +23,59 @@ export const Route = createFileRoute("/app")({
 
 		return { user: session.user };
 	},
-	component: () => <Outlet />,
+	component: AppLayout,
 });
+
+function AppLayout() {
+	return (
+		<div className="relative min-h-screen bg-drive-in-bg">
+			<RetroOverlays />
+
+			{/* Navbar */}
+			<header className="sticky top-0 z-50 border-b border-cream/8 bg-drive-in-bg/80 backdrop-blur-lg">
+				<nav className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
+					{/* Logo */}
+					<Link
+						to="/app/search"
+						search={{ q: "", type: "all", sort: "relevance", page: 1 }}
+						className="flex items-center gap-2 no-underline"
+					>
+						<span
+							className="font-logo text-lg leading-none"
+							style={{
+								animationName: "neon-cycle",
+								animationDuration: "6s",
+								animationTimingFunction: "ease-in-out",
+								animationIterationCount: "infinite",
+							}}
+						>
+							POPCORN
+						</span>
+					</Link>
+
+					{/* Nav links */}
+					<div className="flex items-center gap-1">
+						<Link
+							to="/app/search"
+							search={{ q: "", type: "all", sort: "relevance", page: 1 }}
+							className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-cream/50 no-underline transition-colors hover:bg-cream/5 hover:text-cream/80 [&.active]:text-neon-cyan [&.active]:bg-neon-cyan/8"
+						>
+							<Search className="h-3.5 w-3.5" />
+							Search
+						</Link>
+					</div>
+
+					{/* Spacer + Auth */}
+					<div className="ml-auto">
+						<BetterAuthHeader />
+					</div>
+				</nav>
+			</header>
+
+			{/* Page content */}
+			<div className="relative z-10">
+				<Outlet />
+			</div>
+		</div>
+	);
+}
