@@ -8,7 +8,8 @@ Passwordless authentication using Better Auth's magic link plugin with Resend fo
 
 ### Better Auth Configuration
 
-- Replace `emailAndPassword` with the `magicLink` plugin
+- Replace `emailAndPassword` with the `magicLink` plugin (imported from `better-auth/plugins/magic-link`)
+- Add Drizzle database adapter to `auth.ts` (currently has no DB connection — it needs one for sessions, users, and verification tokens)
 - `sendMagicLink` callback renders a React Email template and sends via Resend
 - TanStack Start cookies plugin remains for session handling
 - Auth handler stays at `/api/auth/$`
@@ -19,16 +20,17 @@ Docker Compose with PostgreSQL (port 5432, volume-persisted).
 
 **Tables:**
 - Better Auth core tables: `user`, `session`, `account`, `verification` (generated via better-auth CLI)
-- Extended user fields: `username` (unique, text), `avatarUrl` (text, nullable), `onboardingCompleted` (boolean, default false)
+- Extended user fields via better-auth's `user.additionalFields` config: `username` (unique, text), `avatarUrl` (text, nullable), `onboardingCompleted` (boolean, default false). This extends the `user` table directly so these fields are accessible on the session user object.
 
 ### Environment Variables (all via t3-env)
 
 | Variable | Type | Description |
 |---|---|---|
-| `DATABASE_URL` | server | PostgreSQL connection string (existing) |
-| `BETTER_AUTH_URL` | server | Better Auth base URL (existing) |
-| `BETTER_AUTH_SECRET` | server | Better Auth secret (existing) |
+| `DATABASE_URL` | server | PostgreSQL connection string (exists in .env.local, needs adding to t3-env) |
+| `BETTER_AUTH_URL` | server | Better Auth base URL (exists in .env.local, needs adding to t3-env) |
+| `BETTER_AUTH_SECRET` | server | Better Auth secret (exists in .env.local, needs adding to t3-env) |
 | `RESEND_API_KEY` | server | Resend API key for sending emails |
+| `RESEND_FROM_EMAIL` | server | Sender email address for outbound emails (e.g., `noreply@popcorn.app`) |
 | `UPLOADTHING_TOKEN` | server | UploadThing token for avatar uploads |
 
 ## Routes & Auth Flow
@@ -53,9 +55,9 @@ src/routes/
 
 1. User enters email on `/login` → magic link sent → UI swaps to "check your email" state
 2. User clicks link in email → better-auth verifies token, creates session
-3. Post-auth redirect checks `onboardingCompleted`:
-   - `false` → redirect to `/onboarding`
-   - `true` → redirect to `/app`
+3. Magic link's `callbackURL` is set to `/app`. The `_app/route.tsx` auth guard handles the onboarding check:
+   - `onboardingCompleted === false` → redirect to `/onboarding`
+   - `onboardingCompleted === true` → proceed to `/app`
 4. Onboarding is gated — user cannot navigate to `/app` until completed
 5. On final step completion, `onboardingCompleted` set to `true`, redirect to `/app`
 
@@ -123,7 +125,7 @@ Onboarding:  <AuthLayout> → <MarqueeBadge text="Setting Up" />    → <AuthCar
 
 - React Email components in `src/emails/`
 - `@react-email/tailwind` for inline styling
-- `dev:email` npm script runs the React Email preview server pointing at `src/emails/`
+- `dev:email` npm script: `"email dev -d src/emails"` runs the React Email preview server
 
 ### Magic Link Email
 
@@ -151,7 +153,6 @@ Branded to match the drive-in aesthetic:
 
 | Package | Purpose |
 |---|---|
-| `@better-auth/magic-link` | Magic link plugin (check if separate or built into better-auth) |
 | `resend` | Email sending service |
 | `@react-email/components` | React Email component library |
 | `@react-email/tailwind` | Tailwind CSS support in emails |
