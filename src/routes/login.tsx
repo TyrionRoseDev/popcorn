@@ -5,6 +5,7 @@ import { authClient } from '#/lib/auth-client'
 import { AuthLayout } from '#/components/auth/auth-layout'
 import { MarqueeBadge } from '#/components/auth/marquee-badge'
 import { AuthCard } from '#/components/auth/auth-card'
+import { FormError } from '#/components/auth/form-error'
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
@@ -41,12 +42,18 @@ function LoginPage() {
   }
 
   async function handleResend() {
+    setError('')
     setLoading(true)
     try {
-      await authClient.signIn.magicLink({
+      const { error: authError } = await authClient.signIn.magicLink({
         email,
         callbackURL: '/app',
       })
+      if (authError) {
+        setError(authError.message ?? 'Something went wrong')
+      }
+    } catch {
+      setError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -59,6 +66,7 @@ function LoginPage() {
       <AuthCard>
         {sent ? (
           <div className="text-center">
+            {error && <FormError message={error} />}
             <div className="mx-auto mb-6 flex h-18 w-18 items-center justify-center rounded-full border-2 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,229,255,0.15)]">
               <Mail className="h-8 w-8 text-neon-cyan/70" />
             </div>
@@ -91,11 +99,7 @@ function LoginPage() {
               Enter your email and we'll send you a magic link
             </p>
 
-            {error && (
-              <p className="mb-4 rounded-lg border border-neon-pink/20 bg-neon-pink/5 px-4 py-2 text-sm text-neon-pink">
-                {error}
-              </p>
-            )}
+            {error && <FormError message={error} />}
 
             <input
               type="email"

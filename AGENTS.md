@@ -13,7 +13,7 @@ skills:
 - task: "tRPC React Query integration, query options, invalidation"
   load: "node_modules/@trpc/tanstack-react-query/skills/react-query-setup/SKILL.md"
 - task: "Auth, route guards, protected routes, login redirects"
-load: "node_modules/@tanstack/router-core/skills/router-core/auth-and-guards/SKILL.md"
+  load: "node_modules/@tanstack/router-core/skills/router-core/auth-and-guards/SKILL.md"
 <!-- intent-skills:end -->
 
 # Package Manager

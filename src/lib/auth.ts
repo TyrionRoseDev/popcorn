@@ -39,12 +39,16 @@ export const auth = betterAuth({
     magicLink({
       sendMagicLink: async ({ email, url }) => {
         const html = await render(MagicLinkEmail({ url }))
-        await resend.emails.send({
+        const { error } = await resend.emails.send({
           from: env.RESEND_FROM_EMAIL,
           to: email,
           subject: 'Your Popcorn sign-in link',
           html,
         })
+        if (error) {
+          console.error('Failed to send magic link email:', error)
+          throw new Error('Failed to send magic link email')
+        }
       },
     }),
   ],

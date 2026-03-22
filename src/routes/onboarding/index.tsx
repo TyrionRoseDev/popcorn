@@ -4,6 +4,7 @@ import { AuthLayout } from '#/components/auth/auth-layout'
 import { MarqueeBadge } from '#/components/auth/marquee-badge'
 import { AuthCard } from '#/components/auth/auth-card'
 import { StepIndicator } from '#/components/auth/step-indicator'
+import { FormError } from '#/components/auth/form-error'
 import { authClient } from '#/lib/auth-client'
 import { generateReactHelpers } from '@uploadthing/react'
 import type { UploadRouter } from '#/lib/uploadthing'
@@ -95,11 +96,7 @@ function UsernameStep({ onNext }: { onNext: () => void }) {
         This is how others will find you
       </p>
 
-      {error && (
-        <p className="mb-4 rounded-lg border border-neon-pink/20 bg-neon-pink/5 px-4 py-2 text-sm text-neon-pink">
-          {error}
-        </p>
-      )}
+      {error && <FormError message={error} />}
 
       <input
         type="text"
@@ -138,7 +135,12 @@ function AvatarStep({ onNext }: { onNext: () => void }) {
       if (res?.[0]) {
         setIsSavingAvatar(true)
         try {
-          await authClient.updateUser({ avatarUrl: res[0].ufsUrl })
+          const { error: updateError } = await authClient.updateUser({
+            avatarUrl: res[0].ufsUrl,
+          })
+          if (updateError) {
+            setError(updateError.message ?? 'Failed to save avatar')
+          }
         } finally {
           setIsSavingAvatar(false)
         }
@@ -162,22 +164,16 @@ function AvatarStep({ onNext }: { onNext: () => void }) {
     await startUpload([file])
   }
 
-  async function handleFinish() {
+  async function finalizeOnboarding() {
     setLoading(true)
     try {
-      await authClient.updateUser({ onboardingCompleted: true })
-      onNext()
-    } catch {
-      setError('Something went wrong')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function handleSkip() {
-    setLoading(true)
-    try {
-      await authClient.updateUser({ onboardingCompleted: true })
+      const { error: updateError } = await authClient.updateUser({
+        onboardingCompleted: true,
+      })
+      if (updateError) {
+        setError(updateError.message ?? 'Something went wrong')
+        return
+      }
       onNext()
     } catch {
       setError('Something went wrong')
@@ -193,11 +189,7 @@ function AvatarStep({ onNext }: { onNext: () => void }) {
         Give your profile some personality
       </p>
 
-      {error && (
-        <p className="mb-4 rounded-lg border border-neon-pink/20 bg-neon-pink/5 px-4 py-2 text-sm text-neon-pink">
-          {error}
-        </p>
-      )}
+      {error && <FormError message={error} />}
 
       <label className="group mx-auto mb-3 flex h-24 w-24 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-cream/20 transition-colors hover:border-neon-cyan/40">
         {preview ? (
@@ -227,7 +219,7 @@ function AvatarStep({ onNext }: { onNext: () => void }) {
 
       <button
         type="button"
-        onClick={handleFinish}
+        onClick={finalizeOnboarding}
         disabled={loading || isUploading || isSavingAvatar}
         className="w-full rounded-lg border-[1.5px] border-neon-cyan/50 bg-neon-cyan/8 py-3 font-display text-[15px] tracking-wide text-neon-cyan shadow-[0_0_15px_rgba(0,229,255,0.12)] transition-all duration-300 hover:bg-neon-cyan/15 hover:shadow-[0_0_25px_rgba(0,229,255,0.25)] disabled:opacity-50"
         style={{ textShadow: '0 0 10px rgba(0,229,255,0.3)' }}
@@ -237,7 +229,7 @@ function AvatarStep({ onNext }: { onNext: () => void }) {
 
       <button
         type="button"
-        onClick={handleSkip}
+        onClick={finalizeOnboarding}
         disabled={loading || isUploading || isSavingAvatar}
         className="mt-3 block w-full text-sm text-cream/30 transition-colors hover:text-cream/50 disabled:opacity-50"
       >
