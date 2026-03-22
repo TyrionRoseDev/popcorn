@@ -1,87 +1,161 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { FilmStrip } from "#/components/film-strip";
+import { MarqueeBoard, MarqueeBoardRow } from "#/components/marquee-board";
+import { RetroOverlays } from "#/components/retro-overlays";
+import { Spotlights } from "#/components/spotlight";
+import { TicketStub } from "#/components/ticket-stub";
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute("/")({ component: LandingPage });
 
-function App() {
-  return (
-    <main className="page-wrap px-4 pb-8 pt-14">
-      <section className="island-shell rise-in relative overflow-hidden rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
-        <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(79,184,178,0.32),transparent_66%)]" />
-        <div className="pointer-events-none absolute -bottom-20 -right-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(47,106,74,0.18),transparent_66%)]" />
-        <p className="island-kicker mb-3">TanStack Start Base Template</p>
-        <h1 className="display-title mb-5 max-w-3xl text-4xl leading-[1.02] font-bold tracking-tight text-[var(--sea-ink)] sm:text-6xl">
-          Start simple, ship quickly.
-        </h1>
-        <p className="mb-8 max-w-2xl text-base text-[var(--sea-ink-soft)] sm:text-lg">
-          This base starter intentionally keeps things light: two routes, clean
-          structure, and the essentials you need to build from scratch.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <a
-            href="/about"
-            className="rounded-full border border-[rgba(50,143,151,0.3)] bg-[rgba(79,184,178,0.14)] px-5 py-2.5 text-sm font-semibold text-[var(--lagoon-deep)] no-underline transition hover:-translate-y-0.5 hover:bg-[rgba(79,184,178,0.24)]"
-          >
-            About This Starter
-          </a>
-          <a
-            href="https://tanstack.com/router"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full border border-[rgba(23,58,64,0.2)] bg-white/50 px-5 py-2.5 text-sm font-semibold text-[var(--sea-ink)] no-underline transition hover:-translate-y-0.5 hover:border-[rgba(23,58,64,0.35)]"
-          >
-            Router Guide
-          </a>
-        </div>
-      </section>
+const FEATURES = [
+	"Film Diary",
+	"Watchlist",
+	"Smart Picks",
+	"Stats & Wrapped",
+	"Social Reviews",
+] as const;
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          [
-            'Type-Safe Routing',
-            'Routes and links stay in sync across every page.',
-          ],
-          [
-            'Server Functions',
-            'Call server code from your UI without creating API boilerplate.',
-          ],
-          [
-            'Streaming by Default',
-            'Ship progressively rendered responses for faster experiences.',
-          ],
-          [
-            'Tailwind Native',
-            'Design quickly with utility-first styling and reusable tokens.',
-          ],
-        ].map(([title, desc], index) => (
-          <article
-            key={title}
-            className="island-shell feature-card rise-in rounded-2xl p-5"
-            style={{ animationDelay: `${index * 90 + 80}ms` }}
-          >
-            <h2 className="mb-2 text-base font-semibold text-[var(--sea-ink)]">
-              {title}
-            </h2>
-            <p className="m-0 text-sm text-[var(--sea-ink-soft)]">{desc}</p>
-          </article>
-        ))}
-      </section>
+function LandingPage() {
+	return (
+		<div className="relative min-h-screen bg-drive-in-bg text-cream/85" style={{ overflowX: "clip" }}>
+			<RetroOverlays />
 
-      <section className="island-shell mt-8 rounded-2xl p-6">
-        <p className="island-kicker mb-2">Quick Start</p>
-        <ul className="m-0 list-disc space-y-2 pl-5 text-sm text-[var(--sea-ink-soft)]">
-          <li>
-            Edit <code>src/routes/index.tsx</code> to customize the home page.
-          </li>
-          <li>
-            Update <code>src/components/Header.tsx</code> and{' '}
-            <code>src/components/Footer.tsx</code> for brand links.
-          </li>
-          <li>
-            Add routes in <code>src/routes</code> and tweak visual tokens in{' '}
-            <code>src/styles.css</code>.
-          </li>
-        </ul>
-      </section>
-    </main>
-  )
+			{/* ========== HERO ========== */}
+			<section className="relative flex min-h-screen flex-col items-center justify-center px-4 py-20">
+				{/* Vignette */}
+				<div
+					className="pointer-events-none absolute inset-0"
+					style={{
+						background:
+							"radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%)",
+						zIndex: 1,
+					}}
+				/>
+
+				{/* Ambient bottom glow */}
+				<div
+					className="pointer-events-none absolute inset-0"
+					style={{
+						background:
+							"radial-gradient(ellipse 100% 50% at 50% 110%, rgba(255,45,120,0.06) 0%, transparent 70%)",
+						zIndex: 1,
+					}}
+				/>
+
+				{/* Bottom gradient bridge — blends warm black into cool navy */}
+				<div
+					className="pointer-events-none absolute inset-x-0 bottom-0 h-48"
+					style={{
+						background:
+							"linear-gradient(to bottom, transparent 0%, rgba(7,7,20,0.4) 40%, rgba(10,10,30,0.85) 75%, #0a0a1e 100%)",
+						zIndex: 2,
+					}}
+				/>
+
+				{/* NOW SHOWING marquee */}
+				<div
+					className="relative z-10 mb-10 inline-block border-[1.5px] border-neon-amber/50 px-6 py-2 font-mono-retro text-[11px] uppercase tracking-[6px] text-neon-amber"
+					style={{
+						textShadow: "0 0 8px rgba(255,184,0,0.4)",
+						animationName: "marquee-pulse",
+						animationDuration: "3s",
+						animationTimingFunction: "ease-in-out",
+						animationIterationCount: "infinite",
+					}}
+				>
+					✦ Now Showing ✦
+				</div>
+
+				{/* POPCORN logo */}
+				<h1
+					className="relative z-10 font-logo text-[clamp(3rem,12vw,6rem)] leading-none"
+					style={{
+						animationName: "neon-cycle",
+						animationDuration: "6s",
+						animationTimingFunction: "ease-in-out",
+						animationIterationCount: "infinite",
+					}}
+				>
+					POPCORN
+				</h1>
+
+				{/* CTA buttons */}
+				<div className="relative z-10 mt-14 flex gap-4">
+					<Link
+						to="/login"
+						className="rounded border-[1.5px] border-neon-pink/50 px-8 py-3.5 font-display text-[15px] tracking-wide text-neon-pink no-underline transition-all duration-300 hover:bg-neon-pink/8 hover:shadow-[0_0_25px_rgba(255,45,120,0.3)]"
+						style={{
+							boxShadow: "0 0 12px rgba(255,45,120,0.15)",
+						}}
+					>
+						Log In
+					</Link>
+					<Link
+						to="/signup"
+						className="rounded border-[1.5px] border-neon-cyan/25 px-8 py-3.5 font-display text-[15px] tracking-wide text-neon-cyan/60 no-underline transition-all duration-300 hover:border-neon-cyan/45 hover:text-neon-cyan/85 hover:shadow-[0_0_20px_rgba(0,229,255,0.15)]"
+					>
+						Create an Account
+					</Link>
+				</div>
+			</section>
+
+			{/* ========== TICKET → PROGRAMME SCROLL STORY ========== */}
+			<section
+				className="relative"
+				style={{ background: "#0a0a1e" }}
+			>
+				<div className="relative px-4 sm:px-8">
+					{/* Sticky ticket — stays pinned, slides BEHIND the board */}
+					<div className="sticky top-[28vh] z-10 -mt-12 pb-6">
+						<TicketStub />
+					</div>
+
+					{/* Programme board — scrolls up OVER the ticket */}
+					<div className="relative z-20 mx-auto max-w-[550px] pb-24 pt-8">
+						<MarqueeBoard title="Tonight's Programme">
+							{FEATURES.map((feature, i) => (
+								<MarqueeBoardRow
+									key={feature}
+									label={feature}
+									status="Coming Soon"
+									index={i}
+								/>
+							))}
+						</MarqueeBoard>
+					</div>
+				</div>
+
+				<Spotlights />
+
+				{/* Vignette */}
+				<div
+					className="pointer-events-none absolute inset-0"
+					style={{
+						background:
+							"radial-gradient(ellipse at center, transparent 30%, rgba(8,8,26,0.4) 100%)",
+						zIndex: 3,
+					}}
+				/>
+			</section>
+
+			<FilmStrip />
+
+			{/* ========== FOOTER ========== */}
+			<footer className="bg-[#0a0a12] px-4 py-16 text-center">
+				<p
+					className="font-display text-xl text-neon-pink"
+					style={{
+						textShadow:
+							"0 0 10px rgba(255,45,120,0.3), 0 0 30px rgba(255,45,120,0.15)",
+						animationName: "footer-flicker",
+						animationDuration: "4s",
+						animationTimingFunction: "ease-in-out",
+						animationIterationCount: "infinite",
+					}}
+				>
+					best enjoyed with popcorn.
+				</p>
+			</footer>
+		</div>
+	);
 }
