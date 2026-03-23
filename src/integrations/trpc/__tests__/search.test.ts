@@ -365,7 +365,7 @@ describe("fetchTopRated", () => {
 });
 
 describe("fetchNewReleases", () => {
-	it("returns items sorted by rating descending", async () => {
+	it("preserves TMDB popularity order (no re-sort by rating)", async () => {
 		const movies = [
 			makeMovieResult(1, { vote_average: 6.0 }),
 			makeMovieResult(2, { vote_average: 8.5 }),
@@ -378,9 +378,10 @@ describe("fetchNewReleases", () => {
 
 		const items = await fetchNewReleases();
 
-		for (let i = 0; i < items.length - 1; i++) {
-			expect(items[i].rating).toBeGreaterThanOrEqual(items[i + 1].rating);
-		}
+		// Movies come first (TMDB popularity order), then TV
+		expect(items[0].tmdbId).toBe(1);
+		expect(items[1].tmdbId).toBe(2);
+		expect(items[2].tmdbId).toBe(10);
 	});
 
 	it("returns at most 6 items", async () => {

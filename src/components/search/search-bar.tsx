@@ -16,6 +16,13 @@ export function SearchBar({ initialValue }: SearchBarProps) {
 		setValue(initialValue);
 	}, [initialValue]);
 
+	// Clean up debounce on unmount
+	useEffect(() => {
+		return () => {
+			if (debounceRef.current) clearTimeout(debounceRef.current);
+		};
+	}, []);
+
 	function doSearch(query: string) {
 		if (debounceRef.current) {
 			clearTimeout(debounceRef.current);

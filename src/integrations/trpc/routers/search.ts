@@ -47,6 +47,9 @@ export async function fetchSearchResults(params: SearchParams) {
 		const moviePages = await Promise.all(
 			pageNumbers.map((p) => searchMovies(q, p).catch(() => null)),
 		);
+		if (moviePages.every((r) => r == null)) {
+			throw new Error("TMDB: all movie page requests failed");
+		}
 		for (const res of moviePages) {
 			if (res) {
 				allItems.push(...res.results.map((r) => mapMovieToFeedItem(r)));
@@ -58,6 +61,9 @@ export async function fetchSearchResults(params: SearchParams) {
 		const tvPages = await Promise.all(
 			pageNumbers.map((p) => searchTvShows(q, p).catch(() => null)),
 		);
+		if (tvPages.every((r) => r == null)) {
+			throw new Error("TMDB: all TV page requests failed");
+		}
 		for (const res of tvPages) {
 			if (res) {
 				allItems.push(...res.results.map((r) => mapTvToFeedItem(r)));
@@ -142,7 +148,7 @@ export async function fetchNewReleases(): Promise<FeedItem[]> {
 		...tv.results.map((s) => mapTvToFeedItem(s)),
 	];
 
-	return items.sort((a, b) => b.rating - a.rating).slice(0, 6);
+	return items.slice(0, 6);
 }
 
 export const searchRouter = {

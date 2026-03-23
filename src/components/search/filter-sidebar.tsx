@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { SlidersHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "#/components/ui/button";
 import {
 	Sheet,
@@ -36,6 +36,14 @@ function FilterControls({ type, genre, yearMin, yearMax }: FilterProps) {
 	const navigate = useNavigate();
 	const [localYearMin, setLocalYearMin] = useState(yearMin?.toString() ?? "");
 	const [localYearMax, setLocalYearMax] = useState(yearMax?.toString() ?? "");
+
+	useEffect(() => {
+		setLocalYearMin(yearMin?.toString() ?? "");
+	}, [yearMin]);
+
+	useEffect(() => {
+		setLocalYearMax(yearMax?.toString() ?? "");
+	}, [yearMax]);
 
 	function updateFilter(updates: Record<string, unknown>) {
 		navigate({
@@ -142,6 +150,7 @@ function FilterControls({ type, genre, yearMin, yearMax }: FilterProps) {
 				<div className="flex items-center gap-2">
 					<input
 						type="number"
+						aria-label="Year from"
 						placeholder="From"
 						value={localYearMin}
 						onChange={(e) => setLocalYearMin(e.target.value)}
@@ -152,6 +161,7 @@ function FilterControls({ type, genre, yearMin, yearMax }: FilterProps) {
 					<span className="text-cream/30 text-xs">–</span>
 					<input
 						type="number"
+						aria-label="Year to"
 						placeholder="To"
 						value={localYearMax}
 						onChange={(e) => setLocalYearMax(e.target.value)}

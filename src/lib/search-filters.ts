@@ -64,6 +64,7 @@ export function sortResults(items: FeedItem[], sort: SortOption): FeedItem[] {
 			return sorted.sort((a, b) => (b.year || "").localeCompare(a.year || ""));
 		case "oldest":
 			return sorted.sort((a, b) => (a.year || "").localeCompare(b.year || ""));
+		// "relevance" and "popularity" both preserve API order (TMDB returns by relevance/popularity)
 		default:
 			return sorted;
 	}
