@@ -42,6 +42,7 @@ Centered marquee sign announcing the movie:
 - **Border**: 2px amber border with border-radius 8px and ambient glow
 - **Chasing bulbs**: Two rows (top and bottom) of 6px amber circles. Odd/even children alternate animation (`chase` keyframe) with 0.6s offset to create chasing effect
 - **Content**: "NOW SHOWING" in Space Mono (10px, letter-spacing 4px), movie title in Righteous (36px) with text-shadow glow, year/runtime/rating in Space Mono (12px)
+- **Title heading**: The marquee title should be rendered as the page's `<h1>` for SEO/accessibility. The existing standalone title heading is removed — the marquee replaces it
 - **Max-width**: 700px
 
 ### 4. Content Area
@@ -61,7 +62,7 @@ Two-column layout, `max-width: 1060px`, `gap: 48px`:
 
 **Genre neon signs:**
 - Horizontal row of pills below the poster, centered
-- Each genre is a different neon color: pink, cyan, amber
+- Colors cycle: 1st pink, 2nd cyan, 3rd amber, 4th pink, etc. (modulo 3 via `nth-child`)
 - Space Mono 11px, with matching `text-shadow` and `box-shadow` glow
 - `gap: 8px`, `margin-top: 20px`
 
@@ -69,6 +70,7 @@ Two-column layout, `max-width: 1060px`, `gap: 48px`:
 - Three circular buttons in a row (`gap: 16px`, centered)
 - Each button: 72px diameter, 3px border, with an outer glow ring (`::before` at inset -6px) and inner concave depth (`::after` at inset 3px with brightness filter)
 - Colors: Pink (Watchlist +), Cyan (Watched checkmark), Amber (Invite envelope)
+- **Functionality**: Visual-only for now with no-op click handlers. Wiring to backend is a separate future task (streaming availability & user actions)
 - 3D press effect: `box-shadow` with 5px bottom offset, reduces to 3px on hover with `translateY(2px)`
 - Outer ring expands to inset -10px on hover
 - **Labels**: Below each button, 12px Manrope bold, full cream white color
@@ -85,12 +87,13 @@ All section cards share this treatment:
 
 **Synopsis board:**
 - Header with clipboard icon + "SYNOPSIS"
-- Italic tagline with 3px pink left border and box-shadow glow
+- Italic tagline with 3px pink left border and box-shadow glow (tagline moves here from `TitleMetadata`)
 - Synopsis text: 15px, line-height 1.9, `rgba(255,255,240,0.7)`
+- Preserve the existing expand/collapse "Read more"/"Show less" behavior for long synopses
 
 **Details ticket stub:**
 - Flex layout: main body | perforation | rating tear-off
-- **Main body**: 2x2 metadata grid (Director, Status, Language, Runtime) with Space Mono labels (9px uppercase) and cream values (15px)
+- **Main body**: 2x2 metadata grid with Space Mono labels (9px uppercase) and cream values (15px). Fields should use whatever metadata is already available in `TitleData` (e.g., Director, Status, Seasons/Episodes for TV, Content Rating). Do not add new API fields — use what TMDB already returns
 - **Perforation**: 32px wide column with dashed left border and 5 circular holes (10px, background matches page)
 - **Rating tear-off**: 110px wide, amber-tinted background, Bungee Shade score (36px) with amber glow, "TMDB" label, and star rating row
 
@@ -147,7 +150,7 @@ The mockup targets desktop. Implementation should handle:
 
 **Styles:**
 - New animations: `chase` (bulb chasing), star `twinkle` timings
-- The existing `retro-overlays.tsx` component already handles starfield/grain/scanlines — extend it or compose alongside it
+- Create a title-page-specific background component (`TitlePageAtmosphere` or similar) with the night sky gradient, denser starfield (~70 stars), film grain, and ground glow. The existing `RetroOverlays` component (used at the app layout level) should be hidden/disabled on the title page to avoid conflicting overlays. The title page atmosphere does NOT include scanlines or VHS scan effects — just stars, grain, and ground glow
 
 ## Reference Mockup
 
