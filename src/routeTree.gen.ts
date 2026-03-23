@@ -14,7 +14,7 @@ import { Route as OnboardingRouteRouteImport } from './routes/onboarding/route'
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OnboardingIndexRouteImport } from './routes/onboarding/index'
-import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppSearchRouteImport } from './routes/app/search'
 import { Route as ApiUploadthingSplatRouteImport } from './routes/api/uploadthing/$'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -44,9 +44,9 @@ const OnboardingIndexRoute = OnboardingIndexRouteImport.update({
   path: '/',
   getParentRoute: () => OnboardingRouteRoute,
 } as any)
-const AppIndexRoute = AppIndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AppSearchRoute = AppSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const ApiUploadthingSplatRoute = ApiUploadthingSplatRouteImport.update({
@@ -70,7 +70,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/login': typeof LoginRoute
-  '/app/': typeof AppIndexRoute
+  '/app/search': typeof AppSearchRoute
   '/onboarding/': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -78,8 +78,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteRouteWithChildren
   '/login': typeof LoginRoute
-  '/app': typeof AppIndexRoute
+  '/app/search': typeof AppSearchRoute
   '/onboarding': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -91,7 +92,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/login': typeof LoginRoute
-  '/app/': typeof AppIndexRoute
+  '/app/search': typeof AppSearchRoute
   '/onboarding/': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -104,7 +105,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/onboarding'
     | '/login'
-    | '/app/'
+    | '/app/search'
     | '/onboarding/'
     | '/api/auth/$'
     | '/api/trpc/$'
@@ -112,8 +113,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/login'
     | '/app'
+    | '/login'
+    | '/app/search'
     | '/onboarding'
     | '/api/auth/$'
     | '/api/trpc/$'
@@ -124,7 +126,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/onboarding'
     | '/login'
-    | '/app/'
+    | '/app/search'
     | '/onboarding/'
     | '/api/auth/$'
     | '/api/trpc/$'
@@ -178,11 +180,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingIndexRouteImport
       parentRoute: typeof OnboardingRouteRoute
     }
-    '/app/': {
-      id: '/app/'
-      path: '/'
-      fullPath: '/app/'
-      preLoaderRoute: typeof AppIndexRouteImport
+    '/app/search': {
+      id: '/app/search'
+      path: '/search'
+      fullPath: '/app/search'
+      preLoaderRoute: typeof AppSearchRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/api/uploadthing/$': {
@@ -210,11 +212,11 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteRouteChildren {
-  AppIndexRoute: typeof AppIndexRoute
+  AppSearchRoute: typeof AppSearchRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
-  AppIndexRoute: AppIndexRoute,
+  AppSearchRoute: AppSearchRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
