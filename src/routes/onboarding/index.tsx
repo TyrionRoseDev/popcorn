@@ -52,7 +52,10 @@ function OnboardingPage() {
 				setTimeout(() => setCardUnlocked(true), 750);
 			}
 		} else {
-			navigate({ to: "/app/search", search: { q: "", type: "all", sort: "relevance", page: 1 } });
+			navigate({
+				to: "/app/search",
+				search: { q: "", type: "all", sort: "relevance", page: 1 },
+			});
 		}
 	}
 

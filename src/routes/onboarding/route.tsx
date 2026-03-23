@@ -10,7 +10,10 @@ export const Route = createFileRoute("/onboarding")({
 		}
 
 		if (session.user.onboardingCompleted) {
-			throw redirect({ to: "/app/search", search: { q: "", type: "all", sort: "relevance", page: 1 } });
+			throw redirect({
+				to: "/app/search",
+				search: { q: "", type: "all", sort: "relevance", page: 1 },
+			});
 		}
 
 		return { user: session.user };
