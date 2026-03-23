@@ -79,7 +79,7 @@ export function ArcadeButton({ icon, label, color, onClick }: ArcadeButtonProps)
 				</span>
 			</button>
 
-			<div className="text-xs font-semibold text-cream mt-2.5 text-center">
+			<div className="text-sm font-semibold mt-2.5 text-center tracking-[0.3px]" style={{ color: '#fffff0' }}>
 				{label}
 			</div>
 		</div>

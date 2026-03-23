@@ -100,7 +100,7 @@ export function NowShowingMarquee({
 			</h1>
 
 			{/* Meta line */}
-			<p className="font-mono-retro text-xs text-cream/45 tracking-wider">
+			<p className="font-mono-retro text-xs text-cream/45 tracking-[1px]">
 				{metaParts.join(" · ")}
 			</p>
 		</div>

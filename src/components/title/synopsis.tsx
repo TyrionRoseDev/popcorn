@@ -19,10 +19,10 @@ export function Synopsis({ overview, tagline }: SynopsisProps) {
 		<div>
 			{tagline && (
 				<p className="italic text-base text-cream/50 border-l-[3px] border-neon-pink pl-4 mb-[18px] [box-shadow:-3px_0_15px_rgba(255,45,120,0.15)]">
-					{tagline}
+					{tagline.startsWith('\u201C') || tagline.startsWith('"') ? tagline : `\u201C${tagline}\u201D`}
 				</p>
 			)}
-			<p className="text-[15px] leading-[1.7] text-cream/80">{displayText}</p>
+			<p className="text-[15px] leading-[1.9] text-cream/70">{displayText}</p>
 			{needsTruncation && (
 				<button
 					type="button"

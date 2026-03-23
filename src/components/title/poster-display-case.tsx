@@ -29,7 +29,7 @@ export function PosterDisplayCase({ posterPath, title }: PosterDisplayCaseProps)
 				className="bg-[#0e0e14] rounded-md p-3 relative"
 				style={{
 					border: "1px solid rgba(255,255,240,0.08)",
-					boxShadow: "0 8px 40px rgba(0,0,0,0.6)",
+					boxShadow: "0 8px 40px rgba(0,0,0,0.6), 0 0 1px rgba(255,255,240,0.15), inset 0 1px 0 rgba(255,255,240,0.06)",
 				}}
 			>
 				{/* Case light bar */}

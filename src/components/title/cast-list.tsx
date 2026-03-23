@@ -31,7 +31,7 @@ export function CastList({ cast }: CastListProps) {
 		<div>
 			<FilmStripRow />
 			<div className="relative">
-				<div className="flex gap-5 overflow-x-auto py-4 px-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+				<div className="flex gap-7 overflow-x-auto py-5 px-8 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 					{cast.map((member) => {
 						const photoUrl = getTmdbImageUrl(member.profilePath, "w185");
 						return (
@@ -49,17 +49,17 @@ export function CastList({ cast }: CastListProps) {
 								) : (
 									<div className="w-[76px] h-[76px] rounded-full bg-gradient-to-br from-[#2a1a4e] to-[#1a3a5e] border-2 border-neon-cyan/20 shadow-[0_2px_8px_rgba(0,0,0,0.3)] group-hover:border-neon-cyan/50 group-hover:shadow-[0_0_25px_rgba(0,229,255,0.2)] transition-all" />
 								)}
-								<span className="text-[11px] text-cream font-semibold text-center">
+								<span className="text-[13px] text-cream font-semibold text-center">
 									{member.name}
 								</span>
-								<span className="text-[10px] text-cream/40 text-center -mt-1">
+								<span className="text-[10px] text-cream/40 text-center mt-0.5">
 									{member.character}
 								</span>
 							</div>
 						);
 					})}
 				</div>
-				<div className="absolute top-0 right-0 bottom-0 w-[70px] bg-gradient-to-r from-transparent to-drive-in-bg pointer-events-none" />
+				<div className="absolute top-0 right-0 bottom-0 w-[70px] bg-gradient-to-r from-transparent to-[#0a0a1c] pointer-events-none" />
 			</div>
 			<FilmStripRow />
 		</div>
