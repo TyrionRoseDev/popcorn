@@ -1,12 +1,14 @@
+import type { LucideIcon } from "lucide-react";
+
 interface SectionBoardProps {
-	icon: string;
+	icon: LucideIcon;
 	title: string;
 	children: React.ReactNode;
 	className?: string;
 }
 
 export function SectionBoard({
-	icon,
+	icon: Icon,
 	title,
 	children,
 	className,
@@ -63,7 +65,7 @@ export function SectionBoard({
 						border: "1px solid rgba(255, 255, 240, 0.06)",
 					}}
 				>
-					{icon}
+					<Icon className="w-4 h-4 text-cream/50" />
 				</div>
 				<span
 					className="font-display text-[15px] tracking-[3px] uppercase text-cream/80"

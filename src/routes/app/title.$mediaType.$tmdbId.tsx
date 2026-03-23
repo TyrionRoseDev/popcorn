@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Eye, Plus, Send } from "lucide-react";
+import { Check, FileText, Plus, Send, Users } from "lucide-react";
 import { z } from "zod";
 import { ArcadeButton } from "#/components/title/arcade-button";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
@@ -83,14 +83,14 @@ function TitlePage() {
 					/>
 					<div className="flex gap-4 justify-center mt-6">
 						<ArcadeButton icon={Plus} label="Watchlist" color="pink" />
-						<ArcadeButton icon={Eye} label="Watched" color="cyan" />
+						<ArcadeButton icon={Check} label="Watched" color="cyan" />
 						<ArcadeButton icon={Send} label="Invite" color="amber" />
 					</div>
 				</div>
 
 				{/* Right column */}
 				<div className="flex-1 min-w-0">
-					<SectionBoard icon="📋" title="Synopsis">
+					<SectionBoard icon={FileText} title="Synopsis">
 						<Synopsis
 							overview={data.overview}
 							tagline={data.tagline}
@@ -108,7 +108,7 @@ function TitlePage() {
 						className="mt-7"
 					/>
 
-					<SectionBoard icon="🎭" title="Cast" className="mt-7">
+					<SectionBoard icon={Users} title="Cast" className="mt-7">
 						<CastList cast={data.cast} />
 					</SectionBoard>
 				</div>

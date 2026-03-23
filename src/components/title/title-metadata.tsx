@@ -1,3 +1,4 @@
+import { Film } from "lucide-react";
 import { cn } from "#/lib/utils";
 
 interface TitleMetadataProps {
@@ -61,7 +62,7 @@ export function TitleMetadata({
 							className="w-8 h-8 rounded-md flex items-center justify-center text-base"
 							style={{ background: "rgba(255, 255, 240, 0.04)", border: "1px solid rgba(255, 255, 240, 0.06)" }}
 						>
-							🎬
+							<Film className="w-4 h-4 text-cream/50" />
 						</div>
 						<span
 							className="font-display text-[15px] tracking-[3px] uppercase text-cream/80"
