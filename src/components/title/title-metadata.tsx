@@ -1,3 +1,5 @@
+import { cn } from "#/lib/utils";
+
 interface TitleMetadataProps {
 	director: string | null;
 	rating: number;
@@ -41,7 +43,10 @@ export function TitleMetadata({
 	const visibleItems = metadataItems.filter((item) => item.value != null);
 
 	return (
-		<div className={`relative rounded-lg overflow-hidden border border-[rgba(255,255,240,0.06)] [background:linear-gradient(135deg,#0c0c20,#08081a)] [box-shadow:0_4px_24px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,240,0.03)]${className ? ` ${className}` : ""}`}>
+		<div className={cn(
+			"relative rounded-lg overflow-hidden border border-[rgba(255,255,240,0.06)] [background:linear-gradient(135deg,#0c0c20,#08081a)] [box-shadow:0_4px_24px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,240,0.03)]",
+			className,
+		)}>
 			{/* Top edge glow */}
 			<div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(255,255,240,0.15)] to-transparent" />
 			{/* Top inner wash */}

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Eye, Plus, Send } from "lucide-react";
 import { z } from "zod";
 import { ArcadeButton } from "#/components/title/arcade-button";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
@@ -81,9 +82,9 @@ function TitlePage() {
 						className="mt-5"
 					/>
 					<div className="flex gap-4 justify-center mt-6">
-						<ArcadeButton icon="+" label="Watchlist" color="pink" />
-						<ArcadeButton icon="✓" label="Watched" color="cyan" />
-						<ArcadeButton icon="✉" label="Invite" color="amber" />
+						<ArcadeButton icon={Plus} label="Watchlist" color="pink" />
+						<ArcadeButton icon={Eye} label="Watched" color="cyan" />
+						<ArcadeButton icon={Send} label="Invite" color="amber" />
 					</div>
 				</div>
 
