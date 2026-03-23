@@ -29,11 +29,11 @@ export function SectionBoard({
 				style={{
 					position: "absolute",
 					top: 0,
-					left: "15%",
-					right: "15%",
+					left: "10%",
+					right: "10%",
 					height: "1px",
 					background:
-						"linear-gradient(to right, transparent, rgba(255, 255, 240, 0.12), transparent)",
+						"linear-gradient(to right, transparent, rgba(255, 255, 240, 0.2), transparent)",
 				}}
 			/>
 

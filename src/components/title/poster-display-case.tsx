@@ -40,8 +40,8 @@ export function PosterDisplayCase({ posterPath, title }: PosterDisplayCaseProps)
 						left: "10%",
 						right: "10%",
 						height: "3px",
-						background: "linear-gradient(to right, transparent, rgba(255,255,240,0.5), transparent)",
-						boxShadow: "0 2px 8px rgba(255,255,240,0.15), 0 4px 16px rgba(255,255,240,0.06)",
+						background: "linear-gradient(to right, transparent, rgba(255,255,240,0.7), transparent)",
+						boxShadow: "0 2px 12px rgba(255,255,240,0.3), 0 4px 24px rgba(255,255,240,0.12)",
 					}}
 				/>
 

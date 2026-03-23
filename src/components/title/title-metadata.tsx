@@ -36,7 +36,6 @@ export function TitleMetadata({
 					value: contentRating && contentRating !== "NR" ? contentRating : null,
 				},
 				{ label: "Runtime", value: runtime },
-				{ label: "Status", value: status ?? null },
 			];
 
 	const visibleItems = metadataItems.filter((item) => item.value != null);
@@ -52,9 +51,17 @@ export function TitleMetadata({
 				{/* Main body */}
 				<div className="flex-1 p-8">
 					{/* Header */}
-					<div className="flex items-center gap-2 mb-6">
-						<span className="text-base">🎬</span>
-						<span className="font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/60">
+					<div className="flex items-center gap-3 mb-6 pb-4 border-b border-cream/4">
+						<div
+							className="w-8 h-8 rounded-md flex items-center justify-center text-base"
+							style={{ background: "rgba(255, 255, 240, 0.04)", border: "1px solid rgba(255, 255, 240, 0.06)" }}
+						>
+							🎬
+						</div>
+						<span
+							className="font-display text-[15px] tracking-[3px] uppercase text-cream/80"
+							style={{ textShadow: "0 0 15px rgba(255, 255, 240, 0.08)" }}
+						>
 							Details
 						</span>
 					</div>

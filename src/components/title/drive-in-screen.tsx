@@ -136,11 +136,11 @@ export function DriveInScreen({ backdropPath, trailerKey }: DriveInScreenProps) 
 					{/* Film strip — top */}
 					<div
 						aria-hidden="true"
-						className="absolute top-0 left-0 right-0 h-[14px] flex items-center z-10 overflow-hidden"
+						className="absolute top-0 left-0 right-0 h-[14px] flex items-center z-10"
 						style={{ background: "rgba(0,0,0,0.7)" }}
 					>
 						<div className="flex justify-between w-full px-1.5">
-							{Array.from({ length: 35 }, (_, i) => (
+							{Array.from({ length: 50 }, (_, i) => (
 								<div
 									// biome-ignore lint/suspicious/noArrayIndexKey: static decorative elements
 									key={i}
@@ -160,11 +160,11 @@ export function DriveInScreen({ backdropPath, trailerKey }: DriveInScreenProps) 
 					{/* Film strip — bottom */}
 					<div
 						aria-hidden="true"
-						className="absolute bottom-0 left-0 right-0 h-[14px] flex items-center z-10 overflow-hidden"
+						className="absolute bottom-0 left-0 right-0 h-[14px] flex items-center z-10"
 						style={{ background: "rgba(0,0,0,0.7)" }}
 					>
 						<div className="flex justify-between w-full px-1.5">
-							{Array.from({ length: 35 }, (_, i) => (
+							{Array.from({ length: 50 }, (_, i) => (
 								<div
 									// biome-ignore lint/suspicious/noArrayIndexKey: static decorative elements
 									key={i}
