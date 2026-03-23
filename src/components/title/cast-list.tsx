@@ -11,16 +11,27 @@ interface CastListProps {
 	cast: CastMember[];
 }
 
+function FilmStripRow() {
+	return (
+		<div className="h-[14px] flex items-center bg-[rgba(0,0,0,0.35)] px-2 overflow-hidden justify-between">
+			{Array.from({ length: 20 }).map((_, i) => (
+				<div
+					key={i}
+					className="w-3 h-2 rounded-sm bg-[rgba(255,255,240,0.05)] border border-[rgba(255,255,240,0.04)]"
+				/>
+			))}
+		</div>
+	);
+}
+
 export function CastList({ cast }: CastListProps) {
 	if (cast.length === 0) return null;
 
 	return (
 		<div>
-			<div className="font-mono-retro text-[11px] text-neon-pink uppercase tracking-[2px] mb-2 [text-shadow:0_0_10px_rgba(255,45,120,0.3)]">
-				Cast
-			</div>
+			<FilmStripRow />
 			<div className="relative">
-				<div className="flex gap-5 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+				<div className="flex gap-5 overflow-x-auto py-4 px-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 					{cast.map((member) => {
 						const photoUrl = getTmdbImageUrl(member.profilePath, "w185");
 						return (
@@ -32,11 +43,11 @@ export function CastList({ cast }: CastListProps) {
 									<img
 										src={photoUrl}
 										alt={member.name}
-										className="w-[68px] h-[68px] rounded-full object-cover border-2 border-neon-pink/30 shadow-[0_2px_8px_rgba(0,0,0,0.3)] group-hover:border-neon-pink/70 group-hover:shadow-[0_0_12px_rgba(255,45,120,0.3)] transition-all"
+										className="w-[76px] h-[76px] rounded-full object-cover border-2 border-neon-cyan/20 shadow-[0_2px_8px_rgba(0,0,0,0.3)] group-hover:border-neon-cyan/50 group-hover:shadow-[0_0_25px_rgba(0,229,255,0.2)] transition-all"
 										loading="lazy"
 									/>
 								) : (
-									<div className="w-[68px] h-[68px] rounded-full bg-gradient-to-br from-[#2a1a4e] to-[#1a3a5e] border-2 border-neon-pink/30 shadow-[0_2px_8px_rgba(0,0,0,0.3)] group-hover:border-neon-pink/70 group-hover:shadow-[0_0_12px_rgba(255,45,120,0.3)] transition-all" />
+									<div className="w-[76px] h-[76px] rounded-full bg-gradient-to-br from-[#2a1a4e] to-[#1a3a5e] border-2 border-neon-cyan/20 shadow-[0_2px_8px_rgba(0,0,0,0.3)] group-hover:border-neon-cyan/50 group-hover:shadow-[0_0_25px_rgba(0,229,255,0.2)] transition-all" />
 								)}
 								<span className="text-[11px] text-cream font-semibold text-center">
 									{member.name}
@@ -48,8 +59,9 @@ export function CastList({ cast }: CastListProps) {
 						);
 					})}
 				</div>
-				<div className="absolute top-0 right-0 bottom-2 w-[60px] bg-gradient-to-r from-transparent to-drive-in-bg pointer-events-none" />
+				<div className="absolute top-0 right-0 bottom-0 w-[70px] bg-gradient-to-r from-transparent to-drive-in-bg pointer-events-none" />
 			</div>
+			<FilmStripRow />
 		</div>
 	);
 }

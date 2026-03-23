@@ -2,11 +2,12 @@ import { useState } from "react";
 
 interface SynopsisProps {
 	overview: string;
+	tagline?: string | null;
 }
 
 const MAX_LENGTH = 300;
 
-export function Synopsis({ overview }: SynopsisProps) {
+export function Synopsis({ overview, tagline }: SynopsisProps) {
 	const [expanded, setExpanded] = useState(false);
 	const needsTruncation = overview.length > MAX_LENGTH;
 	const displayText =
@@ -16,9 +17,11 @@ export function Synopsis({ overview }: SynopsisProps) {
 
 	return (
 		<div>
-			<div className="font-mono-retro text-[11px] text-neon-pink uppercase tracking-[2px] mb-2 [text-shadow:0_0_10px_rgba(255,45,120,0.3)]">
-				Synopsis
-			</div>
+			{tagline && (
+				<p className="italic text-base text-cream/50 border-l-[3px] border-neon-pink pl-4 mb-[18px] [box-shadow:-3px_0_15px_rgba(255,45,120,0.15)]">
+					{tagline}
+				</p>
+			)}
 			<p className="text-[15px] leading-[1.7] text-cream/80">{displayText}</p>
 			{needsTruncation && (
 				<button

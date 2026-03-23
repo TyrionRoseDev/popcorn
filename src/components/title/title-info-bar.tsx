@@ -3,6 +3,12 @@ interface TitleInfoBarProps {
 	genres: string[];
 }
 
+const genreColorClasses = [
+	"text-neon-pink border-neon-pink/40 [text-shadow:0_0_8px_rgba(255,45,120,0.5)] [box-shadow:0_0_10px_rgba(255,45,120,0.1),inset_0_0_10px_rgba(255,45,120,0.05)]",
+	"text-neon-cyan border-neon-cyan/40 [text-shadow:0_0_8px_rgba(0,229,255,0.5)] [box-shadow:0_0_10px_rgba(0,229,255,0.1),inset_0_0_10px_rgba(0,229,255,0.05)]",
+	"text-neon-amber border-neon-amber/40 [text-shadow:0_0_8px_rgba(255,184,0,0.5)] [box-shadow:0_0_10px_rgba(255,184,0,0.1),inset_0_0_10px_rgba(255,184,0,0.05)]",
+];
+
 export function TitleInfoBar({ contentRating, genres }: TitleInfoBarProps) {
 	return (
 		<div className="flex flex-wrap items-center gap-2.5">
@@ -11,10 +17,10 @@ export function TitleInfoBar({ contentRating, genres }: TitleInfoBarProps) {
 					{contentRating}
 				</span>
 			)}
-			{genres.map((genre) => (
+			{genres.map((genre, index) => (
 				<span
 					key={genre}
-					className="px-3.5 py-1 border border-neon-pink/25 rounded-full font-mono-retro text-[11px] text-cream/80 tracking-wider hover:border-neon-pink/60 hover:shadow-[0_0_10px_rgba(255,45,120,0.2)] transition-all"
+					className={`px-3.5 py-[5px] border rounded-sm font-mono-retro text-[11px] tracking-wider ${genreColorClasses[index % 3]}`}
 				>
 					{genre}
 				</span>

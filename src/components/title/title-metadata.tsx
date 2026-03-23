@@ -1,7 +1,8 @@
 interface TitleMetadataProps {
 	director: string | null;
-	tagline: string | null;
 	rating: number;
+	contentRating: string;
+	runtime: string;
 	seasons?: number;
 	episodes?: number;
 	status?: string;
@@ -9,66 +10,99 @@ interface TitleMetadataProps {
 
 export function TitleMetadata({
 	director,
-	tagline,
 	rating,
+	contentRating,
+	runtime,
 	seasons,
 	episodes,
 	status,
 }: TitleMetadataProps) {
+	const isTV = seasons != null || episodes != null;
+	const filledStars = Math.round(rating / 2);
+
+	const metadataItems = isTV
+		? [
+				{ label: "Creator", value: director },
+				{ label: "Seasons", value: seasons != null ? String(seasons) : null },
+				{ label: "Episodes", value: episodes != null ? String(episodes) : null },
+				{ label: "Status", value: status ?? null },
+			]
+		: [
+				{ label: "Director", value: director },
+				{
+					label: "Content Rating",
+					value: contentRating && contentRating !== "NR" ? contentRating : null,
+				},
+				{ label: "Runtime", value: runtime },
+				{ label: "Status", value: status ?? null },
+			];
+
+	const visibleItems = metadataItems.filter((item) => item.value != null);
+
 	return (
-		<div>
-			<div className="font-mono-retro text-[11px] text-neon-pink uppercase tracking-[2px] mb-2 [text-shadow:0_0_10px_rgba(255,45,120,0.3)]">
-				Details
-			</div>
-			{tagline && (
-				<p className="italic text-cream/50 text-[15px] border-l-2 border-neon-pink pl-3.5 mb-3.5 [text-shadow:0_0_12px_rgba(255,45,120,0.1)]">
-					&ldquo;{tagline}&rdquo;
-				</p>
-			)}
-			<div className="flex flex-col gap-2.5">
-				{director && (
-					<div className="flex gap-2 text-sm">
-						<span className="text-cream/40 min-w-[80px] font-mono-retro text-xs">
-							Director
+		<div className="relative rounded-lg overflow-hidden border border-[rgba(255,255,240,0.06)] [background:linear-gradient(135deg,#0c0c20,#08081a)] [box-shadow:0_4px_24px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,240,0.03)]">
+			{/* Top edge glow */}
+			<div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(255,255,240,0.15)] to-transparent" />
+			{/* Top inner wash */}
+			<div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-[rgba(255,255,240,0.02)] to-transparent pointer-events-none" />
+
+			<div className="flex">
+				{/* Main body */}
+				<div className="flex-1 p-8">
+					{/* Header */}
+					<div className="flex items-center gap-2 mb-6">
+						<span className="text-base">🎬</span>
+						<span className="font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/60">
+							Details
 						</span>
-						<span className="text-cream/80">{director}</span>
 					</div>
-				)}
-				<div className="flex gap-2 text-sm">
-					<span className="text-cream/40 min-w-[80px] font-mono-retro text-xs">
-						Rating
-					</span>
-					<span className="text-cream/80">
-						<span className="text-neon-amber [text-shadow:0_0_6px_rgba(255,184,0,0.4)]">
-							★
-						</span>{" "}
-						{rating.toFixed(1)} / 10
-					</span>
+
+					{/* Metadata grid */}
+					<div className="grid grid-cols-2 gap-6">
+						{visibleItems.map((item) => (
+							<div key={item.label}>
+								<div className="font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/30 mb-1.5">
+									{item.label}
+								</div>
+								<div className="text-[15px] text-cream">{item.value}</div>
+							</div>
+						))}
+					</div>
 				</div>
-				{seasons != null && (
-					<div className="flex gap-2 text-sm">
-						<span className="text-cream/40 min-w-[80px] font-mono-retro text-xs">
-							Seasons
-						</span>
-						<span className="text-cream/80">{seasons}</span>
+
+				{/* Perforation column */}
+				<div className="w-8 flex flex-col items-center justify-around border-l border-dashed border-[rgba(255,255,240,0.08)] py-4">
+					{Array.from({ length: 5 }).map((_, i) => (
+						<div
+							key={i}
+							className="w-[10px] h-[10px] rounded-full bg-drive-in-bg [box-shadow:inset_0_1px_3px_rgba(0,0,0,0.5)]"
+						/>
+					))}
+				</div>
+
+				{/* Rating tear-off */}
+				<div className="w-[110px] flex flex-col items-center justify-center gap-1 [background:rgba(255,184,0,0.03)] py-8 px-4">
+					<div className="font-logo text-4xl text-neon-amber [text-shadow:0_0_20px_rgba(255,184,0,0.4)]">
+						{rating.toFixed(1)}
 					</div>
-				)}
-				{episodes != null && (
-					<div className="flex gap-2 text-sm">
-						<span className="text-cream/40 min-w-[80px] font-mono-retro text-xs">
-							Episodes
-						</span>
-						<span className="text-cream/80">{episodes}</span>
+					<div className="font-mono-retro text-[9px] text-cream/35 uppercase tracking-[2px] mt-2">
+						TMDB
 					</div>
-				)}
-				{status && (
-					<div className="flex gap-2 text-sm">
-						<span className="text-cream/40 min-w-[80px] font-mono-retro text-xs">
-							Status
-						</span>
-						<span className="text-cream/80">{status}</span>
+					<div className="flex gap-0.5 mt-1">
+						{Array.from({ length: 5 }).map((_, i) => (
+							<span
+								key={i}
+								className={
+									i < filledStars
+										? "text-neon-amber text-[11px]"
+										: "text-neon-amber/20 text-[11px]"
+								}
+							>
+								★
+							</span>
+						))}
 					</div>
-				)}
+				</div>
 			</div>
 		</div>
 	);
