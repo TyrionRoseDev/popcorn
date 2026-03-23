@@ -14,9 +14,9 @@ const genreColorClasses = [
 
 export function TitleInfoBar({ contentRating, genres, className }: TitleInfoBarProps) {
 	return (
-		<div className={cn("flex flex-wrap items-center gap-3", className)}>
+		<div className={cn("flex flex-wrap items-center justify-center gap-3", className)}>
 			{contentRating && contentRating !== "NR" && (
-				<span className="px-3 py-1 border border-neon-amber/40 rounded text-[13px] font-mono-retro font-semibold text-neon-amber [text-shadow:0_0_6px_rgba(255,184,0,0.3)]">
+				<span className="px-4 py-2 border border-neon-amber/40 rounded text-sm font-mono-retro font-bold text-neon-amber [text-shadow:0_0_8px_rgba(255,184,0,0.4)]">
 					{contentRating}
 				</span>
 			)}
@@ -24,7 +24,7 @@ export function TitleInfoBar({ contentRating, genres, className }: TitleInfoBarP
 				<span
 					key={genre}
 					className={cn(
-						"px-4 py-1.5 border rounded-sm font-mono-retro text-[13px] font-semibold tracking-wider",
+						"px-4 py-2 border rounded-sm font-mono-retro text-sm font-bold tracking-wider",
 						genreColorClasses[index % 3],
 					)}
 				>
