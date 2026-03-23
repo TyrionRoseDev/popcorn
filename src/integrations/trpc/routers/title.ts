@@ -11,5 +11,7 @@ export const titleRouter = {
 				tmdbId: z.number(),
 			}),
 		)
-		.query(async ({ input }) => fetchTitleDetails(input.mediaType, input.tmdbId)),
+		.query(async ({ input }) =>
+			fetchTitleDetails(input.mediaType, input.tmdbId),
+		),
 } satisfies TRPCRouterRecord;

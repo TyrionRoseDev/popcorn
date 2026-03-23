@@ -113,9 +113,7 @@ function findTrailerKey(videos: TmdbVideosResponse): string | null {
 		videos.results.find(
 			(v) => v.site === "YouTube" && v.type === "Trailer" && v.official,
 		) ??
-		videos.results.find(
-			(v) => v.site === "YouTube" && v.type === "Trailer",
-		) ??
+		videos.results.find((v) => v.site === "YouTube" && v.type === "Trailer") ??
 		videos.results.find((v) => v.site === "YouTube");
 	return trailer?.key ?? null;
 }
