@@ -1,15 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
+import { ArcadeButton } from "#/components/title/arcade-button";
+import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { CastList } from "#/components/title/cast-list";
-import { HeroTrailer } from "#/components/title/hero-trailer";
-import { SectionDivider } from "#/components/title/section-divider";
+import { DriveInScreen } from "#/components/title/drive-in-screen";
+import { NowShowingMarquee } from "#/components/title/now-showing-marquee";
+import { PosterDisplayCase } from "#/components/title/poster-display-case";
+import { SectionBoard } from "#/components/title/section-board";
 import { Synopsis } from "#/components/title/synopsis";
 import { TitleInfoBar } from "#/components/title/title-info-bar";
 import { TitleMetadata } from "#/components/title/title-metadata";
+import { TitlePageAtmosphere } from "#/components/title/title-page-atmosphere";
 import { TitlePageSkeleton } from "#/components/title/title-page-skeleton";
 import { useTRPC } from "#/integrations/trpc/react";
-import { getTmdbImageUrl } from "#/lib/tmdb";
 
 const paramsSchema = z.object({
 	mediaType: z.enum(["movie", "tv"]),
@@ -46,85 +50,66 @@ function TitlePage() {
 
 	if (!data) return <TitlePageSkeleton />;
 
-	const posterUrl = getTmdbImageUrl(data.posterPath, "w342");
-
 	return (
-		<div>
-			<HeroTrailer
+		<div className="relative z-10">
+			<TitlePageAtmosphere />
+
+			<DriveInScreen
 				backdropPath={data.backdropPath}
 				trailerKey={data.trailerKey}
 			/>
 
-			<div className="mx-auto max-w-[1400px] px-4 md:px-12 py-8 flex flex-col md:flex-row gap-9">
-				{/* Poster sidebar */}
-				<div className="flex flex-col items-center md:items-start gap-4 shrink-0">
-					{posterUrl ? (
-						<img
-							src={posterUrl}
-							alt={`${data.title} poster`}
-							className="w-[160px] h-[240px] md:w-[220px] md:h-[330px] rounded-lg object-cover border border-neon-pink/20 shadow-[0_4px_20px_rgba(0,0,0,0.4)]"
-						/>
-					) : (
-						<div className="w-[160px] h-[240px] md:w-[220px] md:h-[330px] rounded-lg bg-gradient-to-br from-[#2a1a4e] to-[#1a3a5e] border border-neon-pink/20 shadow-[0_4px_20px_rgba(0,0,0,0.4)] flex items-center justify-center text-cream/20 text-xs">
-							No Poster
-						</div>
-					)}
-					<button
-						type="button"
-						onClick={() => {
-							// TODO: implement watchlist functionality
-						}}
-						className="w-[160px] md:w-[220px] py-3 rounded-md bg-neon-pink text-white font-semibold text-sm tracking-wider shadow-[0_0_20px_rgba(255,45,120,0.3)] hover:shadow-[0_0_30px_rgba(255,45,120,0.5)] hover:-translate-y-0.5 transition-all cursor-pointer"
-					>
-						+ Add to Watchlist
-					</button>
-				</div>
+			<CarSilhouettes />
 
-				{/* Content area */}
-				<div className="flex-1 min-w-0 flex flex-col gap-7">
-					{/* Title heading */}
-					<div>
-						<h1 className="font-display text-3xl md:text-4xl text-cream [text-shadow:0_0_30px_rgba(255,45,120,0.3),0_0_60px_rgba(255,45,120,0.15)]">
-							{data.title}
-						</h1>
-						<div className="flex items-center gap-2 text-sm text-cream/60 mt-1.5">
-							<span>{data.year}</span>
-							{data.runtime && (
-								<>
-									<span>&bull;</span>
-									<span>{data.runtime}</span>
-								</>
-							)}
-							<span>&bull;</span>
-							<span className="text-neon-amber [text-shadow:0_0_8px_rgba(255,184,0,0.5)]">
-								★ {data.rating.toFixed(1)}
-							</span>
-						</div>
-					</div>
+			<NowShowingMarquee
+				title={data.title}
+				year={data.year}
+				runtime={data.runtime}
+				contentRating={data.contentRating}
+			/>
 
+			<div className="max-w-[1060px] mx-auto mt-12 px-8 pb-[120px] flex flex-col md:flex-row gap-12">
+				{/* Left column */}
+				<div className="w-full md:w-[280px] flex-shrink-0">
+					<PosterDisplayCase
+						posterPath={data.posterPath}
+						title={data.title}
+					/>
 					<TitleInfoBar
 						contentRating={data.contentRating}
 						genres={data.genres}
+						className="mt-5"
 					/>
+					<div className="flex gap-4 justify-center mt-6">
+						<ArcadeButton icon="+" label="Watchlist" color="pink" />
+						<ArcadeButton icon="✓" label="Watched" color="cyan" />
+						<ArcadeButton icon="✉" label="Invite" color="amber" />
+					</div>
+				</div>
 
-					<SectionDivider />
-
-					<Synopsis overview={data.overview} />
-
-					<SectionDivider />
+				{/* Right column */}
+				<div className="flex-1 min-w-0">
+					<SectionBoard icon="📋" title="Synopsis">
+						<Synopsis
+							overview={data.overview}
+							tagline={data.tagline}
+						/>
+					</SectionBoard>
 
 					<TitleMetadata
 						director={data.director}
-						tagline={data.tagline}
 						rating={data.rating}
+						contentRating={data.contentRating}
+						runtime={data.runtime}
 						seasons={data.seasons}
 						episodes={data.episodes}
 						status={data.status}
+						className="mt-7"
 					/>
 
-					<SectionDivider />
-
-					<CastList cast={data.cast} />
+					<SectionBoard icon="🎭" title="Cast" className="mt-7">
+						<CastList cast={data.cast} />
+					</SectionBoard>
 				</div>
 			</div>
 		</div>

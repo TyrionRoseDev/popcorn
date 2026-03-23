@@ -1,6 +1,7 @@
 interface TitleInfoBarProps {
 	contentRating: string;
 	genres: string[];
+	className?: string;
 }
 
 const genreColorClasses = [
@@ -9,9 +10,9 @@ const genreColorClasses = [
 	"text-neon-amber border-neon-amber/40 [text-shadow:0_0_8px_rgba(255,184,0,0.5)] [box-shadow:0_0_10px_rgba(255,184,0,0.1),inset_0_0_10px_rgba(255,184,0,0.05)]",
 ];
 
-export function TitleInfoBar({ contentRating, genres }: TitleInfoBarProps) {
+export function TitleInfoBar({ contentRating, genres, className }: TitleInfoBarProps) {
 	return (
-		<div className="flex flex-wrap items-center gap-2.5">
+		<div className={`flex flex-wrap items-center gap-2.5${className ? ` ${className}` : ""}`}>
 			{contentRating && contentRating !== "NR" && (
 				<span className="px-2 py-0.5 border border-neon-amber/40 rounded text-[11px] font-mono-retro font-semibold text-neon-amber [text-shadow:0_0_6px_rgba(255,184,0,0.3)]">
 					{contentRating}

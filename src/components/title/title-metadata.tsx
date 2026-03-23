@@ -6,6 +6,7 @@ interface TitleMetadataProps {
 	seasons?: number;
 	episodes?: number;
 	status?: string;
+	className?: string;
 }
 
 export function TitleMetadata({
@@ -16,6 +17,7 @@ export function TitleMetadata({
 	seasons,
 	episodes,
 	status,
+	className,
 }: TitleMetadataProps) {
 	const isTV = seasons != null || episodes != null;
 	const filledStars = Math.round(rating / 2);
@@ -40,7 +42,7 @@ export function TitleMetadata({
 	const visibleItems = metadataItems.filter((item) => item.value != null);
 
 	return (
-		<div className="relative rounded-lg overflow-hidden border border-[rgba(255,255,240,0.06)] [background:linear-gradient(135deg,#0c0c20,#08081a)] [box-shadow:0_4px_24px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,240,0.03)]">
+		<div className={`relative rounded-lg overflow-hidden border border-[rgba(255,255,240,0.06)] [background:linear-gradient(135deg,#0c0c20,#08081a)] [box-shadow:0_4px_24px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,240,0.03)]${className ? ` ${className}` : ""}`}>
 			{/* Top edge glow */}
 			<div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(255,255,240,0.15)] to-transparent" />
 			{/* Top inner wash */}
