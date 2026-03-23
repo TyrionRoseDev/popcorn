@@ -28,8 +28,10 @@ export const Route = createFileRoute("/app")({
 });
 
 function AppLayout() {
-	const matches = useMatches()
-	const isTitlePage = matches.some(m => m.routeId === '/app/title/$mediaType/$tmdbId')
+	const matches = useMatches();
+	const isTitlePage = matches.some(
+		(m) => m.routeId === "/app/title/$mediaType/$tmdbId",
+	);
 
 	return (
 		<div className="relative min-h-screen bg-drive-in-bg">

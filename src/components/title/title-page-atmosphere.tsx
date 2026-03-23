@@ -11,10 +11,7 @@ const STARS = Array.from({ length: 70 }, (_, i) => ({
 
 export function TitlePageAtmosphere() {
 	return (
-		<div
-			aria-hidden="true"
-			className="pointer-events-none fixed inset-0 z-0"
-		>
+		<div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0">
 			{/* Night sky gradient */}
 			<div
 				className="absolute inset-0"
