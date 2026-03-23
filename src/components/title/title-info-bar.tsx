@@ -12,14 +12,18 @@ const genreColorClasses = [
 	"text-neon-amber border-neon-amber/40 [text-shadow:0_0_8px_rgba(255,184,0,0.5)] [box-shadow:0_0_10px_rgba(255,184,0,0.1),inset_0_0_10px_rgba(255,184,0,0.05)]",
 ];
 
-export function TitleInfoBar({ contentRating, genres, className }: TitleInfoBarProps) {
+export function TitleInfoBar({
+	contentRating,
+	genres,
+	className,
+}: TitleInfoBarProps) {
 	return (
-		<div className={cn("flex flex-wrap items-center justify-center gap-3", className)}>
-			{contentRating && contentRating !== "NR" && (
-				<span className="px-4 py-2 border border-neon-amber/40 rounded text-sm font-mono-retro font-bold text-neon-amber [text-shadow:0_0_8px_rgba(255,184,0,0.4)]">
-					{contentRating}
-				</span>
+		<div
+			className={cn(
+				"flex relative flex-wrap items-center justify-center gap-3",
+				className,
 			)}
+		>
 			{genres.map((genre, index) => (
 				<span
 					key={genre}

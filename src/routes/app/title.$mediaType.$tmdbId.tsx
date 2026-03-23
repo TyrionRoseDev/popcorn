@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check, FileText, Plus, Send, Users } from "lucide-react";
+import { Check, Plus, Send } from "lucide-react";
 import { z } from "zod";
 import { ArcadeButton } from "#/components/title/arcade-button";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
@@ -10,7 +10,6 @@ import { NowShowingMarquee } from "#/components/title/now-showing-marquee";
 import { PosterDisplayCase } from "#/components/title/poster-display-case";
 import { SectionBoard } from "#/components/title/section-board";
 import { Synopsis } from "#/components/title/synopsis";
-import { TitleInfoBar } from "#/components/title/title-info-bar";
 import { TitleMetadata } from "#/components/title/title-metadata";
 import { TitlePageAtmosphere } from "#/components/title/title-page-atmosphere";
 import { TitlePageSkeleton } from "#/components/title/title-page-skeleton";
@@ -76,12 +75,7 @@ function TitlePage() {
 						posterPath={data.posterPath}
 						title={data.title}
 					/>
-					<TitleInfoBar
-						contentRating={data.contentRating}
-						genres={data.genres}
-						className="mt-5"
-					/>
-					<div className="flex gap-4 justify-center mt-6">
+					<div className="flex gap-4 justify-center mt-5">
 						<ArcadeButton icon={Plus} label="Watchlist" color="pink" />
 						<ArcadeButton icon={Check} label="Watched" color="cyan" />
 						<ArcadeButton icon={Send} label="Invite" color="amber" />
@@ -90,7 +84,7 @@ function TitlePage() {
 
 				{/* Right column */}
 				<div className="flex-1 min-w-0">
-					<SectionBoard icon={FileText} title="Synopsis">
+					<SectionBoard title="Synopsis">
 						<Synopsis
 							overview={data.overview}
 							tagline={data.tagline}
@@ -102,13 +96,14 @@ function TitlePage() {
 						rating={data.rating}
 						contentRating={data.contentRating}
 						runtime={data.runtime}
+						genres={data.genres}
 						seasons={data.seasons}
 						episodes={data.episodes}
 						status={data.status}
 						className="mt-7"
 					/>
 
-					<SectionBoard icon={Users} title="Cast" className="mt-7">
+					<SectionBoard title="Cast" className="mt-7">
 						<CastList cast={data.cast} />
 					</SectionBoard>
 				</div>

@@ -1,11 +1,17 @@
-import { Film } from "lucide-react";
 import { cn } from "#/lib/utils";
+
+const genreColorClasses = [
+	"text-neon-pink border-neon-pink/40 [text-shadow:0_0_8px_rgba(255,45,120,0.5)] [box-shadow:0_0_10px_rgba(255,45,120,0.1),inset_0_0_10px_rgba(255,45,120,0.05)]",
+	"text-neon-cyan border-neon-cyan/40 [text-shadow:0_0_8px_rgba(0,229,255,0.5)] [box-shadow:0_0_10px_rgba(0,229,255,0.1),inset_0_0_10px_rgba(0,229,255,0.05)]",
+	"text-neon-amber border-neon-amber/40 [text-shadow:0_0_8px_rgba(255,184,0,0.5)] [box-shadow:0_0_10px_rgba(255,184,0,0.1),inset_0_0_10px_rgba(255,184,0,0.05)]",
+];
 
 interface TitleMetadataProps {
 	director: string | null;
 	rating: number;
 	contentRating: string;
 	runtime: string;
+	genres: string[];
 	seasons?: number;
 	episodes?: number;
 	status?: string;
@@ -17,6 +23,7 @@ export function TitleMetadata({
 	rating,
 	contentRating,
 	runtime,
+	genres,
 	seasons,
 	episodes,
 	status,
@@ -57,16 +64,10 @@ export function TitleMetadata({
 				{/* Main body */}
 				<div className="flex-1 p-8">
 					{/* Header */}
-					<div className="flex items-center gap-3 mb-6 pb-4 border-b border-cream/4">
-						<div
-							className="w-8 h-8 rounded-md flex items-center justify-center text-base"
-							style={{ background: "rgba(255, 255, 240, 0.04)", border: "1px solid rgba(255, 255, 240, 0.06)" }}
-						>
-							<Film className="w-4 h-4 text-cream/50" />
-						</div>
+					<div className="mb-6 pb-4 border-b border-cream/6">
 						<span
-							className="font-display text-[15px] tracking-[3px] uppercase text-cream/80"
-							style={{ textShadow: "0 0 15px rgba(255, 255, 240, 0.08)" }}
+							className="font-display text-base tracking-[3px] uppercase text-cream/90"
+							style={{ textShadow: "0 0 20px rgba(255, 255, 240, 0.12), 0 0 40px rgba(255, 184, 0, 0.04)" }}
 						>
 							Details
 						</span>
@@ -83,6 +84,23 @@ export function TitleMetadata({
 							</div>
 						))}
 					</div>
+
+					{/* Genre pills */}
+					{genres.length > 0 && (
+						<div className="flex flex-wrap gap-2 mt-6 pt-5 border-t border-cream/4">
+							{genres.map((genre, index) => (
+								<span
+									key={genre}
+									className={cn(
+										"px-4 py-2 border rounded-sm font-mono-retro text-sm font-bold tracking-wider",
+										genreColorClasses[index % 3],
+									)}
+								>
+									{genre}
+								</span>
+							))}
+						</div>
+					)}
 				</div>
 
 				{/* Perforation column */}
