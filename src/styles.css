@@ -400,6 +400,11 @@ a {
   50% { opacity: 1; box-shadow: 0 0 10px rgba(255,184,0,0.7); }
 }
 
+@keyframes chase {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
 @keyframes footer-flicker {
   0%, 91%, 94%, 97%, 100% { opacity: 1; }
   92% { opacity: 0.4; }
@@ -423,5 +428,8 @@ a {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  @keyframes chase {
+    0%, 100% { opacity: 1; }
   }
 }
