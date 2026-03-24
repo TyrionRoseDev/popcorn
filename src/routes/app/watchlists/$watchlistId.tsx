@@ -8,9 +8,7 @@ import { WatchlistItemCard } from "#/components/watchlist/watchlist-item-card";
 import { useTRPC } from "#/integrations/trpc/react";
 
 const searchSchema = z.object({
-	sort: z
-		.enum(["date-added", "title", "year", "rating"])
-		.default("date-added"),
+	sort: z.enum(["date-added", "title", "year", "rating"]).default("date-added"),
 	type: z.enum(["all", "movie", "tv"]).default("all"),
 });
 
@@ -57,8 +55,7 @@ function WatchlistDetailPage() {
 			case "date-added":
 				items.sort(
 					(a, b) =>
-						new Date(b.createdAt).getTime() -
-						new Date(a.createdAt).getTime(),
+						new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
 				);
 				break;
 			case "title":

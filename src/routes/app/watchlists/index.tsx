@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { CreateWatchlistDialog } from "#/components/watchlist/create-watchlist-dialog";
 import { NewWatchlistButton } from "#/components/watchlist/new-watchlist-button";
 import { NowShowingHeader } from "#/components/watchlist/now-showing-header";
 import { WatchlistAtmosphere } from "#/components/watchlist/watchlist-atmosphere";
@@ -17,6 +19,7 @@ function WatchlistsPage() {
 	const { data: watchlists, isLoading } = useQuery(
 		trpc.watchlist.list.queryOptions(),
 	);
+	const [dialogOpen, setDialogOpen] = useState(false);
 
 	return (
 		<>
@@ -25,10 +28,10 @@ function WatchlistsPage() {
 			<div className="relative" style={{ zIndex: 2, paddingTop: "40px" }}>
 				<NowShowingHeader title="My Watchlists" />
 
-				<NewWatchlistButton
-					onClick={() => {
-						console.log("New watchlist clicked — dialog comes in Task 9");
-					}}
+				<NewWatchlistButton onClick={() => setDialogOpen(true)} />
+				<CreateWatchlistDialog
+					open={dialogOpen}
+					onOpenChange={setDialogOpen}
 				/>
 
 				{/* Watchlist content */}

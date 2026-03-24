@@ -155,9 +155,7 @@ export function WatchlistDetailHeader({
 							onClick={toggleVisibility}
 							disabled={updateMutation.isPending}
 							className="rounded-lg p-2 text-cream/40 transition-colors hover:text-cream/70 hover:bg-cream/8"
-							title={
-								watchlist.isPublic ? "Make private" : "Make public"
-							}
+							title={watchlist.isPublic ? "Make private" : "Make public"}
 						>
 							{watchlist.isPublic ? (
 								<Eye className="h-4 w-4" />
@@ -167,39 +165,36 @@ export function WatchlistDetailHeader({
 						</button>
 
 						{/* Delete button */}
-						{!watchlist.isDefault && (
-							<>
-								{showDeleteConfirm ? (
-									<div className="flex items-center gap-2 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-1.5">
-										<span className="text-xs text-red-300">Delete?</span>
-										<button
-											type="button"
-											onClick={confirmDelete}
-											disabled={deleteMutation.isPending}
-											className="text-xs font-semibold text-red-400 hover:text-red-300"
-										>
-											Yes
-										</button>
-										<button
-											type="button"
-											onClick={() => setShowDeleteConfirm(false)}
-											className="text-xs text-cream/40 hover:text-cream/70"
-										>
-											No
-										</button>
-									</div>
-								) : (
+						{!watchlist.isDefault &&
+							(showDeleteConfirm ? (
+								<div className="flex items-center gap-2 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-1.5">
+									<span className="text-xs text-red-300">Delete?</span>
 									<button
 										type="button"
-										onClick={() => setShowDeleteConfirm(true)}
-										className="rounded-lg p-2 text-cream/30 transition-colors hover:text-red-400 hover:bg-red-400/10"
-										title="Delete watchlist"
+										onClick={confirmDelete}
+										disabled={deleteMutation.isPending}
+										className="text-xs font-semibold text-red-400 hover:text-red-300"
 									>
-										<Trash2 className="h-4 w-4" />
+										Yes
 									</button>
-								)}
-							</>
-						)}
+									<button
+										type="button"
+										onClick={() => setShowDeleteConfirm(false)}
+										className="text-xs text-cream/40 hover:text-cream/70"
+									>
+										No
+									</button>
+								</div>
+							) : (
+								<button
+									type="button"
+									onClick={() => setShowDeleteConfirm(true)}
+									className="rounded-lg p-2 text-cream/30 transition-colors hover:text-red-400 hover:bg-red-400/10"
+									title="Delete watchlist"
+								>
+									<Trash2 className="h-4 w-4" />
+								</button>
+							))}
 					</div>
 				)}
 			</div>
