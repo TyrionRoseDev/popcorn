@@ -2,7 +2,7 @@
 
 ## Overview
 
-A multi-watchlist system where users can create named watchlists, add movies and TV shows they want to watch, collaborate with friends, and manage their viewing queue. This is the "want to watch" phase — a future film diary feature will extend this with watched status, ratings, and reviews.
+A multi-watchlist system where users can create named watchlists, add movies and TV shows they want to watch, collaborate with friends, and manage their viewing queue. This is the "want to watch" phase with basic watched-toggling (mark titles as watched within a watchlist). A future film diary feature will extend this with watched dates, ratings, and reviews.
 
 ## Data Model
 
@@ -11,7 +11,7 @@ A multi-watchlist system where users can create named watchlists, add movies and
 **`watchlist`**
 | Column | Type | Notes |
 |--------|------|-------|
-| id | uuid | Primary key |
+| id | text | Primary key, `$defaultFn(() => crypto.randomUUID())` |
 | name | text | User-defined name |
 | ownerId | text | FK → user.id |
 | isPublic | boolean | Default false |
@@ -22,8 +22,8 @@ A multi-watchlist system where users can create named watchlists, add movies and
 **`watchlistItem`**
 | Column | Type | Notes |
 |--------|------|-------|
-| id | uuid | Primary key |
-| watchlistId | uuid | FK → watchlist.id |
+| id | text | Primary key, `$defaultFn(() => crypto.randomUUID())` |
+| watchlistId | text | FK → watchlist.id |
 | tmdbId | integer | TMDB title ID |
 | mediaType | text | 'movie' or 'tv' |
 | addedBy | text | FK → user.id |
@@ -35,8 +35,8 @@ A multi-watchlist system where users can create named watchlists, add movies and
 **`watchlistMember`**
 | Column | Type | Notes |
 |--------|------|-------|
-| id | uuid | Primary key |
-| watchlistId | uuid | FK → watchlist.id |
+| id | text | Primary key, `$defaultFn(() => crypto.randomUUID())` |
+| watchlistId | text | FK → watchlist.id |
 | userId | text | FK → user.id |
 | role | text | 'owner' or 'member' |
 | createdAt | timestamp | |
@@ -113,11 +113,26 @@ Opened by clicking a watchlist's film reel on the overview page.
   - Mark as watched
   - Remove from watchlist (owner only)
 - Watchlist-level actions:
-  - Invite friend (opens invite flow)
+  - Invite friend (opens invite flow — see below)
   - Rename watchlist
   - Toggle public/private
   - Delete watchlist
 - Same starry atmosphere as overview page
+
+### Invite Friend Flow
+
+Available from the watchlist detail page (owner only).
+
+**Interaction:**
+1. Owner clicks "Invite" button in the watchlist header
+2. A modal/sheet opens with a username search input
+3. User types a username — debounced search queries existing users by username
+4. Results show matching users (avatar + username), user clicks to select
+5. Confirmation: "Invite @username to [watchlist name]?"
+6. On confirm, the `watchlist.addMember` mutation is called
+7. Toast confirmation shown, member appears in the watchlist's member list
+
+No email-based invites or pending invitation system — users must have an account and a username (set during onboarding). This keeps the scope tight.
 
 ### Add to Watchlist Flow
 
@@ -149,6 +164,12 @@ Available from: search results, title detail page, trending/recommendations.
 - Returns: watchlist id, name, isDefault only
 - Used by: add-to-watchlist dropdown
 
+**`watchlist.searchUsers`** — Search for users by username (for invite flow)
+- Input: query (string, min 2 chars)
+- Returns: matching users (id, username, avatarUrl), max 10 results
+- Auth: protected (must be logged in)
+- Used by: invite friend modal
+
 ### Mutations
 
 **`watchlist.create`** — Create a new watchlist
@@ -178,9 +199,10 @@ Available from: search results, title detail page, trending/recommendations.
 - Auth: owner or member
 
 **`watchlist.addMember`** — Invite a user to a watchlist
-- Input: watchlistId, userId (or username/email)
+- Input: watchlistId, userId
 - Auth: owner only
 - Adds as role 'member'
+- No-op if already a member (idempotent)
 
 **`watchlist.removeMember`** — Remove a member from a watchlist
 - Input: watchlistId, userId
