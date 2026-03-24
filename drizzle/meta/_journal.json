@@ -8,6 +8,13 @@
       "when": 1774195048995,
       "tag": "0000_eager_brother_voodoo",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1774363692717,
+      "tag": "0001_naive_cyclops",
+      "breakpoints": true
     }
   ]
 }
