@@ -1,12 +1,9 @@
-const CARS: Array<{
-	transform: string;
-	opacity: number;
-}> = [
-	{ transform: "scale(0.8) translateY(6px)", opacity: 0.7 },
-	{ transform: "scale(0.9) translateY(2px)", opacity: 0.85 },
-	{ transform: "scale(1)", opacity: 1 },
-	{ transform: "scale(0.95) translateY(3px)", opacity: 0.9 },
-	{ transform: "scale(0.8) translateY(6px)", opacity: 0.7 },
+const CARS = [
+	{ id: "car-1", transform: "scale(0.8) translateY(6px)", opacity: 0.7 },
+	{ id: "car-2", transform: "scale(0.9) translateY(2px)", opacity: 0.85 },
+	{ id: "car-3", transform: "scale(1)", opacity: 1 },
+	{ id: "car-4", transform: "scale(0.95) translateY(3px)", opacity: 0.9 },
+	{ id: "car-5", transform: "scale(0.8) translateY(6px)", opacity: 0.7 },
 ];
 
 function Car({ transform, opacity }: { transform: string; opacity: number }) {
@@ -126,8 +123,8 @@ export function CarSilhouettes() {
 			aria-hidden="true"
 			className="flex items-end justify-center gap-[30px] max-w-[1100px] mx-auto px-6 h-[90px] -mt-[5px]"
 		>
-			{CARS.map((car, i) => (
-				<Car key={i} transform={car.transform} opacity={car.opacity} />
+			{CARS.map((car) => (
+				<Car key={car.id} transform={car.transform} opacity={car.opacity} />
 			))}
 		</div>
 	);

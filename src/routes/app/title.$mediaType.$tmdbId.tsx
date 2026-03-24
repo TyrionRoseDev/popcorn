@@ -71,10 +71,7 @@ function TitlePage() {
 			<div className="max-w-[1060px] mx-auto mt-12 px-8 pb-[120px] flex flex-col md:flex-row gap-12">
 				{/* Left column */}
 				<div className="w-full md:w-[280px] flex-shrink-0">
-					<PosterDisplayCase
-						posterPath={data.posterPath}
-						title={data.title}
-					/>
+					<PosterDisplayCase posterPath={data.posterPath} title={data.title} />
 					<div className="flex gap-4 justify-center mt-5">
 						<ArcadeButton icon={Plus} label="Watchlist" color="pink" />
 						<ArcadeButton icon={Check} label="Watched" color="cyan" />
@@ -85,10 +82,7 @@ function TitlePage() {
 				{/* Right column */}
 				<div className="flex-1 min-w-0">
 					<SectionBoard title="Synopsis">
-						<Synopsis
-							overview={data.overview}
-							tagline={data.tagline}
-						/>
+						<Synopsis overview={data.overview} tagline={data.tagline} />
 					</SectionBoard>
 
 					<TitleMetadata
@@ -99,7 +93,6 @@ function TitlePage() {
 						genres={data.genres}
 						seasons={data.seasons}
 						episodes={data.episodes}
-						status={data.status}
 						className="mt-7"
 					/>
 

@@ -14,9 +14,9 @@ interface CastListProps {
 function FilmStripRow() {
 	return (
 		<div className="h-[14px] flex items-center bg-[rgba(0,0,0,0.35)] px-2 overflow-hidden justify-between">
-			{Array.from({ length: 20 }).map((_, i) => (
+			{Array.from({ length: 20 }, (_, i) => `sprocket-${i}`).map((id) => (
 				<div
-					key={i}
+					key={id}
 					className="w-3 h-2 rounded-sm bg-[rgba(255,255,240,0.05)] border border-[rgba(255,255,240,0.04)]"
 				/>
 			))}

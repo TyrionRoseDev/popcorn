@@ -56,7 +56,10 @@ export function SectionBoard({
 			>
 				<span
 					className="font-display text-base tracking-[3px] uppercase text-cream/90"
-					style={{ textShadow: "0 0 20px rgba(255, 255, 240, 0.12), 0 0 40px rgba(255, 184, 0, 0.04)" }}
+					style={{
+						textShadow:
+							"0 0 20px rgba(255, 255, 240, 0.12), 0 0 40px rgba(255, 184, 0, 0.04)",
+					}}
 				>
 					{title}
 				</span>

@@ -5,7 +5,10 @@ interface PosterDisplayCaseProps {
 	title: string;
 }
 
-export function PosterDisplayCase({ posterPath, title }: PosterDisplayCaseProps) {
+export function PosterDisplayCase({
+	posterPath,
+	title,
+}: PosterDisplayCaseProps) {
 	const posterUrl = getTmdbImageUrl(posterPath, "w342");
 
 	return (
@@ -19,7 +22,8 @@ export function PosterDisplayCase({ posterPath, title }: PosterDisplayCaseProps)
 					left: "-20px",
 					right: "-20px",
 					bottom: "10%",
-					background: "radial-gradient(ellipse at center, rgba(255,45,120,0.06), transparent 70%)",
+					background:
+						"radial-gradient(ellipse at center, rgba(255,45,120,0.06), transparent 70%)",
 					filter: "blur(20px)",
 				}}
 			/>
@@ -29,7 +33,8 @@ export function PosterDisplayCase({ posterPath, title }: PosterDisplayCaseProps)
 				className="bg-[#0e0e14] rounded-md p-3 relative"
 				style={{
 					border: "1px solid rgba(255,255,240,0.08)",
-					boxShadow: "0 8px 40px rgba(0,0,0,0.6), 0 0 1px rgba(255,255,240,0.15), inset 0 1px 0 rgba(255,255,240,0.06)",
+					boxShadow:
+						"0 8px 40px rgba(0,0,0,0.6), 0 0 1px rgba(255,255,240,0.15), inset 0 1px 0 rgba(255,255,240,0.06)",
 				}}
 			>
 				{/* Case light bar */}
@@ -40,8 +45,10 @@ export function PosterDisplayCase({ posterPath, title }: PosterDisplayCaseProps)
 						left: "10%",
 						right: "10%",
 						height: "3px",
-						background: "linear-gradient(to right, transparent, rgba(255,255,240,0.7), transparent)",
-						boxShadow: "0 2px 12px rgba(255,255,240,0.3), 0 4px 24px rgba(255,255,240,0.12)",
+						background:
+							"linear-gradient(to right, transparent, rgba(255,255,240,0.7), transparent)",
+						boxShadow:
+							"0 2px 12px rgba(255,255,240,0.3), 0 4px 24px rgba(255,255,240,0.12)",
 					}}
 				/>
 
@@ -53,7 +60,8 @@ export function PosterDisplayCase({ posterPath, title }: PosterDisplayCaseProps)
 						left: "10%",
 						right: "10%",
 						height: "60%",
-						background: "linear-gradient(to bottom, rgba(255,255,240,0.04), transparent)",
+						background:
+							"linear-gradient(to bottom, rgba(255,255,240,0.04), transparent)",
 					}}
 				/>
 
@@ -115,7 +123,8 @@ export function PosterDisplayCase({ posterPath, title }: PosterDisplayCaseProps)
 					className="absolute rounded-sm pointer-events-none"
 					style={{
 						inset: "12px",
-						background: "linear-gradient(135deg, rgba(255,255,255,0.03), transparent 60%)",
+						background:
+							"linear-gradient(135deg, rgba(255,255,255,0.03), transparent 60%)",
 					}}
 				/>
 

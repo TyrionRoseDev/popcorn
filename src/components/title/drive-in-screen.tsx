@@ -6,7 +6,10 @@ interface DriveInScreenProps {
 	trailerKey: string | null;
 }
 
-export function DriveInScreen({ backdropPath, trailerKey }: DriveInScreenProps) {
+export function DriveInScreen({
+	backdropPath,
+	trailerKey,
+}: DriveInScreenProps) {
 	const [playing, setPlaying] = useState(false);
 	const backdropUrl = getTmdbImageUrl(backdropPath, "w1280");
 
@@ -42,7 +45,8 @@ export function DriveInScreen({ backdropPath, trailerKey }: DriveInScreenProps) 
 					style={{
 						aspectRatio: "16/9",
 						maxHeight: "450px",
-						background: "linear-gradient(135deg, #1a1028 0%, #0d1a2e 40%, #1a0a1e 100%)",
+						background:
+							"linear-gradient(135deg, #1a1028 0%, #0d1a2e 40%, #1a0a1e 100%)",
 					}}
 				>
 					{playing && trailerKey ? (

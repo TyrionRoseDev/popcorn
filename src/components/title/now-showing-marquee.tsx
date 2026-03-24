@@ -11,7 +11,10 @@ export function NowShowingMarquee({
 	runtime,
 	contentRating,
 }: NowShowingMarqueeProps) {
-	const bulbs = Array.from({ length: 20 });
+	const bulbs = Array.from({ length: 20 }, (_, i) => ({
+		id: `bulb-${i}`,
+		even: i % 2 === 0,
+	}));
 
 	const metaParts = [year, runtime];
 	if (contentRating !== "NR") {
@@ -44,18 +47,17 @@ export function NowShowingMarquee({
 					right: "20px",
 				}}
 			>
-				{bulbs.map((_, i) => (
+				{bulbs.map((bulb) => (
 					<div
-						key={i}
+						key={bulb.id}
 						className="bg-neon-amber rounded-full"
 						style={{
 							width: "6px",
 							height: "6px",
 							flexShrink: 0,
-							animation:
-								i % 2 === 0
-									? "chase 1.2s infinite"
-									: "chase 1.2s infinite 0.6s",
+							animation: bulb.even
+								? "chase 1.2s infinite"
+								: "chase 1.2s infinite 0.6s",
 						}}
 					/>
 				))}
@@ -72,18 +74,17 @@ export function NowShowingMarquee({
 					right: "20px",
 				}}
 			>
-				{bulbs.map((_, i) => (
+				{bulbs.map((bulb) => (
 					<div
-						key={i}
+						key={bulb.id}
 						className="bg-neon-amber rounded-full"
 						style={{
 							width: "6px",
 							height: "6px",
 							flexShrink: 0,
-							animation:
-								i % 2 === 0
-									? "chase 1.2s infinite"
-									: "chase 1.2s infinite 0.6s",
+							animation: bulb.even
+								? "chase 1.2s infinite"
+								: "chase 1.2s infinite 0.6s",
 						}}
 					/>
 				))}
