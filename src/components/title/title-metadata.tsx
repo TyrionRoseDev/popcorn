@@ -37,7 +37,6 @@ export function TitleMetadata({
 				{ label: "Creator", value: director },
 				{ label: "Seasons", value: seasons != null ? String(seasons) : null },
 				{ label: "Episodes", value: episodes != null ? String(episodes) : null },
-				{ label: "Status", value: status ?? null },
 			]
 		: [
 				{ label: "Director", value: director },
