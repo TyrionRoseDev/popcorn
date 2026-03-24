@@ -15,10 +15,10 @@ import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OnboardingIndexRouteImport } from './routes/onboarding/index'
 import { Route as AppSearchRouteImport } from './routes/app/search'
+import { Route as AppWatchlistsIndexRouteImport } from './routes/app/watchlists/index'
 import { Route as ApiUploadthingSplatRouteImport } from './routes/api/uploadthing/$'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as AppTitleMediaTypeTmdbIdRouteImport } from './routes/app/title.$mediaType.$tmdbId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -50,6 +50,11 @@ const AppSearchRoute = AppSearchRouteImport.update({
   path: '/search',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppWatchlistsIndexRoute = AppWatchlistsIndexRouteImport.update({
+  id: '/watchlists/',
+  path: '/watchlists/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const ApiUploadthingSplatRoute = ApiUploadthingSplatRouteImport.update({
   id: '/api/uploadthing/$',
   path: '/api/uploadthing/$',
@@ -65,11 +70,6 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppTitleMediaTypeTmdbIdRoute = AppTitleMediaTypeTmdbIdRouteImport.update({
-  id: '/title/$mediaType/$tmdbId',
-  path: '/title/$mediaType/$tmdbId',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -81,7 +81,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
-  '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
+  '/app/watchlists/': typeof AppWatchlistsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -92,7 +92,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
-  '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
+  '/app/watchlists': typeof AppWatchlistsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -105,7 +105,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
-  '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
+  '/app/watchlists/': typeof AppWatchlistsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -119,7 +119,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
-    | '/app/title/$mediaType/$tmdbId'
+    | '/app/watchlists/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -130,7 +130,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
-    | '/app/title/$mediaType/$tmdbId'
+    | '/app/watchlists'
   id:
     | '__root__'
     | '/'
@@ -142,7 +142,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
-    | '/app/title/$mediaType/$tmdbId'
+    | '/app/watchlists/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -199,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSearchRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/watchlists/': {
+      id: '/app/watchlists/'
+      path: '/watchlists'
+      fullPath: '/app/watchlists/'
+      preLoaderRoute: typeof AppWatchlistsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/api/uploadthing/$': {
       id: '/api/uploadthing/$'
       path: '/api/uploadthing/$'
@@ -220,24 +227,17 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/title/$mediaType/$tmdbId': {
-      id: '/app/title/$mediaType/$tmdbId'
-      path: '/title/$mediaType/$tmdbId'
-      fullPath: '/app/title/$mediaType/$tmdbId'
-      preLoaderRoute: typeof AppTitleMediaTypeTmdbIdRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
   }
 }
 
 interface AppRouteRouteChildren {
   AppSearchRoute: typeof AppSearchRoute
-  AppTitleMediaTypeTmdbIdRoute: typeof AppTitleMediaTypeTmdbIdRoute
+  AppWatchlistsIndexRoute: typeof AppWatchlistsIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSearchRoute: AppSearchRoute,
-  AppTitleMediaTypeTmdbIdRoute: AppTitleMediaTypeTmdbIdRoute,
+  AppWatchlistsIndexRoute: AppWatchlistsIndexRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
