@@ -1,7 +1,7 @@
+import { AddToWatchlistDropdown } from "#/components/watchlist/add-to-watchlist-dropdown";
 import type { FeedItem } from "#/lib/feed-assembler";
 import { getGenreNameByTmdbId } from "#/lib/genre-map";
 import { getTmdbImageUrl } from "#/lib/tmdb";
-import { AddToWatchlistDropdown } from "#/components/watchlist/add-to-watchlist-dropdown";
 
 interface PosterCardProps {
 	item: FeedItem;
@@ -26,7 +26,10 @@ export function PosterCard({ item }: PosterCardProps) {
 					</div>
 				)}
 				<div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
-					<AddToWatchlistDropdown tmdbId={item.tmdbId} mediaType={item.mediaType as "movie" | "tv"} />
+					<AddToWatchlistDropdown
+						tmdbId={item.tmdbId}
+						mediaType={item.mediaType as "movie" | "tv"}
+					/>
 				</div>
 				<div className="absolute top-2 right-2 rounded-md bg-black/60 px-1.5 py-0.5 font-mono-retro text-[9px] font-semibold uppercase tracking-wider text-cream/60">
 					{item.mediaType === "tv" ? "TV" : "Film"}
