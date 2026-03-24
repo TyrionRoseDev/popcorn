@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import type { FeedItem } from "#/lib/feed-assembler";
 import { PosterCard } from "./poster-card";
 
@@ -9,7 +10,17 @@ export function PosterGrid({ items }: PosterGridProps) {
 	return (
 		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{items.map((item) => (
-				<PosterCard key={`${item.tmdbId}-${item.mediaType}`} item={item} />
+				<Link
+					key={`${item.tmdbId}-${item.mediaType}`}
+					to="/app/title/$mediaType/$tmdbId"
+					params={{
+						mediaType: item.mediaType,
+						tmdbId: item.tmdbId,
+					}}
+					className="block"
+				>
+					<PosterCard item={item} />
+				</Link>
 			))}
 		</div>
 	);

@@ -3,13 +3,14 @@ import { env } from "#/env";
 const BASE_URL = "https://api.themoviedb.org/3";
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 
-type ImageSize =
+export type ImageSize =
 	| "w92"
 	| "w154"
 	| "w185"
 	| "w342"
 	| "w500"
 	| "w780"
+	| "w1280"
 	| "original";
 
 export function getTmdbImageUrl(
@@ -20,7 +21,7 @@ export function getTmdbImageUrl(
 	return `${IMAGE_BASE_URL}/${size}${posterPath}`;
 }
 
-async function tmdbFetch<T>(
+export async function tmdbFetch<T>(
 	path: string,
 	params: Record<string, string> = {},
 ): Promise<T> {

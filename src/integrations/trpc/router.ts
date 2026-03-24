@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "./init";
 import { searchRouter } from "./routers/search";
 import { tasteProfileRouter } from "./routers/taste-profile";
+import { titleRouter } from "./routers/title";
 
 const todos = [
 	{ id: 1, name: "Get groceries" },
@@ -25,5 +26,6 @@ export const trpcRouter = createTRPCRouter({
 	todos: todosRouter,
 	tasteProfile: tasteProfileRouter,
 	search: searchRouter,
+	title: titleRouter,
 });
 export type TRPCRouter = typeof trpcRouter;

@@ -18,6 +18,7 @@ import { Route as AppSearchRouteImport } from './routes/app/search'
 import { Route as ApiUploadthingSplatRouteImport } from './routes/api/uploadthing/$'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AppTitleMediaTypeTmdbIdRouteImport } from './routes/app/title.$mediaType.$tmdbId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -64,6 +65,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppTitleMediaTypeTmdbIdRoute = AppTitleMediaTypeTmdbIdRouteImport.update({
+  id: '/title/$mediaType/$tmdbId',
+  path: '/title/$mediaType/$tmdbId',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/title/$mediaType/$tmdbId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/title/$mediaType/$tmdbId'
   id:
     | '__root__'
     | '/'
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/title/$mediaType/$tmdbId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -208,15 +220,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/title/$mediaType/$tmdbId': {
+      id: '/app/title/$mediaType/$tmdbId'
+      path: '/title/$mediaType/$tmdbId'
+      fullPath: '/app/title/$mediaType/$tmdbId'
+      preLoaderRoute: typeof AppTitleMediaTypeTmdbIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
   }
 }
 
 interface AppRouteRouteChildren {
   AppSearchRoute: typeof AppSearchRoute
+  AppTitleMediaTypeTmdbIdRoute: typeof AppTitleMediaTypeTmdbIdRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSearchRoute: AppSearchRoute,
+  AppTitleMediaTypeTmdbIdRoute: AppTitleMediaTypeTmdbIdRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
