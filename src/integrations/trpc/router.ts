@@ -4,6 +4,7 @@ import { createTRPCRouter, publicProcedure } from "./init";
 import { searchRouter } from "./routers/search";
 import { tasteProfileRouter } from "./routers/taste-profile";
 import { titleRouter } from "./routers/title";
+import { watchlistRouter } from "./routers/watchlist";
 
 const todos = [
 	{ id: 1, name: "Get groceries" },
@@ -27,5 +28,6 @@ export const trpcRouter = createTRPCRouter({
 	tasteProfile: tasteProfileRouter,
 	search: searchRouter,
 	title: titleRouter,
+	watchlist: watchlistRouter,
 });
 export type TRPCRouter = typeof trpcRouter;
