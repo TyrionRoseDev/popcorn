@@ -1,14 +1,10 @@
 import type { TRPCRouterRecord } from "@trpc/server";
+import { TRPCError } from "@trpc/server";
 import { and, eq, ilike, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
-import {
-	user,
-	watchlist,
-	watchlistMember,
-} from "#/db/schema";
+import { user, watchlist, watchlistMember } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
-import { TRPCError } from "@trpc/server";
 
 export const watchlistRouter = {
 	list: protectedProcedure.query(async ({ ctx }) => {
@@ -25,7 +21,9 @@ export const watchlistRouter = {
 			with: {
 				items: { columns: { tmdbId: true, mediaType: true }, limit: 20 },
 				members: {
-					with: { user: { columns: { id: true, username: true, avatarUrl: true } } },
+					with: {
+						user: { columns: { id: true, username: true, avatarUrl: true } },
+					},
 				},
 			},
 			orderBy: (wl, { desc }) => [desc(wl.isDefault), desc(wl.updatedAt)],
@@ -80,7 +78,10 @@ export const watchlistRouter = {
 
 	getForDropdown: protectedProcedure.query(async ({ ctx }) => {
 		const memberships = await db
-			.select({ watchlistId: watchlistMember.watchlistId, role: watchlistMember.role })
+			.select({
+				watchlistId: watchlistMember.watchlistId,
+				role: watchlistMember.role,
+			})
 			.from(watchlistMember)
 			.where(eq(watchlistMember.userId, ctx.userId));
 
