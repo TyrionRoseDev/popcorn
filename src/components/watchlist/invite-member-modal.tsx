@@ -1,5 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { skipToken } from "@tanstack/react-query";
+import {
+	skipToken,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { Loader2, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -41,15 +45,9 @@ export function InviteMemberModal({
 		return () => clearTimeout(timer);
 	}, [searchInput]);
 
-	const {
-		data: users,
-		isLoading,
-		isFetching,
-	} = useQuery(
+	const { data: users, isFetching } = useQuery(
 		trpc.watchlist.searchUsers.queryOptions(
-			debouncedQuery.length >= 2
-				? { query: debouncedQuery }
-				: skipToken,
+			debouncedQuery.length >= 2 ? { query: debouncedQuery } : skipToken,
 		),
 	);
 
@@ -82,8 +80,7 @@ export function InviteMemberModal({
 		});
 	}
 
-	const showResults =
-		debouncedQuery.length >= 2 && !selectedUser;
+	const showResults = debouncedQuery.length >= 2 && !selectedUser;
 	const showSearching = isFetching && showResults;
 
 	return (
@@ -140,9 +137,7 @@ export function InviteMemberModal({
 									className="inline-flex items-center gap-1.5 rounded-full border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-1.5 text-sm font-semibold text-neon-cyan transition-colors hover:bg-neon-cyan/20 disabled:opacity-50"
 								>
 									<UserPlus className="h-3.5 w-3.5" />
-									{addMemberMutation.isPending
-										? "Inviting..."
-										: "Confirm"}
+									{addMemberMutation.isPending ? "Inviting..." : "Confirm"}
 								</button>
 								<button
 									type="button"
@@ -195,14 +190,9 @@ export function InviteMemberModal({
 					)}
 
 					{/* Empty state */}
-					{showResults &&
-						!isFetching &&
-						users &&
-						users.length === 0 && (
-							<p className="px-1 py-3 text-sm text-cream/30">
-								No users found
-							</p>
-						)}
+					{showResults && !isFetching && users && users.length === 0 && (
+						<p className="px-1 py-3 text-sm text-cream/30">No users found</p>
+					)}
 				</div>
 			</DialogContent>
 		</Dialog>
