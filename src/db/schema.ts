@@ -143,9 +143,7 @@ export const watchlist = pgTable(
 			.notNull()
 			.$onUpdate(() => new Date()),
 	},
-	(table) => [
-		index("watchlist_owner_id_idx").on(table.ownerId),
-	],
+	(table) => [index("watchlist_owner_id_idx").on(table.ownerId)],
 );
 
 export const watchlistItem = pgTable(
@@ -251,13 +249,16 @@ export const watchlistItemRelations = relations(watchlistItem, ({ one }) => ({
 	}),
 }));
 
-export const watchlistMemberRelations = relations(watchlistMember, ({ one }) => ({
-	watchlist: one(watchlist, {
-		fields: [watchlistMember.watchlistId],
-		references: [watchlist.id],
+export const watchlistMemberRelations = relations(
+	watchlistMember,
+	({ one }) => ({
+		watchlist: one(watchlist, {
+			fields: [watchlistMember.watchlistId],
+			references: [watchlist.id],
+		}),
+		user: one(user, {
+			fields: [watchlistMember.userId],
+			references: [user.id],
+		}),
 	}),
-	user: one(user, {
-		fields: [watchlistMember.userId],
-		references: [user.id],
-	}),
-}));
+);
