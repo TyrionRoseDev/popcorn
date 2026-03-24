@@ -99,9 +99,7 @@ export function CreateWatchlistDialog({
 								<Eye className="h-4 w-4 text-neon-cyan" />
 								<span>
 									Public{" "}
-									<span className="text-cream/30">
-										&mdash; anyone can view
-									</span>
+									<span className="text-cream/30">&mdash; anyone can view</span>
 								</span>
 							</>
 						) : (
@@ -109,9 +107,7 @@ export function CreateWatchlistDialog({
 								<EyeOff className="h-4 w-4 text-cream/40" />
 								<span>
 									Private{" "}
-									<span className="text-cream/30">
-										&mdash; members only
-									</span>
+									<span className="text-cream/30">&mdash; members only</span>
 								</span>
 							</>
 						)}

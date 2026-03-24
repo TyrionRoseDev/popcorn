@@ -46,9 +46,7 @@ export function AddToWatchlistDropdown({
 				await queryClient.invalidateQueries(
 					trpc.watchlist.getForDropdown.queryFilter(),
 				);
-				await queryClient.invalidateQueries(
-					trpc.watchlist.list.queryFilter(),
-				);
+				await queryClient.invalidateQueries(trpc.watchlist.list.queryFilter());
 				addItemMutation.mutate(
 					{
 						watchlistId: newWatchlist.id,
@@ -165,7 +163,6 @@ export function AddToWatchlistDropdown({
 							onKeyDown={handleCreateKeyDown}
 							placeholder="Watchlist name..."
 							disabled={isPending}
-							autoFocus
 							className="w-full bg-cream/5 border border-cream/12 rounded-md px-2 py-1 text-sm text-cream placeholder:text-cream/30 outline-none focus:border-neon-amber/40 disabled:opacity-50"
 						/>
 					</div>

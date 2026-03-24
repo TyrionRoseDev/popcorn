@@ -29,10 +29,7 @@ function WatchlistsPage() {
 				<NowShowingHeader title="My Watchlists" />
 
 				<NewWatchlistButton onClick={() => setDialogOpen(true)} />
-				<CreateWatchlistDialog
-					open={dialogOpen}
-					onOpenChange={setDialogOpen}
-				/>
+				<CreateWatchlistDialog open={dialogOpen} onOpenChange={setDialogOpen} />
 
 				{/* Watchlist content */}
 				<div className="mt-10">
