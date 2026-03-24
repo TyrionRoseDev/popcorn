@@ -454,6 +454,11 @@ a {
   100% { transform: translateX(200%); }
 }
 
+@keyframes scroll-reel {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

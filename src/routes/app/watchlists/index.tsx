@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { NewWatchlistButton } from "#/components/watchlist/new-watchlist-button";
 import { NowShowingHeader } from "#/components/watchlist/now-showing-header";
 import { WatchlistAtmosphere } from "#/components/watchlist/watchlist-atmosphere";
+import { WatchlistReel } from "#/components/watchlist/watchlist-reel";
 import { useTRPC } from "#/integrations/trpc/react";
 
 const SKELETON_KEYS = ["skeleton-a", "skeleton-b", "skeleton-c"];
@@ -31,13 +32,13 @@ function WatchlistsPage() {
 				/>
 
 				{/* Watchlist content */}
-				<div className="mx-auto mt-10 max-w-4xl px-4">
+				<div className="mt-10">
 					{isLoading ? (
-						<div className="flex flex-col items-center gap-4 py-16">
+						<div className="mx-auto flex max-w-4xl flex-col gap-4 px-4 py-16">
 							{SKELETON_KEYS.map((key) => (
 								<div
 									key={key}
-									className="h-24 w-full animate-pulse rounded-lg"
+									className="h-[207px] w-full animate-pulse rounded-lg"
 									style={{
 										background: "rgba(255,255,255,0.04)",
 										border: "1px solid rgba(255,255,255,0.06)",
@@ -46,7 +47,7 @@ function WatchlistsPage() {
 							))}
 						</div>
 					) : watchlists && watchlists.length === 0 ? (
-						<div className="flex flex-col items-center py-20 text-center">
+						<div className="mx-auto flex max-w-4xl flex-col items-center px-4 py-20 text-center">
 							<p className="text-lg" style={{ color: "rgba(255,255,240,0.5)" }}>
 								No watchlists yet
 							</p>
@@ -54,15 +55,14 @@ function WatchlistsPage() {
 								className="mt-1 text-sm"
 								style={{ color: "rgba(255,255,240,0.3)" }}
 							>
-								Create your first watchlist to start tracking films.
+								Create your first one!
 							</p>
 						</div>
 					) : (
-						<div
-							className="py-8 text-center"
-							style={{ color: "rgba(255,255,240,0.3)" }}
-						>
-							Film reels coming in Task 7
+						<div className="pt-4">
+							{watchlists?.map((watchlist) => (
+								<WatchlistReel key={watchlist.id} watchlist={watchlist} />
+							))}
 						</div>
 					)}
 				</div>
