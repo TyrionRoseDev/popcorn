@@ -2,7 +2,14 @@ import type { TRPCRouterRecord } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
-import { user, userGenre, userTitle } from "#/db/schema";
+import {
+	user,
+	userGenre,
+	userTitle,
+	watchlist,
+	watchlistItem,
+	watchlistMember,
+} from "#/db/schema";
 import { protectedProcedure, publicProcedure } from "#/integrations/trpc/init";
 import {
 	deduplicateFeed,
@@ -283,6 +290,32 @@ export const tasteProfileRouter = {
 						mediaType: t.mediaType,
 					})),
 				);
+
+				// Create default watchlist seeded with onboarding picks
+				const [defaultWatchlist] = await tx
+					.insert(watchlist)
+					.values({
+						name: "My Picks",
+						ownerId: userId,
+						isDefault: true,
+					})
+					.returning();
+
+				await tx.insert(watchlistMember).values({
+					watchlistId: defaultWatchlist.id,
+					userId,
+					role: "owner",
+				});
+
+				await tx.insert(watchlistItem).values(
+					input.titles.map((t) => ({
+						watchlistId: defaultWatchlist.id,
+						tmdbId: t.tmdbId,
+						mediaType: t.mediaType,
+						addedBy: userId,
+					})),
+				);
+
 				await tx
 					.update(user)
 					.set({ onboardingCompleted: true })
