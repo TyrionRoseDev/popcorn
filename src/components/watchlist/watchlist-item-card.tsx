@@ -22,7 +22,7 @@ interface WatchlistItemCardProps {
 		tmdbId: number;
 		mediaType: string;
 		watched: boolean;
-		createdAt: string;
+		createdAt: Date | string;
 		addedByUser: {
 			id: string;
 			username: string | null;

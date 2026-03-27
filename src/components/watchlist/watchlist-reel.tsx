@@ -25,6 +25,7 @@ export function WatchlistReel({ watchlist }: WatchlistReelProps) {
 			<Link
 				to="/app/watchlists/$watchlistId"
 				params={{ watchlistId: watchlist.id }}
+				search={{ sort: "date-added", type: "all" }}
 				className="block no-underline"
 			>
 				<WatchlistReelHeader

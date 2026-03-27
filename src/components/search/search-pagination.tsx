@@ -64,6 +64,20 @@ export function SearchPagination({
 
 	if (totalPages <= 1) return null;
 
+	const searchSorts = [
+		"relevance",
+		"popularity",
+		"rating",
+		"newest",
+		"oldest",
+	] as const;
+	type SearchSort = (typeof searchSorts)[number];
+	function toSearchSort(s: string | undefined): SearchSort {
+		return searchSorts.includes(s as SearchSort)
+			? (s as SearchSort)
+			: "relevance";
+	}
+
 	function goToPage(e: React.MouseEvent, page: number) {
 		e.preventDefault();
 		navigate({
@@ -71,7 +85,7 @@ export function SearchPagination({
 			search: (prev) => ({
 				q: prev.q ?? "",
 				type: prev.type ?? "all",
-				sort: prev.sort ?? "relevance",
+				sort: toSearchSort(prev.sort),
 				page,
 				genre: prev.genre,
 				yearMin: prev.yearMin,

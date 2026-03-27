@@ -23,6 +23,20 @@ export function SearchBar({ initialValue }: SearchBarProps) {
 		};
 	}, []);
 
+	const searchSorts = [
+		"relevance",
+		"popularity",
+		"rating",
+		"newest",
+		"oldest",
+	] as const;
+	type SearchSort = (typeof searchSorts)[number];
+	function toSearchSort(s: string | undefined): SearchSort {
+		return searchSorts.includes(s as SearchSort)
+			? (s as SearchSort)
+			: "relevance";
+	}
+
 	function doSearch(query: string) {
 		if (debounceRef.current) {
 			clearTimeout(debounceRef.current);
@@ -32,7 +46,7 @@ export function SearchBar({ initialValue }: SearchBarProps) {
 			search: (prev) => ({
 				q: query,
 				type: prev.type ?? "all",
-				sort: prev.sort ?? "relevance",
+				sort: toSearchSort(prev.sort),
 				page: 1,
 				genre: prev.genre,
 				yearMin: prev.yearMin,
