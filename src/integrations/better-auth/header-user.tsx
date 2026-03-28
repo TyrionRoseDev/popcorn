@@ -1,9 +1,10 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LogOut } from "lucide-react";
+import { EyeOff, LogOut } from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { authClient } from "#/lib/auth-client";
@@ -45,6 +46,16 @@ export default function BetterAuthHeader() {
 					align="end"
 					className="border-cream/10 bg-drive-in-card"
 				>
+					<DropdownMenuItem asChild>
+						<Link
+							to="/app/shuffle/hidden"
+							className="text-cream/60 no-underline focus:bg-cream/5 focus:text-cream/80"
+						>
+							<EyeOff className="mr-2 h-4 w-4" />
+							Hidden Titles
+						</Link>
+					</DropdownMenuItem>
+					<DropdownMenuSeparator className="bg-cream/10" />
 					<DropdownMenuItem
 						onClick={async () => {
 							await authClient.signOut();
