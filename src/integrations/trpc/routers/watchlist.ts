@@ -47,7 +47,7 @@ export const watchlistRouter = {
 					},
 				},
 			},
-			orderBy: (wl, { desc }) => [desc(wl.isDefault), desc(wl.updatedAt)],
+			orderBy: (wl, { desc }) => [desc(wl.type), desc(wl.updatedAt)],
 		});
 
 		return watchlists.map((wl) => ({
@@ -114,8 +114,8 @@ export const watchlistRouter = {
 
 		return db.query.watchlist.findMany({
 			where: (wl, { inArray }) => inArray(wl.id, watchlistIds),
-			columns: { id: true, name: true, isDefault: true },
-			orderBy: (wl, { desc }) => [desc(wl.isDefault), desc(wl.updatedAt)],
+			columns: { id: true, name: true, type: true },
+			orderBy: (wl, { desc }) => [desc(wl.type), desc(wl.updatedAt)],
 		});
 	}),
 
@@ -191,7 +191,7 @@ export const watchlistRouter = {
 			const wl = await db.query.watchlist.findFirst({
 				where: eq(watchlist.id, input.watchlistId),
 			});
-			if (wl?.isDefault) {
+			if (wl?.type === "default") {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
 					message: "Cannot delete the default watchlist",

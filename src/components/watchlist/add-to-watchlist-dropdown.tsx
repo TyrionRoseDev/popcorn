@@ -141,7 +141,7 @@ export function AddToWatchlistDropdown({
 								onClick={() => handleAddToWatchlist(wl.id, wl.name)}
 								className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-cream/5 text-sm text-cream/70 hover:text-cream cursor-pointer text-left transition-colors disabled:opacity-50"
 							>
-								{wl.isDefault && (
+								{wl.type === "default" && (
 									<Star className="h-3 w-3 text-neon-amber shrink-0" />
 								)}
 								<span className="truncate">{wl.name}</span>

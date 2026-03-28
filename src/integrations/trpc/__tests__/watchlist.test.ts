@@ -102,7 +102,7 @@ describe("watchlist.create", () => {
 			name: "My List",
 			ownerId: OWNER_ID,
 			isPublic: false,
-			isDefault: false,
+			type: "custom",
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		};
@@ -155,7 +155,7 @@ describe("watchlist.list", () => {
 				name: "My List",
 				ownerId: OWNER_ID,
 				isPublic: false,
-				isDefault: false,
+				type: "custom",
 				items: [{ tmdbId: 550, mediaType: "movie" }],
 				members: [
 					{
@@ -205,7 +205,7 @@ describe("watchlist.get", () => {
 			name: "My List",
 			ownerId: OWNER_ID,
 			isPublic: false,
-			isDefault: false,
+			type: "custom",
 			items: [
 				{
 					tmdbId: 550,
@@ -246,7 +246,7 @@ describe("watchlist.get", () => {
 			name: "Private List",
 			ownerId: OWNER_ID,
 			isPublic: false,
-			isDefault: false,
+			type: "custom",
 			items: [],
 			members: [],
 		});
@@ -279,7 +279,7 @@ describe("watchlist.delete", () => {
 			name: "Default",
 			ownerId: OWNER_ID,
 			isPublic: false,
-			isDefault: true,
+			type: "default",
 		});
 
 		const caller = createCaller(OWNER_ID);
