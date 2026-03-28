@@ -160,7 +160,7 @@ export function CardStack({ watchlistId }: CardStackProps) {
 			if (!seenMatchIds.current.has(item.id)) {
 				seenMatchIds.current.add(item.id);
 				toast.success("Your group matched a title!", {
-					description: `A new pick was added to the watchlist.`,
+					description: "A new pick was added to the watchlist.",
 				});
 			}
 		}
@@ -170,25 +170,75 @@ export function CardStack({ watchlistId }: CardStackProps) {
 
 	return (
 		<div className="flex w-full flex-col items-center gap-6">
-			{/* Card area — larger, like a movie screen at a drive-in */}
-			<div className="relative w-full max-w-[400px]">
-				{/* Screen glow — light spill behind the card like a movie screen in the dark */}
+			{/* Card area — the MOVIE SCREEN at the drive-in */}
+			<div className="relative w-full max-w-[420px]">
+				{/* Dramatic screen glow — multi-layer light spill behind the card */}
 				<div
-					className="absolute -inset-6 -z-10"
+					className="absolute -inset-10 -z-10"
 					style={{
 						background:
-							"radial-gradient(ellipse at center, rgba(255,184,0,0.08) 0%, rgba(255,184,0,0.03) 40%, transparent 70%)",
-						filter: "blur(20px)",
+							"radial-gradient(ellipse at center, rgba(255,240,200,0.10) 0%, rgba(255,184,0,0.05) 30%, transparent 65%)",
+						filter: "blur(30px)",
+					}}
+				/>
+				{/* Inner warm glow */}
+				<div
+					className="absolute -inset-4 -z-10"
+					style={{
+						background:
+							"radial-gradient(ellipse at center, rgba(255,245,220,0.08) 0%, rgba(255,184,0,0.03) 50%, transparent 80%)",
+						filter: "blur(15px)",
 					}}
 				/>
 
-				{/* Subtle screen frame border */}
+				{/* Screen frame — movie screen border with corner structural posts */}
 				<div
-					className="absolute -inset-1 rounded-2xl"
+					className="absolute -inset-2 rounded-2xl"
 					style={{
-						border: "1px solid rgba(255,184,0,0.08)",
-						borderRadius: "18px",
-						boxShadow: "0 0 30px rgba(255,184,0,0.04)",
+						border: "1.5px solid rgba(255,184,0,0.1)",
+						boxShadow:
+							"0 0 40px rgba(255,184,0,0.04), inset 0 0 20px rgba(255,184,0,0.02)",
+						pointerEvents: "none",
+					}}
+				/>
+				{/* Corner posts — structural screen frame accents */}
+				{/* Top-left */}
+				<div
+					className="absolute -top-2 -left-2 h-5 w-5"
+					style={{
+						borderTop: "2px solid rgba(255,184,0,0.15)",
+						borderLeft: "2px solid rgba(255,184,0,0.15)",
+						borderRadius: "8px 0 0 0",
+						pointerEvents: "none",
+					}}
+				/>
+				{/* Top-right */}
+				<div
+					className="absolute -top-2 -right-2 h-5 w-5"
+					style={{
+						borderTop: "2px solid rgba(255,184,0,0.15)",
+						borderRight: "2px solid rgba(255,184,0,0.15)",
+						borderRadius: "0 8px 0 0",
+						pointerEvents: "none",
+					}}
+				/>
+				{/* Bottom-left */}
+				<div
+					className="absolute -bottom-2 -left-2 h-5 w-5"
+					style={{
+						borderBottom: "2px solid rgba(255,184,0,0.15)",
+						borderLeft: "2px solid rgba(255,184,0,0.15)",
+						borderRadius: "0 0 0 8px",
+						pointerEvents: "none",
+					}}
+				/>
+				{/* Bottom-right */}
+				<div
+					className="absolute -bottom-2 -right-2 h-5 w-5"
+					style={{
+						borderBottom: "2px solid rgba(255,184,0,0.15)",
+						borderRight: "2px solid rgba(255,184,0,0.15)",
+						borderRadius: "0 0 8px 0",
 						pointerEvents: "none",
 					}}
 				/>
@@ -218,7 +268,7 @@ export function CardStack({ watchlistId }: CardStackProps) {
 							className="flex h-full w-full items-center justify-center rounded-2xl border border-drive-in-border bg-drive-in-card"
 							style={{
 								boxShadow:
-									"0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.03)",
+									"0 0 30px rgba(255,240,200,0.06), 0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.03)",
 							}}
 						>
 							<p className="px-8 text-center font-mono-retro text-xs text-cream/30">

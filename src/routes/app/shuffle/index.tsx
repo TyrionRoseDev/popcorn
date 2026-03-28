@@ -57,14 +57,16 @@ function ShuffleHeader() {
 				className="relative text-center"
 				style={{ maxWidth: "400px", padding: "16px 32px" }}
 			>
-				{/* Amber border */}
+				{/* Marquee-style amber border with drive-in card bg */}
 				<div
 					className="absolute"
 					style={{
 						inset: 0,
 						border: "2px solid rgba(255,184,0,0.3)",
 						borderRadius: "8px",
-						boxShadow: "0 0 20px rgba(255,184,0,0.08)",
+						boxShadow:
+							"0 0 24px rgba(255,184,0,0.1), inset 0 0 12px rgba(255,184,0,0.03)",
+						background: "rgba(10,10,30,0.7)",
 						pointerEvents: "none",
 					}}
 				/>
@@ -81,9 +83,13 @@ function ShuffleHeader() {
 						letterSpacing: "4px",
 						textTransform: "uppercase",
 						color: "#FFB800",
-						opacity: 0.7,
 						margin: 0,
 						marginBottom: "6px",
+						textShadow: "0 0 8px rgba(255,184,0,0.4)",
+						animationName: "marquee-pulse",
+						animationDuration: "3s",
+						animationTimingFunction: "ease-in-out",
+						animationIterationCount: "infinite",
 					}}
 				>
 					Now Shuffling
@@ -97,7 +103,7 @@ function ShuffleHeader() {
 						color: "#fffff0",
 						margin: 0,
 						textShadow:
-							"0 0 30px rgba(255,255,240,0.2), 0 0 60px rgba(255,255,240,0.05)",
+							"0 0 30px rgba(255,255,240,0.25), 0 0 60px rgba(255,255,240,0.08)",
 					}}
 				>
 					Showtime Shuffle
@@ -126,7 +132,7 @@ function ShufflePage() {
 			<>
 				<ShuffleAtmosphere />
 				<div
-					className="relative flex items-center justify-center py-32"
+					className="relative flex h-[100dvh] items-center justify-center"
 					style={{ zIndex: 2 }}
 				>
 					<p className="animate-pulse font-mono-retro text-xs text-cream/30">
@@ -142,7 +148,7 @@ function ShufflePage() {
 			<>
 				<ShuffleAtmosphere />
 				<div
-					className="relative flex items-center justify-center py-32"
+					className="relative flex h-[100dvh] items-center justify-center"
 					style={{ zIndex: 2 }}
 				>
 					<p className="font-mono-retro text-xs text-cream/40">
@@ -157,29 +163,31 @@ function ShufflePage() {
 		<>
 			<ShuffleAtmosphere />
 
+			{/* Full-screen immersive layout — vertically centered drive-in experience */}
 			<div
-				className="relative mx-auto flex max-w-md flex-col items-center px-4 pt-4 pb-6"
+				className="relative mx-auto flex h-[100dvh] max-w-md flex-col items-center justify-between px-4 py-4"
 				style={{ zIndex: 2 }}
 			>
-				{/* Marquee header with chasing bulbs */}
-				<div className="mb-4">
+				{/* TOP: Marquee header — the sign above the screen */}
+				<div className="shrink-0 pt-1">
 					<ShuffleHeader />
+					{/* Mode switcher tucked under the marquee */}
+					<div className="mt-3 flex justify-center">
+						<ModeSwitcher
+							currentWatchlistId={activeWatchlistId}
+							shuffleWatchlistId={shuffleWatchlist?.id ?? resolvedWatchlistId}
+							onSelect={setActiveWatchlistId}
+						/>
+					</div>
 				</div>
 
-				{/* Mode switcher */}
-				<div className="mb-5 flex justify-center">
-					<ModeSwitcher
-						currentWatchlistId={activeWatchlistId}
-						shuffleWatchlistId={shuffleWatchlist?.id ?? resolvedWatchlistId}
-						onSelect={setActiveWatchlistId}
+				{/* CENTER: Card stack — the movie screen itself */}
+				<div className="flex w-full flex-1 items-center justify-center py-4">
+					<CardStack
+						key={resolvedWatchlistId}
+						watchlistId={resolvedWatchlistId}
 					/>
 				</div>
-
-				{/* Card stack keyed by active watchlist for fresh state on switch */}
-				<CardStack
-					key={resolvedWatchlistId}
-					watchlistId={resolvedWatchlistId}
-				/>
 			</div>
 		</>
 	);

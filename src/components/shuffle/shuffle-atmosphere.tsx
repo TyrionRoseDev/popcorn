@@ -1,12 +1,20 @@
-const STARS = Array.from({ length: 90 }, (_, i) => ({
+const STARS = Array.from({ length: 120 }, (_, i) => ({
 	id: i,
-	top: `${Math.round((((i * 31 + 11) % 97) / 97) * 85)}%`,
+	top: `${Math.round((((i * 31 + 11) % 97) / 97) * 80)}%`,
 	left: `${Math.round((((i * 53 + 7) % 97) / 97) * 100)}%`,
 	size: 1 + ((i * 17) % 3) * 0.5,
 	dur: `${2.5 + ((i * 23) % 20) / 10}s`,
 	delay: `${-((i * 41) % 30) / 10}s`,
 	o1: 0.1 + ((i * 13) % 10) / 100,
 	o2: 0.6 + ((i * 19) % 35) / 100,
+}));
+
+const DUST_PARTICLES = Array.from({ length: 18 }, (_, i) => ({
+	id: i,
+	left: `${42 + ((i * 7) % 16)}%`,
+	size: 1 + ((i * 13) % 3) * 0.5,
+	dur: `${4 + ((i * 11) % 6)}s`,
+	delay: `${-((i * 17) % 8)}s`,
 }));
 
 export function ShuffleAtmosphere() {
@@ -21,11 +29,11 @@ export function ShuffleAtmosphere() {
 				className="fixed inset-0"
 				style={{
 					background:
-						"radial-gradient(ellipse at 50% 0%, #0a0a20 0%, #050508 60%)",
+						"radial-gradient(ellipse at 50% 0%, #0a0a20 0%, #030305 60%)",
 				}}
 			/>
 
-			{/* Starfield — richer with more stars */}
+			{/* Starfield — richer with 120 stars */}
 			{STARS.map((star) => (
 				<div
 					key={star.id}
@@ -48,47 +56,154 @@ export function ShuffleAtmosphere() {
 				/>
 			))}
 
-			{/* Vignette overlay — dark edges like the landing page */}
+			{/* ===== PROJECTOR BEAM — cone of light from top to card ===== */}
+			<div
+				className="fixed inset-x-0 top-0"
+				style={{
+					height: "100%",
+					clipPath: "polygon(44% 0%, 56% 0%, 68% 100%, 32% 100%)",
+					background:
+						"linear-gradient(180deg, rgba(255,220,140,0.18) 0%, rgba(255,184,0,0.06) 40%, rgba(255,184,0,0.02) 100%)",
+					animationName: "projector-flicker",
+					animationDuration: "4s",
+					animationTimingFunction: "steps(1)",
+					animationIterationCount: "infinite",
+				}}
+			/>
+			{/* Projector beam inner hotspot */}
+			<div
+				className="fixed inset-x-0 top-0"
+				style={{
+					height: "100%",
+					clipPath: "polygon(46% 0%, 54% 0%, 62% 100%, 38% 100%)",
+					background:
+						"linear-gradient(180deg, rgba(255,240,200,0.12) 0%, rgba(255,240,200,0.03) 50%, transparent 100%)",
+				}}
+			/>
+
+			{/* Projector dust particles floating in the beam */}
+			{DUST_PARTICLES.map((p) => (
+				<div
+					key={p.id}
+					className="fixed rounded-full bg-white/60"
+					style={{
+						left: p.left,
+						top: "5%",
+						width: `${p.size}px`,
+						height: `${p.size}px`,
+						animationName: "dust-float",
+						animationDuration: p.dur,
+						animationTimingFunction: "linear",
+						animationIterationCount: "infinite",
+						animationDelay: p.delay,
+					}}
+				/>
+			))}
+
+			{/* Projector source glow — small bright spot at top center */}
+			<div
+				className="fixed left-1/2 top-0 -translate-x-1/2"
+				style={{
+					width: "80px",
+					height: "40px",
+					background:
+						"radial-gradient(ellipse at 50% 0%, rgba(255,220,140,0.5) 0%, rgba(255,184,0,0.15) 50%, transparent 100%)",
+					filter: "blur(8px)",
+				}}
+			/>
+
+			{/* ===== SWAYING SPOTLIGHTS — adapted from landing page ===== */}
+			{/* Left spotlight */}
+			<div
+				className="fixed hidden md:block"
+				style={{
+					width: "35vw",
+					height: "100%",
+					bottom: "0%",
+					left: "0%",
+					background:
+						"linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%)",
+					transformOrigin: "0% 0%",
+					animationName: "sway-left",
+					animationDuration: "6s",
+					animationTimingFunction: "ease-in-out",
+					animationIterationCount: "infinite",
+					animationDirection: "alternate",
+					opacity: 0.5,
+				}}
+			/>
+			{/* Right spotlight */}
+			<div
+				className="fixed hidden md:block"
+				style={{
+					width: "35vw",
+					height: "100%",
+					bottom: "0%",
+					right: "0%",
+					background:
+						"linear-gradient(225deg, rgba(255,255,255,0.03) 0%, transparent 60%)",
+					transformOrigin: "100% 0%",
+					animationName: "sway-right",
+					animationDuration: "5.5s",
+					animationTimingFunction: "ease-in-out",
+					animationIterationCount: "infinite",
+					animationDirection: "alternate",
+					animationDelay: "-3s",
+					opacity: 0.5,
+				}}
+			/>
+
+			{/* ===== DRIVE-IN SCREEN FRAME — structural posts ===== */}
+			{/* Left post */}
+			<div
+				className="fixed hidden sm:block"
+				style={{
+					left: "calc(50% - 220px)",
+					top: "15%",
+					bottom: "35%",
+					width: "3px",
+					background:
+						"linear-gradient(180deg, rgba(40,40,60,0.6) 0%, rgba(40,40,60,0.2) 100%)",
+					borderRadius: "2px",
+				}}
+			/>
+			{/* Right post */}
+			<div
+				className="fixed hidden sm:block"
+				style={{
+					right: "calc(50% - 220px)",
+					top: "15%",
+					bottom: "35%",
+					width: "3px",
+					background:
+						"linear-gradient(180deg, rgba(40,40,60,0.6) 0%, rgba(40,40,60,0.2) 100%)",
+					borderRadius: "2px",
+				}}
+			/>
+			{/* Top crossbar */}
+			<div
+				className="fixed hidden sm:block"
+				style={{
+					left: "calc(50% - 220px)",
+					right: "calc(50% - 220px)",
+					top: "15%",
+					height: "2px",
+					background:
+						"linear-gradient(90deg, rgba(40,40,60,0.4) 0%, rgba(40,40,60,0.6) 50%, rgba(40,40,60,0.4) 100%)",
+				}}
+			/>
+
+			{/* Vignette overlay — strong dark edges like looking through a windshield */}
 			<div
 				className="fixed inset-0"
 				style={{
 					background:
-						"radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.85) 100%)",
+						"radial-gradient(ellipse 75% 65% at 50% 45%, transparent 30%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.9) 100%)",
 					zIndex: 1,
 				}}
 			/>
 
-			{/* Projector cone — dramatic warm light from above, centered on the card */}
-			<div
-				className="fixed inset-x-0 top-0"
-				style={{
-					height: "100%",
-					background:
-						"radial-gradient(ellipse 50% 85% at 50% 10%, rgba(255,184,0,0.12) 0%, rgba(255,184,0,0.04) 30%, transparent 60%)",
-				}}
-			/>
-
-			{/* Secondary projector haze — softer warm spread */}
-			<div
-				className="fixed inset-x-0 top-0"
-				style={{
-					height: "100%",
-					background:
-						"radial-gradient(ellipse 70% 70% at 50% 20%, rgba(255,220,140,0.06) 0%, transparent 55%)",
-				}}
-			/>
-
-			{/* Inner projector hotspot — bright center where the card is */}
-			<div
-				className="fixed inset-x-0 top-0"
-				style={{
-					height: "100%",
-					background:
-						"radial-gradient(ellipse 30% 50% at 50% 40%, rgba(255,240,200,0.05) 0%, transparent 50%)",
-				}}
-			/>
-
-			{/* Film grain overlay — slightly more visible */}
+			{/* Film grain overlay */}
 			<div
 				className="fixed"
 				style={{
@@ -108,7 +223,7 @@ export function ShuffleAtmosphere() {
 			<div
 				className="fixed inset-0"
 				style={{
-					opacity: 0.15,
+					opacity: 0.12,
 					background:
 						"repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 6px)",
 				}}
@@ -129,48 +244,27 @@ export function ShuffleAtmosphere() {
 				}}
 			/>
 
-			{/* Warm amber ground glow — strong, like drive-in screen reflecting off the ground */}
+			{/* Warm amber ground glow — screen reflecting off the ground */}
 			<div
 				className="fixed inset-x-0 bottom-0"
 				style={{
 					height: "300px",
 					background:
-						"radial-gradient(ellipse 80% 100% at 50% 100%, rgba(255,184,0,0.15) 0%, rgba(255,184,0,0.06) 40%, transparent 70%)",
+						"radial-gradient(ellipse 80% 100% at 50% 100%, rgba(255,184,0,0.12) 0%, rgba(255,184,0,0.04) 40%, transparent 70%)",
 				}}
 			/>
 
-			{/* Secondary amber ground reflection — wider spread */}
+			{/* Low-lying fog — denser, atmospheric ground mist */}
 			<div
 				className="fixed inset-x-0 bottom-0"
 				style={{
-					height: "200px",
+					height: "140px",
 					background:
-						"radial-gradient(ellipse at 50% 100%, rgba(255,160,0,0.08) 0%, transparent 65%)",
-				}}
-			/>
-
-			{/* Subtle pink accent glow on the ground */}
-			<div
-				className="fixed inset-x-0 bottom-0"
-				style={{
-					height: "180px",
-					background:
-						"radial-gradient(ellipse at 50% 100%, rgba(236,72,153,0.08) 0%, transparent 65%)",
-				}}
-			/>
-
-			{/* Low-lying fog layers — richer with three layers */}
-			<div
-				className="fixed inset-x-0 bottom-0"
-				style={{
-					height: "120px",
-					background:
-						"radial-gradient(ellipse 120% 80% at 30% 100%, rgba(255,255,255,0.03) 0%, transparent 70%)",
-					animationName: "fog-drift-1",
-					animationDuration: "20s",
+						"radial-gradient(ellipse 130% 90% at 30% 100%, rgba(255,255,255,0.04) 0%, transparent 70%)",
+					animationName: "fog-crawl",
+					animationDuration: "18s",
 					animationTimingFunction: "ease-in-out",
 					animationIterationCount: "infinite",
-					animationDirection: "alternate",
 				}}
 			/>
 			<div
@@ -178,7 +272,7 @@ export function ShuffleAtmosphere() {
 				style={{
 					height: "100px",
 					background:
-						"radial-gradient(ellipse 100% 70% at 70% 100%, rgba(255,255,255,0.025) 0%, transparent 65%)",
+						"radial-gradient(ellipse 100% 70% at 70% 100%, rgba(255,255,255,0.03) 0%, transparent 65%)",
 					animationName: "fog-drift-2",
 					animationDuration: "23s",
 					animationTimingFunction: "ease-in-out",
@@ -191,7 +285,7 @@ export function ShuffleAtmosphere() {
 				style={{
 					height: "80px",
 					background:
-						"radial-gradient(ellipse 90% 60% at 50% 100%, rgba(255,255,255,0.02) 0%, transparent 60%)",
+						"radial-gradient(ellipse 90% 60% at 50% 100%, rgba(255,255,255,0.025) 0%, transparent 60%)",
 					animationName: "fog-drift-3",
 					animationDuration: "25s",
 					animationTimingFunction: "ease-in-out",
@@ -199,6 +293,88 @@ export function ShuffleAtmosphere() {
 					animationDirection: "alternate",
 				}}
 			/>
+
+			{/* ===== CAR DASHBOARD SILHOUETTE ===== */}
+			{/* Dashboard curve at bottom */}
+			<div
+				className="fixed inset-x-0 bottom-0 hidden md:block"
+				style={{
+					height: "80px",
+					zIndex: 3,
+					background:
+						"linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.07) 100%)",
+					borderTop: "1px solid rgba(30,30,50,0.08)",
+					borderRadius: "50% 50% 0 0 / 100% 100% 0 0",
+				}}
+			/>
+			{/* Steering wheel silhouette — subtle arc at bottom center */}
+			<div
+				className="fixed bottom-0 left-1/2 hidden md:block"
+				style={{
+					width: "140px",
+					height: "60px",
+					transform: "translateX(-50%)",
+					zIndex: 4,
+					border: "2px solid rgba(30,30,50,0.06)",
+					borderBottom: "none",
+					borderRadius: "70px 70px 0 0",
+					opacity: 0.6,
+				}}
+			/>
+
+			{/* ===== SPEAKER BOX — bottom-right corner ===== */}
+			<div
+				className="fixed hidden md:flex"
+				style={{
+					bottom: "90px",
+					right: "24px",
+					width: "36px",
+					height: "52px",
+					zIndex: 4,
+					flexDirection: "column",
+					alignItems: "center",
+				}}
+			>
+				{/* Speaker wire */}
+				<div
+					style={{
+						width: "2px",
+						height: "16px",
+						background: "rgba(40,40,60,0.15)",
+						borderRadius: "1px",
+					}}
+				/>
+				{/* Speaker body */}
+				<div
+					style={{
+						width: "32px",
+						height: "36px",
+						background: "rgba(15,15,25,0.08)",
+						border: "1px solid rgba(40,40,60,0.1)",
+						borderRadius: "4px",
+						display: "grid",
+						gridTemplateColumns: "repeat(3, 1fr)",
+						gridTemplateRows: "repeat(4, 1fr)",
+						gap: "2px",
+						padding: "4px",
+					}}
+				>
+					{/* Grill dots */}
+					{Array.from({ length: 12 }, (_, i) => (
+						<div
+							key={`grill-${i.toString()}`}
+							style={{
+								width: "4px",
+								height: "4px",
+								borderRadius: "50%",
+								background: "rgba(40,40,60,0.1)",
+								justifySelf: "center",
+								alignSelf: "center",
+							}}
+						/>
+					))}
+				</div>
+			</div>
 		</div>
 	);
 }

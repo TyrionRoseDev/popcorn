@@ -34,9 +34,13 @@ export function SwipeCard({
 	onForceActionComplete,
 }: SwipeCardProps) {
 	const x = useMotionValue(0);
-	const rotate = useTransform(x, [-300, 300], [-15, 15]);
+	const rotate = useTransform(x, [-300, 300], [-18, 18]);
 	const yesOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1]);
 	const noOpacity = useTransform(x, [-SWIPE_THRESHOLD, 0], [1, 0]);
+
+	// Color tint overlays driven by drag
+	const greenTint = useTransform(x, [0, SWIPE_THRESHOLD * 1.5], [0, 0.15]);
+	const redTint = useTransform(x, [-SWIPE_THRESHOLD * 1.5, 0], [0.15, 0]);
 
 	const [isDragging, setIsDragging] = useState(false);
 	const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(
@@ -108,10 +112,23 @@ export function SwipeCard({
 					dragElastic={0.8}
 					onDragStart={() => setIsDragging(true)}
 					onDragEnd={handleDragEnd}
+					// Dramatic entrance for the top card promoting
+					{...(isTop && stackIndex === 0
+						? {
+								initial: { scale: 0.96, filter: "brightness(1.4)" },
+								animate: {
+									scale: 1,
+									filter: "brightness(1)",
+									transition: { duration: 0.4, ease: "easeOut" },
+								},
+							}
+						: {})}
 					exit={{
 						x: exitX,
 						opacity: 0,
-						transition: { duration: 0.35, ease: "easeOut" },
+						filter: "blur(4px)",
+						rotate: exitDirection === "right" ? 20 : -20,
+						transition: { duration: 0.4, ease: "easeOut" },
 					}}
 					onClick={() => {
 						if (!isDragging && isTop && !forceAction) {
@@ -119,7 +136,15 @@ export function SwipeCard({
 						}
 					}}
 				>
-					<div className="relative h-full w-full overflow-hidden rounded-2xl border border-cream/10 bg-drive-in-card shadow-[0_8px_40px_rgba(0,0,0,0.7)]">
+					<div
+						className="relative h-full w-full overflow-hidden rounded-2xl border border-cream/10 bg-drive-in-card"
+						style={{
+							boxShadow:
+								isTop && stackIndex === 0
+									? "0 0 30px rgba(255,240,200,0.12), 0 0 60px rgba(255,184,0,0.08), 0 8px 40px rgba(0,0,0,0.7)"
+									: "0 8px 40px rgba(0,0,0,0.7)",
+						}}
+					>
 						{/* Poster image */}
 						<div className="absolute inset-0">
 							{posterUrl ? (
@@ -140,6 +165,30 @@ export function SwipeCard({
 
 						{/* Gradient overlay for text readability */}
 						<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+
+						{/* Green tint overlay on drag right */}
+						{isTop && (
+							<motion.div
+								className="absolute inset-0"
+								style={{
+									backgroundColor: "rgba(74,222,128,1)",
+									opacity: greenTint,
+									pointerEvents: "none",
+								}}
+							/>
+						)}
+
+						{/* Red tint overlay on drag left */}
+						{isTop && (
+							<motion.div
+								className="absolute inset-0"
+								style={{
+									backgroundColor: "rgba(248,113,113,1)",
+									opacity: redTint,
+									pointerEvents: "none",
+								}}
+							/>
+						)}
 
 						{/* Media type badge */}
 						<div className="absolute top-3 right-3 rounded-md bg-black/70 px-2 py-0.5 font-mono-retro text-[10px] font-semibold uppercase tracking-wider text-cream/70">
