@@ -19,7 +19,7 @@
 |------|---------------|
 | `src/lib/shuffle-feed.ts` | Three-source feed assembly (taste/trending/discovery) with configurable ratios, cursor pagination, deduplication |
 | `src/lib/__tests__/shuffle-feed.test.ts` | Unit tests for feed interleaving, dedup, cursor, ratio logic |
-| `src/integrations/trpc/routers/shuffle.ts` | tRPC procedures: getFeed, recordSwipe, undoSwipe, getOrCreateShuffleWatchlist, checkMatch, getHiddenTitles, unhideTitle |
+| `src/integrations/trpc/routers/shuffle.ts` | tRPC procedures: getFeed, recordSwipe (with inline match detection), undoSwipe, getOrCreateShuffleWatchlist, getWatchlistOptions, getHiddenTitles, unhideTitle |
 | `src/integrations/trpc/__tests__/shuffle.test.ts` | Unit tests for shuffle router procedures |
 | `src/routes/app/shuffle.tsx` | Route component with search param for watchlistId |
 | `src/components/shuffle/swipe-card.tsx` | Single card with motion drag gestures, stamp overlay, poster/title/genre/synopsis |
@@ -29,12 +29,15 @@
 | `src/components/shuffle/mode-switcher.tsx` | Solo/group watchlist dropdown |
 | `src/components/shuffle/clapperboard-stamp.tsx` | Clapperboard SVG with random text pool |
 
+| `src/components/shuffle/card-detail-modal.tsx` | Expanded title detail view (poster, rating, full synopsis, genres) |
+
 ### Modified files
 | File | Changes |
 |------|---------|
 | `src/db/schema.ts` | Add `shuffleSwipe` table, add `type` column to `watchlist`, update relations |
 | `src/integrations/trpc/router.ts` | Register `shuffleRouter` |
 | `src/routes/app/route.tsx` | Add "Shuffle" nav link |
+| `src/components/watchlist/watchlist-detail-header.tsx` | Add "Showtime Shuffle" button |
 
 ---
 
@@ -770,10 +773,10 @@ export function useStableStamp(type: "yes" | "no") {
 interface ClapperboardStampProps {
   type: "yes" | "no";
   opacity: number; // 0-1, tied to drag distance
+  stamp: { main: string; sub: string }; // Pass stable stamp from parent
 }
 
-export function ClapperboardStamp({ type, opacity }: ClapperboardStampProps) {
-  const stamp = getRandomStamp(type);
+export function ClapperboardStamp({ type, opacity, stamp }: ClapperboardStampProps) {
   const color = type === "yes" ? "#22c55e" : "#ef4444";
   const rotation = type === "yes" ? "-10deg" : "10deg";
 
@@ -823,11 +826,12 @@ git commit -m "feat: add clapperboard stamp component with random text pool"
 Uses `motion` (v12) for drag gestures. Renders poster, title, genre tags, synopsis, and stamp overlay.
 
 ```typescript
+import { useRef } from "react";
 import { motion, useMotionValue, useTransform, type PanInfo } from "motion/react";
 import type { FeedItem } from "#/lib/feed-assembler";
 import { getTmdbImageUrl } from "#/lib/tmdb";
 import { getGenreNameByTmdbId } from "#/lib/genre-map";
-import { ClapperboardStamp } from "./clapperboard-stamp";
+import { ClapperboardStamp, getRandomStamp } from "./clapperboard-stamp";
 
 const SWIPE_THRESHOLD = 120;
 
@@ -840,6 +844,8 @@ interface SwipeCardProps {
 }
 
 export function SwipeCard({ item, onSwipe, onTap, isTop, stackIndex }: SwipeCardProps) {
+  const yesStamp = useRef(getRandomStamp("yes")).current;
+  const noStamp = useRef(getRandomStamp("no")).current;
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-300, 0, 300], [-15, 0, 15]);
   const yesOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1]);
@@ -896,10 +902,10 @@ export function SwipeCard({ item, onSwipe, onTap, isTop, stackIndex }: SwipeCard
           {isTop && (
             <>
               <motion.div style={{ opacity: yesOpacity }}>
-                <ClapperboardStamp type="yes" opacity={1} />
+                <ClapperboardStamp type="yes" opacity={1} stamp={yesStamp} />
               </motion.div>
               <motion.div style={{ opacity: noOpacity }}>
-                <ClapperboardStamp type="no" opacity={1} />
+                <ClapperboardStamp type="no" opacity={1} stamp={noStamp} />
               </motion.div>
             </>
           )}
@@ -1191,7 +1197,7 @@ git commit -m "feat: add mode switcher component for solo/group selection"
 Manages the stack of cards, prefetching, swipe state, undo buffer, and match celebration.
 
 ```typescript
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence } from "motion/react";
 import { useTRPC } from "#/integrations/trpc/react";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -1206,7 +1212,6 @@ interface CardStackProps {
 
 export function CardStack({ watchlistId }: CardStackProps) {
   const trpc = useTRPC();
-  const queryClient = useQueryClient();
 
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [cards, setCards] = useState<FeedItem[]>([]);
@@ -1478,7 +1483,209 @@ git commit -m "feat: add Shuffle nav link to app layout"
 
 ---
 
-### Task 11: Manual testing and polish
+### Task 11: Watchlist detail "Showtime Shuffle" button
+
+**Files:**
+- Modify: `src/components/watchlist/watchlist-detail-header.tsx`
+
+- [ ] **Step 1: Add Showtime Shuffle button to watchlist detail header**
+
+In `src/components/watchlist/watchlist-detail-header.tsx`, add a Link button that navigates to the shuffle page with the watchlist ID:
+
+```typescript
+import { Link } from "@tanstack/react-router";
+import { Shuffle } from "lucide-react";
+```
+
+Add the button near the existing action buttons in the header:
+
+```tsx
+<Link
+  to="/app/shuffle"
+  search={{ watchlistId: watchlist.id }}
+  className="flex items-center gap-1.5 rounded-lg border border-neon-pink/30 bg-neon-pink/10 px-3 py-1.5 text-sm font-medium text-neon-pink no-underline transition-colors hover:bg-neon-pink/20"
+>
+  <Shuffle className="h-3.5 w-3.5" />
+  Showtime Shuffle
+</Link>
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add src/components/watchlist/watchlist-detail-header.tsx
+git commit -m "feat: add Showtime Shuffle button to watchlist detail page"
+```
+
+---
+
+### Task 12: Card detail expand view
+
+**Files:**
+- Create: `src/components/shuffle/card-detail-modal.tsx`
+- Modify: `src/components/shuffle/card-stack.tsx`
+
+- [ ] **Step 1: Create card detail modal**
+
+A modal that shows expanded info when tapping a card. Uses the existing title detail page's data pattern via TMDB.
+
+```typescript
+import { motion, AnimatePresence } from "motion/react";
+import type { FeedItem } from "#/lib/feed-assembler";
+import { getTmdbImageUrl } from "#/lib/tmdb";
+import { getGenreNameByTmdbId } from "#/lib/genre-map";
+
+interface CardDetailModalProps {
+  item: FeedItem | null;
+  onClose: () => void;
+}
+
+export function CardDetailModal({ item, onClose }: CardDetailModalProps) {
+  if (!item) return null;
+
+  const posterUrl = getTmdbImageUrl(item.posterPath, "w500");
+  const genreNames = item.genreIds.map(getGenreNameByTmdbId);
+
+  return (
+    <AnimatePresence>
+      {item && (
+        <motion.div
+          className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 sm:items-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+        >
+          <motion.div
+            className="relative max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-[#1a1a2e] sm:rounded-2xl"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 25 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {posterUrl && (
+              <img src={posterUrl} alt={item.title} className="h-72 w-full object-cover" />
+            )}
+            <div className="p-5">
+              <h2 className="text-xl font-bold text-white">
+                {item.title} <span className="text-white/40 font-normal">({item.year})</span>
+              </h2>
+              <div className="mt-2 flex items-center gap-3 text-sm text-white/50">
+                <span>⭐ {item.rating.toFixed(1)}</span>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {genreNames.map((name) => (
+                  <span key={name} className="rounded-full bg-neon-pink/15 px-2.5 py-0.5 text-xs text-neon-pink">
+                    {name}
+                  </span>
+                ))}
+              </div>
+              <p className="mt-4 text-sm leading-relaxed text-white/60">{item.overview}</p>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+```
+
+- [ ] **Step 2: Wire up in CardStack**
+
+In `src/components/shuffle/card-stack.tsx`, add state and the modal:
+
+```typescript
+import { CardDetailModal } from "./card-detail-modal";
+
+// Add state:
+const [detailItem, setDetailItem] = useState<FeedItem | null>(null);
+
+// Update onTap:
+onTap={() => setDetailItem(cards[0])}
+
+// Add modal in JSX after MatchCelebration:
+<CardDetailModal item={detailItem} onClose={() => setDetailItem(null)} />
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/components/shuffle/card-detail-modal.tsx src/components/shuffle/card-stack.tsx
+git commit -m "feat: add card detail modal for expanded title info"
+```
+
+---
+
+### Task 13: Match toast notifications
+
+**Files:**
+- Create: `src/components/shuffle/match-toast.tsx`
+- Modify: `src/components/shuffle/card-stack.tsx`
+
+- [ ] **Step 1: Add match toast using Sonner**
+
+The app already uses Sonner for toasts. For the triggering user, the match celebration modal handles it. For polling recent matches (when another member triggers it), add a lightweight query.
+
+In the shuffle router (`src/integrations/trpc/routers/shuffle.ts`), add a `getRecentMatches` procedure:
+
+```typescript
+getRecentMatches: protectedProcedure
+  .input(z.object({ watchlistId: z.string() }))
+  .query(async ({ ctx, input }) => {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const recentItems = await db.query.watchlistItem.findMany({
+      where: and(
+        eq(watchlistItem.watchlistId, input.watchlistId),
+        // Items added by someone else (not the current user)
+        not(eq(watchlistItem.addedBy, ctx.userId)),
+      ),
+    });
+    // Filter to recent items (added in the last hour)
+    return recentItems.filter((item) => new Date(item.createdAt) > oneHourAgo);
+  }),
+```
+
+- [ ] **Step 2: Poll and show toast in CardStack**
+
+In `src/components/shuffle/card-stack.tsx`, add polling for recent matches:
+
+```typescript
+import { toast } from "sonner";
+
+// Add query that polls every 30 seconds (only in group mode):
+const { data: recentMatches } = useQuery({
+  ...trpc.shuffle.getRecentMatches.queryOptions({ watchlistId }),
+  refetchInterval: 30000,
+  enabled: watchlistId !== shuffleWatchlistId, // only in group mode
+});
+
+// Show toast for new matches (use a ref to track seen matches):
+const seenMatches = useRef(new Set<string>());
+useEffect(() => {
+  if (!recentMatches) return;
+  for (const match of recentMatches) {
+    const key = `${match.tmdbId}-${match.mediaType}`;
+    if (!seenMatches.current.has(key)) {
+      seenMatches.current.add(key);
+      toast("🎬 New match!", { description: "A title was matched in your group watchlist!" });
+    }
+  }
+}, [recentMatches]);
+```
+
+Note: This is a simple polling approach. A more sophisticated solution would use WebSockets, but polling is sufficient for the initial implementation.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/integrations/trpc/routers/shuffle.ts src/components/shuffle/card-stack.tsx
+git commit -m "feat: add match toast notifications via polling for group members"
+```
+
+---
+
+### Task 14: Manual testing and polish
 
 - [ ] **Step 1: Test solo shuffle flow**
 
