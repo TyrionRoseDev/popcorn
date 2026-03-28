@@ -1,6 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, or } from "drizzle-orm";
+import { and, eq, inArray, not, or } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import {
@@ -17,13 +17,13 @@ import {
 	GROUP_RATIO,
 	interleaveShuffleFeed,
 	parseShuffleCursor,
-	serializeShuffleCursor,
 	SOLO_RATIO,
+	serializeShuffleCursor,
 } from "#/lib/shuffle-feed";
 import {
 	discoverMovies,
-	discoverTv,
 	discoverMoviesWithParams,
+	discoverTv,
 	discoverTvWithParams,
 	fetchTrending,
 } from "#/lib/tmdb";
@@ -433,5 +433,18 @@ export const shuffleRouter = {
 						eq(shuffleSwipe.action, "hide"),
 					),
 				);
+		}),
+
+	getRecentMatches: protectedProcedure
+		.input(z.object({ watchlistId: z.string() }))
+		.query(async ({ ctx, input }) => {
+			const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+			const recentItems = await db.query.watchlistItem.findMany({
+				where: and(
+					eq(watchlistItem.watchlistId, input.watchlistId),
+					not(eq(watchlistItem.addedBy, ctx.userId)),
+				),
+			});
+			return recentItems.filter((item) => new Date(item.createdAt) > oneHourAgo);
 		}),
 } satisfies TRPCRouterRecord;
