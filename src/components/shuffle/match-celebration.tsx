@@ -45,7 +45,11 @@ export function MatchCelebration({
 						<motion.div
 							className="relative flex flex-col items-center gap-4 px-6 text-center"
 							initial={{ opacity: 0, scale: 0.85 }}
-							animate={{ opacity: 1, scale: 1, transition: { delay: 0.5, duration: 0.4 } }}
+							animate={{
+								opacity: 1,
+								scale: 1,
+								transition: { delay: 0.5, duration: 0.4 },
+							}}
 							exit={{ opacity: 0 }}
 						>
 							{/* Curtain Call header */}
@@ -84,7 +88,9 @@ export function MatchCelebration({
 							{/* Watchlist name */}
 							<p className="text-sm text-cream/50">
 								Added to{" "}
-								<span className="font-semibold text-neon-amber">{watchlistName}</span>
+								<span className="font-semibold text-neon-amber">
+									{watchlistName}
+								</span>
 							</p>
 						</motion.div>
 
@@ -94,10 +100,14 @@ export function MatchCelebration({
 							style={{
 								background:
 									"linear-gradient(90deg, #a0752a 0%, #d4a84a 20%, #f0c060 50%, #d4a84a 80%, #a0752a 100%)",
-								boxShadow: "0 2px 12px rgba(0,0,0,0.6), 0 4px 24px rgba(0,0,0,0.4)",
+								boxShadow:
+									"0 2px 12px rgba(0,0,0,0.6), 0 4px 24px rgba(0,0,0,0.4)",
 							}}
 							initial={{ scaleX: 0 }}
-							animate={{ scaleX: 1, transition: { duration: 0.3, ease: "easeOut" } }}
+							animate={{
+								scaleX: 1,
+								transition: { duration: 0.3, ease: "easeOut" },
+							}}
 							exit={{ scaleX: 0 }}
 						/>
 
@@ -110,11 +120,15 @@ export function MatchCelebration({
 								transformOrigin: "left center",
 							}}
 							initial={{ x: 0 }}
-							animate={{ x: "-100%", transition: { duration: 0.6, ease: "easeInOut", delay: 0.2 } }}
+							animate={{
+								x: "-100%",
+								transition: { duration: 0.6, ease: "easeInOut", delay: 0.2 },
+							}}
 							exit={{ x: 0, transition: { duration: 0.4, ease: "easeIn" } }}
 						>
 							{/* Curtain pleats */}
-							<div className="h-full w-full opacity-20"
+							<div
+								className="h-full w-full opacity-20"
 								style={{
 									backgroundImage:
 										"repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0,0,0,0.3) 20px, rgba(0,0,0,0.3) 22px)",
@@ -131,11 +145,15 @@ export function MatchCelebration({
 								transformOrigin: "right center",
 							}}
 							initial={{ x: 0 }}
-							animate={{ x: "100%", transition: { duration: 0.6, ease: "easeInOut", delay: 0.2 } }}
+							animate={{
+								x: "100%",
+								transition: { duration: 0.6, ease: "easeInOut", delay: 0.2 },
+							}}
 							exit={{ x: 0, transition: { duration: 0.4, ease: "easeIn" } }}
 						>
 							{/* Curtain pleats */}
-							<div className="h-full w-full opacity-20"
+							<div
+								className="h-full w-full opacity-20"
 								style={{
 									backgroundImage:
 										"repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0,0,0,0.3) 20px, rgba(0,0,0,0.3) 22px)",
