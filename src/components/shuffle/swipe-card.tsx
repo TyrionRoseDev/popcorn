@@ -4,14 +4,11 @@ import {
 	useMotionValue,
 	useTransform,
 } from "motion/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FeedItem } from "#/lib/feed-assembler";
 import { getGenreNameByTmdbId } from "#/lib/genre-map";
 import { getTmdbImageUrl } from "#/lib/tmdb";
-import {
-	ClapperboardStamp,
-	getRandomStamp,
-} from "./clapperboard-stamp";
+import { ClapperboardStamp, getRandomStamp } from "./clapperboard-stamp";
 
 const SWIPE_THRESHOLD = 120;
 
@@ -21,6 +18,10 @@ interface SwipeCardProps {
 	onTap: () => void;
 	isTop: boolean;
 	stackIndex: number;
+	/** When set, shows the stamp and then exits the card in the given direction */
+	forceAction?: "left" | "right" | null;
+	/** Called after the stamp flash + exit animation completes */
+	onForceActionComplete?: () => void;
 }
 
 export function SwipeCard({
@@ -29,6 +30,8 @@ export function SwipeCard({
 	onTap,
 	isTop,
 	stackIndex,
+	forceAction = null,
+	onForceActionComplete,
 }: SwipeCardProps) {
 	const x = useMotionValue(0);
 	const rotate = useTransform(x, [-300, 300], [-15, 15]);
@@ -39,6 +42,8 @@ export function SwipeCard({
 	const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(
 		null,
 	);
+	// Stamp flash state for button-triggered actions
+	const [stampFlash, setStampFlash] = useState<"left" | "right" | null>(null);
 
 	// Stable per-card stamps using ref so they don't change on re-render
 	const yesStamp = useRef(getRandomStamp("yes")).current;
@@ -50,6 +55,21 @@ export function SwipeCard({
 	const scale = 1 - stackIndex * 0.04;
 	const y = stackIndex * 8;
 	const opacity = 1 - stackIndex * 0.2;
+
+	// Handle forceAction: show stamp then exit
+	useEffect(() => {
+		if (!forceAction || !isTop) return;
+
+		setStampFlash(forceAction);
+
+		const timer = setTimeout(() => {
+			setStampFlash(null);
+			setExitDirection(forceAction);
+			onForceActionComplete?.();
+		}, 350);
+
+		return () => clearTimeout(timer);
+	}, [forceAction, isTop, onForceActionComplete]);
 
 	function handleDragEnd() {
 		setIsDragging(false);
@@ -63,7 +83,12 @@ export function SwipeCard({
 		}
 	}
 
-	const exitX = exitDirection === "right" ? 800 : exitDirection === "left" ? -800 : 0;
+	const exitX =
+		exitDirection === "right" ? 800 : exitDirection === "left" ? -800 : 0;
+
+	// Determine stamp opacity: either from drag motion or from button flash
+	const showYesStamp = stampFlash === "right";
+	const showNoStamp = stampFlash === "left";
 
 	return (
 		<AnimatePresence>
@@ -78,7 +103,7 @@ export function SwipeCard({
 						opacity,
 						zIndex: 10 - stackIndex,
 					}}
-					drag={isTop ? "x" : false}
+					drag={isTop && !forceAction ? "x" : false}
 					dragConstraints={{ left: 0, right: 0 }}
 					dragElastic={0.8}
 					onDragStart={() => setIsDragging(true)}
@@ -89,7 +114,7 @@ export function SwipeCard({
 						transition: { duration: 0.35, ease: "easeOut" },
 					}}
 					onClick={() => {
-						if (!isDragging && isTop) {
+						if (!isDragging && isTop && !forceAction) {
 							onTap();
 						}
 					}}
@@ -155,25 +180,47 @@ export function SwipeCard({
 							)}
 						</div>
 
-						{/* YES stamp overlay */}
-						{isTop && (
-							<motion.div style={{ opacity: yesOpacity }} className="absolute inset-0">
-								<ClapperboardStamp
-									type="yes"
-									opacity={1}
-									stamp={yesStamp}
-								/>
+						{/* YES stamp overlay — drag-driven */}
+						{isTop && !stampFlash && (
+							<motion.div
+								style={{ opacity: yesOpacity }}
+								className="absolute inset-0"
+							>
+								<ClapperboardStamp type="yes" opacity={1} stamp={yesStamp} />
 							</motion.div>
 						)}
 
-						{/* NO stamp overlay */}
-						{isTop && (
-							<motion.div style={{ opacity: noOpacity }} className="absolute inset-0">
-								<ClapperboardStamp
-									type="no"
-									opacity={1}
-									stamp={noStamp}
-								/>
+						{/* NO stamp overlay — drag-driven */}
+						{isTop && !stampFlash && (
+							<motion.div
+								style={{ opacity: noOpacity }}
+								className="absolute inset-0"
+							>
+								<ClapperboardStamp type="no" opacity={1} stamp={noStamp} />
+							</motion.div>
+						)}
+
+						{/* YES stamp — button flash */}
+						{isTop && showYesStamp && (
+							<motion.div
+								initial={{ opacity: 0, scale: 0.7 }}
+								animate={{ opacity: 1, scale: 1 }}
+								transition={{ duration: 0.15, ease: "easeOut" }}
+								className="absolute inset-0"
+							>
+								<ClapperboardStamp type="yes" opacity={1} stamp={yesStamp} />
+							</motion.div>
+						)}
+
+						{/* NO stamp — button flash */}
+						{isTop && showNoStamp && (
+							<motion.div
+								initial={{ opacity: 0, scale: 0.7 }}
+								animate={{ opacity: 1, scale: 1 }}
+								transition={{ duration: 0.15, ease: "easeOut" }}
+								className="absolute inset-0"
+							>
+								<ClapperboardStamp type="no" opacity={1} stamp={noStamp} />
 							</motion.div>
 						)}
 					</div>
