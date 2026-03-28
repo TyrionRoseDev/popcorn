@@ -19,86 +19,145 @@ export function ActionButtons({
 	return (
 		<div className="flex items-end justify-center gap-3 sm:gap-4">
 			{/* No — large red arcade button */}
-			<button
-				type="button"
-				onClick={onNo}
-				className={cn(
-					"group relative flex size-16 items-center justify-center rounded-2xl sm:size-[72px]",
-					"border-2 border-red-500/50 bg-red-500/10",
-					"shadow-[0_6px_24px_rgba(239,68,68,0.3),inset_0_1px_0_rgba(255,255,255,0.08)]",
-					"transition-all duration-150",
-					"hover:scale-105 hover:border-red-400/70 hover:bg-red-500/20 hover:shadow-[0_8px_32px_rgba(239,68,68,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]",
-					"active:scale-95 active:shadow-[0_2px_8px_rgba(239,68,68,0.2)]",
-				)}
-				aria-label="No"
-			>
-				{/* Ambient glow */}
-				<div className="absolute -inset-1 rounded-2xl bg-red-500/10 opacity-0 blur-md transition-opacity group-hover:opacity-100" />
-				<X
-					className="relative h-7 w-7 text-red-400 drop-shadow-[0_0_6px_rgba(239,68,68,0.5)]"
-					strokeWidth={2.5}
-				/>
-			</button>
+			<div className="flex flex-col items-center gap-1.5">
+				<button
+					type="button"
+					onClick={onNo}
+					className={cn(
+						"group relative flex size-16 items-center justify-center rounded-xl sm:size-[72px]",
+						"border-2 border-red-500/40 bg-drive-in-card",
+						"transition-all duration-150",
+						"hover:scale-105 hover:border-red-400/60",
+						"active:scale-95",
+					)}
+					style={{
+						boxShadow:
+							"0 6px 24px rgba(239,68,68,0.2), inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -2px 0 rgba(0,0,0,0.3)",
+					}}
+					aria-label="No — skip this title"
+				>
+					{/* Neon red glow on hover */}
+					<div
+						className="absolute -inset-1 rounded-xl opacity-0 blur-lg transition-opacity group-hover:opacity-100"
+						style={{
+							background:
+								"radial-gradient(circle, rgba(239,68,68,0.2) 0%, transparent 70%)",
+						}}
+					/>
+					<X
+						className="relative h-7 w-7 text-red-400"
+						style={{
+							filter: "drop-shadow(0 0 6px rgba(239,68,68,0.5))",
+						}}
+						strokeWidth={2.5}
+					/>
+				</button>
+				<span
+					className="font-mono-retro text-[8px] uppercase tracking-[2px] text-red-400/70"
+					style={{ textShadow: "0 0 6px rgba(239,68,68,0.3)" }}
+				>
+					Cut!
+				</span>
+			</div>
 
-			{/* Undo — small muted utility, raised */}
-			<button
-				type="button"
-				onClick={onUndo}
-				disabled={!canUndo}
-				className={cn(
-					"mb-2 flex size-11 items-center justify-center rounded-xl sm:size-12",
-					"border border-cream/15 bg-cream/5",
-					"shadow-[0_2px_10px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.05)]",
-					"transition-all duration-150",
-					canUndo
-						? "hover:scale-105 hover:border-cream/30 hover:bg-cream/10 hover:shadow-[0_4px_16px_rgba(0,0,0,0.4)] active:scale-95"
-						: "cursor-not-allowed opacity-30",
-				)}
-				aria-label="Undo"
-			>
-				<RotateCcw
-					className={cn("h-4 w-4", canUndo ? "text-cream/60" : "text-cream/30")}
-				/>
-			</button>
+			{/* Undo — small utility button, raised */}
+			<div className="mb-5 flex flex-col items-center gap-1.5">
+				<button
+					type="button"
+					onClick={onUndo}
+					disabled={!canUndo}
+					className={cn(
+						"flex size-11 items-center justify-center rounded-lg sm:size-12",
+						"border border-drive-in-border bg-drive-in-card",
+						"transition-all duration-150",
+						canUndo
+							? "hover:scale-105 hover:border-neon-amber/30 active:scale-95"
+							: "cursor-not-allowed opacity-30",
+					)}
+					style={{
+						boxShadow:
+							"0 2px 10px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.2)",
+					}}
+					aria-label="Undo"
+				>
+					<RotateCcw
+						className={cn(
+							"h-4 w-4",
+							canUndo ? "text-cream/60" : "text-cream/30",
+						)}
+					/>
+				</button>
+				<span className="font-mono-retro text-[7px] uppercase tracking-[1.5px] text-cream/30">
+					Undo
+				</span>
+			</div>
 
-			{/* Hide — small muted utility, raised */}
-			<button
-				type="button"
-				onClick={onHide}
-				className={cn(
-					"mb-2 flex size-11 items-center justify-center rounded-xl sm:size-12",
-					"border border-cream/15 bg-cream/5",
-					"shadow-[0_2px_10px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.05)]",
-					"transition-all duration-150",
-					"hover:scale-105 hover:border-cream/30 hover:bg-cream/10 hover:shadow-[0_4px_16px_rgba(0,0,0,0.4)]",
-					"active:scale-95",
-				)}
-				aria-label="Hide"
-			>
-				<EyeOff className="h-4 w-4 text-cream/60" />
-			</button>
+			{/* Hide — small utility button, raised */}
+			<div className="mb-5 flex flex-col items-center gap-1.5">
+				<button
+					type="button"
+					onClick={onHide}
+					className={cn(
+						"flex size-11 items-center justify-center rounded-lg sm:size-12",
+						"border border-drive-in-border bg-drive-in-card",
+						"transition-all duration-150",
+						"hover:scale-105 hover:border-neon-amber/30",
+						"active:scale-95",
+					)}
+					style={{
+						boxShadow:
+							"0 2px 10px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.2)",
+					}}
+					aria-label="Hide"
+				>
+					<EyeOff className="h-4 w-4 text-cream/60" />
+				</button>
+				<span className="font-mono-retro text-[7px] uppercase tracking-[1.5px] text-cream/30">
+					Hide
+				</span>
+			</div>
 
 			{/* Yes — large green arcade button */}
-			<button
-				type="button"
-				onClick={onYes}
-				className={cn(
-					"group relative flex size-16 items-center justify-center rounded-2xl sm:size-[72px]",
-					"border-2 border-green-500/50 bg-green-500/10",
-					"shadow-[0_6px_24px_rgba(74,222,128,0.3),inset_0_1px_0_rgba(255,255,255,0.08)]",
-					"transition-all duration-150",
-					"hover:scale-105 hover:border-green-400/70 hover:bg-green-500/20 hover:shadow-[0_8px_32px_rgba(74,222,128,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]",
-					"active:scale-95 active:shadow-[0_2px_8px_rgba(74,222,128,0.2)]",
-				)}
-				aria-label="Yes"
-			>
-				{/* Ambient glow */}
-				<div className="absolute -inset-1 rounded-2xl bg-green-500/10 opacity-0 blur-md transition-opacity group-hover:opacity-100" />
-				<Check
-					className="relative h-7 w-7 text-green-400 drop-shadow-[0_0_6px_rgba(74,222,128,0.5)]"
-					strokeWidth={2.5}
-				/>
-			</button>
+			<div className="flex flex-col items-center gap-1.5">
+				<button
+					type="button"
+					onClick={onYes}
+					className={cn(
+						"group relative flex size-16 items-center justify-center rounded-xl sm:size-[72px]",
+						"border-2 border-green-500/40 bg-drive-in-card",
+						"transition-all duration-150",
+						"hover:scale-105 hover:border-green-400/60",
+						"active:scale-95",
+					)}
+					style={{
+						boxShadow:
+							"0 6px 24px rgba(74,222,128,0.2), inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -2px 0 rgba(0,0,0,0.3)",
+					}}
+					aria-label="Yes — add to watchlist"
+				>
+					{/* Neon green glow on hover */}
+					<div
+						className="absolute -inset-1 rounded-xl opacity-0 blur-lg transition-opacity group-hover:opacity-100"
+						style={{
+							background:
+								"radial-gradient(circle, rgba(74,222,128,0.2) 0%, transparent 70%)",
+						}}
+					/>
+					<Check
+						className="relative h-7 w-7 text-green-400"
+						style={{
+							filter: "drop-shadow(0 0 6px rgba(74,222,128,0.5))",
+						}}
+						strokeWidth={2.5}
+					/>
+				</button>
+				<span
+					className="font-mono-retro text-[8px] uppercase tracking-[2px] text-green-400/70"
+					style={{ textShadow: "0 0 6px rgba(74,222,128,0.3)" }}
+				>
+					Action!
+				</span>
+			</div>
 		</div>
 	);
 }

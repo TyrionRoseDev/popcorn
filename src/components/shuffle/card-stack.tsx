@@ -169,34 +169,64 @@ export function CardStack({ watchlistId }: CardStackProps) {
 	const visibleCards = cards.slice(0, 3);
 
 	return (
-		<div className="flex w-full flex-col items-center gap-5">
-			{/* Card stack area — dominant, full-width on mobile */}
-			<div className="relative aspect-[2/3] w-full max-w-sm">
-				<AnimatePresence>
-					{visibleCards.map((card, index) => (
-						<SwipeCard
-							key={`${card.tmdbId}-${card.mediaType}`}
-							item={card}
-							onSwipe={handleSwipe}
-							onTap={() => setDetailItem(cards[0])}
-							isTop={index === 0}
-							stackIndex={index}
-							forceAction={index === 0 ? pendingAction : null}
-							onForceActionComplete={
-								index === 0 ? handleForceActionComplete : undefined
-							}
-						/>
-					))}
-				</AnimatePresence>
+		<div className="flex w-full flex-col items-center gap-6">
+			{/* Card area — larger, like a movie screen at a drive-in */}
+			<div className="relative w-full max-w-[400px]">
+				{/* Screen glow — light spill behind the card like a movie screen in the dark */}
+				<div
+					className="absolute -inset-6 -z-10"
+					style={{
+						background:
+							"radial-gradient(ellipse at center, rgba(255,184,0,0.08) 0%, rgba(255,184,0,0.03) 40%, transparent 70%)",
+						filter: "blur(20px)",
+					}}
+				/>
 
-				{/* Empty state */}
-				{cards.length === 0 && (
-					<div className="flex h-full w-full items-center justify-center rounded-2xl border border-cream/10 bg-drive-in-card">
-						<p className="px-8 text-center font-mono-retro text-xs text-cream/30">
-							Loading your next picks...
-						</p>
-					</div>
-				)}
+				{/* Subtle screen frame border */}
+				<div
+					className="absolute -inset-1 rounded-2xl"
+					style={{
+						border: "1px solid rgba(255,184,0,0.08)",
+						borderRadius: "18px",
+						boxShadow: "0 0 30px rgba(255,184,0,0.04)",
+						pointerEvents: "none",
+					}}
+				/>
+
+				{/* Card stack */}
+				<div className="relative aspect-[2/3] w-full">
+					<AnimatePresence>
+						{visibleCards.map((card, index) => (
+							<SwipeCard
+								key={`${card.tmdbId}-${card.mediaType}`}
+								item={card}
+								onSwipe={handleSwipe}
+								onTap={() => setDetailItem(cards[0])}
+								isTop={index === 0}
+								stackIndex={index}
+								forceAction={index === 0 ? pendingAction : null}
+								onForceActionComplete={
+									index === 0 ? handleForceActionComplete : undefined
+								}
+							/>
+						))}
+					</AnimatePresence>
+
+					{/* Empty state */}
+					{cards.length === 0 && (
+						<div
+							className="flex h-full w-full items-center justify-center rounded-2xl border border-drive-in-border bg-drive-in-card"
+							style={{
+								boxShadow:
+									"0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.03)",
+							}}
+						>
+							<p className="px-8 text-center font-mono-retro text-xs text-cream/30">
+								Loading your next picks...
+							</p>
+						</div>
+					)}
+				</div>
 			</div>
 
 			{/* Action buttons */}
