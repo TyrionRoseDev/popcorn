@@ -28,11 +28,31 @@ Both entry points lead to the same page (`/app/shuffle`), just with different in
 - **Unique index** on (userId, tmdbId, mediaType, watchlistId) — same user can have different swipes in solo vs. different group contexts
 - **Indexes** on userId, watchlistId
 
+### Prerequisite: watchlist schema (from `watchlist` branch)
+
+This feature depends on the watchlist tables already built on the `watchlist` branch. Those tables are:
+
+- **`watchlist`** — id, name, ownerId (FK → user), isPublic, isDefault, createdAt, updatedAt
+- **`watchlistItem`** — id, watchlistId (FK), tmdbId, mediaType, addedBy (FK → user), watched, createdAt. Unique on (watchlistId, tmdbId, mediaType)
+- **`watchlistMember`** — id, watchlistId (FK), userId (FK), role ('owner' | 'member'), createdAt. Unique on (watchlistId, userId)
+
+### Shuffle watchlist identification
+
+Add a `type` column to the `watchlist` table: `'default' | 'shuffle' | 'custom'` (default: `'custom'`). The auto-created Showtime Shuffle watchlist uses `type: 'shuffle'`. This is cleaner than name-matching and allows reliable querying.
+
 ### Existing schema usage
 
-- Auto-create a "Showtime Shuffle" watchlist per user (using existing `watchlist` table, identifiable by a naming convention or a new `type` column)
+- Auto-create a "Showtime Shuffle" watchlist per user (type: 'shuffle') during first shuffle access
 - Group watchlist items added via existing `watchlistItem` table when a match occurs
 - No separate notification table — in-app notifications driven by querying recent matches
+
+### Unique index note for `shuffleSwipe`
+
+The `watchlistId` column is nullable (null = solo mode). Since most databases treat `NULL != NULL` in unique indexes, use a `COALESCE(watchlistId, 'solo')` approach or a partial unique index to enforce uniqueness for solo swipes: unique on (userId, tmdbId, mediaType) WHERE watchlistId IS NULL, plus unique on (userId, tmdbId, mediaType, watchlistId) WHERE watchlistId IS NOT NULL.
+
+### Undo depth
+
+Undo is limited to the **last 1 swipe only** and is session-scoped (resets on page navigation). This keeps the implementation simple — no undo history stack.
 
 ## Feed Engine
 
