@@ -17,15 +17,15 @@ Both entry points lead to the same page (`/app/shuffle`), just with different in
 
 | Column | Type | Constraints |
 |--------|------|-------------|
-| id | uuid | PK |
+| id | text | PK, `crypto.randomUUID()` (matches codebase convention) |
 | userId | FK → user | NOT NULL, cascade delete |
-| watchlistId | FK → watchlist | nullable (null = solo) |
+| watchlistId | FK → watchlist | NOT NULL — solo swipes use the user's shuffle watchlist, group swipes use the group watchlist |
 | tmdbId | integer | NOT NULL |
 | mediaType | text ('movie' \| 'tv') | NOT NULL |
 | action | text ('yes' \| 'no' \| 'hide') | NOT NULL |
 | createdAt | timestamp | default now() |
 
-- **Unique index** on (userId, tmdbId, mediaType, watchlistId) — same user can have different swipes in solo vs. different group contexts
+- **Unique index** on (userId, tmdbId, mediaType, watchlistId) — same user can have different swipes in solo vs. different group contexts. Since `watchlistId` is NOT NULL, standard unique index works.
 - **Indexes** on userId, watchlistId
 
 ### Prerequisite: watchlist schema (from `watchlist` branch)
@@ -38,7 +38,7 @@ This feature depends on the watchlist tables already built on the `watchlist` br
 
 ### Shuffle watchlist identification
 
-Add a `type` column to the `watchlist` table: `'default' | 'shuffle' | 'custom'` (default: `'custom'`). The auto-created Showtime Shuffle watchlist uses `type: 'shuffle'`. This is cleaner than name-matching and allows reliable querying.
+Add a `type` column to the `watchlist` table: `'default' | 'shuffle' | 'custom'` (default: `'custom'`). The auto-created Showtime Shuffle watchlist uses `type: 'shuffle'`. This replaces the existing `isDefault` boolean — migrate existing default watchlists to `type: 'default'` and drop `isDefault`. Cleaner than name-matching and allows reliable querying.
 
 ### Existing schema usage
 
@@ -46,9 +46,10 @@ Add a `type` column to the `watchlist` table: `'default' | 'shuffle' | 'custom'`
 - Group watchlist items added via existing `watchlistItem` table when a match occurs
 - No separate notification table — in-app notifications driven by querying recent matches
 
-### Unique index note for `shuffleSwipe`
+### How solo and group swipes relate to watchlists
 
-The `watchlistId` column is nullable (null = solo mode). Since most databases treat `NULL != NULL` in unique indexes, use a `COALESCE(watchlistId, 'solo')` approach or a partial unique index to enforce uniqueness for solo swipes: unique on (userId, tmdbId, mediaType) WHERE watchlistId IS NULL, plus unique on (userId, tmdbId, mediaType, watchlistId) WHERE watchlistId IS NOT NULL.
+- **Solo swipes:** `watchlistId` references the user's auto-created shuffle watchlist (type: 'shuffle'). A "yes" swipe inserts both a `shuffleSwipe` row AND a `watchlistItem` row into the shuffle watchlist.
+- **Group swipes:** `watchlistId` references the group watchlist. A "yes" swipe inserts only a `shuffleSwipe` row. The `watchlistItem` is only inserted when ALL members have swiped yes (match).
 
 ### Undo depth
 
@@ -67,9 +68,10 @@ Assembles cards from three sources via TMDB, building on existing `feed-assemble
 | Discovery | 20% | `discoverMovies`/`discoverTv` with genres the user did NOT pick |
 
 **Filtering out:**
-- Items already in any of the user's watchlists
-- Items with `action: 'yes'` or `action: 'hide'` swipes (any context)
-- Items with `action: 'no'` swipes less than ~2 weeks old (based on `createdAt`)
+- Items already in the user's shuffle watchlist
+- Items with `action: 'hide'` swipes (global — hidden from all contexts)
+- Items with `action: 'yes'` swipes in this context (the shuffle watchlist)
+- Items with `action: 'no'` swipes in this context less than ~2 weeks old (based on `createdAt`)
 
 **Pagination:** cursor-based, encoding per-source page positions. Prefetch next batch when ~5 cards remain in the stack.
 
