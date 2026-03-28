@@ -14,10 +14,11 @@ import { Route as OnboardingRouteRouteImport } from './routes/onboarding/route'
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OnboardingIndexRouteImport } from './routes/onboarding/index'
-import { Route as AppShuffleRouteImport } from './routes/app/shuffle'
 import { Route as AppSearchRouteImport } from './routes/app/search'
 import { Route as AppWatchlistsIndexRouteImport } from './routes/app/watchlists/index'
+import { Route as AppShuffleIndexRouteImport } from './routes/app/shuffle/index'
 import { Route as AppWatchlistsWatchlistIdRouteImport } from './routes/app/watchlists/$watchlistId'
+import { Route as AppShuffleHiddenRouteImport } from './routes/app/shuffle/hidden'
 import { Route as ApiUploadthingSplatRouteImport } from './routes/api/uploadthing/$'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -48,11 +49,6 @@ const OnboardingIndexRoute = OnboardingIndexRouteImport.update({
   path: '/',
   getParentRoute: () => OnboardingRouteRoute,
 } as any)
-const AppShuffleRoute = AppShuffleRouteImport.update({
-  id: '/shuffle',
-  path: '/shuffle',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppSearchRoute = AppSearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -63,12 +59,22 @@ const AppWatchlistsIndexRoute = AppWatchlistsIndexRouteImport.update({
   path: '/watchlists/',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppShuffleIndexRoute = AppShuffleIndexRouteImport.update({
+  id: '/shuffle/',
+  path: '/shuffle/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppWatchlistsWatchlistIdRoute =
   AppWatchlistsWatchlistIdRouteImport.update({
     id: '/watchlists/$watchlistId',
     path: '/watchlists/$watchlistId',
     getParentRoute: () => AppRouteRoute,
   } as any)
+const AppShuffleHiddenRoute = AppShuffleHiddenRouteImport.update({
+  id: '/shuffle/hidden',
+  path: '/shuffle/hidden',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const ApiUploadthingSplatRoute = ApiUploadthingSplatRouteImport.update({
   id: '/api/uploadthing/$',
   path: '/api/uploadthing/$',
@@ -96,12 +102,13 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/app/search': typeof AppSearchRoute
-  '/app/shuffle': typeof AppShuffleRoute
   '/onboarding/': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
+  '/app/shuffle/': typeof AppShuffleIndexRoute
   '/app/watchlists/': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -110,12 +117,13 @@ export interface FileRoutesByTo {
   '/app': typeof AppRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/app/search': typeof AppSearchRoute
-  '/app/shuffle': typeof AppShuffleRoute
   '/onboarding': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
+  '/app/shuffle': typeof AppShuffleIndexRoute
   '/app/watchlists': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -126,12 +134,13 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/app/search': typeof AppSearchRoute
-  '/app/shuffle': typeof AppShuffleRoute
   '/onboarding/': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
+  '/app/shuffle/': typeof AppShuffleIndexRoute
   '/app/watchlists/': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -143,12 +152,13 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/login'
     | '/app/search'
-    | '/app/shuffle'
     | '/onboarding/'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/shuffle/hidden'
     | '/app/watchlists/$watchlistId'
+    | '/app/shuffle/'
     | '/app/watchlists/'
     | '/app/title/$mediaType/$tmdbId'
   fileRoutesByTo: FileRoutesByTo
@@ -157,12 +167,13 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/app/search'
-    | '/app/shuffle'
     | '/onboarding'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/shuffle/hidden'
     | '/app/watchlists/$watchlistId'
+    | '/app/shuffle'
     | '/app/watchlists'
     | '/app/title/$mediaType/$tmdbId'
   id:
@@ -172,12 +183,13 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/login'
     | '/app/search'
-    | '/app/shuffle'
     | '/onboarding/'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/shuffle/hidden'
     | '/app/watchlists/$watchlistId'
+    | '/app/shuffle/'
     | '/app/watchlists/'
     | '/app/title/$mediaType/$tmdbId'
   fileRoutesById: FileRoutesById
@@ -229,13 +241,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingIndexRouteImport
       parentRoute: typeof OnboardingRouteRoute
     }
-    '/app/shuffle': {
-      id: '/app/shuffle'
-      path: '/shuffle'
-      fullPath: '/app/shuffle'
-      preLoaderRoute: typeof AppShuffleRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/app/search': {
       id: '/app/search'
       path: '/search'
@@ -250,11 +255,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWatchlistsIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/shuffle/': {
+      id: '/app/shuffle/'
+      path: '/shuffle'
+      fullPath: '/app/shuffle/'
+      preLoaderRoute: typeof AppShuffleIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/watchlists/$watchlistId': {
       id: '/app/watchlists/$watchlistId'
       path: '/watchlists/$watchlistId'
       fullPath: '/app/watchlists/$watchlistId'
       preLoaderRoute: typeof AppWatchlistsWatchlistIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/shuffle/hidden': {
+      id: '/app/shuffle/hidden'
+      path: '/shuffle/hidden'
+      fullPath: '/app/shuffle/hidden'
+      preLoaderRoute: typeof AppShuffleHiddenRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/api/uploadthing/$': {
@@ -290,16 +309,18 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteRouteChildren {
   AppSearchRoute: typeof AppSearchRoute
-  AppShuffleRoute: typeof AppShuffleRoute
+  AppShuffleHiddenRoute: typeof AppShuffleHiddenRoute
   AppWatchlistsWatchlistIdRoute: typeof AppWatchlistsWatchlistIdRoute
+  AppShuffleIndexRoute: typeof AppShuffleIndexRoute
   AppWatchlistsIndexRoute: typeof AppWatchlistsIndexRoute
   AppTitleMediaTypeTmdbIdRoute: typeof AppTitleMediaTypeTmdbIdRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSearchRoute: AppSearchRoute,
-  AppShuffleRoute: AppShuffleRoute,
+  AppShuffleHiddenRoute: AppShuffleHiddenRoute,
   AppWatchlistsWatchlistIdRoute: AppWatchlistsWatchlistIdRoute,
+  AppShuffleIndexRoute: AppShuffleIndexRoute,
   AppWatchlistsIndexRoute: AppWatchlistsIndexRoute,
   AppTitleMediaTypeTmdbIdRoute: AppTitleMediaTypeTmdbIdRoute,
 }
@@ -332,3 +353,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

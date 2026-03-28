@@ -29,6 +29,11 @@ export function CardStack({ watchlistId }: CardStackProps) {
 	} | null>(null);
 	const [detailItem, setDetailItem] = useState<FeedItem | null>(null);
 
+	// Pending button action — triggers stamp flash before card exits
+	const [pendingAction, setPendingAction] = useState<"left" | "right" | null>(
+		null,
+	);
+
 	const { data: feedData } = useQuery({
 		...trpc.shuffle.getFeed.queryOptions({
 			watchlistId,
@@ -97,6 +102,21 @@ export function CardStack({ watchlistId }: CardStackProps) {
 		[cards, watchlistId, recordSwipeMutation],
 	);
 
+	// Button press: set pending action to flash stamp, then swipe on completion
+	const handleButtonSwipe = useCallback(
+		(direction: "left" | "right") => {
+			if (cards.length === 0 || pendingAction) return;
+			setPendingAction(direction);
+		},
+		[cards.length, pendingAction],
+	);
+
+	const handleForceActionComplete = useCallback(() => {
+		if (!pendingAction) return;
+		handleSwipe(pendingAction);
+		setPendingAction(null);
+	}, [pendingAction, handleSwipe]);
+
 	const handleHide = useCallback(() => {
 		if (cards.length === 0) return;
 		const topCard = cards[0];
@@ -149,9 +169,9 @@ export function CardStack({ watchlistId }: CardStackProps) {
 	const visibleCards = cards.slice(0, 3);
 
 	return (
-		<div className="flex flex-col items-center gap-6">
-			{/* Card stack area */}
-			<div className="relative h-[420px] w-[300px]">
+		<div className="flex w-full flex-col items-center gap-5">
+			{/* Card stack area — dominant, full-width on mobile */}
+			<div className="relative aspect-[2/3] w-full max-w-sm">
 				<AnimatePresence>
 					{visibleCards.map((card, index) => (
 						<SwipeCard
@@ -161,6 +181,10 @@ export function CardStack({ watchlistId }: CardStackProps) {
 							onTap={() => setDetailItem(cards[0])}
 							isTop={index === 0}
 							stackIndex={index}
+							forceAction={index === 0 ? pendingAction : null}
+							onForceActionComplete={
+								index === 0 ? handleForceActionComplete : undefined
+							}
 						/>
 					))}
 				</AnimatePresence>
@@ -177,8 +201,8 @@ export function CardStack({ watchlistId }: CardStackProps) {
 
 			{/* Action buttons */}
 			<ActionButtons
-				onNo={() => handleSwipe("left")}
-				onYes={() => handleSwipe("right")}
+				onNo={() => handleButtonSwipe("left")}
+				onYes={() => handleButtonSwipe("right")}
 				onUndo={handleUndo}
 				onHide={handleHide}
 				canUndo={lastSwiped !== null}
