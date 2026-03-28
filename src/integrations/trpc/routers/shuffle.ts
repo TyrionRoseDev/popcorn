@@ -283,7 +283,7 @@ export const shuffleRouter = {
 						})
 						.onConflictDoNothing();
 
-					return { match: true };
+					return { match: false };
 				}
 
 				// Group mode: check if all members swiped yes
@@ -313,7 +313,12 @@ export const shuffleRouter = {
 						})
 						.onConflictDoNothing();
 
-					return { match: true };
+					return {
+						match: true,
+						watchlistName: wl.name,
+						tmdbId: input.tmdbId,
+						mediaType: input.mediaType,
+					};
 				}
 
 				return { match: false };
@@ -445,6 +450,8 @@ export const shuffleRouter = {
 					not(eq(watchlistItem.addedBy, ctx.userId)),
 				),
 			});
-			return recentItems.filter((item) => new Date(item.createdAt) > oneHourAgo);
+			return recentItems.filter(
+				(item) => new Date(item.createdAt) > oneHourAgo,
+			);
 		}),
 } satisfies TRPCRouterRecord;

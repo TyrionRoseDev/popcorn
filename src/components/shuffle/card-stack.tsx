@@ -87,7 +87,7 @@ export function CardStack({ watchlistId }: CardStackProps) {
 							setMatchData({
 								title: topCard.title,
 								posterPath: topCard.posterPath,
-								watchlistName: "Shuffle Picks",
+								watchlistName: result.watchlistName ?? "",
 							});
 						}
 					},
@@ -194,10 +194,7 @@ export function CardStack({ watchlistId }: CardStackProps) {
 			/>
 
 			{/* Card detail modal */}
-			<CardDetailModal
-				item={detailItem}
-				onClose={() => setDetailItem(null)}
-			/>
+			<CardDetailModal item={detailItem} onClose={() => setDetailItem(null)} />
 		</div>
 	);
 }
