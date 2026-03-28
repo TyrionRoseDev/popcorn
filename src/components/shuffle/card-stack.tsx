@@ -1,9 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { useTRPC } from "#/integrations/trpc/react";
 import type { FeedItem } from "#/lib/feed-assembler";
 import { ActionButtons } from "./action-buttons";
+import { CardDetailModal } from "./card-detail-modal";
 import { MatchCelebration } from "./match-celebration";
 import { SwipeCard } from "./swipe-card";
 
@@ -25,6 +27,7 @@ export function CardStack({ watchlistId }: CardStackProps) {
 		posterPath: string | null;
 		watchlistName: string;
 	} | null>(null);
+	const [detailItem, setDetailItem] = useState<FeedItem | null>(null);
 
 	const { data: feedData } = useQuery({
 		...trpc.shuffle.getFeed.queryOptions({
@@ -123,6 +126,26 @@ export function CardStack({ watchlistId }: CardStackProps) {
 		});
 	}, [lastSwiped, watchlistId, undoSwipeMutation]);
 
+	// --- Match toast polling for group sessions ---
+	const seenMatchIds = useRef(new Set<string>());
+
+	const { data: recentMatches } = useQuery({
+		...trpc.shuffle.getRecentMatches.queryOptions({ watchlistId }),
+		refetchInterval: 30000,
+	});
+
+	useEffect(() => {
+		if (!recentMatches?.length) return;
+		for (const item of recentMatches) {
+			if (!seenMatchIds.current.has(item.id)) {
+				seenMatchIds.current.add(item.id);
+				toast.success("Your group matched a title!", {
+					description: `A new pick was added to the watchlist.`,
+				});
+			}
+		}
+	}, [recentMatches]);
+
 	const visibleCards = cards.slice(0, 3);
 
 	return (
@@ -135,7 +158,7 @@ export function CardStack({ watchlistId }: CardStackProps) {
 							key={`${card.tmdbId}-${card.mediaType}`}
 							item={card}
 							onSwipe={handleSwipe}
-							onTap={() => {}}
+							onTap={() => setDetailItem(cards[0])}
 							isTop={index === 0}
 							stackIndex={index}
 						/>
@@ -168,6 +191,12 @@ export function CardStack({ watchlistId }: CardStackProps) {
 				title={matchData?.title ?? ""}
 				posterPath={matchData?.posterPath ?? null}
 				watchlistName={matchData?.watchlistName ?? ""}
+			/>
+
+			{/* Card detail modal */}
+			<CardDetailModal
+				item={detailItem}
+				onClose={() => setDetailItem(null)}
 			/>
 		</div>
 	);
