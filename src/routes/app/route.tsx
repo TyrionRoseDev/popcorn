@@ -5,7 +5,7 @@ import {
 	redirect,
 	useMatches,
 } from "@tanstack/react-router";
-import { Bookmark, Search } from "lucide-react";
+import { Bookmark, Search, Shuffle } from "lucide-react";
 import { RetroOverlays } from "#/components/retro-overlays";
 import BetterAuthHeader from "#/integrations/better-auth/header-user";
 import { getSession } from "#/lib/auth-session";
@@ -68,6 +68,13 @@ function AppLayout() {
 						>
 							<Search className="h-3.5 w-3.5" />
 							Search
+						</Link>
+						<Link
+							to="/app/shuffle"
+							className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-cream/50 no-underline transition-colors hover:bg-cream/5 hover:text-cream/80 [&.active]:text-neon-pink [&.active]:bg-neon-pink/8"
+						>
+							<Shuffle className="h-3.5 w-3.5" />
+							Shuffle
 						</Link>
 						<Link
 							to="/app/watchlists"
