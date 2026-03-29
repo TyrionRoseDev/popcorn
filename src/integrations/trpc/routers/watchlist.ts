@@ -277,7 +277,7 @@ export const watchlistRouter = {
 		)
 		.mutation(async ({ input, ctx }) => {
 			await assertMember(input.watchlistId, ctx.userId);
-			await db
+			const inserted = await db
 				.insert(watchlistItem)
 				.values({
 					watchlistId: input.watchlistId,
@@ -285,7 +285,10 @@ export const watchlistRouter = {
 					mediaType: input.mediaType,
 					addedBy: ctx.userId,
 				})
-				.onConflictDoNothing();
+				.onConflictDoNothing()
+				.returning({ id: watchlistItem.id });
+
+			if (inserted.length === 0) return; // Already existed, skip notifications
 
 			// Notify other members
 			const wl = await db.query.watchlist.findFirst({
@@ -392,14 +395,17 @@ export const watchlistRouter = {
 		)
 		.mutation(async ({ input, ctx }) => {
 			await assertOwner(input.watchlistId, ctx.userId);
-			await db
+			const inserted = await db
 				.insert(watchlistMember)
 				.values({
 					watchlistId: input.watchlistId,
 					userId: input.userId,
 					role: "member",
 				})
-				.onConflictDoNothing();
+				.onConflictDoNothing()
+				.returning({ id: watchlistMember.id });
+
+			if (inserted.length === 0) return; // Already existed, skip notifications
 
 			// Notify other members (including the new member)
 			const wl = await db.query.watchlist.findFirst({
