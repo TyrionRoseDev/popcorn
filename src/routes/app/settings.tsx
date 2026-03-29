@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Camera, ChevronRight, Mail, Trash2, User } from "lucide-react";
 import { useState } from "react";
+import { ChangeAvatarDialog } from "#/components/settings/change-avatar-dialog";
 import { authClient } from "#/lib/auth-client";
 
 export const Route = createFileRoute("/app/settings")({
@@ -15,9 +16,9 @@ function SettingsPage() {
 	const user = session?.user;
 
 	const [avatarOpen, setAvatarOpen] = useState(false);
-	const [usernameOpen, setUsernameOpen] = useState(false);
-	const [emailOpen, setEmailOpen] = useState(false);
-	const [deleteOpen, setDeleteOpen] = useState(false);
+	const [_usernameOpen, setUsernameOpen] = useState(false);
+	const [_emailOpen, setEmailOpen] = useState(false);
+	const [_deleteOpen, setDeleteOpen] = useState(false);
 
 	if (!user) return null;
 
@@ -106,8 +107,13 @@ function SettingsPage() {
 				</button>
 			</div>
 
-			{/* Dialogs — will be added in subsequent tasks */}
-			{/* <ChangeAvatarDialog open={avatarOpen} onOpenChange={setAvatarOpen} /> */}
+			{/* Dialogs */}
+			<ChangeAvatarDialog
+				open={avatarOpen}
+				onOpenChange={setAvatarOpen}
+				currentAvatarUrl={user.avatarUrl}
+				fallbackInitial={user.username?.charAt(0).toUpperCase() || "?"}
+			/>
 			{/* <ChangeUsernameDialog open={usernameOpen} onOpenChange={setUsernameOpen} /> */}
 			{/* <ChangeEmailDialog open={emailOpen} onOpenChange={setEmailOpen} /> */}
 			{/* <DeleteAccountDialog open={deleteOpen} onOpenChange={setDeleteOpen} /> */}
