@@ -90,9 +90,7 @@ export function ChangeAvatarDialog({
 				</DialogHeader>
 
 				<div className="flex flex-col items-center gap-4 py-4">
-					{error && (
-						<p className="text-sm text-neon-pink">{error}</p>
-					)}
+					{error && <p className="text-sm text-neon-pink">{error}</p>}
 
 					<label className="group relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-cream/20 transition-colors hover:border-neon-cyan/40">
 						{displaySrc ? (
