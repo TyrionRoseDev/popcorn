@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChangeAvatarDialog } from "#/components/settings/change-avatar-dialog";
 import { ChangeEmailDialog } from "#/components/settings/change-email-dialog";
 import { ChangeUsernameDialog } from "#/components/settings/change-username-dialog";
+import { DeleteAccountDialog } from "#/components/settings/delete-account-dialog";
 import { authClient } from "#/lib/auth-client";
 
 export const Route = createFileRoute("/app/settings")({
@@ -20,7 +21,7 @@ function SettingsPage() {
 	const [avatarOpen, setAvatarOpen] = useState(false);
 	const [usernameOpen, setUsernameOpen] = useState(false);
 	const [emailOpen, setEmailOpen] = useState(false);
-	const [_deleteOpen, setDeleteOpen] = useState(false);
+	const [deleteOpen, setDeleteOpen] = useState(false);
 
 	if (!user) return null;
 
@@ -126,7 +127,7 @@ function SettingsPage() {
 				onOpenChange={setEmailOpen}
 				currentEmail={user.email}
 			/>
-			{/* <DeleteAccountDialog open={deleteOpen} onOpenChange={setDeleteOpen} /> */}
+			<DeleteAccountDialog open={deleteOpen} onOpenChange={setDeleteOpen} />
 		</div>
 	);
 }
