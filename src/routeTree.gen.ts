@@ -15,6 +15,8 @@ import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OnboardingIndexRouteImport } from './routes/onboarding/index'
 import { Route as AppSearchRouteImport } from './routes/app/search'
+import { Route as AppWatchlistsIndexRouteImport } from './routes/app/watchlists/index'
+import { Route as AppWatchlistsWatchlistIdRouteImport } from './routes/app/watchlists/$watchlistId'
 import { Route as ApiUploadthingSplatRouteImport } from './routes/api/uploadthing/$'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -50,6 +52,17 @@ const AppSearchRoute = AppSearchRouteImport.update({
   path: '/search',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppWatchlistsIndexRoute = AppWatchlistsIndexRouteImport.update({
+  id: '/watchlists/',
+  path: '/watchlists/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppWatchlistsWatchlistIdRoute =
+  AppWatchlistsWatchlistIdRouteImport.update({
+    id: '/watchlists/$watchlistId',
+    path: '/watchlists/$watchlistId',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const ApiUploadthingSplatRoute = ApiUploadthingSplatRouteImport.update({
   id: '/api/uploadthing/$',
   path: '/api/uploadthing/$',
@@ -81,6 +94,8 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
+  '/app/watchlists/': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
 export interface FileRoutesByTo {
@@ -92,6 +107,8 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
+  '/app/watchlists': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
 export interface FileRoutesById {
@@ -105,6 +122,8 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
+  '/app/watchlists/': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
 export interface FileRouteTypes {
@@ -119,6 +138,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/watchlists/$watchlistId'
+    | '/app/watchlists/'
     | '/app/title/$mediaType/$tmdbId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -130,6 +151,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/watchlists/$watchlistId'
+    | '/app/watchlists'
     | '/app/title/$mediaType/$tmdbId'
   id:
     | '__root__'
@@ -142,6 +165,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/watchlists/$watchlistId'
+    | '/app/watchlists/'
     | '/app/title/$mediaType/$tmdbId'
   fileRoutesById: FileRoutesById
 }
@@ -199,6 +224,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSearchRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/watchlists/': {
+      id: '/app/watchlists/'
+      path: '/watchlists'
+      fullPath: '/app/watchlists/'
+      preLoaderRoute: typeof AppWatchlistsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/watchlists/$watchlistId': {
+      id: '/app/watchlists/$watchlistId'
+      path: '/watchlists/$watchlistId'
+      fullPath: '/app/watchlists/$watchlistId'
+      preLoaderRoute: typeof AppWatchlistsWatchlistIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/api/uploadthing/$': {
       id: '/api/uploadthing/$'
       path: '/api/uploadthing/$'
@@ -232,11 +271,15 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteRouteChildren {
   AppSearchRoute: typeof AppSearchRoute
+  AppWatchlistsWatchlistIdRoute: typeof AppWatchlistsWatchlistIdRoute
+  AppWatchlistsIndexRoute: typeof AppWatchlistsIndexRoute
   AppTitleMediaTypeTmdbIdRoute: typeof AppTitleMediaTypeTmdbIdRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSearchRoute: AppSearchRoute,
+  AppWatchlistsWatchlistIdRoute: AppWatchlistsWatchlistIdRoute,
+  AppWatchlistsIndexRoute: AppWatchlistsIndexRoute,
   AppTitleMediaTypeTmdbIdRoute: AppTitleMediaTypeTmdbIdRoute,
 }
 

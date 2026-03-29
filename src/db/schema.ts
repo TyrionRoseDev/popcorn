@@ -125,11 +125,83 @@ export const userTitle = pgTable(
 	],
 );
 
+export const watchlist = pgTable(
+	"watchlist",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		name: text("name").notNull(),
+		ownerId: text("owner_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		isPublic: boolean("is_public").default(false).notNull(),
+		isDefault: boolean("is_default").default(false).notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at")
+			.defaultNow()
+			.notNull()
+			.$onUpdate(() => new Date()),
+	},
+	(table) => [index("watchlist_owner_id_idx").on(table.ownerId)],
+);
+
+export const watchlistItem = pgTable(
+	"watchlist_item",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		watchlistId: text("watchlist_id")
+			.notNull()
+			.references(() => watchlist.id, { onDelete: "cascade" }),
+		tmdbId: integer("tmdb_id").notNull(),
+		mediaType: text("media_type").notNull(),
+		addedBy: text("added_by")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		watched: boolean("watched").default(false).notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("watchlist_item_unique").on(
+			table.watchlistId,
+			table.tmdbId,
+			table.mediaType,
+		),
+		index("watchlist_item_watchlist_id_idx").on(table.watchlistId),
+	],
+);
+
+export const watchlistMember = pgTable(
+	"watchlist_member",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		watchlistId: text("watchlist_id")
+			.notNull()
+			.references(() => watchlist.id, { onDelete: "cascade" }),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		role: text("role").notNull().default("member"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("watchlist_member_unique").on(table.watchlistId, table.userId),
+		index("watchlist_member_watchlist_id_idx").on(table.watchlistId),
+		index("watchlist_member_user_id_idx").on(table.userId),
+	],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
 	genres: many(userGenre),
 	titles: many(userTitle),
+	ownedWatchlists: many(watchlist),
+	watchlistMemberships: many(watchlistMember),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -159,3 +231,34 @@ export const userTitleRelations = relations(userTitle, ({ one }) => ({
 		references: [user.id],
 	}),
 }));
+
+export const watchlistRelations = relations(watchlist, ({ one, many }) => ({
+	owner: one(user, { fields: [watchlist.ownerId], references: [user.id] }),
+	items: many(watchlistItem),
+	members: many(watchlistMember),
+}));
+
+export const watchlistItemRelations = relations(watchlistItem, ({ one }) => ({
+	watchlist: one(watchlist, {
+		fields: [watchlistItem.watchlistId],
+		references: [watchlist.id],
+	}),
+	addedByUser: one(user, {
+		fields: [watchlistItem.addedBy],
+		references: [user.id],
+	}),
+}));
+
+export const watchlistMemberRelations = relations(
+	watchlistMember,
+	({ one }) => ({
+		watchlist: one(watchlist, {
+			fields: [watchlistMember.watchlistId],
+			references: [watchlist.id],
+		}),
+		user: one(user, {
+			fields: [watchlistMember.userId],
+			references: [user.id],
+		}),
+	}),
+);
