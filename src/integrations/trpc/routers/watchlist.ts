@@ -48,7 +48,10 @@ export const watchlistRouter = {
 					},
 				},
 			},
-			orderBy: (wl, { desc }) => [sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'custom' THEN 2 WHEN 'shuffle' THEN 3 ELSE 99 END`, desc(wl.updatedAt)],
+			orderBy: (wl, { desc }) => [
+				sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'custom' THEN 2 WHEN 'shuffle' THEN 3 ELSE 99 END`,
+				desc(wl.updatedAt),
+			],
 		});
 
 		return watchlists.map((wl) => ({
@@ -137,7 +140,10 @@ export const watchlistRouter = {
 		return db.query.watchlist.findMany({
 			where: (wl, { inArray }) => inArray(wl.id, watchlistIds),
 			columns: { id: true, name: true, type: true },
-			orderBy: (wl, { desc }) => [sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'custom' THEN 2 WHEN 'shuffle' THEN 3 ELSE 99 END`, desc(wl.updatedAt)],
+			orderBy: (wl, { desc }) => [
+				sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'custom' THEN 2 WHEN 'shuffle' THEN 3 ELSE 99 END`,
+				desc(wl.updatedAt),
+			],
 		});
 	}),
 

@@ -427,7 +427,10 @@ export const shuffleRouter = {
 					columns: { userId: true },
 				},
 			},
-			orderBy: (wl, { desc }) => [sql`CASE ${wl.type} WHEN 'shuffle' THEN 1 WHEN 'custom' THEN 2 ELSE 99 END`, desc(wl.updatedAt)],
+			orderBy: (wl, { desc }) => [
+				sql`CASE ${wl.type} WHEN 'shuffle' THEN 1 WHEN 'custom' THEN 2 ELSE 99 END`,
+				desc(wl.updatedAt),
+			],
 		});
 	}),
 
