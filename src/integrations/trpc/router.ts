@@ -5,6 +5,7 @@ import { searchRouter } from "./routers/search";
 import { shuffleRouter } from "./routers/shuffle";
 import { tasteProfileRouter } from "./routers/taste-profile";
 import { titleRouter } from "./routers/title";
+import { notificationRouter } from "./routers/notification";
 import { watchlistRouter } from "./routers/watchlist";
 
 const todos = [
@@ -30,6 +31,7 @@ export const trpcRouter = createTRPCRouter({
 	search: searchRouter,
 	shuffle: shuffleRouter,
 	title: titleRouter,
+	notification: notificationRouter,
 	watchlist: watchlistRouter,
 });
 export type TRPCRouter = typeof trpcRouter;
