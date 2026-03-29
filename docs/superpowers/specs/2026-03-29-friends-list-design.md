@@ -14,7 +14,7 @@ A mutual friendship system that serves as both a social discovery layer (see wha
 | `id` | text | PK |
 | `requesterId` | text (FK → user) | Who sent the request |
 | `addresseeId` | text (FK → user) | Who received it |
-| `status` | enum: `pending`, `accepted`, `declined` | Request state |
+| `status` | enum: `pending`, `accepted` | Request state |
 | `createdAt` | timestamp | |
 | `updatedAt` | timestamp | |
 
@@ -37,19 +37,19 @@ A mutual friendship system that serves as both a social discovery layer (see wha
 |--------|------|-------|
 | `bio` | text, nullable | Short tagline, max 100 chars |
 | `favouriteFilmTmdbId` | integer, nullable | TMDB ID of favourite film |
-| `favouriteGenreId` | integer, nullable | Genre ID from TMDB genre list |
+| `favouriteGenreId` | integer, nullable | Genre ID from the existing TMDB genre list (same source as `userGenre` table). This is a single "favourite" pick, separate from the multi-select genre preferences in `userGenre`. |
 
 ## API Layer (tRPC)
 
 ### New `friend` Router
 
 **Queries:**
-- `list` — returns accepted friends with profile info (avatar, username, favourite film, favourite genre, watched minutes)
+- `list` — returns accepted friends with profile info (avatar, username, favourite film, favourite genre, friend count)
 - `pendingRequests` — incoming requests awaiting response
 - `mutualFriends(userId)` — returns mutual friends between current user and target user
 - `profile(userId)` — returns full or slim profile depending on friendship status:
-  - **Slim (non-friend):** avatar, username, favourite film, favourite genre, watched minutes, friend count, mutual friends, achievements count, bio (if set)
-  - **Full (friend):** all of slim + public watchlists, public reviews, activity feed, top genres chart, watch activity heatmap
+  - **Slim (non-friend):** avatar, username, favourite film, favourite genre, friend count, mutual friends, bio (if set)
+  - **Full (friend):** all of slim + public watchlists, top genres breakdown (derived from watchlist items by genre)
 
 **Mutations:**
 - `sendRequest(userId)` — creates pending friendship, sends `friend_request` notification. Blocked users cannot send.
@@ -64,7 +64,7 @@ A mutual friendship system that serves as both a social discovery layer (see wha
 
 - `watchlist.searchUsers` — exclude blocked users from results
 - `watchlist.addMember` — check friendship before allowing invite
-- `watchlist.knownUsers` — deprecated, replaced by `friend.list`
+- `watchlist.knownUsers` — deprecated, replaced by `friend.list`. Remove usages in `create-watchlist-dialog.tsx` and `invite-member-modal.tsx`, replacing with `friend.list` for the "People you know" section.
 
 ### New Notification Types
 
@@ -94,8 +94,8 @@ Top-to-bottom layout inside a drive-in themed card:
 5. **Stats row** — 3 columns: Friends count | Minutes Watched | Favourite Genre
 6. **Bio** (if set) — marquee-style amber-bordered box with star decorations. Completely absent if empty.
 7. **Favourite film** — portrait poster (2:3 aspect ratio) with film grain/projector effects, title, year, genre, star rating alongside
-8. **Achievements counter** — trophy icon + "12 / 50" progress bar with amber shimmer
-9. **Blurred activity teaser** — 3 frosted rows of recent activity with lock overlay ("Add friend to see activity")
+8. **Achievements counter** — trophy icon + "X / Y" progress bar with amber shimmer. Placeholder for future achievements system — shows "0 / 0" or a "Coming soon" state until achievements are implemented.
+9. **Blurred activity teaser** — 3 frosted placeholder rows with lock overlay ("Add friend to see activity"). Content is mocked/placeholder until activity feed system is built.
 10. **Gated message** — lock icon + "Add as a friend to see watchlists, reviews & activity"
 
 ### Friend (Full) Profile
@@ -107,13 +107,13 @@ Same card layout, with these differences:
 3. **Stats row** — same 3 columns
 4. **Bio** (same)
 5. **Favourite film** — portrait poster (same)
-6. **Achievements** — expanded: progress bar + 3 most recent achievement badges + "View all achievements" button
-7. **Top Genres bar chart** — horizontal neon bars (cyan, pink, amber, purple) with percentages, no shimmer animation
-8. **Watch Activity heatmap** — GitHub-style grid with cyan glow cells, Less/More legend
+6. **Achievements** — expanded: progress bar + 3 most recent achievement badges + "View all achievements" button. Placeholder until achievements system is built — show "Coming soon" state.
+7. **Top Genres bar chart** — horizontal neon bars (cyan, pink, amber, purple) with percentages, no shimmer animation. Derived from the user's watchlist items grouped by genre (using TMDB genre data from titles already in their watchlists).
+8. **Watch Activity heatmap** — GitHub-style grid with cyan glow cells, Less/More legend. Derived from `watchlistItem` `createdAt` timestamps (items added/watched over time). Shows empty state if insufficient data.
 9. **Tabbed content** — color-coded tabs with smooth height transition (use Motion library):
    - **Watchlists** (cyan) — recent public watchlists + "See all watchlists" button
-   - **Reviews** (amber) — recent public reviews with star ratings + "See all reviews" button
-   - **Activity** (pink) — recent activity timeline + "See all activity" button
+   - **Reviews** (amber) — placeholder "Coming soon" state until reviews system is built
+   - **Activity** (pink) — derived from watchlist actions (items watched, items added). Shows recent events. + "See all activity" button
    - Each tab's "See all" button navigates to a dedicated page
 
 ### Design Notes
@@ -176,22 +176,32 @@ Follows the existing hidden titles pattern (`/app/shuffle/hidden`):
   - List of blocked users: muted/desaturated avatar + username + "Blocked X ago" + Unblock button
   - Empty state: "No blocked users" message
 
+## Deferred Systems
+
+The following UI sections are designed but depend on systems not yet built. They should render placeholder/coming-soon states in v1:
+
+- **Achievements** — no achievements system exists. Show "0 / 0" progress bar or "Coming soon" badge on both slim and full profiles.
+- **Reviews tab** — no reviews table exists. Show "Coming soon" state in the reviews tab.
+- **Watched minutes** — no watch-time tracking exists. Derive an approximation from `watchlistItem` entries marked as `watched: true` using average film runtime from TMDB, or show "—" if not calculable.
+
+These will be fully implemented when their respective features are built.
+
 ## Onboarding Additions
 
-Three new steps appended after the existing genre and title selection:
+Three new steps appended after the existing onboarding steps (Username, Avatar, Taste Profile). The existing 3 steps remain unchanged. New total: 6 steps.
 
-### Step 3: Pick Your Favourite Film
+### Step 4: Pick Your Favourite Film
 - TMDB search input (debounced)
 - Search results list with small poster thumbnail, title, year
 - Single select with check indicator
 - Skip button available
 
-### Step 4: Pick Your Favourite Genre
+### Step 5: Pick Your Favourite Genre
 - 3-column grid of genre chips
 - Single select (highlight selected with pink)
 - Skip button available
 
-### Step 5: Write a Short Bio (Optional)
+### Step 6: Write a Short Bio (Optional)
 - Textarea input, max 100 characters
 - Placeholder: "horror enthusiast. no spoilers."
 - Character count hint
