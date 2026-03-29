@@ -65,7 +65,14 @@ function getNotificationMessage(
 				link: `/app/watchlists/${data.watchlistId}`,
 			};
 		case "friend_request":
-			return { text: "sent you a friend request" };
+			return {
+				text: "sent you a friend request",
+				link: "/app/friends",
+			};
+		case "friend_request_accepted":
+			return {
+				text: "accepted your friend request",
+			};
 		case "title_reviewed":
 			return {
 				text: `reviewed ${data.titleName || "a title"} you recommended`,
