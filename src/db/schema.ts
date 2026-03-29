@@ -1,6 +1,7 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
 	boolean,
+	check,
 	index,
 	integer,
 	jsonb,
@@ -279,6 +280,10 @@ export const friendship = pgTable(
 			table.addresseeId,
 		),
 		index("friendship_addressee_id_idx").on(table.addresseeId),
+		check(
+			"friendship_no_self_relation",
+			sql`${table.requesterId} <> ${table.addresseeId}`,
+		),
 	],
 );
 
@@ -300,6 +305,11 @@ export const block = pgTable(
 		uniqueIndex("block_blocker_blocked_idx").on(
 			table.blockerId,
 			table.blockedId,
+		),
+		index("block_blocked_id_idx").on(table.blockedId),
+		check(
+			"block_no_self_relation",
+			sql`${table.blockerId} <> ${table.blockedId}`,
 		),
 	],
 );

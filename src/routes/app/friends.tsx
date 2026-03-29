@@ -4,7 +4,7 @@ import {
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
 	Check,
 	Clock,
@@ -71,7 +71,7 @@ function TicketStubCard({ friend }: { friend: Friend }) {
 	const gradient = getAvatarGradient(initial);
 
 	return (
-		<a href={`/app/profile/${friend.id}`} className="group block no-underline">
+		<Link to={`/app/profile/${friend.id}`} className="group block no-underline">
 			<div
 				className="relative overflow-hidden rounded-lg border border-neon-amber/12 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-neon-amber/45 group-hover:shadow-[0_4px_20px_rgba(255,184,0,0.12),0_2px_12px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.03)]"
 				style={{
@@ -148,7 +148,7 @@ function TicketStubCard({ friend }: { friend: Friend }) {
 					</div>
 				</div>
 			</div>
-		</a>
+		</Link>
 	);
 }
 
