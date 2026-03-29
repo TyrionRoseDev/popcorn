@@ -76,9 +76,9 @@ export function CreateWatchlistDialog({
 		return () => clearTimeout(timer);
 	}, [memberSearch]);
 
-	// Fetch known users (co-members from other watchlists)
-	const { data: knownUsers } = useQuery(
-		trpc.watchlist.knownUsers.queryOptions(open ? undefined : skipToken),
+	// Fetch friends list
+	const { data: friends } = useQuery(
+		trpc.friend.list.queryOptions(open ? undefined : skipToken),
 	);
 
 	// Remote search for when user types 2+ chars
@@ -90,14 +90,14 @@ export function CreateWatchlistDialog({
 
 	const selectedIds = new Set(selectedMembers.map((m) => m.id));
 
-	// Filter known users by the current search input (starts matching from 1 char)
+	// Filter friends by the current search input (starts matching from 1 char)
 	const matchingKnownUsers = useMemo(() => {
-		if (!knownUsers || memberSearch.length === 0) return [];
+		if (!friends || memberSearch.length === 0) return [];
 		const q = memberSearch.toLowerCase();
-		return knownUsers.filter(
+		return friends.filter(
 			(u) => !selectedIds.has(u.id) && u.username?.toLowerCase().includes(q),
 		);
-	}, [knownUsers, memberSearch, selectedIds]);
+	}, [friends, memberSearch, selectedIds]);
 
 	// Remote results, excluding already-selected and any already shown as known
 	const knownIds = new Set(matchingKnownUsers.map((u) => u.id));
@@ -283,7 +283,7 @@ export function CreateWatchlistDialog({
 										{hasKnown && (
 											<>
 												<span className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-cream/25">
-													People you know
+													Friends
 												</span>
 												{matchingKnownUsers.map((u) => (
 													<button
