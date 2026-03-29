@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { mockSelect, mockInsert, mockDelete, mockUpdate } = vi.hoisted(() => ({
 	mockSelect: vi.fn(),
@@ -50,7 +50,27 @@ describe("friend router", () => {
 	describe("pendingRequests", () => {
 		it("requires authentication", async () => {
 			const caller = createCaller(null);
-			await expect(caller.friend.pendingRequests()).rejects.toThrow("UNAUTHORIZED");
+			await expect(caller.friend.pendingRequests()).rejects.toThrow(
+				"UNAUTHORIZED",
+			);
+		});
+	});
+
+	describe("sendRequest", () => {
+		it("requires authentication", async () => {
+			const caller = createCaller(null);
+			await expect(
+				caller.friend.sendRequest({ userId: "user-2" }),
+			).rejects.toThrow("UNAUTHORIZED");
+		});
+	});
+
+	describe("acceptRequest", () => {
+		it("requires authentication", async () => {
+			const caller = createCaller(null);
+			await expect(
+				caller.friend.acceptRequest({ friendshipId: "f-1" }),
+			).rejects.toThrow("UNAUTHORIZED");
 		});
 	});
 });
