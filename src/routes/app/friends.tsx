@@ -1,7 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Clock, Heart, Inbox, Search, Users } from "lucide-react";
+import {
+	Check,
+	Clock,
+	Heart,
+	Inbox,
+	Search,
+	Users,
+	X,
+} from "lucide-react";
 import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { useTRPC } from "#/integrations/trpc/react";
 
 export const Route = createFileRoute("/app/friends")({
@@ -57,54 +66,23 @@ function TicketStubCard({ friend }: { friend: Friend }) {
 		<a
 			href={`/app/profile/${friend.id}`}
 			className="group block no-underline"
-			onMouseEnter={(e) => {
-				const card = e.currentTarget.querySelector<HTMLDivElement>(
-					"[data-ticket-card]",
-				);
-				if (card) {
-					card.style.borderColor = "rgba(255,184,0,0.45)";
-					card.style.boxShadow =
-						"0 4px 20px rgba(255,184,0,0.12), 0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)";
-				}
-			}}
-			onMouseLeave={(e) => {
-				const card = e.currentTarget.querySelector<HTMLDivElement>(
-					"[data-ticket-card]",
-				);
-				if (card) {
-					card.style.borderColor = "rgba(255,184,0,0.12)";
-					card.style.boxShadow =
-						"0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)";
-				}
-			}}
 		>
-			<div
-				data-ticket-card
-				className="relative overflow-hidden rounded-lg transition-all duration-200 group-hover:-translate-y-0.5"
+			<div className="relative overflow-hidden rounded-lg border border-neon-amber/12 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-neon-amber/45 group-hover:shadow-[0_4px_20px_rgba(255,184,0,0.12),0_2px_12px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.03)]"
 				style={{
-					background: "rgba(10,10,30,0.9)",
-					border: "1px solid rgba(255,184,0,0.12)",
-					boxShadow:
-						"0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)",
-					transition: "border-color 0.2s, box-shadow 0.2s, transform 0.2s",
+					background: "linear-gradient(180deg, rgba(10,10,30,0.95) 0%, rgba(10,10,30,0.85) 100%)",
+					boxShadow: "0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)",
 				}}
 			>
-				{/* ADMIT ONE label rotated on right edge */}
+				{/* Neon top-border glow on hover */}
+				<div className="absolute inset-x-0 top-0 h-px bg-neon-amber/0 transition-colors duration-200 group-hover:bg-neon-amber/40" />
 				<div
-					className="pointer-events-none absolute right-0 top-0 flex h-full w-5 items-center justify-center"
-					style={{ zIndex: 1 }}
-				>
-					<span
-						style={{
-							fontSize: "7px",
-							letterSpacing: "2px",
-							color: "rgba(255,255,240,0.08)",
-							transform: "rotate(90deg)",
-							whiteSpace: "nowrap",
-							fontFamily: "monospace",
-							textTransform: "uppercase",
-						}}
-					>
+					className="absolute inset-x-0 top-0 h-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+					style={{ height: "3px", background: "linear-gradient(180deg, rgba(255,184,0,0.25) 0%, transparent 100%)" }}
+				/>
+
+				{/* ADMIT ONE label rotated on right edge */}
+				<div className="pointer-events-none absolute right-0 top-0 z-10 flex h-full w-5 items-center justify-center">
+					<span className="whitespace-nowrap font-mono-retro text-[7px] uppercase tracking-[2px] text-cream/8 rotate-90">
 						ADMIT ONE
 					</span>
 				</div>
@@ -115,83 +93,46 @@ function TicketStubCard({ friend }: { friend: Friend }) {
 						<img
 							src={friend.avatarUrl}
 							alt=""
-							className="h-10 w-10 rounded-full object-cover shrink-0"
-							style={{ border: "1px solid rgba(255,184,0,0.2)" }}
+							className="h-10 w-10 shrink-0 rounded-full border border-neon-amber/20 object-cover"
 						/>
 					) : (
 						<div
-							className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-							style={{
-								background: gradient,
-								border: "1px solid rgba(255,184,0,0.2)",
-							}}
+							className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neon-amber/20"
+							style={{ background: gradient }}
 						>
-							<span
-								className="font-bold"
-								style={{ fontSize: "15px", color: "rgba(255,255,240,0.9)" }}
-							>
+							<span className="text-[15px] font-bold text-cream/90">
 								{initial}
 							</span>
 						</div>
 					)}
-					<span
-						className="truncate font-mono text-sm"
-						style={{ color: "rgba(255,255,240,0.85)" }}
-					>
+					<span className="truncate font-mono-retro text-sm text-cream/85">
 						@{friend.username ?? "unknown"}
 					</span>
 				</div>
 
 				{/* Dashed tear line with punch holes */}
-				<div className="relative flex items-center" style={{ height: "1px" }}>
+				<div className="relative flex h-px items-center">
 					{/* Left punch hole */}
-					<div
-						className="absolute -left-2 z-10 h-4 w-4 rounded-full"
-						style={{ background: "#050508" }}
-					/>
+					<div className="absolute -left-2.5 z-10 h-5 w-5 rounded-full bg-drive-in-bg" />
 					{/* Right punch hole */}
-					<div
-						className="absolute -right-2 z-10 h-4 w-4 rounded-full"
-						style={{ background: "#050508" }}
-					/>
+					<div className="absolute -right-2.5 z-10 h-5 w-5 rounded-full bg-drive-in-bg" />
 					{/* Dashed line */}
-					<div
-						className="w-full"
-						style={{
-							borderTop: "1px dashed rgba(255,184,0,0.18)",
-							marginLeft: "8px",
-							marginRight: "8px",
-						}}
-					/>
+					<div className="mx-3 w-full border-t border-dashed border-neon-amber/18" />
 				</div>
 
 				{/* Bottom section: favourite film + minutes watched */}
 				<div className="flex items-center gap-3 px-4 py-2.5 pr-6">
 					<div className="flex min-w-0 flex-1 items-center gap-1.5">
-						<Heart
-							className="h-3 w-3 shrink-0"
-							style={{ color: "#FF2D78", opacity: 0.75 }}
-						/>
-						<span
-							className="truncate text-xs"
-							style={{ color: "rgba(255,255,240,0.4)" }}
-						>
+						<Heart className="h-3 w-3 shrink-0 text-neon-pink/75" />
+						<span className="truncate text-xs text-cream/40">
 							{friend.favouriteFilmTmdbId
 								? `Film #${friend.favouriteFilmTmdbId}`
 								: "No fave yet"}
 						</span>
 					</div>
 					<div className="flex shrink-0 items-center gap-1">
-						<Clock
-							className="h-3 w-3"
-							style={{ color: "#FFB800", opacity: 0.5 }}
-						/>
-						<span
-							className="text-xs"
-							style={{ color: "rgba(255,255,240,0.3)" }}
-						>
-							—
-						</span>
+						<Clock className="h-3 w-3 text-neon-amber/50" />
+						<span className="text-xs text-cream/30">&mdash;</span>
 					</div>
 				</div>
 			</div>
@@ -199,9 +140,129 @@ function TicketStubCard({ friend }: { friend: Friend }) {
 	);
 }
 
+function PendingRequestCard({
+	request,
+}: {
+	request: {
+		friendshipId: string;
+		requesterId: string;
+		username: string | null;
+		avatarUrl: string | null;
+		createdAt: Date | null;
+	};
+}) {
+	const trpc = useTRPC();
+	const queryClient = useQueryClient();
+	const initial = (request.username ?? "?").charAt(0).toUpperCase();
+	const gradient = getAvatarGradient(initial);
+
+	const acceptMutation = useMutation(
+		trpc.friend.acceptRequest.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({ queryKey: trpc.friend.list.queryKey() });
+				queryClient.invalidateQueries({ queryKey: trpc.friend.pendingRequests.queryKey() });
+			},
+		}),
+	);
+
+	const declineMutation = useMutation(
+		trpc.friend.declineRequest.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({ queryKey: trpc.friend.pendingRequests.queryKey() });
+			},
+		}),
+	);
+
+	const isPending = acceptMutation.isPending || declineMutation.isPending;
+
+	const timeAgo = request.createdAt
+		? formatTimeAgo(new Date(request.createdAt))
+		: "";
+
+	return (
+		<motion.div
+			layout
+			initial={{ opacity: 0, y: 10 }}
+			animate={{ opacity: 1, y: 0 }}
+			exit={{ opacity: 0, x: -20 }}
+			className="group flex items-center gap-4 rounded-lg border border-neon-amber/10 px-4 py-3 transition-colors hover:border-neon-amber/25 hover:bg-cream/[0.02]"
+			style={{
+				background: "linear-gradient(180deg, rgba(10,10,30,0.9) 0%, rgba(10,10,30,0.8) 100%)",
+			}}
+		>
+			{/* Avatar */}
+			{request.avatarUrl ? (
+				<img
+					src={request.avatarUrl}
+					alt=""
+					className="h-10 w-10 shrink-0 rounded-full border border-neon-amber/20 object-cover"
+				/>
+			) : (
+				<div
+					className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neon-amber/20"
+					style={{ background: gradient }}
+				>
+					<span className="text-[15px] font-bold text-cream/90">
+						{initial}
+					</span>
+				</div>
+			)}
+
+			{/* Info */}
+			<div className="min-w-0 flex-1">
+				<p className="truncate font-mono-retro text-sm text-cream/85">
+					@{request.username ?? "unknown"}
+				</p>
+				{timeAgo && (
+					<p className="mt-0.5 text-xs text-cream/30">{timeAgo}</p>
+				)}
+			</div>
+
+			{/* Actions */}
+			<div className="flex shrink-0 items-center gap-2">
+				<button
+					type="button"
+					disabled={isPending}
+					onClick={() =>
+						acceptMutation.mutate({ friendshipId: request.friendshipId })
+					}
+					className="flex h-8 w-8 items-center justify-center rounded-full border border-green-500/30 bg-green-500/10 text-green-400 transition-colors hover:border-green-500/50 hover:bg-green-500/20 disabled:opacity-40"
+				>
+					<Check className="h-4 w-4" />
+				</button>
+				<button
+					type="button"
+					disabled={isPending}
+					onClick={() =>
+						declineMutation.mutate({ friendshipId: request.friendshipId })
+					}
+					className="flex h-8 w-8 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-400 transition-colors hover:border-red-500/50 hover:bg-red-500/20 disabled:opacity-40"
+				>
+					<X className="h-4 w-4" />
+				</button>
+			</div>
+		</motion.div>
+	);
+}
+
+function formatTimeAgo(date: Date): string {
+	const now = new Date();
+	const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+	if (seconds < 60) return "just now";
+	const minutes = Math.floor(seconds / 60);
+	if (minutes < 60) return `${minutes}m ago`;
+	const hours = Math.floor(minutes / 60);
+	if (hours < 24) return `${hours}h ago`;
+	const days = Math.floor(hours / 24);
+	if (days < 7) return `${days}d ago`;
+	return `${Math.floor(days / 7)}w ago`;
+}
+
 function FriendsPage() {
 	const trpc = useTRPC();
-	const [activeTab, setActiveTab] = useState<"friends" | "requests">("friends");
+	const [activeTab, setActiveTab] = useState<"friends" | "requests">(
+		"friends",
+	);
 	const [searchQuery, setSearchQuery] = useState("");
 
 	const { data: friends, isLoading: friendsLoading } = useQuery(
@@ -215,58 +276,101 @@ function FriendsPage() {
 
 	const filteredFriends = (friends ?? []).filter((f) => {
 		if (!searchQuery.trim()) return true;
-		return f.username?.toLowerCase().includes(searchQuery.toLowerCase().trim());
+		return f.username
+			?.toLowerCase()
+			.includes(searchQuery.toLowerCase().trim());
 	});
 
 	return (
 		<>
 			{/* Keyframe injection */}
 			<style>{`
-				@keyframes bulb-marquee {
-					0%, 100% { opacity: 0.15; }
-					50% { opacity: 1; }
+				@keyframes bulb-chase {
+					0%, 100% { opacity: 0.15; box-shadow: 0 0 2px rgba(255,184,0,0.1); }
+					50% { opacity: 1; box-shadow: 0 0 6px rgba(255,184,0,0.6), 0 0 12px rgba(255,184,0,0.3); }
+				}
+				@keyframes grain {
+					0%, 100% { transform: translate(0, 0); }
+					10% { transform: translate(-1%, -1%); }
+					20% { transform: translate(1%, 0%); }
+					30% { transform: translate(-0.5%, 1%); }
+					40% { transform: translate(0.5%, -0.5%); }
+					50% { transform: translate(-1%, 0.5%); }
+					60% { transform: translate(1%, -1%); }
+					70% { transform: translate(0%, 1%); }
+					80% { transform: translate(-0.5%, -0.5%); }
+					90% { transform: translate(0.5%, 0%); }
 				}
 			`}</style>
 
-			<div
-				className="relative mx-auto max-w-4xl px-4 pb-16"
-				style={{ paddingTop: "40px" }}
-			>
+			<div className="relative mx-auto max-w-4xl px-4 pb-16 pt-10">
+				{/* Subtle film grain overlay */}
+				<div
+					className="pointer-events-none fixed inset-0 z-50 opacity-[0.03]"
+					style={{
+						backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")",
+						animation: "grain 0.5s steps(1) infinite",
+					}}
+				/>
+
+				{/* Ambient projector beam glow */}
+				<div
+					className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2"
+					style={{
+						width: "600px",
+						height: "300px",
+						background: "radial-gradient(ellipse at center, rgba(255,184,0,0.04) 0%, transparent 70%)",
+					}}
+				/>
+
 				{/* Header: F.R.I.E.N.D.S cinema marquee */}
 				<div className="flex justify-center">
-					<div
-						className="relative text-center"
-						style={{ maxWidth: "600px", padding: "24px 48px 20px" }}
-					>
-						{/* Amber border frame */}
+					<div className="relative max-w-[600px] px-12 pb-5 pt-6 text-center">
+						{/* Amber border frame with corner glow */}
 						<div
 							className="pointer-events-none absolute inset-0 rounded-lg"
 							style={{
 								border: "2px solid rgba(255,184,0,0.28)",
 								boxShadow:
-									"0 0 24px rgba(255,184,0,0.06), inset 0 0 24px rgba(255,184,0,0.02)",
+									"0 0 24px rgba(255,184,0,0.06), inset 0 0 24px rgba(255,184,0,0.02), 0 0 60px rgba(255,184,0,0.03)",
+							}}
+						/>
+						{/* Corner glow accents */}
+						<div
+							className="pointer-events-none absolute -left-1 -top-1 h-8 w-8"
+							style={{
+								background: "radial-gradient(circle at top left, rgba(255,184,0,0.15) 0%, transparent 70%)",
+							}}
+						/>
+						<div
+							className="pointer-events-none absolute -right-1 -top-1 h-8 w-8"
+							style={{
+								background: "radial-gradient(circle at top right, rgba(255,184,0,0.15) 0%, transparent 70%)",
+							}}
+						/>
+						<div
+							className="pointer-events-none absolute -bottom-1 -left-1 h-8 w-8"
+							style={{
+								background: "radial-gradient(circle at bottom left, rgba(255,184,0,0.15) 0%, transparent 70%)",
+							}}
+						/>
+						<div
+							className="pointer-events-none absolute -bottom-1 -right-1 h-8 w-8"
+							style={{
+								background: "radial-gradient(circle at bottom right, rgba(255,184,0,0.15) 0%, transparent 70%)",
 							}}
 						/>
 
 						{/* Marquee bulbs row */}
-						<div
-							className="absolute left-6 right-6"
-							style={{ top: "-5px", height: "10px" }}
-						>
+						<div className="absolute left-6 right-6 -top-[5px] h-[10px]">
 							{MARQUEE_BULBS.map((bulb) => (
 								<div
 									key={bulb.id}
-									className="absolute top-1/2 -translate-y-1/2 rounded-full"
+									className="absolute top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-neon-amber"
 									style={{
 										left: `${(Number.parseInt(bulb.id.split("-")[1], 10) / (MARQUEE_BULBS.length - 1)) * 100}%`,
 										transform: "translateX(-50%) translateY(-50%)",
-										width: "6px",
-										height: "6px",
-										backgroundColor: "#FFB800",
-										animationName: "bulb-marquee",
-										animationDuration: "1.6s",
-										animationTimingFunction: "ease-in-out",
-										animationIterationCount: "infinite",
+										animation: `bulb-chase 1.6s ease-in-out infinite`,
 										animationDelay: bulb.delay,
 									}}
 								/>
@@ -274,39 +378,32 @@ function FriendsPage() {
 						</div>
 
 						{/* NOW SHOWING label */}
-						<p
-							style={{
-								fontSize: "9px",
-								letterSpacing: "5px",
-								textTransform: "uppercase",
-								color: "#FFB800",
-								opacity: 0.6,
-								margin: 0,
-								marginBottom: "10px",
-								fontFamily: "monospace",
-							}}
-						>
-							NOW SHOWING
+						<p className="m-0 mb-2.5 font-mono-retro text-[9px] uppercase tracking-[5px] text-neon-amber/60">
+							&#9733; NOW SHOWING &#9733;
 						</p>
 
 						{/* F.R.I.E.N.D.S title */}
-						<h1
-							className="font-display leading-none"
-							style={{ margin: 0, fontSize: "44px" }}
-						>
+						<h1 className="m-0 font-display text-[44px] leading-none">
 							{FRIENDS_LETTERS.map(({ letter, pos }) => (
 								<span key={`letter-${pos}`}>
-									<span style={{ color: "#FFB800" }}>{letter}</span>
+									<span
+										className="text-neon-amber"
+										style={{
+											textShadow:
+												"0 0 10px rgba(255,184,0,0.3), 0 0 30px rgba(255,184,0,0.1)",
+										}}
+									>
+										{letter}
+									</span>
 									{pos < 6 && (
 										<span
+											className="inline-block align-middle text-[22px] text-neon-pink/90"
 											style={{
-												color: "#FF2D78",
-												fontSize: "22px",
-												verticalAlign: "middle",
-												opacity: 0.9,
+												textShadow:
+													"0 0 8px rgba(255,45,120,0.4), 0 0 20px rgba(255,45,120,0.15)",
 											}}
 										>
-											·
+											.
 										</span>
 									)}
 								</span>
@@ -316,41 +413,25 @@ function FriendsPage() {
 				</div>
 
 				{/* Tabs */}
-				<div
-					className="mt-8 flex items-center gap-0 border-b"
-					style={{ borderColor: "rgba(255,184,0,0.12)" }}
-				>
+				<div className="mt-8 flex items-center gap-0 border-b border-neon-amber/12">
 					<button
 						type="button"
 						onClick={() => setActiveTab("friends")}
-						className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium transition-colors"
-						style={{
-							color:
-								activeTab === "friends" ? "#FFB800" : "rgba(255,255,240,0.4)",
-							borderBottom:
-								activeTab === "friends"
-									? "2px solid #FFB800"
-									: "2px solid transparent",
-							marginBottom: "-1px",
-							background: "none",
-							cursor: "pointer",
-						}}
+						className={`-mb-px flex cursor-pointer items-center gap-2 border-b-2 bg-transparent px-5 py-2.5 text-sm font-medium transition-colors ${
+							activeTab === "friends"
+								? "border-neon-amber text-neon-amber"
+								: "border-transparent text-cream/40 hover:text-cream/60"
+						}`}
 					>
 						<Users className="h-4 w-4" />
 						My Friends
 						{friends && friends.length > 0 && (
 							<span
-								className="ml-0.5 rounded px-1.5 py-0.5 text-xs"
-								style={{
-									background:
-										activeTab === "friends"
-											? "rgba(255,184,0,0.15)"
-											: "rgba(255,255,240,0.06)",
-									color:
-										activeTab === "friends"
-											? "#FFB800"
-											: "rgba(255,255,240,0.3)",
-								}}
+								className={`ml-0.5 rounded px-1.5 py-0.5 text-xs ${
+									activeTab === "friends"
+										? "bg-neon-amber/15 text-neon-amber"
+										: "bg-cream/6 text-cream/30"
+								}`}
 							>
 								{friends.length}
 							</span>
@@ -360,132 +441,121 @@ function FriendsPage() {
 					<button
 						type="button"
 						onClick={() => setActiveTab("requests")}
-						className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium transition-colors"
-						style={{
-							color:
-								activeTab === "requests" ? "#FFB800" : "rgba(255,255,240,0.4)",
-							borderBottom:
-								activeTab === "requests"
-									? "2px solid #FFB800"
-									: "2px solid transparent",
-							marginBottom: "-1px",
-							background: "none",
-							cursor: "pointer",
-						}}
+						className={`-mb-px flex cursor-pointer items-center gap-2 border-b-2 bg-transparent px-5 py-2.5 text-sm font-medium transition-colors ${
+							activeTab === "requests"
+								? "border-neon-amber text-neon-amber"
+								: "border-transparent text-cream/40 hover:text-cream/60"
+						}`}
 					>
 						<Inbox className="h-4 w-4" />
 						Requests
 						{pendingCount > 0 && (
-							<span
-								className="ml-0.5 rounded-full px-1.5 py-0.5 text-xs font-bold"
-								style={{
-									background: "#FF2D78",
-									color: "#fff",
-									minWidth: "18px",
-									textAlign: "center",
-								}}
-							>
+							<span className="ml-0.5 min-w-[18px] rounded-full bg-neon-pink px-1.5 py-0.5 text-center text-xs font-bold text-white">
 								{pendingCount}
 							</span>
 						)}
 					</button>
 				</div>
 
-				{/* Tab content */}
+				{/* Tab content with animated transitions */}
 				<div className="mt-6">
-					{activeTab === "friends" && (
-						<div>
-							{/* Search bar */}
-							<div className="relative mb-6">
-								<Search
-									className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-									style={{ color: "rgba(255,184,0,0.5)" }}
-								/>
-								<input
-									type="text"
-									placeholder="Search friends..."
-									value={searchQuery}
-									onChange={(e) => setSearchQuery(e.target.value)}
-									className="w-full rounded-lg bg-transparent py-2.5 pl-9 pr-4 text-sm outline-none transition-colors"
-									style={{
-										background: "rgba(255,184,0,0.04)",
-										border: "1px solid rgba(255,184,0,0.2)",
-										color: "rgba(255,255,240,0.8)",
-									}}
-									onFocus={(e) => {
-										e.currentTarget.style.borderColor = "rgba(255,184,0,0.45)";
-									}}
-									onBlur={(e) => {
-										e.currentTarget.style.borderColor = "rgba(255,184,0,0.2)";
-									}}
-								/>
-							</div>
-
-							{/* Friends grid */}
-							{friendsLoading ? (
-								<div className="grid grid-cols-2 gap-3">
-									{SKELETON_KEYS.map((key) => (
-										<div
-											key={key}
-											className="h-24 animate-pulse rounded-lg"
-											style={{ background: "rgba(255,255,255,0.04)" }}
-										/>
-									))}
-								</div>
-							) : filteredFriends.length === 0 ? (
-								<div className="flex flex-col items-center py-20 text-center">
-									<Users
-										className="mb-3 h-10 w-10"
-										style={{ color: "rgba(255,184,0,0.2)" }}
-									/>
-									{searchQuery.trim() ? (
-										<p
-											className="text-sm"
-											style={{ color: "rgba(255,255,240,0.35)" }}
-										>
-											No friends match &ldquo;{searchQuery}&rdquo;
-										</p>
-									) : (
-										<>
-											<p
-												className="text-base"
-												style={{ color: "rgba(255,255,240,0.45)" }}
-											>
-												No friends yet
-											</p>
-											<p
-												className="mt-1 text-sm"
-												style={{ color: "rgba(255,255,240,0.25)" }}
-											>
-												Search for people to add as friends
-											</p>
-										</>
-									)}
-								</div>
-							) : (
-								<div className="grid grid-cols-2 gap-3">
-									{filteredFriends.map((friend) => (
-										<TicketStubCard key={friend.id} friend={friend} />
-									))}
-								</div>
-							)}
-						</div>
-					)}
-
-					{activeTab === "requests" && (
-						<div className="flex flex-col items-center py-20 text-center">
-							<Inbox
-								className="mb-3 h-10 w-10"
-								style={{ color: "rgba(255,184,0,0.2)" }}
-							/>
-							<p
-								className="text-sm"
-								style={{ color: "rgba(255,255,240,0.35)" }}
+					<AnimatePresence mode="wait">
+						{activeTab === "friends" && (
+							<motion.div
+								key="friends"
+								initial={{ opacity: 0, y: 8 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -8 }}
+								transition={{ duration: 0.2 }}
+								layout
 							>
-								Requests tab coming next
-							</p>
-						</div>
-					)}
+								{/* Search bar */}
+								<div className="relative mb-6">
+									<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neon-amber/50" />
+									<input
+										type="text"
+										placeholder="Search friends..."
+										value={searchQuery}
+										onChange={(e) => setSearchQuery(e.target.value)}
+										className="w-full rounded-lg border border-neon-amber/20 bg-neon-amber/[0.04] py-2.5 pl-9 pr-4 text-sm text-cream/80 outline-none transition-colors placeholder:text-cream/25 focus:border-neon-amber/45"
+									/>
+								</div>
+
+								{/* Friends grid */}
+								{friendsLoading ? (
+									<div className="grid grid-cols-2 gap-3">
+										{SKELETON_KEYS.map((key) => (
+											<div
+												key={key}
+												className="h-24 animate-pulse rounded-lg bg-cream/[0.04]"
+											/>
+										))}
+									</div>
+								) : filteredFriends.length === 0 ? (
+									<div className="flex flex-col items-center py-20 text-center">
+										<Users className="mb-3 h-10 w-10 text-neon-amber/20" />
+										{searchQuery.trim() ? (
+											<p className="text-sm text-cream/35">
+												No friends match &ldquo;{searchQuery}&rdquo;
+											</p>
+										) : (
+											<>
+												<p className="text-base text-cream/45">
+													No friends yet
+												</p>
+												<p className="mt-1 text-sm text-cream/25">
+													Search for people to add as friends
+												</p>
+											</>
+										)}
+									</div>
+								) : (
+									<div className="grid grid-cols-2 gap-3">
+										{filteredFriends.map((friend) => (
+											<TicketStubCard
+												key={friend.id}
+												friend={friend}
+											/>
+										))}
+									</div>
+								)}
+							</motion.div>
+						)}
+
+						{activeTab === "requests" && (
+							<motion.div
+								key="requests"
+								initial={{ opacity: 0, y: 8 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -8 }}
+								transition={{ duration: 0.2 }}
+								layout
+							>
+								{pendingRequests && pendingRequests.length > 0 ? (
+									<div className="flex flex-col gap-2">
+										<AnimatePresence mode="popLayout">
+											{pendingRequests.map((request) => (
+												<PendingRequestCard
+													key={request.friendshipId}
+													request={request}
+												/>
+											))}
+										</AnimatePresence>
+									</div>
+								) : (
+									<div className="flex flex-col items-center py-20 text-center">
+										<Inbox className="mb-3 h-10 w-10 text-neon-amber/20" />
+										<p className="text-base text-cream/45">
+											No pending requests
+										</p>
+										<p className="mt-1 text-sm text-cream/25">
+											When someone sends you a friend request, it will appear here
+										</p>
+									</div>
+								)}
+							</motion.div>
+						)}
+					</AnimatePresence>
 				</div>
 			</div>
 		</>
