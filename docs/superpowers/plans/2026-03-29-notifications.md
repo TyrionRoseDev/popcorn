@@ -12,7 +12,7 @@
 
 ---
 
-### Task 1: Add notification table to database schema
+## Task 1: Add notification table to database schema
 
 **Files:**
 - Modify: `src/db/schema.ts`
@@ -93,7 +93,7 @@ git commit -m "feat(notifications): add notification table to schema"
 
 ---
 
-### Task 2: Create notification helper and tRPC router
+## Task 2: Create notification helper and tRPC router
 
 **Files:**
 - Create: `src/integrations/trpc/routers/notification.ts`
@@ -264,7 +264,7 @@ git commit -m "feat(notifications): add notification tRPC router with createNoti
 
 ---
 
-### Task 3: Wire createNotification into watchlist router
+## Task 3: Wire createNotification into watchlist router
 
 **Files:**
 - Modify: `src/integrations/trpc/routers/watchlist.ts`
@@ -444,7 +444,7 @@ git commit -m "feat(notifications): wire createNotification into watchlist route
 
 ---
 
-### Task 4: Wire createNotification into shuffle router
+## Task 4: Wire createNotification into shuffle router
 
 **Files:**
 - Modify: `src/integrations/trpc/routers/shuffle.ts`
@@ -511,7 +511,7 @@ git commit -m "feat(notifications): wire createNotification into shuffle match l
 
 ---
 
-### Task 5: Build NotificationBell and NotificationDropdown components
+## Task 5: Build NotificationBell and NotificationDropdown components
 
 **Files:**
 - Create: `src/components/notifications/notification-bell.tsx`
@@ -866,7 +866,7 @@ git commit -m "feat(notifications): add NotificationBell and NotificationDropdow
 
 ---
 
-### Task 6: Update addItem/markWatched callers to pass titleName
+## Task 6: Update addItem/markWatched callers to pass titleName
 
 **Files:**
 - Modify: Callers of `watchlist.addItem` and `watchlist.markWatched` mutations (find via grep)
@@ -895,7 +895,7 @@ git commit -m "feat(notifications): pass titleName from callers to addItem/markW
 
 ---
 
-### Task 7: Manual end-to-end testing
+## Task 7: Manual end-to-end testing
 
 - [ ] **Step 1: Test notification creation**
 

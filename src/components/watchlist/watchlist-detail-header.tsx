@@ -139,15 +139,17 @@ export function WatchlistDetailHeader({
 
 				{/* Action buttons row */}
 				<div className="flex items-center gap-2">
-					{/* Showtime Shuffle button — available to all members */}
-					<Link
-						to="/app/shuffle"
-						search={{ watchlistId: watchlist.id }}
-						className="inline-flex items-center gap-2 rounded-lg border border-neon-pink/30 bg-neon-pink/10 px-4 py-2 text-sm font-semibold text-neon-pink no-underline transition-colors hover:bg-neon-pink/20"
-					>
-						<Shuffle className="h-4 w-4" />
-						Showtime Shuffle
-					</Link>
+					{/* Showtime Shuffle button — members only */}
+					{userRole && (
+						<Link
+							to="/app/shuffle"
+							search={{ watchlistId: watchlist.id }}
+							className="inline-flex items-center gap-2 rounded-lg border border-neon-pink/30 bg-neon-pink/10 px-4 py-2 text-sm font-semibold text-neon-pink no-underline transition-colors hover:bg-neon-pink/20"
+						>
+							<Shuffle className="h-4 w-4" />
+							Showtime Shuffle
+						</Link>
+					)}
 
 					{/* Owner-only actions */}
 					{isOwner && (

@@ -49,7 +49,7 @@ function getNotificationMessage(
 			};
 		case "shuffle_match":
 			return {
-				text: `You both want to watch ${data.titleName || "a title"}!`,
+				text: `Everyone wants to watch ${data.titleName || "a title"}!`,
 				link: data.tmdbId
 					? `/app/title/${data.mediaType}/${data.tmdbId}`
 					: undefined,

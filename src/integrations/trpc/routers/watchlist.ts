@@ -1,6 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { and, eq, ilike, inArray, ne } from "drizzle-orm";
+import { and, eq, ilike, inArray, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import { user, watchlist, watchlistItem, watchlistMember } from "#/db/schema";
@@ -48,7 +48,7 @@ export const watchlistRouter = {
 					},
 				},
 			},
-			orderBy: (wl, { desc }) => [desc(wl.type), desc(wl.updatedAt)],
+			orderBy: (wl, { desc }) => [sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'custom' THEN 2 WHEN 'shuffle' THEN 3 ELSE 99 END`, desc(wl.updatedAt)],
 		});
 
 		return watchlists.map((wl) => ({
@@ -99,7 +99,7 @@ export const watchlistRouter = {
 		}),
 
 	isBookmarked: protectedProcedure
-		.input(z.object({ tmdbId: z.number(), mediaType: z.string() }))
+		.input(z.object({ tmdbId: z.number(), mediaType: z.enum(["movie", "tv"]) }))
 		.query(async ({ input, ctx }) => {
 			const memberships = await db
 				.select({ watchlistId: watchlistMember.watchlistId })
@@ -137,7 +137,7 @@ export const watchlistRouter = {
 		return db.query.watchlist.findMany({
 			where: (wl, { inArray }) => inArray(wl.id, watchlistIds),
 			columns: { id: true, name: true, type: true },
-			orderBy: (wl, { desc }) => [desc(wl.type), desc(wl.updatedAt)],
+			orderBy: (wl, { desc }) => [sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'custom' THEN 2 WHEN 'shuffle' THEN 3 ELSE 99 END`, desc(wl.updatedAt)],
 		});
 	}),
 
@@ -348,6 +348,19 @@ export const watchlistRouter = {
 		)
 		.mutation(async ({ input, ctx }) => {
 			await assertMember(input.watchlistId, ctx.userId);
+
+			// Check current state to avoid no-op notifications
+			const existing = await db.query.watchlistItem.findFirst({
+				where: and(
+					eq(watchlistItem.watchlistId, input.watchlistId),
+					eq(watchlistItem.tmdbId, input.tmdbId),
+					eq(watchlistItem.mediaType, input.mediaType),
+				),
+				columns: { watched: true },
+			});
+
+			if (!existing || existing.watched === input.watched) return;
+
 			await db
 				.update(watchlistItem)
 				.set({ watched: input.watched })

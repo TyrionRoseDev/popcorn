@@ -1,6 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, not, or } from "drizzle-orm";
+import { and, eq, inArray, not, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import {
@@ -306,7 +306,7 @@ export const shuffleRouter = {
 
 				if (yesSwipes.length >= memberCount) {
 					// Unanimous match — add to watchlist
-					await db
+					const inserted = await db
 						.insert(watchlistItem)
 						.values({
 							watchlistId: input.watchlistId,
@@ -314,21 +314,24 @@ export const shuffleRouter = {
 							mediaType: input.mediaType,
 							addedBy: ctx.userId,
 						})
-						.onConflictDoNothing();
+						.onConflictDoNothing()
+						.returning({ id: watchlistItem.id });
 
-					// Notify all members about the match
-					for (const swipe of yesSwipes) {
-						await createNotification({
-							recipientId: swipe.userId,
-							actorId: ctx.userId,
-							type: "shuffle_match",
-							data: {
-								watchlistId: input.watchlistId,
-								titleName: "",
-								tmdbId: input.tmdbId,
-								mediaType: input.mediaType,
-							},
-						});
+					// Only notify if the item was actually added (not a duplicate)
+					if (inserted.length > 0) {
+						for (const swipe of yesSwipes) {
+							await createNotification({
+								recipientId: swipe.userId,
+								actorId: ctx.userId,
+								type: "shuffle_match",
+								data: {
+									watchlistId: input.watchlistId,
+									titleName: "",
+									tmdbId: input.tmdbId,
+									mediaType: input.mediaType,
+								},
+							});
+						}
 					}
 
 					return {
@@ -384,17 +387,24 @@ export const shuffleRouter = {
 					),
 				);
 
-			// If solo and it was a yes swipe, also remove from watchlist
-			if (wl.type === "shuffle" && existingSwipe?.action === "yes") {
-				await db
-					.delete(watchlistItem)
-					.where(
-						and(
-							eq(watchlistItem.watchlistId, input.watchlistId),
-							eq(watchlistItem.tmdbId, input.tmdbId),
-							eq(watchlistItem.mediaType, input.mediaType),
-						),
-					);
+			// If solo/single-member and it was a yes swipe, also remove from watchlist
+			if (existingSwipe?.action === "yes") {
+				const memberRows = await db.query.watchlistMember.findMany({
+					where: eq(watchlistMember.watchlistId, input.watchlistId),
+					columns: { userId: true },
+				});
+
+				if (wl.type === "shuffle" || memberRows.length <= 1) {
+					await db
+						.delete(watchlistItem)
+						.where(
+							and(
+								eq(watchlistItem.watchlistId, input.watchlistId),
+								eq(watchlistItem.tmdbId, input.tmdbId),
+								eq(watchlistItem.mediaType, input.mediaType),
+							),
+						);
+				}
 			}
 		}),
 
@@ -417,7 +427,7 @@ export const shuffleRouter = {
 					columns: { userId: true },
 				},
 			},
-			orderBy: (wl, { desc }) => [desc(wl.type), desc(wl.updatedAt)],
+			orderBy: (wl, { desc }) => [sql`CASE ${wl.type} WHEN 'shuffle' THEN 1 WHEN 'custom' THEN 2 ELSE 99 END`, desc(wl.updatedAt)],
 		});
 	}),
 
@@ -461,6 +471,7 @@ export const shuffleRouter = {
 	getRecentMatches: protectedProcedure
 		.input(z.object({ watchlistId: z.string() }))
 		.query(async ({ ctx, input }) => {
+			await assertMember(input.watchlistId, ctx.userId);
 			const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 			const recentItems = await db.query.watchlistItem.findMany({
 				where: and(

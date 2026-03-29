@@ -12,7 +12,7 @@ Add a notification system to Popcorn with a bell icon in the navbar and a dropdo
 |------|---------|---------|---------|
 | `watchlist_item_added` | Item added to a shared watchlist | "X added Y to Z" | — |
 | `watchlist_member_joined` | Member added to a watchlist | "X joined Y" | — |
-| `shuffle_match` | Two members both swiped yes | "You and X both want to watch Y!" | — |
+| `shuffle_match` | All members swiped yes (unanimous match) | "Everyone wants to watch Y!" | — |
 | `item_watched` | Item marked as watched in your watchlist | "X marked Y as watched in Z" | View reviews |
 
 ### Deferred (schema and UI ready, wired when parent features are built)
@@ -84,7 +84,7 @@ createNotification({
 Wired now (called from existing routers):
 - `watchlist.addItem` → `watchlist_item_added` for all other watchlist members
 - `watchlist.addMember` → `watchlist_member_joined` for all other watchlist members
-- Shuffle match logic → `shuffle_match` for both users
+- Shuffle match logic → `shuffle_match` for all group members on unanimous match
 - `watchlist.markWatched` → `item_watched` for other watchlist members
 
 Wired later (when parent features are built):

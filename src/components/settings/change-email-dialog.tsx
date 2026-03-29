@@ -54,15 +54,15 @@ export function ChangeEmailDialog({
 		}
 	}
 
+	const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail);
+	const isSameEmail = newEmail.toLowerCase() === currentEmail.toLowerCase();
+
 	function handleKeyDown(e: React.KeyboardEvent) {
-		if (e.key === "Enter") {
+		if (e.key === "Enter" && isValidEmail && !isSameEmail && !loading) {
 			e.preventDefault();
 			handleSave();
 		}
 	}
-
-	const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail);
-	const isSameEmail = newEmail.toLowerCase() === currentEmail.toLowerCase();
 
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
