@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Camera, ChevronRight, Mail, Trash2, User } from "lucide-react";
 import { useState } from "react";
 import { ChangeAvatarDialog } from "#/components/settings/change-avatar-dialog";
+import { ChangeEmailDialog } from "#/components/settings/change-email-dialog";
 import { ChangeUsernameDialog } from "#/components/settings/change-username-dialog";
 import { authClient } from "#/lib/auth-client";
 
@@ -18,7 +19,7 @@ function SettingsPage() {
 
 	const [avatarOpen, setAvatarOpen] = useState(false);
 	const [usernameOpen, setUsernameOpen] = useState(false);
-	const [_emailOpen, setEmailOpen] = useState(false);
+	const [emailOpen, setEmailOpen] = useState(false);
 	const [_deleteOpen, setDeleteOpen] = useState(false);
 
 	if (!user) return null;
@@ -120,7 +121,11 @@ function SettingsPage() {
 				onOpenChange={setUsernameOpen}
 				currentUsername={user.username}
 			/>
-			{/* <ChangeEmailDialog open={emailOpen} onOpenChange={setEmailOpen} /> */}
+			<ChangeEmailDialog
+				open={emailOpen}
+				onOpenChange={setEmailOpen}
+				currentEmail={user.email}
+			/>
 			{/* <DeleteAccountDialog open={deleteOpen} onOpenChange={setDeleteOpen} /> */}
 		</div>
 	);
