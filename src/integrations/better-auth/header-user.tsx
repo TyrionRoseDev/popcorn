@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { EyeOff, LogOut } from "lucide-react";
+import { EyeOff, LogOut, Settings } from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -19,7 +19,7 @@ export default function BetterAuthHeader() {
 
 	if (session?.user) {
 		return (
-			<DropdownMenu>
+			<DropdownMenu modal={false}>
 				<DropdownMenuTrigger asChild>
 					<button
 						type="button"
@@ -53,6 +53,15 @@ export default function BetterAuthHeader() {
 						>
 							<EyeOff className="mr-2 h-4 w-4" />
 							Hidden Titles
+						</Link>
+					</DropdownMenuItem>
+					<DropdownMenuItem asChild>
+						<Link
+							to="/app/settings"
+							className="text-cream/60 no-underline focus:bg-cream/5 focus:text-cream/80"
+						>
+							<Settings className="mr-2 h-4 w-4" />
+							Settings
 						</Link>
 					</DropdownMenuItem>
 					<DropdownMenuSeparator className="bg-cream/10" />
