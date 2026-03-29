@@ -28,6 +28,8 @@ const {
 	mockQueryWatchlistMemberFindMany,
 	mockQueryWatchlistFindFirst,
 	mockQueryWatchlistFindMany,
+	mockQueryWatchlistItemFindFirst,
+	mockQueryFriendshipFindFirst,
 } = vi.hoisted(() => ({
 	mockSelect: vi.fn(),
 	mockFrom: vi.fn(),
@@ -44,6 +46,8 @@ const {
 	mockQueryWatchlistMemberFindMany: vi.fn(),
 	mockQueryWatchlistFindFirst: vi.fn(),
 	mockQueryWatchlistFindMany: vi.fn(),
+	mockQueryWatchlistItemFindFirst: vi.fn(),
+	mockQueryFriendshipFindFirst: vi.fn(),
 }));
 
 vi.mock("#/db", () => ({
@@ -61,6 +65,12 @@ vi.mock("#/db", () => ({
 			watchlist: {
 				findFirst: mockQueryWatchlistFindFirst,
 				findMany: mockQueryWatchlistFindMany,
+			},
+			watchlistItem: {
+				findFirst: mockQueryWatchlistItemFindFirst,
+			},
+			friendship: {
+				findFirst: mockQueryFriendshipFindFirst,
 			},
 		},
 	},
@@ -383,6 +393,9 @@ describe("watchlist.markWatched", () => {
 			role: "owner",
 		});
 
+		// watchlistItem.findFirst — item exists with watched: false
+		mockQueryWatchlistItemFindFirst.mockResolvedValueOnce({ watched: false });
+
 		// update().set().where() resolves
 		mockWhere.mockResolvedValueOnce(undefined);
 
@@ -420,6 +433,13 @@ describe("watchlist.addMember", () => {
 			role: "owner",
 		});
 
+		// friendship check — users are friends
+		mockQueryFriendshipFindFirst.mockResolvedValueOnce({
+			requesterId: OWNER_ID,
+			addresseeId: OTHER_USER_ID,
+			status: "accepted",
+		});
+
 		// insert().values().onConflictDoNothing().returning() — member already exists
 		mockReturning.mockResolvedValueOnce([]);
 
@@ -446,6 +466,31 @@ describe("watchlist.addMember", () => {
 			await caller.watchlist.addMember({
 				watchlistId: WATCHLIST_ID,
 				userId: "user-3",
+			});
+			expect.unreachable("Should have thrown");
+		} catch (e) {
+			expect(e).toBeInstanceOf(TRPCError);
+			expect((e as TRPCError).code).toBe("FORBIDDEN");
+		}
+	});
+
+	it("throws FORBIDDEN when invitee is not a friend", async () => {
+		// assertOwner: owner membership found
+		mockQueryWatchlistMemberFindFirst.mockResolvedValueOnce({
+			watchlistId: WATCHLIST_ID,
+			userId: OWNER_ID,
+			role: "owner",
+		});
+
+		// friendship check — no friendship exists
+		mockQueryFriendshipFindFirst.mockResolvedValueOnce(null);
+
+		const caller = createCaller(OWNER_ID);
+
+		try {
+			await caller.watchlist.addMember({
+				watchlistId: WATCHLIST_ID,
+				userId: OTHER_USER_ID,
 			});
 			expect.unreachable("Should have thrown");
 		} catch (e) {

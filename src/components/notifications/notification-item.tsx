@@ -35,6 +35,7 @@ function getNotificationMessage(
 	type: string,
 	data: Record<string, unknown>,
 	_actorName: string,
+	actorId: string | null,
 ): { text: string; link?: string } {
 	switch (type) {
 		case "watchlist_item_added":
@@ -65,7 +66,15 @@ function getNotificationMessage(
 				link: `/app/watchlists/${data.watchlistId}`,
 			};
 		case "friend_request":
-			return { text: "sent you a friend request" };
+			return {
+				text: "sent you a friend request",
+				link: actorId ? `/app/profile/${actorId}` : "/app/friends",
+			};
+		case "friend_request_accepted":
+			return {
+				text: "accepted your friend request",
+				link: actorId ? `/app/profile/${actorId}` : undefined,
+			};
 		case "title_reviewed":
 			return {
 				text: `reviewed ${data.titleName || "a title"} you recommended`,
@@ -106,7 +115,12 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 
 	const data = (n.data ?? {}) as Record<string, unknown>;
 	const actorName = n.actorUsername ?? "Someone";
-	const { text, link } = getNotificationMessage(n.type, data, actorName);
+	const { text, link } = getNotificationMessage(
+		n.type,
+		data,
+		actorName,
+		n.actorId,
+	);
 	const isMatch = n.type === "shuffle_match";
 
 	const content = (

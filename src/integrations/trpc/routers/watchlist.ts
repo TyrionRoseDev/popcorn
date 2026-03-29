@@ -1,9 +1,16 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { and, eq, ilike, inArray, ne, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray, notInArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
-import { user, watchlist, watchlistItem, watchlistMember } from "#/db/schema";
+import {
+	block,
+	friendship,
+	user,
+	watchlist,
+	watchlistItem,
+	watchlistMember,
+} from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
 import { createNotification } from "./notification";
 
@@ -150,6 +157,23 @@ export const watchlistRouter = {
 	searchUsers: protectedProcedure
 		.input(z.object({ query: z.string().min(2) }))
 		.query(async ({ input, ctx }) => {
+			// Get blocked user IDs (both directions)
+			const blockedIds = await db
+				.select({ id: block.blockedId })
+				.from(block)
+				.where(eq(block.blockerId, ctx.userId));
+
+			const blockerIds = await db
+				.select({ id: block.blockerId })
+				.from(block)
+				.where(eq(block.blockedId, ctx.userId));
+
+			const excludeIds = [
+				ctx.userId,
+				...blockedIds.map((b) => b.id),
+				...blockerIds.map((b) => b.id),
+			];
+
 			return db
 				.select({
 					id: user.id,
@@ -160,41 +184,11 @@ export const watchlistRouter = {
 				.where(
 					and(
 						ilike(user.username, `%${input.query}%`),
-						ne(user.id, ctx.userId),
+						notInArray(user.id, excludeIds),
 					),
 				)
 				.limit(10);
 		}),
-
-	knownUsers: protectedProcedure.query(async ({ ctx }) => {
-		// Get all watchlists the current user is a member of
-		const myWatchlists = await db
-			.select({ watchlistId: watchlistMember.watchlistId })
-			.from(watchlistMember)
-			.where(eq(watchlistMember.userId, ctx.userId));
-
-		const watchlistIds = myWatchlists.map((m) => m.watchlistId);
-		if (watchlistIds.length === 0) return [];
-
-		// Get distinct co-members from those watchlists
-		const coMembers = await db
-			.selectDistinct({
-				id: user.id,
-				username: user.username,
-				avatarUrl: user.avatarUrl,
-			})
-			.from(watchlistMember)
-			.innerJoin(user, eq(watchlistMember.userId, user.id))
-			.where(
-				and(
-					inArray(watchlistMember.watchlistId, watchlistIds),
-					ne(watchlistMember.userId, ctx.userId),
-				),
-			)
-			.limit(50);
-
-		return coMembers;
-	}),
 
 	create: protectedProcedure
 		.input(
@@ -414,6 +408,31 @@ export const watchlistRouter = {
 		)
 		.mutation(async ({ input, ctx }) => {
 			await assertOwner(input.watchlistId, ctx.userId);
+
+			// Check friendship
+			const areFriends = await db.query.friendship.findFirst({
+				where: and(
+					eq(friendship.status, "accepted"),
+					or(
+						and(
+							eq(friendship.requesterId, ctx.userId),
+							eq(friendship.addresseeId, input.userId),
+						),
+						and(
+							eq(friendship.requesterId, input.userId),
+							eq(friendship.addresseeId, ctx.userId),
+						),
+					),
+				),
+			});
+
+			if (!areFriends) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You can only invite friends to watchlists",
+				});
+			}
+
 			const inserted = await db
 				.insert(watchlistMember)
 				.values({

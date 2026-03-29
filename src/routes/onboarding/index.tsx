@@ -5,7 +5,11 @@ import { AuthLayout } from "#/components/auth/auth-layout";
 import { FormError } from "#/components/auth/form-error";
 import { MarqueeBadge } from "#/components/auth/marquee-badge";
 import { StepIndicator } from "#/components/auth/step-indicator";
+import { BioStep } from "#/components/onboarding/bio-step";
+import { FavouriteFilmStep } from "#/components/onboarding/favourite-film-step";
+import { FavouriteGenreStep } from "#/components/onboarding/favourite-genre-step";
 import { TasteProfileStep } from "#/components/onboarding/taste-profile-step";
+import type { OnboardingState } from "#/components/onboarding/types";
 import { authClient } from "#/lib/auth-client";
 import type { UploadRouter } from "#/lib/uploadthing";
 
@@ -26,6 +30,8 @@ interface StepConfig {
 	label: string;
 	component: React.ComponentType<{
 		onNext: () => void;
+		onboardingState?: OnboardingState;
+		setOnboardingState?: (state: Partial<OnboardingState>) => void;
 	}>;
 }
 
@@ -33,21 +39,35 @@ const STEPS: StepConfig[] = [
 	{ label: "Username", component: UsernameStep },
 	{ label: "Avatar", component: AvatarStep },
 	{ label: "Taste", component: TasteProfileStep },
+	{ label: "Film", component: FavouriteFilmStep },
+	{ label: "Genre", component: FavouriteGenreStep },
+	{ label: "Bio", component: BioStep },
 ];
+
+const TASTE_STEP_INDEX = 2;
 
 function OnboardingPage() {
 	const [currentStep, setCurrentStep] = useState(0);
 	const [cardUnlocked, setCardUnlocked] = useState(false);
+	const [onboardingState, setOnboardingStateRaw] = useState<OnboardingState>({
+		favouriteFilmTmdbId: null,
+		favouriteGenreId: null,
+		bio: null,
+	});
 	const navigate = useNavigate();
 
+	function setOnboardingState(partial: Partial<OnboardingState>) {
+		setOnboardingStateRaw((prev) => ({ ...prev, ...partial }));
+	}
+
 	const StepComponent = STEPS[currentStep].component;
-	const isFullWidthStep = currentStep === 2;
+	const isFullWidthStep = currentStep === TASTE_STEP_INDEX;
 
 	function handleNext() {
 		if (currentStep < STEPS.length - 1) {
 			const nextStep = currentStep + 1;
 			setCurrentStep(nextStep);
-			if (nextStep === 2) {
+			if (nextStep === TASTE_STEP_INDEX) {
 				// Release height constraint after card transition finishes
 				setTimeout(() => setCardUnlocked(true), 750);
 			}
@@ -73,7 +93,11 @@ function OnboardingPage() {
 				}}
 			>
 				<StepIndicator steps={STEPS.length} current={currentStep} />
-				<StepComponent onNext={handleNext} />
+				<StepComponent
+					onNext={handleNext}
+					onboardingState={onboardingState}
+					setOnboardingState={setOnboardingState}
+				/>
 			</div>
 		</AuthLayout>
 	);

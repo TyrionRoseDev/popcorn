@@ -12,6 +12,7 @@ const NOTIFICATION_TYPES = [
 	"item_watched",
 	"watchlist_invite",
 	"friend_request",
+	"friend_request_accepted",
 	"title_reviewed",
 ] as const;
 
