@@ -386,7 +386,10 @@ export const friendRouter = createTRPCRouter({
 		.input(z.object({ userId: z.string() }))
 		.mutation(async ({ input, ctx }) => {
 			if (input.userId === ctx.userId) {
-				throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot block yourself" });
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Cannot block yourself",
+				});
 			}
 
 			// Fork watchlists before removing friendship
@@ -397,8 +400,14 @@ export const friendRouter = createTRPCRouter({
 				.delete(friendship)
 				.where(
 					or(
-						and(eq(friendship.requesterId, ctx.userId), eq(friendship.addresseeId, input.userId)),
-						and(eq(friendship.requesterId, input.userId), eq(friendship.addresseeId, ctx.userId)),
+						and(
+							eq(friendship.requesterId, ctx.userId),
+							eq(friendship.addresseeId, input.userId),
+						),
+						and(
+							eq(friendship.requesterId, input.userId),
+							eq(friendship.addresseeId, ctx.userId),
+						),
 					),
 				);
 
@@ -444,4 +453,119 @@ export const friendRouter = createTRPCRouter({
 
 		return blocked;
 	}),
+
+	profile: protectedProcedure
+		.input(z.object({ userId: z.string() }))
+		.query(async ({ input, ctx }) => {
+			const [targetUser] = await db
+				.select({
+					id: user.id,
+					username: user.username,
+					avatarUrl: user.avatarUrl,
+					bio: user.bio,
+					favouriteFilmTmdbId: user.favouriteFilmTmdbId,
+					favouriteGenreId: user.favouriteGenreId,
+				})
+				.from(user)
+				.where(eq(user.id, input.userId));
+
+			if (!targetUser) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+			}
+
+			// Get friend count
+			const [friendCount] = await db
+				.select({ count: sql<number>`count(*)::int` })
+				.from(friendship)
+				.where(
+					and(
+						eq(friendship.status, "accepted"),
+						or(
+							eq(friendship.requesterId, input.userId),
+							eq(friendship.addresseeId, input.userId),
+						),
+					),
+				);
+
+			// Check relationship status
+			const existingFriendship = await db.query.friendship.findFirst({
+				where: or(
+					and(eq(friendship.requesterId, ctx.userId), eq(friendship.addresseeId, input.userId)),
+					and(eq(friendship.requesterId, input.userId), eq(friendship.addresseeId, ctx.userId)),
+				),
+			});
+
+			const existingBlock = await db.query.block.findFirst({
+				where: or(
+					and(eq(block.blockerId, ctx.userId), eq(block.blockedId, input.userId)),
+					and(eq(block.blockerId, input.userId), eq(block.blockedId, ctx.userId)),
+				),
+			});
+
+			let relationshipStatus: "none" | "friends" | "request_sent" | "request_received" | "blocked" = "none";
+			let friendshipId: string | null = null;
+
+			if (existingBlock) {
+				relationshipStatus = "blocked";
+			} else if (existingFriendship) {
+				friendshipId = existingFriendship.id;
+				if (existingFriendship.status === "accepted") {
+					relationshipStatus = "friends";
+				} else if (existingFriendship.requesterId === ctx.userId) {
+					relationshipStatus = "request_sent";
+				} else {
+					relationshipStatus = "request_received";
+				}
+			}
+
+			const isFriend = relationshipStatus === "friends";
+
+			// Base profile (always returned)
+			const profile = {
+				...targetUser,
+				friendCount: friendCount?.count ?? 0,
+				relationshipStatus,
+				friendshipId,
+				isFriend,
+				publicWatchlists: [] as Array<{ id: string; name: string; itemCount: number; memberCount: number }>,
+			};
+
+			// Friends get public watchlists
+			if (isFriend) {
+				const watchlists = await db
+					.select({
+						id: watchlist.id,
+						name: watchlist.name,
+					})
+					.from(watchlist)
+					.where(
+						and(
+							eq(watchlist.ownerId, input.userId),
+							eq(watchlist.isPublic, true),
+						),
+					);
+
+				profile.publicWatchlists = await Promise.all(
+					watchlists.map(async (wl) => {
+						const [itemCount] = await db
+							.select({ count: sql<number>`count(*)::int` })
+							.from(watchlistItem)
+							.where(eq(watchlistItem.watchlistId, wl.id));
+
+						const [memberCount] = await db
+							.select({ count: sql<number>`count(*)::int` })
+							.from(watchlistMember)
+							.where(eq(watchlistMember.watchlistId, wl.id));
+
+						return {
+							...wl,
+							itemCount: itemCount?.count ?? 0,
+							memberCount: memberCount?.count ?? 0,
+						};
+					}),
+				);
+			}
+
+			return profile;
+		}),
 });
