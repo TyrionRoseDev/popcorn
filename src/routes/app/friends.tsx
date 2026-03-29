@@ -730,7 +730,7 @@ function FriendsPage() {
 						}`}
 					>
 						<UserSearch className="h-4 w-4" />
-						Find Friends
+						Add a Friend
 					</button>
 				</div>
 
