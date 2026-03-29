@@ -1,9 +1,9 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { and, eq, ilike, inArray, ne, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray, ne, notInArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
-import { user, watchlist, watchlistItem, watchlistMember } from "#/db/schema";
+import { block, friendship, user, watchlist, watchlistItem, watchlistMember } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
 import { createNotification } from "./notification";
 
@@ -150,6 +150,23 @@ export const watchlistRouter = {
 	searchUsers: protectedProcedure
 		.input(z.object({ query: z.string().min(2) }))
 		.query(async ({ input, ctx }) => {
+			// Get blocked user IDs (both directions)
+			const blockedIds = await db
+				.select({ id: block.blockedId })
+				.from(block)
+				.where(eq(block.blockerId, ctx.userId));
+
+			const blockerIds = await db
+				.select({ id: block.blockerId })
+				.from(block)
+				.where(eq(block.blockedId, ctx.userId));
+
+			const excludeIds = [
+				ctx.userId,
+				...blockedIds.map((b) => b.id),
+				...blockerIds.map((b) => b.id),
+			];
+
 			return db
 				.select({
 					id: user.id,
@@ -160,7 +177,7 @@ export const watchlistRouter = {
 				.where(
 					and(
 						ilike(user.username, `%${input.query}%`),
-						ne(user.id, ctx.userId),
+						notInArray(user.id, excludeIds),
 					),
 				)
 				.limit(10);
@@ -414,6 +431,22 @@ export const watchlistRouter = {
 		)
 		.mutation(async ({ input, ctx }) => {
 			await assertOwner(input.watchlistId, ctx.userId);
+
+			// Check friendship
+			const areFriends = await db.query.friendship.findFirst({
+				where: and(
+					eq(friendship.status, "accepted"),
+					or(
+						and(eq(friendship.requesterId, ctx.userId), eq(friendship.addresseeId, input.userId)),
+						and(eq(friendship.requesterId, input.userId), eq(friendship.addresseeId, ctx.userId)),
+					),
+				),
+			});
+
+			if (!areFriends) {
+				throw new TRPCError({ code: "FORBIDDEN", message: "You can only invite friends to watchlists" });
+			}
+
 			const inserted = await db
 				.insert(watchlistMember)
 				.values({
