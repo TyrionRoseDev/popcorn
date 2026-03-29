@@ -2,7 +2,14 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, or, sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { db } from "#/db";
-import { block, friendship, user, watchlist, watchlistItem, watchlistMember } from "#/db/schema";
+import {
+	block,
+	friendship,
+	user,
+	watchlist,
+	watchlistItem,
+	watchlistMember,
+} from "#/db/schema";
 import { createTRPCRouter, protectedProcedure } from "#/integrations/trpc/init";
 import { createNotification } from "#/integrations/trpc/routers/notification";
 
@@ -12,10 +19,7 @@ async function forkSharedWatchlists(userId: string, removedUserId: string) {
 		.select({ watchlistId: watchlistMember.watchlistId })
 		.from(watchlistMember)
 		.where(eq(watchlistMember.userId, removedUserId))
-		.innerJoin(
-			watchlist,
-			eq(watchlist.id, watchlistMember.watchlistId),
-		);
+		.innerJoin(watchlist, eq(watchlist.id, watchlistMember.watchlistId));
 
 	for (const { watchlistId } of sharedMemberships) {
 		// Check if the other user is also a member
@@ -352,14 +356,23 @@ export const friendRouter = createTRPCRouter({
 				where: and(
 					eq(friendship.status, "accepted"),
 					or(
-						and(eq(friendship.requesterId, ctx.userId), eq(friendship.addresseeId, input.userId)),
-						and(eq(friendship.requesterId, input.userId), eq(friendship.addresseeId, ctx.userId)),
+						and(
+							eq(friendship.requesterId, ctx.userId),
+							eq(friendship.addresseeId, input.userId),
+						),
+						and(
+							eq(friendship.requesterId, input.userId),
+							eq(friendship.addresseeId, ctx.userId),
+						),
 					),
 				),
 			});
 
 			if (!existing) {
-				throw new TRPCError({ code: "NOT_FOUND", message: "Friendship not found" });
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Friendship not found",
+				});
 			}
 
 			await forkSharedWatchlists(ctx.userId, input.userId);
@@ -368,4 +381,67 @@ export const friendRouter = createTRPCRouter({
 
 			return { success: true };
 		}),
+
+	block: protectedProcedure
+		.input(z.object({ userId: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			if (input.userId === ctx.userId) {
+				throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot block yourself" });
+			}
+
+			// Fork watchlists before removing friendship
+			await forkSharedWatchlists(ctx.userId, input.userId);
+
+			// Remove any existing friendship
+			await db
+				.delete(friendship)
+				.where(
+					or(
+						and(eq(friendship.requesterId, ctx.userId), eq(friendship.addresseeId, input.userId)),
+						and(eq(friendship.requesterId, input.userId), eq(friendship.addresseeId, ctx.userId)),
+					),
+				);
+
+			// Create block (ignore conflict if already blocked)
+			await db
+				.insert(block)
+				.values({
+					blockerId: ctx.userId,
+					blockedId: input.userId,
+				})
+				.onConflictDoNothing();
+
+			return { success: true };
+		}),
+
+	unblock: protectedProcedure
+		.input(z.object({ userId: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			await db
+				.delete(block)
+				.where(
+					and(
+						eq(block.blockerId, ctx.userId),
+						eq(block.blockedId, input.userId),
+					),
+				);
+
+			return { success: true };
+		}),
+
+	getBlockedUsers: protectedProcedure.query(async ({ ctx }) => {
+		const blocked = await db
+			.select({
+				id: user.id,
+				username: user.username,
+				avatarUrl: user.avatarUrl,
+				blockedAt: block.createdAt,
+			})
+			.from(block)
+			.innerJoin(user, eq(user.id, block.blockedId))
+			.where(eq(block.blockerId, ctx.userId))
+			.orderBy(block.createdAt);
+
+		return blocked;
+	}),
 });
