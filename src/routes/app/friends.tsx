@@ -1,16 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-	Check,
-	Clock,
-	Heart,
-	Inbox,
-	Search,
-	Users,
-	X,
-} from "lucide-react";
-import { useState } from "react";
+import { Check, Clock, Heart, Inbox, Search, Users, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 import { useTRPC } from "#/integrations/trpc/react";
 
 export const Route = createFileRoute("/app/friends")({
@@ -63,21 +55,25 @@ function TicketStubCard({ friend }: { friend: Friend }) {
 	const gradient = getAvatarGradient(initial);
 
 	return (
-		<a
-			href={`/app/profile/${friend.id}`}
-			className="group block no-underline"
-		>
-			<div className="relative overflow-hidden rounded-lg border border-neon-amber/12 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-neon-amber/45 group-hover:shadow-[0_4px_20px_rgba(255,184,0,0.12),0_2px_12px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.03)]"
+		<a href={`/app/profile/${friend.id}`} className="group block no-underline">
+			<div
+				className="relative overflow-hidden rounded-lg border border-neon-amber/12 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-neon-amber/45 group-hover:shadow-[0_4px_20px_rgba(255,184,0,0.12),0_2px_12px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.03)]"
 				style={{
-					background: "linear-gradient(180deg, rgba(10,10,30,0.95) 0%, rgba(10,10,30,0.85) 100%)",
-					boxShadow: "0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)",
+					background:
+						"linear-gradient(180deg, rgba(10,10,30,0.95) 0%, rgba(10,10,30,0.85) 100%)",
+					boxShadow:
+						"0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)",
 				}}
 			>
 				{/* Neon top-border glow on hover */}
 				<div className="absolute inset-x-0 top-0 h-px bg-neon-amber/0 transition-colors duration-200 group-hover:bg-neon-amber/40" />
 				<div
 					className="absolute inset-x-0 top-0 h-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-					style={{ height: "3px", background: "linear-gradient(180deg, rgba(255,184,0,0.25) 0%, transparent 100%)" }}
+					style={{
+						height: "3px",
+						background:
+							"linear-gradient(180deg, rgba(255,184,0,0.25) 0%, transparent 100%)",
+					}}
 				/>
 
 				{/* ADMIT ONE label rotated on right edge */}
@@ -159,8 +155,12 @@ function PendingRequestCard({
 	const acceptMutation = useMutation(
 		trpc.friend.acceptRequest.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries({ queryKey: trpc.friend.list.queryKey() });
-				queryClient.invalidateQueries({ queryKey: trpc.friend.pendingRequests.queryKey() });
+				queryClient.invalidateQueries({
+					queryKey: trpc.friend.list.queryKey(),
+				});
+				queryClient.invalidateQueries({
+					queryKey: trpc.friend.pendingRequests.queryKey(),
+				});
 			},
 		}),
 	);
@@ -168,7 +168,9 @@ function PendingRequestCard({
 	const declineMutation = useMutation(
 		trpc.friend.declineRequest.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries({ queryKey: trpc.friend.pendingRequests.queryKey() });
+				queryClient.invalidateQueries({
+					queryKey: trpc.friend.pendingRequests.queryKey(),
+				});
 			},
 		}),
 	);
@@ -187,7 +189,8 @@ function PendingRequestCard({
 			exit={{ opacity: 0, x: -20 }}
 			className="group flex items-center gap-4 rounded-lg border border-neon-amber/10 px-4 py-3 transition-colors hover:border-neon-amber/25 hover:bg-cream/[0.02]"
 			style={{
-				background: "linear-gradient(180deg, rgba(10,10,30,0.9) 0%, rgba(10,10,30,0.8) 100%)",
+				background:
+					"linear-gradient(180deg, rgba(10,10,30,0.9) 0%, rgba(10,10,30,0.8) 100%)",
 			}}
 		>
 			{/* Avatar */}
@@ -202,9 +205,7 @@ function PendingRequestCard({
 					className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neon-amber/20"
 					style={{ background: gradient }}
 				>
-					<span className="text-[15px] font-bold text-cream/90">
-						{initial}
-					</span>
+					<span className="text-[15px] font-bold text-cream/90">{initial}</span>
 				</div>
 			)}
 
@@ -213,9 +214,7 @@ function PendingRequestCard({
 				<p className="truncate font-mono-retro text-sm text-cream/85">
 					@{request.username ?? "unknown"}
 				</p>
-				{timeAgo && (
-					<p className="mt-0.5 text-xs text-cream/30">{timeAgo}</p>
-				)}
+				{timeAgo && <p className="mt-0.5 text-xs text-cream/30">{timeAgo}</p>}
 			</div>
 
 			{/* Actions */}
@@ -260,9 +259,7 @@ function formatTimeAgo(date: Date): string {
 
 function FriendsPage() {
 	const trpc = useTRPC();
-	const [activeTab, setActiveTab] = useState<"friends" | "requests">(
-		"friends",
-	);
+	const [activeTab, setActiveTab] = useState<"friends" | "requests">("friends");
 	const [searchQuery, setSearchQuery] = useState("");
 
 	const { data: friends, isLoading: friendsLoading } = useQuery(
@@ -276,9 +273,7 @@ function FriendsPage() {
 
 	const filteredFriends = (friends ?? []).filter((f) => {
 		if (!searchQuery.trim()) return true;
-		return f.username
-			?.toLowerCase()
-			.includes(searchQuery.toLowerCase().trim());
+		return f.username?.toLowerCase().includes(searchQuery.toLowerCase().trim());
 	});
 
 	return (
@@ -308,7 +303,8 @@ function FriendsPage() {
 				<div
 					className="pointer-events-none fixed inset-0 z-50 opacity-[0.03]"
 					style={{
-						backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")",
+						backgroundImage:
+							"url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")",
 						animation: "grain 0.5s steps(1) infinite",
 					}}
 				/>
@@ -319,7 +315,8 @@ function FriendsPage() {
 					style={{
 						width: "600px",
 						height: "300px",
-						background: "radial-gradient(ellipse at center, rgba(255,184,0,0.04) 0%, transparent 70%)",
+						background:
+							"radial-gradient(ellipse at center, rgba(255,184,0,0.04) 0%, transparent 70%)",
 					}}
 				/>
 
@@ -339,25 +336,29 @@ function FriendsPage() {
 						<div
 							className="pointer-events-none absolute -left-1 -top-1 h-8 w-8"
 							style={{
-								background: "radial-gradient(circle at top left, rgba(255,184,0,0.15) 0%, transparent 70%)",
+								background:
+									"radial-gradient(circle at top left, rgba(255,184,0,0.15) 0%, transparent 70%)",
 							}}
 						/>
 						<div
 							className="pointer-events-none absolute -right-1 -top-1 h-8 w-8"
 							style={{
-								background: "radial-gradient(circle at top right, rgba(255,184,0,0.15) 0%, transparent 70%)",
+								background:
+									"radial-gradient(circle at top right, rgba(255,184,0,0.15) 0%, transparent 70%)",
 							}}
 						/>
 						<div
 							className="pointer-events-none absolute -bottom-1 -left-1 h-8 w-8"
 							style={{
-								background: "radial-gradient(circle at bottom left, rgba(255,184,0,0.15) 0%, transparent 70%)",
+								background:
+									"radial-gradient(circle at bottom left, rgba(255,184,0,0.15) 0%, transparent 70%)",
 							}}
 						/>
 						<div
 							className="pointer-events-none absolute -bottom-1 -right-1 h-8 w-8"
 							style={{
-								background: "radial-gradient(circle at bottom right, rgba(255,184,0,0.15) 0%, transparent 70%)",
+								background:
+									"radial-gradient(circle at bottom right, rgba(255,184,0,0.15) 0%, transparent 70%)",
 							}}
 						/>
 
@@ -512,10 +513,7 @@ function FriendsPage() {
 								) : (
 									<div className="grid grid-cols-2 gap-3">
 										{filteredFriends.map((friend) => (
-											<TicketStubCard
-												key={friend.id}
-												friend={friend}
-											/>
+											<TicketStubCard key={friend.id} friend={friend} />
 										))}
 									</div>
 								)}
@@ -549,7 +547,8 @@ function FriendsPage() {
 											No pending requests
 										</p>
 										<p className="mt-1 text-sm text-cream/25">
-											When someone sends you a friend request, it will appear here
+											When someone sends you a friend request, it will appear
+											here
 										</p>
 									</div>
 								)}
