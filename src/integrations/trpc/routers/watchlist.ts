@@ -1,10 +1,11 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { and, eq, ilike, ne } from "drizzle-orm";
+import { and, eq, ilike, inArray, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import { user, watchlist, watchlistItem, watchlistMember } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
+import { createNotification } from "./notification";
 
 async function assertOwner(watchlistId: string, userId: string) {
 	const membership = await db.query.watchlistMember.findFirst({
@@ -97,6 +98,27 @@ export const watchlistRouter = {
 			return { ...wl, userRole };
 		}),
 
+	isBookmarked: protectedProcedure
+		.input(z.object({ tmdbId: z.number(), mediaType: z.string() }))
+		.query(async ({ input, ctx }) => {
+			const memberships = await db
+				.select({ watchlistId: watchlistMember.watchlistId })
+				.from(watchlistMember)
+				.where(eq(watchlistMember.userId, ctx.userId));
+
+			const watchlistIds = memberships.map((m) => m.watchlistId);
+			if (watchlistIds.length === 0) return false;
+
+			const item = await db.query.watchlistItem.findFirst({
+				where: and(
+					inArray(watchlistItem.watchlistId, watchlistIds),
+					eq(watchlistItem.tmdbId, input.tmdbId),
+					eq(watchlistItem.mediaType, input.mediaType),
+				),
+			});
+			return !!item;
+		}),
+
 	getForDropdown: protectedProcedure.query(async ({ ctx }) => {
 		const memberships = await db
 			.select({
@@ -138,11 +160,42 @@ export const watchlistRouter = {
 				.limit(10);
 		}),
 
+	knownUsers: protectedProcedure.query(async ({ ctx }) => {
+		// Get all watchlists the current user is a member of
+		const myWatchlists = await db
+			.select({ watchlistId: watchlistMember.watchlistId })
+			.from(watchlistMember)
+			.where(eq(watchlistMember.userId, ctx.userId));
+
+		const watchlistIds = myWatchlists.map((m) => m.watchlistId);
+		if (watchlistIds.length === 0) return [];
+
+		// Get distinct co-members from those watchlists
+		const coMembers = await db
+			.selectDistinct({
+				id: user.id,
+				username: user.username,
+				avatarUrl: user.avatarUrl,
+			})
+			.from(watchlistMember)
+			.innerJoin(user, eq(watchlistMember.userId, user.id))
+			.where(
+				and(
+					inArray(watchlistMember.watchlistId, watchlistIds),
+					ne(watchlistMember.userId, ctx.userId),
+				),
+			)
+			.limit(50);
+
+		return coMembers;
+	}),
+
 	create: protectedProcedure
 		.input(
 			z.object({
 				name: z.string().min(1).max(100),
 				isPublic: z.boolean().optional().default(false),
+				memberIds: z.array(z.string()).optional().default([]),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -161,6 +214,19 @@ export const watchlistRouter = {
 					userId: ctx.userId,
 					role: "owner",
 				});
+
+				if (input.memberIds.length > 0) {
+					await tx
+						.insert(watchlistMember)
+						.values(
+							input.memberIds.map((userId) => ({
+								watchlistId: wl.id,
+								userId,
+								role: "member",
+							})),
+						)
+						.onConflictDoNothing();
+				}
 
 				return wl;
 			});
@@ -206,6 +272,7 @@ export const watchlistRouter = {
 				watchlistId: z.string(),
 				tmdbId: z.number(),
 				mediaType: z.enum(["movie", "tv"]),
+				titleName: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -219,6 +286,30 @@ export const watchlistRouter = {
 					addedBy: ctx.userId,
 				})
 				.onConflictDoNothing();
+
+			// Notify other members
+			const wl = await db.query.watchlist.findFirst({
+				where: eq(watchlist.id, input.watchlistId),
+				columns: { name: true },
+			});
+			const members = await db.query.watchlistMember.findMany({
+				where: eq(watchlistMember.watchlistId, input.watchlistId),
+				columns: { userId: true },
+			});
+			for (const member of members) {
+				await createNotification({
+					recipientId: member.userId,
+					actorId: ctx.userId,
+					type: "watchlist_item_added",
+					data: {
+						watchlistId: input.watchlistId,
+						watchlistName: wl?.name ?? "",
+						titleName: input.titleName ?? "",
+						tmdbId: input.tmdbId,
+						mediaType: input.mediaType,
+					},
+				});
+			}
 		}),
 
 	removeItem: protectedProcedure
@@ -249,6 +340,7 @@ export const watchlistRouter = {
 				tmdbId: z.number(),
 				mediaType: z.enum(["movie", "tv"]),
 				watched: z.boolean(),
+				titleName: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -263,6 +355,32 @@ export const watchlistRouter = {
 						eq(watchlistItem.mediaType, input.mediaType),
 					),
 				);
+
+			// Only notify when marking as watched (not unmarking)
+			if (input.watched) {
+				const wl = await db.query.watchlist.findFirst({
+					where: eq(watchlist.id, input.watchlistId),
+					columns: { name: true },
+				});
+				const members = await db.query.watchlistMember.findMany({
+					where: eq(watchlistMember.watchlistId, input.watchlistId),
+					columns: { userId: true },
+				});
+				for (const member of members) {
+					await createNotification({
+						recipientId: member.userId,
+						actorId: ctx.userId,
+						type: "item_watched",
+						data: {
+							watchlistId: input.watchlistId,
+							watchlistName: wl?.name ?? "",
+							titleName: input.titleName ?? "",
+							tmdbId: input.tmdbId,
+							mediaType: input.mediaType,
+						},
+					});
+				}
+			}
 		}),
 
 	addMember: protectedProcedure
@@ -282,6 +400,27 @@ export const watchlistRouter = {
 					role: "member",
 				})
 				.onConflictDoNothing();
+
+			// Notify other members (including the new member)
+			const wl = await db.query.watchlist.findFirst({
+				where: eq(watchlist.id, input.watchlistId),
+				columns: { name: true },
+			});
+			const members = await db.query.watchlistMember.findMany({
+				where: eq(watchlistMember.watchlistId, input.watchlistId),
+				columns: { userId: true },
+			});
+			for (const member of members) {
+				await createNotification({
+					recipientId: member.userId,
+					actorId: ctx.userId,
+					type: "watchlist_member_joined",
+					data: {
+						watchlistId: input.watchlistId,
+						watchlistName: wl?.name ?? "",
+					},
+				});
+			}
 		}),
 
 	removeMember: protectedProcedure
