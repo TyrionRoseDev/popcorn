@@ -21,6 +21,7 @@ import { Route as AppWatchlistsIndexRouteImport } from './routes/app/watchlists/
 import { Route as AppShuffleIndexRouteImport } from './routes/app/shuffle/index'
 import { Route as AppWatchlistsWatchlistIdRouteImport } from './routes/app/watchlists/$watchlistId'
 import { Route as AppShuffleHiddenRouteImport } from './routes/app/shuffle/hidden'
+import { Route as AppSettingsBlockedRouteImport } from './routes/app/settings/blocked'
 import { Route as AppProfileUserIdRouteImport } from './routes/app/profile.$userId'
 import { Route as ApiUploadthingSplatRouteImport } from './routes/api/uploadthing/$'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
@@ -88,6 +89,11 @@ const AppShuffleHiddenRoute = AppShuffleHiddenRouteImport.update({
   path: '/shuffle/hidden',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppSettingsBlockedRoute = AppSettingsBlockedRouteImport.update({
+  id: '/settings/blocked',
+  path: '/settings/blocked',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppProfileUserIdRoute = AppProfileUserIdRouteImport.update({
   id: '/profile/$userId',
   path: '/profile/$userId',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
+  '/app/settings/blocked': typeof AppSettingsBlockedRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle/': typeof AppShuffleIndexRoute
   '/app/watchlists/': typeof AppWatchlistsIndexRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
+  '/app/settings/blocked': typeof AppSettingsBlockedRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle': typeof AppShuffleIndexRoute
   '/app/watchlists': typeof AppWatchlistsIndexRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
+  '/app/settings/blocked': typeof AppSettingsBlockedRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle/': typeof AppShuffleIndexRoute
   '/app/watchlists/': typeof AppWatchlistsIndexRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/api/uploadthing/$'
     | '/app/profile/$userId'
     | '/app/shuffle/hidden'
+    | '/app/settings/blocked'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle/'
     | '/app/watchlists/'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/api/uploadthing/$'
     | '/app/profile/$userId'
     | '/app/shuffle/hidden'
+    | '/app/settings/blocked'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle'
     | '/app/watchlists'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
     | '/api/uploadthing/$'
     | '/app/profile/$userId'
     | '/app/shuffle/hidden'
+    | '/app/settings/blocked'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle/'
     | '/app/watchlists/'
@@ -326,6 +338,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppShuffleHiddenRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/settings/blocked': {
+      id: '/app/settings/blocked'
+      path: '/settings/blocked'
+      fullPath: '/app/settings/blocked'
+      preLoaderRoute: typeof AppSettingsBlockedRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/profile/$userId': {
       id: '/app/profile/$userId'
       path: '/profile/$userId'
@@ -368,6 +387,7 @@ interface AppRouteRouteChildren {
   AppFriendsRoute: typeof AppFriendsRoute
   AppSearchRoute: typeof AppSearchRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppSettingsBlockedRoute: typeof AppSettingsBlockedRoute
   AppProfileUserIdRoute: typeof AppProfileUserIdRoute
   AppShuffleHiddenRoute: typeof AppShuffleHiddenRoute
   AppWatchlistsWatchlistIdRoute: typeof AppWatchlistsWatchlistIdRoute
@@ -380,6 +400,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppFriendsRoute: AppFriendsRoute,
   AppSearchRoute: AppSearchRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppSettingsBlockedRoute: AppSettingsBlockedRoute,
   AppProfileUserIdRoute: AppProfileUserIdRoute,
   AppShuffleHiddenRoute: AppShuffleHiddenRoute,
   AppWatchlistsWatchlistIdRoute: AppWatchlistsWatchlistIdRoute,
