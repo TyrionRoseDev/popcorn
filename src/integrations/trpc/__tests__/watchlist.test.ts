@@ -25,6 +25,7 @@ const {
 	mockDelete,
 	mockTransaction,
 	mockQueryWatchlistMemberFindFirst,
+	mockQueryWatchlistMemberFindMany,
 	mockQueryWatchlistFindFirst,
 	mockQueryWatchlistFindMany,
 } = vi.hoisted(() => ({
@@ -40,6 +41,7 @@ const {
 	mockDelete: vi.fn(),
 	mockTransaction: vi.fn(),
 	mockQueryWatchlistMemberFindFirst: vi.fn(),
+	mockQueryWatchlistMemberFindMany: vi.fn(),
 	mockQueryWatchlistFindFirst: vi.fn(),
 	mockQueryWatchlistFindMany: vi.fn(),
 }));
@@ -52,13 +54,21 @@ vi.mock("#/db", () => ({
 		delete: mockDelete,
 		transaction: mockTransaction,
 		query: {
-			watchlistMember: { findFirst: mockQueryWatchlistMemberFindFirst },
+			watchlistMember: {
+				findFirst: mockQueryWatchlistMemberFindFirst,
+				findMany: mockQueryWatchlistMemberFindMany,
+			},
 			watchlist: {
 				findFirst: mockQueryWatchlistFindFirst,
 				findMany: mockQueryWatchlistFindMany,
 			},
 		},
 	},
+}));
+
+// Mock createNotification to avoid DB calls for notifications
+vi.mock("../routers/notification", () => ({
+	createNotification: vi.fn(),
 }));
 
 // ── Import router + create caller ──────────────────────────────────────
@@ -83,6 +93,9 @@ function resetChainMocks() {
 	mockValues.mockReturnValue({
 		returning: mockReturning,
 		onConflictDoNothing: mockOnConflictDoNothing,
+	});
+	mockOnConflictDoNothing.mockReturnValue({
+		returning: mockReturning,
 	});
 	mockUpdate.mockReturnValue({ set: mockSet });
 	mockSet.mockReturnValue({ where: mockWhere });
@@ -319,8 +332,8 @@ describe("watchlist.addItem", () => {
 			role: "owner",
 		});
 
-		// insert().values().onConflictDoNothing()
-		mockOnConflictDoNothing.mockResolvedValueOnce(undefined);
+		// insert().values().onConflictDoNothing().returning() — item already exists
+		mockReturning.mockResolvedValueOnce([]);
 
 		const caller = createCaller(OWNER_ID);
 
@@ -373,6 +386,14 @@ describe("watchlist.markWatched", () => {
 		// update().set().where() resolves
 		mockWhere.mockResolvedValueOnce(undefined);
 
+		// Notification queries: watchlist name + members
+		mockQueryWatchlistFindFirst.mockResolvedValueOnce({
+			name: "My List",
+		});
+		mockQueryWatchlistMemberFindMany.mockResolvedValueOnce([
+			{ userId: OWNER_ID },
+		]);
+
 		const caller = createCaller(OWNER_ID);
 
 		await expect(
@@ -399,8 +420,8 @@ describe("watchlist.addMember", () => {
 			role: "owner",
 		});
 
-		// insert().values().onConflictDoNothing()
-		mockOnConflictDoNothing.mockResolvedValueOnce(undefined);
+		// insert().values().onConflictDoNothing().returning() — member already exists
+		mockReturning.mockResolvedValueOnce([]);
 
 		const caller = createCaller(OWNER_ID);
 
