@@ -2,9 +2,88 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, or, sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { db } from "#/db";
-import { block, friendship, user } from "#/db/schema";
+import { block, friendship, user, watchlist, watchlistItem, watchlistMember } from "#/db/schema";
 import { createTRPCRouter, protectedProcedure } from "#/integrations/trpc/init";
 import { createNotification } from "#/integrations/trpc/routers/notification";
+
+async function forkSharedWatchlists(userId: string, removedUserId: string) {
+	// Find watchlists where both users are members
+	const sharedMemberships = await db
+		.select({ watchlistId: watchlistMember.watchlistId })
+		.from(watchlistMember)
+		.where(eq(watchlistMember.userId, removedUserId))
+		.innerJoin(
+			watchlist,
+			eq(watchlist.id, watchlistMember.watchlistId),
+		);
+
+	for (const { watchlistId } of sharedMemberships) {
+		// Check if the other user is also a member
+		const otherMembership = await db.query.watchlistMember.findFirst({
+			where: and(
+				eq(watchlistMember.watchlistId, watchlistId),
+				eq(watchlistMember.userId, userId),
+			),
+		});
+
+		if (!otherMembership) continue;
+
+		// Get the original watchlist
+		const original = await db.query.watchlist.findFirst({
+			where: eq(watchlist.id, watchlistId),
+		});
+
+		if (!original) continue;
+
+		await db.transaction(async (tx) => {
+			// Create a copy for the removed user
+			const [copy] = await tx
+				.insert(watchlist)
+				.values({
+					name: original.name,
+					ownerId: removedUserId,
+					isPublic: false,
+					type: original.type === "default" ? "custom" : original.type,
+				})
+				.returning();
+
+			// Add removed user as owner of the copy
+			await tx.insert(watchlistMember).values({
+				watchlistId: copy.id,
+				userId: removedUserId,
+				role: "owner",
+			});
+
+			// Copy all items
+			const items = await tx
+				.select()
+				.from(watchlistItem)
+				.where(eq(watchlistItem.watchlistId, watchlistId));
+
+			if (items.length > 0) {
+				await tx.insert(watchlistItem).values(
+					items.map((item) => ({
+						watchlistId: copy.id,
+						tmdbId: item.tmdbId,
+						mediaType: item.mediaType,
+						addedBy: item.addedBy,
+						watched: item.watched,
+					})),
+				);
+			}
+
+			// Remove the user from the original watchlist
+			await tx
+				.delete(watchlistMember)
+				.where(
+					and(
+						eq(watchlistMember.watchlistId, watchlistId),
+						eq(watchlistMember.userId, removedUserId),
+					),
+				);
+		});
+	}
+}
 
 export const friendRouter = createTRPCRouter({
 	list: protectedProcedure.query(async ({ ctx }) => {
@@ -124,29 +203,50 @@ export const friendRouter = createTRPCRouter({
 		.input(z.object({ userId: z.string() }))
 		.mutation(async ({ input, ctx }) => {
 			if (input.userId === ctx.userId) {
-				throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot send request to yourself" });
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Cannot send request to yourself",
+				});
 			}
 
 			// Check if blocked
 			const blocked = await db.query.block.findFirst({
 				where: or(
-					and(eq(block.blockerId, ctx.userId), eq(block.blockedId, input.userId)),
-					and(eq(block.blockerId, input.userId), eq(block.blockedId, ctx.userId)),
+					and(
+						eq(block.blockerId, ctx.userId),
+						eq(block.blockedId, input.userId),
+					),
+					and(
+						eq(block.blockerId, input.userId),
+						eq(block.blockedId, ctx.userId),
+					),
 				),
 			});
 			if (blocked) {
-				throw new TRPCError({ code: "FORBIDDEN", message: "Cannot send request" });
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Cannot send request",
+				});
 			}
 
 			// Check if friendship already exists
 			const existing = await db.query.friendship.findFirst({
 				where: or(
-					and(eq(friendship.requesterId, ctx.userId), eq(friendship.addresseeId, input.userId)),
-					and(eq(friendship.requesterId, input.userId), eq(friendship.addresseeId, ctx.userId)),
+					and(
+						eq(friendship.requesterId, ctx.userId),
+						eq(friendship.addresseeId, input.userId),
+					),
+					and(
+						eq(friendship.requesterId, input.userId),
+						eq(friendship.addresseeId, ctx.userId),
+					),
 				),
 			});
 			if (existing) {
-				throw new TRPCError({ code: "CONFLICT", message: "Request already exists" });
+				throw new TRPCError({
+					code: "CONFLICT",
+					message: "Request already exists",
+				});
 			}
 
 			const [request] = await db
@@ -179,7 +279,10 @@ export const friendRouter = createTRPCRouter({
 			});
 
 			if (!request) {
-				throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Request not found",
+				});
 			}
 
 			const [updated] = await db
@@ -210,7 +313,10 @@ export const friendRouter = createTRPCRouter({
 			});
 
 			if (!request) {
-				throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Request not found",
+				});
 			}
 
 			await db.delete(friendship).where(eq(friendship.id, input.friendshipId));
@@ -229,10 +335,37 @@ export const friendRouter = createTRPCRouter({
 			});
 
 			if (!request) {
-				throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Request not found",
+				});
 			}
 
 			await db.delete(friendship).where(eq(friendship.id, input.friendshipId));
+			return { success: true };
+		}),
+
+	removeFriend: protectedProcedure
+		.input(z.object({ userId: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			const existing = await db.query.friendship.findFirst({
+				where: and(
+					eq(friendship.status, "accepted"),
+					or(
+						and(eq(friendship.requesterId, ctx.userId), eq(friendship.addresseeId, input.userId)),
+						and(eq(friendship.requesterId, input.userId), eq(friendship.addresseeId, ctx.userId)),
+					),
+				),
+			});
+
+			if (!existing) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Friendship not found" });
+			}
+
+			await forkSharedWatchlists(ctx.userId, input.userId);
+
+			await db.delete(friendship).where(eq(friendship.id, existing.id));
+
 			return { success: true };
 		}),
 });

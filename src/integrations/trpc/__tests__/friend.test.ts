@@ -16,7 +16,8 @@ vi.mock("#/db", () => ({
 		query: {
 			friendship: { findFirst: vi.fn(), findMany: vi.fn() },
 			block: { findFirst: vi.fn() },
-			watchlistMember: { findMany: vi.fn() },
+			watchlist: { findFirst: vi.fn() },
+			watchlistMember: { findFirst: vi.fn(), findMany: vi.fn() },
 		},
 		transaction: vi.fn(),
 	},
