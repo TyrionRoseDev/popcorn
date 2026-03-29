@@ -316,11 +316,29 @@ export const tasteProfileRouter = {
 					})),
 				);
 
-				await tx
-					.update(user)
-					.set({ onboardingCompleted: true })
-					.where(eq(user.id, userId));
 			});
+
+			return { success: true };
+		}),
+
+	saveProfileExtras: protectedProcedure
+		.input(
+			z.object({
+				favouriteFilmTmdbId: z.number().nullable(),
+				favouriteGenreId: z.number().nullable(),
+				bio: z.string().max(100).nullable(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			await db
+				.update(user)
+				.set({
+					favouriteFilmTmdbId: input.favouriteFilmTmdbId,
+					favouriteGenreId: input.favouriteGenreId,
+					bio: input.bio,
+					onboardingCompleted: true,
+				})
+				.where(eq(user.id, ctx.userId));
 
 			return { success: true };
 		}),
