@@ -257,7 +257,9 @@ export const userRelations = relations(user, ({ many }) => ({
 	ownedWatchlists: many(watchlist),
 	watchlistMemberships: many(watchlistMember),
 	swipes: many(shuffleSwipe),
-	notificationsReceived: many(notification, { relationName: "notificationRecipient" }),
+	notificationsReceived: many(notification, {
+		relationName: "notificationRecipient",
+	}),
 	notificationsActed: many(notification, { relationName: "notificationActor" }),
 }));
 
