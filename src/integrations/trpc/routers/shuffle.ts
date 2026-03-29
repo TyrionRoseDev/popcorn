@@ -27,6 +27,7 @@ import {
 	discoverTvWithParams,
 	fetchTrending,
 } from "#/lib/tmdb";
+import { createNotification } from "./notification";
 import { mapMovieToFeedItem, mapTvToFeedItem } from "./taste-profile";
 
 const BATCH_SIZE = 20;
@@ -271,8 +272,16 @@ export const shuffleRouter = {
 			const isSolo = wl.type === "shuffle";
 
 			if (input.action === "yes") {
-				if (isSolo) {
-					// Solo mode: add directly to watchlist
+				// Group mode: check member count for match logic
+				const memberRows = isSolo
+					? []
+					: await db.query.watchlistMember.findMany({
+							where: eq(watchlistMember.watchlistId, input.watchlistId),
+						});
+				const memberCount = memberRows.length;
+
+				if (isSolo || memberCount <= 1) {
+					// Solo mode or single-member watchlist: add directly, no curtain call
 					await db
 						.insert(watchlistItem)
 						.values({
@@ -285,12 +294,6 @@ export const shuffleRouter = {
 
 					return { match: false };
 				}
-
-				// Group mode: check if all members swiped yes
-				const memberRows = await db.query.watchlistMember.findMany({
-					where: eq(watchlistMember.watchlistId, input.watchlistId),
-				});
-				const memberCount = memberRows.length;
 
 				const yesSwipes = await db.query.shuffleSwipe.findMany({
 					where: and(
@@ -312,6 +315,21 @@ export const shuffleRouter = {
 							addedBy: ctx.userId,
 						})
 						.onConflictDoNothing();
+
+					// Notify all members about the match
+					for (const swipe of yesSwipes) {
+						await createNotification({
+							recipientId: swipe.userId,
+							actorId: ctx.userId,
+							type: "shuffle_match",
+							data: {
+								watchlistId: input.watchlistId,
+								titleName: "",
+								tmdbId: input.tmdbId,
+								mediaType: input.mediaType,
+							},
+						});
+					}
 
 					return {
 						match: true,
