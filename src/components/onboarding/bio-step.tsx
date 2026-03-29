@@ -12,7 +12,11 @@ interface Props {
 	setOnboardingState?: (state: Partial<OnboardingState>) => void;
 }
 
-export function BioStep({ onNext, onboardingState, setOnboardingState }: Props) {
+export function BioStep({
+	onNext,
+	onboardingState,
+	setOnboardingState,
+}: Props) {
 	const [bio, setBio] = useState(onboardingState?.bio ?? "");
 
 	const trpc = useTRPC();
@@ -51,9 +55,7 @@ export function BioStep({ onNext, onboardingState, setOnboardingState }: Props) 
 
 	return (
 		<div>
-			<h2 className="mb-1.5 font-display text-xl text-cream">
-				A short bio?
-			</h2>
+			<h2 className="mb-1.5 font-display text-xl text-cream">A short bio?</h2>
 			<p className="mb-6 text-sm text-cream/50">
 				Tell others what kind of viewer you are
 			</p>
@@ -61,9 +63,7 @@ export function BioStep({ onNext, onboardingState, setOnboardingState }: Props) 
 			<div className="relative mb-2">
 				<textarea
 					value={bio}
-					onChange={(e) =>
-						setBio(e.target.value.slice(0, MAX_BIO_LENGTH))
-					}
+					onChange={(e) => setBio(e.target.value.slice(0, MAX_BIO_LENGTH))}
 					placeholder="horror enthusiast. no spoilers."
 					rows={3}
 					className="w-full resize-none rounded-lg border border-cream/12 bg-cream/6 px-3.5 py-3 text-sm text-cream placeholder:text-cream/30 focus:border-neon-cyan/40 focus:outline-none"

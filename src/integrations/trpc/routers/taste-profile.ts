@@ -315,7 +315,6 @@ export const tasteProfileRouter = {
 						addedBy: userId,
 					})),
 				);
-
 			});
 
 			return { success: true };

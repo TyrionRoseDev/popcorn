@@ -490,19 +490,36 @@ export const friendRouter = createTRPCRouter({
 			// Check relationship status
 			const existingFriendship = await db.query.friendship.findFirst({
 				where: or(
-					and(eq(friendship.requesterId, ctx.userId), eq(friendship.addresseeId, input.userId)),
-					and(eq(friendship.requesterId, input.userId), eq(friendship.addresseeId, ctx.userId)),
+					and(
+						eq(friendship.requesterId, ctx.userId),
+						eq(friendship.addresseeId, input.userId),
+					),
+					and(
+						eq(friendship.requesterId, input.userId),
+						eq(friendship.addresseeId, ctx.userId),
+					),
 				),
 			});
 
 			const existingBlock = await db.query.block.findFirst({
 				where: or(
-					and(eq(block.blockerId, ctx.userId), eq(block.blockedId, input.userId)),
-					and(eq(block.blockerId, input.userId), eq(block.blockedId, ctx.userId)),
+					and(
+						eq(block.blockerId, ctx.userId),
+						eq(block.blockedId, input.userId),
+					),
+					and(
+						eq(block.blockerId, input.userId),
+						eq(block.blockedId, ctx.userId),
+					),
 				),
 			});
 
-			let relationshipStatus: "none" | "friends" | "request_sent" | "request_received" | "blocked" = "none";
+			let relationshipStatus:
+				| "none"
+				| "friends"
+				| "request_sent"
+				| "request_received"
+				| "blocked" = "none";
 			let friendshipId: string | null = null;
 
 			if (existingBlock) {
@@ -527,7 +544,12 @@ export const friendRouter = createTRPCRouter({
 				relationshipStatus,
 				friendshipId,
 				isFriend,
-				publicWatchlists: [] as Array<{ id: string; name: string; itemCount: number; memberCount: number }>,
+				publicWatchlists: [] as Array<{
+					id: string;
+					name: string;
+					itemCount: number;
+					memberCount: number;
+				}>,
 			};
 
 			// Friends get public watchlists

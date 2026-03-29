@@ -90,9 +90,9 @@ const AppShuffleHiddenRoute = AppShuffleHiddenRouteImport.update({
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSettingsBlockedRoute = AppSettingsBlockedRouteImport.update({
-  id: '/settings/blocked',
-  path: '/settings/blocked',
-  getParentRoute: () => AppRouteRoute,
+  id: '/blocked',
+  path: '/blocked',
+  getParentRoute: () => AppSettingsRoute,
 } as any)
 const AppProfileUserIdRoute = AppProfileUserIdRouteImport.update({
   id: '/profile/$userId',
@@ -127,14 +127,14 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/app/friends': typeof AppFriendsRoute
   '/app/search': typeof AppSearchRoute
-  '/app/settings': typeof AppSettingsRoute
+  '/app/settings': typeof AppSettingsRouteWithChildren
   '/onboarding/': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
-  '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/settings/blocked': typeof AppSettingsBlockedRoute
+  '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle/': typeof AppShuffleIndexRoute
   '/app/watchlists/': typeof AppWatchlistsIndexRoute
@@ -146,14 +146,14 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/app/friends': typeof AppFriendsRoute
   '/app/search': typeof AppSearchRoute
-  '/app/settings': typeof AppSettingsRoute
+  '/app/settings': typeof AppSettingsRouteWithChildren
   '/onboarding': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
-  '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/settings/blocked': typeof AppSettingsBlockedRoute
+  '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle': typeof AppShuffleIndexRoute
   '/app/watchlists': typeof AppWatchlistsIndexRoute
@@ -167,14 +167,14 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/app/friends': typeof AppFriendsRoute
   '/app/search': typeof AppSearchRoute
-  '/app/settings': typeof AppSettingsRoute
+  '/app/settings': typeof AppSettingsRouteWithChildren
   '/onboarding/': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
-  '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/settings/blocked': typeof AppSettingsBlockedRoute
+  '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle/': typeof AppShuffleIndexRoute
   '/app/watchlists/': typeof AppWatchlistsIndexRoute
@@ -195,8 +195,8 @@ export interface FileRouteTypes {
     | '/api/trpc/$'
     | '/api/uploadthing/$'
     | '/app/profile/$userId'
-    | '/app/shuffle/hidden'
     | '/app/settings/blocked'
+    | '/app/shuffle/hidden'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle/'
     | '/app/watchlists/'
@@ -214,8 +214,8 @@ export interface FileRouteTypes {
     | '/api/trpc/$'
     | '/api/uploadthing/$'
     | '/app/profile/$userId'
-    | '/app/shuffle/hidden'
     | '/app/settings/blocked'
+    | '/app/shuffle/hidden'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle'
     | '/app/watchlists'
@@ -234,8 +234,8 @@ export interface FileRouteTypes {
     | '/api/trpc/$'
     | '/api/uploadthing/$'
     | '/app/profile/$userId'
-    | '/app/shuffle/hidden'
     | '/app/settings/blocked'
+    | '/app/shuffle/hidden'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle/'
     | '/app/watchlists/'
@@ -340,10 +340,10 @@ declare module '@tanstack/react-router' {
     }
     '/app/settings/blocked': {
       id: '/app/settings/blocked'
-      path: '/settings/blocked'
+      path: '/blocked'
       fullPath: '/app/settings/blocked'
       preLoaderRoute: typeof AppSettingsBlockedRouteImport
-      parentRoute: typeof AppRouteRoute
+      parentRoute: typeof AppSettingsRoute
     }
     '/app/profile/$userId': {
       id: '/app/profile/$userId'
@@ -383,11 +383,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppSettingsRouteChildren {
+  AppSettingsBlockedRoute: typeof AppSettingsBlockedRoute
+}
+
+const AppSettingsRouteChildren: AppSettingsRouteChildren = {
+  AppSettingsBlockedRoute: AppSettingsBlockedRoute,
+}
+
+const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
+  AppSettingsRouteChildren,
+)
+
 interface AppRouteRouteChildren {
   AppFriendsRoute: typeof AppFriendsRoute
   AppSearchRoute: typeof AppSearchRoute
-  AppSettingsRoute: typeof AppSettingsRoute
-  AppSettingsBlockedRoute: typeof AppSettingsBlockedRoute
+  AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppProfileUserIdRoute: typeof AppProfileUserIdRoute
   AppShuffleHiddenRoute: typeof AppShuffleHiddenRoute
   AppWatchlistsWatchlistIdRoute: typeof AppWatchlistsWatchlistIdRoute
@@ -399,8 +410,7 @@ interface AppRouteRouteChildren {
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppFriendsRoute: AppFriendsRoute,
   AppSearchRoute: AppSearchRoute,
-  AppSettingsRoute: AppSettingsRoute,
-  AppSettingsBlockedRoute: AppSettingsBlockedRoute,
+  AppSettingsRoute: AppSettingsRouteWithChildren,
   AppProfileUserIdRoute: AppProfileUserIdRoute,
   AppShuffleHiddenRoute: AppShuffleHiddenRoute,
   AppWatchlistsWatchlistIdRoute: AppWatchlistsWatchlistIdRoute,
@@ -437,3 +447,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

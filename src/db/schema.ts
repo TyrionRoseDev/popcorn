@@ -316,8 +316,12 @@ export const userRelations = relations(user, ({ many }) => ({
 		relationName: "notificationRecipient",
 	}),
 	notificationsActed: many(notification, { relationName: "notificationActor" }),
-	friendshipsRequested: many(friendship, { relationName: "friendshipRequester" }),
-	friendshipsReceived: many(friendship, { relationName: "friendshipAddressee" }),
+	friendshipsRequested: many(friendship, {
+		relationName: "friendshipRequester",
+	}),
+	friendshipsReceived: many(friendship, {
+		relationName: "friendshipAddressee",
+	}),
 	blocksCreated: many(block, { relationName: "blockBlocker" }),
 	blocksReceived: many(block, { relationName: "blockBlocked" }),
 }));
