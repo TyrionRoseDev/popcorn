@@ -6,15 +6,24 @@ Add a notification system to Popcorn with a bell icon in the navbar and a dropdo
 
 ## Notification Types
 
+### Wired now (triggers exist in current codebase)
+
 | Type | Trigger | Message | Actions |
 |------|---------|---------|---------|
-| `watchlist_invite` | User invited to a watchlist | "X invited you to Y" | Accept / Decline |
 | `watchlist_item_added` | Item added to a shared watchlist | "X added Y to Z" | — |
-| `watchlist_member_joined` | New member joins a watchlist | "X joined Y" | — |
+| `watchlist_member_joined` | Member added to a watchlist | "X joined Y" | — |
 | `shuffle_match` | Two members both swiped yes | "You and X both want to watch Y!" | — |
-| `friend_request` | Someone sends a friend request | "X has added you as a friend" | Accept / Decline |
-| `title_reviewed` | Someone reviews a title you recommended | "X just reviewed Y" | View review |
 | `item_watched` | Item marked as watched in your watchlist | "X marked Y as watched in Z" | View reviews |
+
+### Deferred (schema and UI ready, wired when parent features are built)
+
+| Type | Depends on | Message | Actions |
+|------|-----------|---------|---------|
+| `watchlist_invite` | Invite flow (refactor `addMember` → invitation model) | "X invited you to Y" | Accept / Decline |
+| `friend_request` | Friends system (not yet built) | "X has added you as a friend" | Accept / Decline |
+| `title_reviewed` | Reviews system (not yet built) | "X just reviewed Y" | View review |
+
+The notification schema, tRPC router, and UI components will support all 7 types from day one. Deferred types just need their parent feature to call `createNotification()` and, for actionable types, add the corresponding response mutation.
 
 ## Database Schema
 
@@ -24,7 +33,7 @@ Single `notification` table:
 |--------|------|-------|
 | `id` | `uuid` | Primary key, default `gen_random_uuid()` |
 | `recipientId` | `text` | FK → `user.id`, cascade delete |
-| `actorId` | `text` | FK → `user.id`, cascade delete |
+| `actorId` | `text` | FK → `user.id`, set null on delete (preserves notification if actor is deleted) |
 | `type` | `text` | One of the notification type values above |
 | `data` | `jsonb` | Type-specific payload (see below) |
 | `read` | `boolean` | Default `false` |
@@ -54,8 +63,10 @@ Single `notification` table:
 - **`markAllAsRead`** — Marks all unread notifications for the current user as read.
 - **`delete`** — Input: `{ id: string }`. Deletes a single notification.
 - **`deleteAll`** — Deletes all notifications for the current user.
-- **`respondToInvite`** — Input: `{ id: string, response: "accepted" | "declined" }`. Updates `actionTaken` on the notification. If accepted, adds the user as a member of the watchlist.
-- **`respondToFriendRequest`** — Input: `{ id: string, response: "accepted" | "declined" }`. Updates `actionTaken` on the notification. If accepted, creates the friendship record.
+
+**Deferred mutations** (added when parent features are built):
+- **`respondToInvite`** — Depends on watchlist invite flow.
+- **`respondToFriendRequest`** — Depends on friends system.
 
 ### Helper — `createNotification()`
 
@@ -70,13 +81,16 @@ createNotification({
 })
 ```
 
-Called from existing routers:
+Wired now (called from existing routers):
 - `watchlist.addItem` → `watchlist_item_added` for all other watchlist members
-- `watchlist.inviteMember` → `watchlist_invite` for the invited user
+- `watchlist.addMember` → `watchlist_member_joined` for all other watchlist members
 - Shuffle match logic → `shuffle_match` for both users
 - `watchlist.markWatched` → `item_watched` for other watchlist members
-- Friend request procedure → `friend_request` for the recipient
-- Review procedure → `title_reviewed` for the recommender
+
+Wired later (when parent features are built):
+- Invite flow → `watchlist_invite`
+- Friend request procedure → `friend_request`
+- Review procedure → `title_reviewed`
 
 ## Frontend Components
 
