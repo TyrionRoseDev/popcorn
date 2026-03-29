@@ -24,6 +24,9 @@ export const user = pgTable("user", {
 	username: text("username").unique(),
 	avatarUrl: text("avatar_url"),
 	onboardingCompleted: boolean("onboarding_completed").default(false),
+	bio: text("bio"),
+	favouriteFilmTmdbId: integer("favourite_film_tmdb_id"),
+	favouriteGenreId: integer("favourite_genre_id"),
 });
 
 export const session = pgTable(
@@ -249,6 +252,58 @@ export const notification = pgTable(
 	],
 );
 
+export const friendship = pgTable(
+	"friendship",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		requesterId: text("requester_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		addresseeId: text("addressee_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		status: text("status", { enum: ["pending", "accepted"] })
+			.notNull()
+			.default("pending"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at")
+			.defaultNow()
+			.notNull()
+			.$onUpdateFn(() => new Date()),
+	},
+	(table) => [
+		uniqueIndex("friendship_requester_addressee_idx").on(
+			table.requesterId,
+			table.addresseeId,
+		),
+		index("friendship_addressee_id_idx").on(table.addresseeId),
+	],
+);
+
+export const block = pgTable(
+	"block",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		blockerId: text("blocker_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		blockedId: text("blocked_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("block_blocker_blocked_idx").on(
+			table.blockerId,
+			table.blockedId,
+		),
+	],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
@@ -261,6 +316,10 @@ export const userRelations = relations(user, ({ many }) => ({
 		relationName: "notificationRecipient",
 	}),
 	notificationsActed: many(notification, { relationName: "notificationActor" }),
+	friendshipsRequested: many(friendship, { relationName: "friendshipRequester" }),
+	friendshipsReceived: many(friendship, { relationName: "friendshipAddressee" }),
+	blocksCreated: many(block, { relationName: "blockBlocker" }),
+	blocksReceived: many(block, { relationName: "blockBlocked" }),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -344,5 +403,31 @@ export const notificationRelations = relations(notification, ({ one }) => ({
 		fields: [notification.actorId],
 		references: [user.id],
 		relationName: "notificationActor",
+	}),
+}));
+
+export const friendshipRelations = relations(friendship, ({ one }) => ({
+	requester: one(user, {
+		fields: [friendship.requesterId],
+		references: [user.id],
+		relationName: "friendshipRequester",
+	}),
+	addressee: one(user, {
+		fields: [friendship.addresseeId],
+		references: [user.id],
+		relationName: "friendshipAddressee",
+	}),
+}));
+
+export const blockRelations = relations(block, ({ one }) => ({
+	blocker: one(user, {
+		fields: [block.blockerId],
+		references: [user.id],
+		relationName: "blockBlocker",
+	}),
+	blocked: one(user, {
+		fields: [block.blockedId],
+		references: [user.id],
+		relationName: "blockBlocked",
 	}),
 }));
