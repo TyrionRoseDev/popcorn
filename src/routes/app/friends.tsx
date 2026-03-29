@@ -1,8 +1,24 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	skipToken,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Clock, Heart, Inbox, Search, Users, X } from "lucide-react";
+import {
+	Check,
+	Clock,
+	Heart,
+	Inbox,
+	Search,
+	UserPlus,
+	UserSearch,
+	Users,
+	X,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useTRPC } from "#/integrations/trpc/react";
 
 export const Route = createFileRoute("/app/friends")({
@@ -257,9 +273,256 @@ function formatTimeAgo(date: Date): string {
 	return `${Math.floor(days / 7)}w ago`;
 }
 
+function DiscoverResultCard({
+	user,
+	isFriend,
+}: {
+	user: { id: string; username: string | null; avatarUrl: string | null };
+	isFriend: boolean;
+}) {
+	const trpc = useTRPC();
+	const queryClient = useQueryClient();
+	const initial = (user.username ?? "?").charAt(0).toUpperCase();
+	const gradient = getAvatarGradient(initial);
+	const [requestSent, setRequestSent] = useState(false);
+
+	const sendRequestMutation = useMutation(
+		trpc.friend.sendRequest.mutationOptions({
+			onSuccess: () => {
+				setRequestSent(true);
+				toast.success(`Friend request sent to @${user.username ?? "user"}!`);
+				queryClient.invalidateQueries({
+					queryKey: trpc.friend.pendingRequests.queryKey(),
+				});
+			},
+			onError: (error) => {
+				if (error.message === "Request already exists") {
+					setRequestSent(true);
+					toast.info("A request already exists with this user");
+				} else {
+					toast.error("Failed to send request");
+				}
+			},
+		}),
+	);
+
+	return (
+		<motion.div
+			initial={{ opacity: 0, y: 12 }}
+			animate={{ opacity: 1, y: 0 }}
+			className="group flex items-center gap-4 rounded-lg border border-neon-cyan/10 px-4 py-3 transition-colors hover:border-neon-cyan/30 hover:bg-neon-cyan/[0.02]"
+			style={{
+				background:
+					"linear-gradient(180deg, rgba(10,10,30,0.92) 0%, rgba(10,10,30,0.82) 100%)",
+				boxShadow:
+					"0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.02)",
+			}}
+		>
+			{/* Neon top-border glow on hover */}
+			<div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-neon-cyan/0 transition-colors duration-200 group-hover:bg-neon-cyan/25" />
+
+			{/* Avatar */}
+			<a href={`/app/profile/${user.id}`} className="shrink-0 no-underline">
+				{user.avatarUrl ? (
+					<img
+						src={user.avatarUrl}
+						alt=""
+						className="h-11 w-11 rounded-full border border-neon-cyan/20 object-cover transition-colors group-hover:border-neon-cyan/40"
+					/>
+				) : (
+					<div
+						className="flex h-11 w-11 items-center justify-center rounded-full border border-neon-cyan/20 transition-colors group-hover:border-neon-cyan/40"
+						style={{ background: gradient }}
+					>
+						<span className="text-[15px] font-bold text-cream/90">
+							{initial}
+						</span>
+					</div>
+				)}
+			</a>
+
+			{/* Info */}
+			<div className="min-w-0 flex-1">
+				<a
+					href={`/app/profile/${user.id}`}
+					className="block truncate font-mono-retro text-sm text-cream/85 no-underline transition-colors hover:text-neon-cyan"
+				>
+					@{user.username ?? "unknown"}
+				</a>
+			</div>
+
+			{/* Action */}
+			<div className="shrink-0">
+				{isFriend ? (
+					<span className="flex items-center gap-1.5 rounded-full border border-green-500/20 bg-green-500/8 px-3 py-1.5 font-mono-retro text-xs text-green-400/70">
+						<Check className="h-3 w-3" />
+						Friends
+					</span>
+				) : requestSent ? (
+					<span className="flex items-center gap-1.5 rounded-full border border-cream/10 bg-cream/[0.04] px-3 py-1.5 font-mono-retro text-xs text-cream/35">
+						<Clock className="h-3 w-3" />
+						Request Sent
+					</span>
+				) : (
+					<button
+						type="button"
+						disabled={sendRequestMutation.isPending}
+						onClick={() => sendRequestMutation.mutate({ userId: user.id })}
+						className="flex cursor-pointer items-center gap-1.5 rounded-full border border-neon-amber/30 bg-neon-amber/10 px-3 py-1.5 font-mono-retro text-xs text-neon-amber transition-all hover:border-neon-amber/50 hover:bg-neon-amber/20 hover:shadow-[0_0_12px_rgba(255,184,0,0.15)] disabled:opacity-50"
+					>
+						<UserPlus className="h-3 w-3" />
+						{sendRequestMutation.isPending ? "Sending..." : "Add Friend"}
+					</button>
+				)}
+			</div>
+		</motion.div>
+	);
+}
+
+function DiscoverTab({ friendIds }: { friendIds: Set<string> }) {
+	const trpc = useTRPC();
+	const [discoverInput, setDiscoverInput] = useState("");
+	const [debouncedQuery, setDebouncedQuery] = useState("");
+
+	// Debounce the search input
+	useEffect(() => {
+		if (discoverInput.trim().length < 2) {
+			setDebouncedQuery("");
+			return;
+		}
+		const timer = setTimeout(() => {
+			setDebouncedQuery(discoverInput.trim());
+		}, 300);
+		return () => clearTimeout(timer);
+	}, [discoverInput]);
+
+	const { data: searchResults, isLoading: searchLoading } = useQuery(
+		trpc.watchlist.searchUsers.queryOptions(
+			debouncedQuery.length >= 2 ? { query: debouncedQuery } : skipToken,
+		),
+	);
+
+	const hasQuery = debouncedQuery.length >= 2;
+	const isTyping =
+		discoverInput.trim().length >= 2 && discoverInput.trim() !== debouncedQuery;
+
+	return (
+		<div>
+			{/* Search input */}
+			<div className="relative mb-6">
+				<Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neon-amber/50" />
+				<input
+					type="text"
+					placeholder="Search by username..."
+					value={discoverInput}
+					onChange={(e) => setDiscoverInput(e.target.value)}
+					className="w-full rounded-lg border border-neon-amber/25 bg-neon-amber/[0.05] py-3 pl-10 pr-4 text-sm text-cream/85 outline-none transition-all placeholder:text-cream/25 focus:border-neon-amber/50 focus:shadow-[0_0_20px_rgba(255,184,0,0.08)]"
+				/>
+				{(searchLoading || isTyping) && hasQuery && (
+					<div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+						<div className="h-4 w-4 animate-spin rounded-full border-2 border-neon-amber/20 border-t-neon-amber/60" />
+					</div>
+				)}
+			</div>
+
+			{/* Results */}
+			<AnimatePresence mode="wait">
+				{!hasQuery && !isTyping ? (
+					/* Empty state: no search query */
+					<motion.div
+						key="empty"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="flex flex-col items-center py-20 text-center"
+					>
+						<div
+							className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-neon-amber/15"
+							style={{
+								background:
+									"radial-gradient(circle, rgba(255,184,0,0.06) 0%, transparent 70%)",
+							}}
+						>
+							<UserSearch className="h-8 w-8 text-neon-amber/25" />
+						</div>
+						<p className="font-display text-lg text-cream/45">
+							Find your movie buddies
+						</p>
+						<p className="mt-1.5 max-w-xs text-sm text-cream/25">
+							Search by username to discover friends and share your watchlists
+							at the drive-in
+						</p>
+					</motion.div>
+				) : searchLoading || isTyping ? (
+					/* Loading skeletons */
+					<motion.div
+						key="loading"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="flex flex-col gap-2"
+					>
+						{SKELETON_KEYS.map((key) => (
+							<div
+								key={key}
+								className="h-[60px] animate-pulse rounded-lg bg-cream/[0.03]"
+							/>
+						))}
+					</motion.div>
+				) : searchResults && searchResults.length > 0 ? (
+					/* Search results */
+					<motion.div
+						key="results"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="flex flex-col gap-2"
+					>
+						{searchResults.map((result, index) => (
+							<motion.div
+								key={result.id}
+								initial={{ opacity: 0, y: 12 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{
+									duration: 0.25,
+									delay: index * 0.06,
+								}}
+							>
+								<DiscoverResultCard
+									user={result}
+									isFriend={friendIds.has(result.id)}
+								/>
+							</motion.div>
+						))}
+					</motion.div>
+				) : (
+					/* No results */
+					<motion.div
+						key="no-results"
+						initial={{ opacity: 0, y: 6 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0 }}
+						className="flex flex-col items-center py-20 text-center"
+					>
+						<Search className="mb-3 h-10 w-10 text-neon-amber/15" />
+						<p className="text-base text-cream/40">
+							No users found matching &ldquo;{debouncedQuery}&rdquo;
+						</p>
+						<p className="mt-1 text-sm text-cream/20">
+							Try a different username
+						</p>
+					</motion.div>
+				)}
+			</AnimatePresence>
+		</div>
+	);
+}
+
 function FriendsPage() {
 	const trpc = useTRPC();
-	const [activeTab, setActiveTab] = useState<"friends" | "requests">("friends");
+	const [activeTab, setActiveTab] = useState<
+		"friends" | "requests" | "discover"
+	>("friends");
 	const [searchQuery, setSearchQuery] = useState("");
 
 	const { data: friends, isLoading: friendsLoading } = useQuery(
@@ -456,6 +719,19 @@ function FriendsPage() {
 							</span>
 						)}
 					</button>
+
+					<button
+						type="button"
+						onClick={() => setActiveTab("discover")}
+						className={`-mb-px flex cursor-pointer items-center gap-2 border-b-2 bg-transparent px-5 py-2.5 text-sm font-medium transition-colors ${
+							activeTab === "discover"
+								? "border-neon-amber text-neon-amber"
+								: "border-transparent text-cream/40 hover:text-cream/60"
+						}`}
+					>
+						<UserSearch className="h-4 w-4" />
+						Find Friends
+					</button>
 				</div>
 
 				{/* Tab content with animated transitions */}
@@ -552,6 +828,21 @@ function FriendsPage() {
 										</p>
 									</div>
 								)}
+							</motion.div>
+						)}
+
+						{activeTab === "discover" && (
+							<motion.div
+								key="discover"
+								initial={{ opacity: 0, y: 8 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -8 }}
+								transition={{ duration: 0.2 }}
+								layout
+							>
+								<DiscoverTab
+									friendIds={new Set((friends ?? []).map((f) => f.id))}
+								/>
 							</motion.div>
 						)}
 					</AnimatePresence>
