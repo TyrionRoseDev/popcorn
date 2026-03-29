@@ -5,7 +5,7 @@ import {
 	redirect,
 	useMatches,
 } from "@tanstack/react-router";
-import { Bookmark, Search, Shuffle } from "lucide-react";
+import { Bookmark, Search, Shuffle, Users } from "lucide-react";
 import { NotificationBell } from "#/components/notifications/notification-bell";
 import { RetroOverlays } from "#/components/retro-overlays";
 import BetterAuthHeader from "#/integrations/better-auth/header-user";
@@ -83,6 +83,13 @@ function AppLayout() {
 						>
 							<Bookmark className="h-3.5 w-3.5" />
 							Watchlists
+						</Link>
+						<Link
+							to="/app/friends"
+							className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-cream/50 no-underline transition-colors hover:bg-cream/5 hover:text-cream/80 [&.active]:text-neon-amber [&.active]:bg-neon-amber/8"
+						>
+							<Users className="h-3.5 w-3.5" />
+							Friends
 						</Link>
 					</div>
 
