@@ -6,7 +6,7 @@ interface WatchlistReelProps {
 	watchlist: {
 		id: string;
 		name: string;
-		isDefault: boolean;
+		type: string;
 		items: Array<{ tmdbId: number; mediaType: string }>;
 		members: Array<{
 			user: {
@@ -31,7 +31,7 @@ export function WatchlistReel({ watchlist }: WatchlistReelProps) {
 				<WatchlistReelHeader
 					name={watchlist.name}
 					itemCount={watchlist.itemCount}
-					isDefault={watchlist.isDefault}
+					isDefault={watchlist.type === "default"}
 					members={watchlist.members}
 				/>
 

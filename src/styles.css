@@ -459,6 +459,40 @@ a {
   100% { transform: translateX(-50%); }
 }
 
+@keyframes dust-float {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.4; }
+  100% { transform: translateY(40vh) translateX(20px); opacity: 0; }
+}
+
+@keyframes projector-flicker {
+  0%, 100% { opacity: 0.12; }
+  48% { opacity: 0.12; }
+  49% { opacity: 0.08; }
+  50% { opacity: 0.14; }
+  51% { opacity: 0.12; }
+  85% { opacity: 0.12; }
+  86% { opacity: 0.10; }
+  87% { opacity: 0.13; }
+}
+
+@keyframes screen-entrance {
+  0% { filter: brightness(1.6); transform: scale(1.03); }
+  100% { filter: brightness(1); transform: scale(1); }
+}
+
+@keyframes button-underglow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes fog-crawl {
+  0% { transform: translateX(-10%) scaleX(1.1); }
+  50% { transform: translateX(10%) scaleX(0.95); }
+  100% { transform: translateX(-10%) scaleX(1.1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

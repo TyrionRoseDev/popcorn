@@ -3,6 +3,7 @@ import {
 	boolean,
 	index,
 	integer,
+	jsonb,
 	pgTable,
 	text,
 	timestamp,
@@ -136,7 +137,7 @@ export const watchlist = pgTable(
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
 		isPublic: boolean("is_public").default(false).notNull(),
-		isDefault: boolean("is_default").default(false).notNull(),
+		type: text("type").notNull().default("custom"), // 'default' | 'shuffle' | 'custom'
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
 			.defaultNow()
@@ -195,6 +196,59 @@ export const watchlistMember = pgTable(
 	],
 );
 
+export const shuffleSwipe = pgTable(
+	"shuffle_swipe",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		watchlistId: text("watchlist_id")
+			.notNull()
+			.references(() => watchlist.id, { onDelete: "cascade" }),
+		tmdbId: integer("tmdb_id").notNull(),
+		mediaType: text("media_type").notNull(), // 'movie' | 'tv'
+		action: text("action").notNull(), // 'yes' | 'no' | 'hide'
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("shuffle_swipe_unique").on(
+			table.userId,
+			table.tmdbId,
+			table.mediaType,
+			table.watchlistId,
+		),
+		index("shuffle_swipe_userId_idx").on(table.userId),
+		index("shuffle_swipe_watchlistId_idx").on(table.watchlistId),
+	],
+);
+
+export const notification = pgTable(
+	"notification",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		recipientId: text("recipient_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		actorId: text("actor_id").references(() => user.id, {
+			onDelete: "set null",
+		}),
+		type: text("type").notNull(),
+		data: jsonb("data").notNull().default({}),
+		read: boolean("read").notNull().default(false),
+		actionTaken: text("action_taken"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("notification_recipient_id_idx").on(table.recipientId),
+		index("notification_created_at_idx").on(table.createdAt),
+	],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
@@ -202,6 +256,11 @@ export const userRelations = relations(user, ({ many }) => ({
 	titles: many(userTitle),
 	ownedWatchlists: many(watchlist),
 	watchlistMemberships: many(watchlistMember),
+	swipes: many(shuffleSwipe),
+	notificationsReceived: many(notification, {
+		relationName: "notificationRecipient",
+	}),
+	notificationsActed: many(notification, { relationName: "notificationActor" }),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -236,6 +295,7 @@ export const watchlistRelations = relations(watchlist, ({ one, many }) => ({
 	owner: one(user, { fields: [watchlist.ownerId], references: [user.id] }),
 	items: many(watchlistItem),
 	members: many(watchlistMember),
+	swipes: many(shuffleSwipe),
 }));
 
 export const watchlistItemRelations = relations(watchlistItem, ({ one }) => ({
@@ -262,3 +322,27 @@ export const watchlistMemberRelations = relations(
 		}),
 	}),
 );
+
+export const shuffleSwipeRelations = relations(shuffleSwipe, ({ one }) => ({
+	user: one(user, {
+		fields: [shuffleSwipe.userId],
+		references: [user.id],
+	}),
+	watchlist: one(watchlist, {
+		fields: [shuffleSwipe.watchlistId],
+		references: [watchlist.id],
+	}),
+}));
+
+export const notificationRelations = relations(notification, ({ one }) => ({
+	recipient: one(user, {
+		fields: [notification.recipientId],
+		references: [user.id],
+		relationName: "notificationRecipient",
+	}),
+	actor: one(user, {
+		fields: [notification.actorId],
+		references: [user.id],
+		relationName: "notificationActor",
+	}),
+}));

@@ -15,6 +15,20 @@
       "when": 1774363692717,
       "tag": "0001_naive_cyclops",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774886400000,
+      "tag": "0002_shuffle_swipe",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1774792543072,
+      "tag": "0003_far_nightmare",
+      "breakpoints": true
     }
   ]
 }

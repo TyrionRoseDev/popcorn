@@ -297,7 +297,7 @@ export const tasteProfileRouter = {
 					.values({
 						name: "My Picks",
 						ownerId: userId,
-						isDefault: true,
+						type: "default",
 					})
 					.returning();
 
