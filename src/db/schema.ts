@@ -3,6 +3,7 @@ import {
 	boolean,
 	index,
 	integer,
+	jsonb,
 	pgTable,
 	text,
 	timestamp,
@@ -224,6 +225,30 @@ export const shuffleSwipe = pgTable(
 	],
 );
 
+export const notification = pgTable(
+	"notification",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		recipientId: text("recipient_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		actorId: text("actor_id").references(() => user.id, {
+			onDelete: "set null",
+		}),
+		type: text("type").notNull(),
+		data: jsonb("data").notNull().default({}),
+		read: boolean("read").notNull().default(false),
+		actionTaken: text("action_taken"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("notification_recipient_id_idx").on(table.recipientId),
+		index("notification_created_at_idx").on(table.createdAt),
+	],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
@@ -232,6 +257,8 @@ export const userRelations = relations(user, ({ many }) => ({
 	ownedWatchlists: many(watchlist),
 	watchlistMemberships: many(watchlistMember),
 	swipes: many(shuffleSwipe),
+	notificationsReceived: many(notification, { relationName: "notificationRecipient" }),
+	notificationsActed: many(notification, { relationName: "notificationActor" }),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -302,5 +329,18 @@ export const shuffleSwipeRelations = relations(shuffleSwipe, ({ one }) => ({
 	watchlist: one(watchlist, {
 		fields: [shuffleSwipe.watchlistId],
 		references: [watchlist.id],
+	}),
+}));
+
+export const notificationRelations = relations(notification, ({ one }) => ({
+	recipient: one(user, {
+		fields: [notification.recipientId],
+		references: [user.id],
+		relationName: "notificationRecipient",
+	}),
+	actor: one(user, {
+		fields: [notification.actorId],
+		references: [user.id],
+		relationName: "notificationActor",
 	}),
 }));
