@@ -169,9 +169,9 @@ export function CardStack({ watchlistId }: CardStackProps) {
 	const visibleCards = cards.slice(0, 3);
 
 	return (
-		<div className="flex w-full flex-col items-center gap-6">
+		<div className="flex w-full flex-1 flex-col items-center gap-5">
 			{/* Card area — the MOVIE SCREEN at the drive-in */}
-			<div className="relative w-full max-w-[420px]">
+			<div className="relative w-full max-w-[420px] flex-1">
 				{/* Dramatic screen glow — multi-layer light spill behind the card */}
 				<div
 					className="absolute -inset-10 -z-10"
@@ -191,60 +191,11 @@ export function CardStack({ watchlistId }: CardStackProps) {
 					}}
 				/>
 
-				{/* Screen frame — movie screen border with corner structural posts */}
+				{/* Card stack — fills the container, poster-like aspect ratio */}
 				<div
-					className="absolute -inset-2 rounded-2xl"
-					style={{
-						border: "1.5px solid rgba(255,184,0,0.1)",
-						boxShadow:
-							"0 0 40px rgba(255,184,0,0.04), inset 0 0 20px rgba(255,184,0,0.02)",
-						pointerEvents: "none",
-					}}
-				/>
-				{/* Corner posts — structural screen frame accents */}
-				{/* Top-left */}
-				<div
-					className="absolute -top-2 -left-2 h-5 w-5"
-					style={{
-						borderTop: "2px solid rgba(255,184,0,0.15)",
-						borderLeft: "2px solid rgba(255,184,0,0.15)",
-						borderRadius: "8px 0 0 0",
-						pointerEvents: "none",
-					}}
-				/>
-				{/* Top-right */}
-				<div
-					className="absolute -top-2 -right-2 h-5 w-5"
-					style={{
-						borderTop: "2px solid rgba(255,184,0,0.15)",
-						borderRight: "2px solid rgba(255,184,0,0.15)",
-						borderRadius: "0 8px 0 0",
-						pointerEvents: "none",
-					}}
-				/>
-				{/* Bottom-left */}
-				<div
-					className="absolute -bottom-2 -left-2 h-5 w-5"
-					style={{
-						borderBottom: "2px solid rgba(255,184,0,0.15)",
-						borderLeft: "2px solid rgba(255,184,0,0.15)",
-						borderRadius: "0 0 0 8px",
-						pointerEvents: "none",
-					}}
-				/>
-				{/* Bottom-right */}
-				<div
-					className="absolute -bottom-2 -right-2 h-5 w-5"
-					style={{
-						borderBottom: "2px solid rgba(255,184,0,0.15)",
-						borderRight: "2px solid rgba(255,184,0,0.15)",
-						borderRadius: "0 0 8px 0",
-						pointerEvents: "none",
-					}}
-				/>
-
-				{/* Card stack */}
-				<div className="relative aspect-[2/3] w-full">
+					className="relative mx-auto h-full"
+					style={{ aspectRatio: "2/3", maxHeight: "100%", maxWidth: "100%" }}
+				>
 					<AnimatePresence>
 						{visibleCards.map((card, index) => (
 							<SwipeCard
