@@ -16,14 +16,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as OnboardingIndexRouteImport } from './routes/onboarding/index'
 import { Route as AppSettingsRouteImport } from './routes/app/settings'
 import { Route as AppSearchRouteImport } from './routes/app/search'
+import { Route as AppFriendsRouteImport } from './routes/app/friends'
 import { Route as AppWatchlistsIndexRouteImport } from './routes/app/watchlists/index'
 import { Route as AppShuffleIndexRouteImport } from './routes/app/shuffle/index'
 import { Route as AppWatchlistsWatchlistIdRouteImport } from './routes/app/watchlists/$watchlistId'
 import { Route as AppShuffleHiddenRouteImport } from './routes/app/shuffle/hidden'
+import { Route as AppProfileUserIdRouteImport } from './routes/app/profile.$userId'
 import { Route as ApiUploadthingSplatRouteImport } from './routes/api/uploadthing/$'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as AppFriendsRouteImport } from './routes/app/friends'
 import { Route as AppTitleMediaTypeTmdbIdRouteImport } from './routes/app/title.$mediaType.$tmdbId'
 
 const LoginRoute = LoginRouteImport.update({
@@ -61,6 +62,11 @@ const AppSearchRoute = AppSearchRouteImport.update({
   path: '/search',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppFriendsRoute = AppFriendsRouteImport.update({
+  id: '/friends',
+  path: '/friends',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppWatchlistsIndexRoute = AppWatchlistsIndexRouteImport.update({
   id: '/watchlists/',
   path: '/watchlists/',
@@ -82,6 +88,11 @@ const AppShuffleHiddenRoute = AppShuffleHiddenRouteImport.update({
   path: '/shuffle/hidden',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppProfileUserIdRoute = AppProfileUserIdRouteImport.update({
+  id: '/profile/$userId',
+  path: '/profile/$userId',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const ApiUploadthingSplatRoute = ApiUploadthingSplatRouteImport.update({
   id: '/api/uploadthing/$',
   path: '/api/uploadthing/$',
@@ -97,11 +108,6 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppFriendsRoute = AppFriendsRouteImport.update({
-  id: '/friends',
-  path: '/friends',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppTitleMediaTypeTmdbIdRoute = AppTitleMediaTypeTmdbIdRouteImport.update({
   id: '/title/$mediaType/$tmdbId',
   path: '/title/$mediaType/$tmdbId',
@@ -113,13 +119,14 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/friends': typeof AppFriendsRoute
   '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRoute
-  '/app/friends': typeof AppFriendsRoute
   '/onboarding/': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle/': typeof AppShuffleIndexRoute
@@ -130,13 +137,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/friends': typeof AppFriendsRoute
   '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRoute
-  '/app/friends': typeof AppFriendsRoute
   '/onboarding': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle': typeof AppShuffleIndexRoute
@@ -149,13 +157,14 @@ export interface FileRoutesById {
   '/app': typeof AppRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/friends': typeof AppFriendsRoute
   '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRoute
-  '/app/friends': typeof AppFriendsRoute
   '/onboarding/': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle/': typeof AppShuffleIndexRoute
@@ -169,13 +178,14 @@ export interface FileRouteTypes {
     | '/app'
     | '/onboarding'
     | '/login'
+    | '/app/friends'
     | '/app/search'
     | '/app/settings'
-    | '/app/friends'
     | '/onboarding/'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/profile/$userId'
     | '/app/shuffle/hidden'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle/'
@@ -186,13 +196,14 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/login'
+    | '/app/friends'
     | '/app/search'
     | '/app/settings'
-    | '/app/friends'
     | '/onboarding'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/profile/$userId'
     | '/app/shuffle/hidden'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle'
@@ -204,13 +215,14 @@ export interface FileRouteTypes {
     | '/app'
     | '/onboarding'
     | '/login'
+    | '/app/friends'
     | '/app/search'
     | '/app/settings'
-    | '/app/friends'
     | '/onboarding/'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/profile/$userId'
     | '/app/shuffle/hidden'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle/'
@@ -258,13 +270,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/friends': {
-      id: '/app/friends'
-      path: '/friends'
-      fullPath: '/app/friends'
-      preLoaderRoute: typeof AppFriendsRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/onboarding/': {
       id: '/onboarding/'
       path: '/'
@@ -284,6 +289,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/app/search'
       preLoaderRoute: typeof AppSearchRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/friends': {
+      id: '/app/friends'
+      path: '/friends'
+      fullPath: '/app/friends'
+      preLoaderRoute: typeof AppFriendsRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/watchlists/': {
@@ -312,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: '/shuffle/hidden'
       fullPath: '/app/shuffle/hidden'
       preLoaderRoute: typeof AppShuffleHiddenRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/profile/$userId': {
+      id: '/app/profile/$userId'
+      path: '/profile/$userId'
+      fullPath: '/app/profile/$userId'
+      preLoaderRoute: typeof AppProfileUserIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/api/uploadthing/$': {
@@ -346,9 +365,10 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteRouteChildren {
+  AppFriendsRoute: typeof AppFriendsRoute
   AppSearchRoute: typeof AppSearchRoute
   AppSettingsRoute: typeof AppSettingsRoute
-  AppFriendsRoute: typeof AppFriendsRoute
+  AppProfileUserIdRoute: typeof AppProfileUserIdRoute
   AppShuffleHiddenRoute: typeof AppShuffleHiddenRoute
   AppWatchlistsWatchlistIdRoute: typeof AppWatchlistsWatchlistIdRoute
   AppShuffleIndexRoute: typeof AppShuffleIndexRoute
@@ -357,9 +377,10 @@ interface AppRouteRouteChildren {
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppFriendsRoute: AppFriendsRoute,
   AppSearchRoute: AppSearchRoute,
   AppSettingsRoute: AppSettingsRoute,
-  AppFriendsRoute: AppFriendsRoute,
+  AppProfileUserIdRoute: AppProfileUserIdRoute,
   AppShuffleHiddenRoute: AppShuffleHiddenRoute,
   AppWatchlistsWatchlistIdRoute: AppWatchlistsWatchlistIdRoute,
   AppShuffleIndexRoute: AppShuffleIndexRoute,
@@ -395,12 +416,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
