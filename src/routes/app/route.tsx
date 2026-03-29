@@ -6,6 +6,7 @@ import {
 	useMatches,
 } from "@tanstack/react-router";
 import { Bookmark, Search, Shuffle } from "lucide-react";
+import { NotificationBell } from "#/components/notifications/notification-bell";
 import { RetroOverlays } from "#/components/retro-overlays";
 import BetterAuthHeader from "#/integrations/better-auth/header-user";
 import { getSession } from "#/lib/auth-session";
@@ -86,7 +87,8 @@ function AppLayout() {
 					</div>
 
 					{/* Spacer + Auth */}
-					<div className="ml-auto">
+					<div className="ml-auto flex items-center gap-3">
+						<NotificationBell />
 						<BetterAuthHeader />
 					</div>
 				</nav>
