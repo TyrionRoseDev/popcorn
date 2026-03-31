@@ -1,8 +1,9 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
-import { watchEvent } from "#/db/schema";
+import { recommendation, watchEvent } from "#/db/schema";
 import { createTRPCRouter, protectedProcedure } from "../init";
+import { createNotification } from "./notification";
 
 export const watchedRouter = createTRPCRouter({
 	create: protectedProcedure
@@ -53,6 +54,40 @@ export const watchedRouter = createTRPCRouter({
 						eq(watchEvent.userId, ctx.userId),
 					),
 				);
+
+			// Notify recommenders if this is a public review
+			if (input.rating || input.reviewText) {
+				const event = await db.query.watchEvent.findFirst({
+					where: and(
+						eq(watchEvent.id, input.watchEventId),
+						eq(watchEvent.userId, ctx.userId),
+					),
+				});
+
+				if (event?.reviewPublic) {
+					const recs = await db.query.recommendation.findMany({
+						where: and(
+							eq(recommendation.recipientId, ctx.userId),
+							eq(recommendation.tmdbId, event.tmdbId),
+							eq(recommendation.mediaType, event.mediaType),
+							eq(recommendation.status, "accepted"),
+						),
+					});
+
+					for (const rec of recs) {
+						await createNotification({
+							recipientId: rec.senderId,
+							actorId: ctx.userId,
+							type: "recommendation_watched",
+							data: {
+								titleName: event.titleName,
+								tmdbId: event.tmdbId,
+								mediaType: event.mediaType,
+							},
+						});
+					}
+				}
+			}
 		}),
 
 	setReminder: protectedProcedure
