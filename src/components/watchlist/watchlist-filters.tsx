@@ -10,6 +10,7 @@ const SORT_OPTIONS = [
 	{ value: "title", label: "Title" },
 	{ value: "year", label: "Year" },
 	{ value: "rating", label: "Rating" },
+	{ value: "recommender", label: "Recommender" },
 ];
 
 const TYPE_OPTIONS = [

@@ -114,6 +114,9 @@ export const watchlistRouter = {
 							addedByUser: {
 								columns: { id: true, username: true, avatarUrl: true },
 							},
+							recommendedByUser: {
+								columns: { id: true, username: true, avatarUrl: true },
+							},
 						},
 						orderBy: (item, { desc }) => [desc(item.createdAt)],
 					},

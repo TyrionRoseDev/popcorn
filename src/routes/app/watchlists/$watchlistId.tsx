@@ -8,7 +8,9 @@ import { WatchlistItemCard } from "#/components/watchlist/watchlist-item-card";
 import { useTRPC } from "#/integrations/trpc/react";
 
 const searchSchema = z.object({
-	sort: z.enum(["date-added", "title", "year", "rating"]).default("date-added"),
+	sort: z
+		.enum(["date-added", "title", "year", "rating", "recommender"])
+		.default("date-added"),
 	type: z.enum(["all", "movie", "tv"]).default("all"),
 });
 
@@ -69,6 +71,13 @@ function WatchlistDetailPage() {
 			case "rating":
 				// Placeholder: sort by tmdbId since we don't have TMDB rating data yet
 				items.sort((a, b) => b.tmdbId - a.tmdbId);
+				break;
+			case "recommender":
+				items.sort((a, b) => {
+					const aName = a.recommendedByUser?.username ?? "";
+					const bName = b.recommendedByUser?.username ?? "";
+					return aName.localeCompare(bName);
+				});
 				break;
 		}
 
