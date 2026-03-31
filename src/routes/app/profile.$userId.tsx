@@ -21,9 +21,12 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
+import { AchievementGrid } from "#/components/achievements/achievement-grid";
+import { authClient } from "#/lib/auth-client";
 import { useTRPC } from "#/integrations/trpc/react";
 import { getUnifiedGenreById } from "#/lib/genre-map";
 import { getTmdbImageUrl } from "#/lib/tmdb";
+import { ACHIEVEMENTS } from "#/lib/achievements";
 
 export const Route = createFileRoute("/app/profile/$userId")({
 	component: ProfilePage,
@@ -76,78 +79,6 @@ const HEATMAP_COLORS = [
 	"bg-neon-pink/60", // 3
 	"bg-neon-pink/80", // 4
 ];
-
-// ── Demo achievements ─────────────────────────────────────────
-const DEMO_ACHIEVEMENTS_EARNED = [
-	{
-		icon: "🎬",
-		label: "First Watch",
-		desc: "Watched your first title",
-		date: "Jan 12, 2025",
-	},
-	{
-		icon: "🔥",
-		label: "Binge Master",
-		desc: "Watched 5 titles in one day",
-		date: "Feb 3, 2025",
-	},
-	{
-		icon: "🌍",
-		label: "Genre Explorer",
-		desc: "Watched titles in 10 genres",
-		date: "Mar 8, 2025",
-	},
-	{
-		icon: "🍿",
-		label: "Watchlist Creator",
-		desc: "Created 3 watchlists",
-		date: "Mar 15, 2025",
-	},
-	{ icon: "⭐", label: "Critic", desc: "Wrote 5 reviews", date: "Apr 1, 2025" },
-	{
-		icon: "👯",
-		label: "Social Butterfly",
-		desc: "Added 5 friends",
-		date: "Apr 20, 2025",
-	},
-	{
-		icon: "🎯",
-		label: "Completionist",
-		desc: "Finished a watchlist",
-		date: "May 5, 2025",
-	},
-	{
-		icon: "🌙",
-		label: "Night Owl",
-		desc: "Watched something after midnight",
-		date: "May 18, 2025",
-	},
-	{
-		icon: "📺",
-		label: "Series Addict",
-		desc: "Finished a TV series",
-		date: "Jun 2, 2025",
-	},
-	{
-		icon: "🏆",
-		label: "Century Club",
-		desc: "Watched 100 titles",
-		date: "Jul 14, 2025",
-	},
-	{
-		icon: "💀",
-		label: "Horror Fanatic",
-		desc: "Watched 25 horror films",
-		date: "Aug 9, 2025",
-	},
-	{
-		icon: "🎭",
-		label: "Drama Queen",
-		desc: "Watched 15 dramas",
-		date: "Sep 22, 2025",
-	},
-];
-const DEMO_ACHIEVEMENTS_TOTAL = 50;
 
 // ── Demo reviews ──────────────────────────────────────────────
 const DEMO_REVIEWS = [
@@ -402,6 +333,8 @@ function ProfilePage() {
 	}
 
 	const isFriend = profile.isFriend;
+	const { data: session } = authClient.useSession();
+	const isOwnProfile = !!session?.user?.id && session.user.id === userId;
 	const initial = (profile.username ?? "?").charAt(0).toUpperCase();
 	const genreName = profile.favouriteGenreId
 		? (getUnifiedGenreById(profile.favouriteGenreId)?.name ?? null)
@@ -805,7 +738,12 @@ function ProfilePage() {
 						)}
 
 						{/* ── 7. Achievements ──────────────────── */}
-						<AchievementsDesignB />
+						<ProfileAchievements
+							userId={userId}
+							isFriend={isFriend}
+							isOwnProfile={isOwnProfile}
+							friendName={profile.username ?? undefined}
+						/>
 
 						{/* ── 8. Favourite film ────────────────── */}
 						{profile.favouriteFilmTmdbId && (
@@ -845,154 +783,94 @@ function ProfilePage() {
 }
 
 // ════════════════════════════════════════════════════════════════
-// Achievements popup (shared by all designs)
+// ProfileAchievements — Real data with ring progress + grid popup
 // ════════════════════════════════════════════════════════════════
 
-function AchievementsPopup({
-	open,
-	onClose,
+function ProfileAchievements({
+	userId,
+	isFriend,
+	isOwnProfile,
+	friendName,
 }: {
-	open: boolean;
-	onClose: () => void;
+	userId: string;
+	isFriend: boolean;
+	isOwnProfile: boolean;
+	friendName?: string;
 }) {
-	const earned = DEMO_ACHIEVEMENTS_EARNED.length;
-	const total = DEMO_ACHIEVEMENTS_TOTAL;
+	const trpc = useTRPC();
+	const [showGrid, setShowGrid] = useState(false);
 
-	return (
-		<AnimatePresence>
-			{open && (
-				<motion.div
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					exit={{ opacity: 0 }}
-					className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
-					onClick={onClose}
-				>
-					<motion.div
-						initial={{ opacity: 0, scale: 0.95, y: 10 }}
-						animate={{ opacity: 1, scale: 1, y: 0 }}
-						exit={{ opacity: 0, scale: 0.95, y: 10 }}
-						onClick={(e) => e.stopPropagation()}
-						className="max-h-[70vh] w-full max-w-[420px] overflow-y-auto rounded-xl border border-drive-in-border bg-drive-in-bg p-5"
-					>
-						<div className="mb-4 flex items-center justify-between">
-							<div className="flex items-center gap-2">
-								<Trophy className="h-4 w-4 text-neon-amber" />
-								<span className="font-mono-retro text-xs uppercase tracking-[2px] text-cream/80">
-									Achievements
-								</span>
-								<span className="font-mono-retro text-xs text-cream/35">
-									{earned}/{total}
-								</span>
-							</div>
-							<button
-								type="button"
-								onClick={onClose}
-								className="flex h-7 w-7 items-center justify-center rounded-full border border-cream/10 text-cream/40 transition-colors hover:border-cream/25 hover:text-cream/70"
-							>
-								<X className="h-3.5 w-3.5" />
-							</button>
-						</div>
-						<div className="space-y-2">
-							{DEMO_ACHIEVEMENTS_EARNED.map((a) => (
-								<div
-									key={a.label}
-									className="flex items-center gap-3 rounded-lg border border-neon-amber/10 bg-neon-amber/[0.02] px-3 py-2.5"
-								>
-									<span className="text-xl">{a.icon}</span>
-									<div className="min-w-0 flex-1">
-										<p className="text-sm font-medium text-cream/75">
-											{a.label}
-										</p>
-										<p className="text-xs text-cream/35">{a.desc}</p>
-									</div>
-									<span className="shrink-0 font-mono-retro text-[9px] text-cream/45">
-										{a.date}
-									</span>
-								</div>
-							))}
-						</div>
-					</motion.div>
-				</motion.div>
-			)}
-		</AnimatePresence>
-	);
-}
+	useQuery(trpc.achievement.myAchievements.queryOptions());
 
-// ════════════════════════════════════════════════════════════════
-// Design A — Recent badges row with count chip
-// Shows last 3 earned icons in a row + "12/50" badge on the right
-// ════════════════════════════════════════════════════════════════
+	const { data: comparison } = useQuery({
+		...trpc.achievement.compare.queryOptions({ friendId: userId }),
+		enabled: isFriend && !isOwnProfile,
+	});
 
-// ════════════════════════════════════════════════════════════════
-// Achievements — Centered trophy with ring progress
-// ════════════════════════════════════════════════════════════════
+	const { data: theirAchievements } = useQuery({
+		...trpc.achievement.userAchievements.queryOptions({ userId }),
+		enabled: isOwnProfile,
+	});
 
-function AchievementsDesignB() {
-	const [open, setOpen] = useState(false);
-	const earned = DEMO_ACHIEVEMENTS_EARNED.length;
-	const total = DEMO_ACHIEVEMENTS_TOTAL;
-	const pct = Math.round((earned / total) * 100);
-	const radius = 34;
+	const earnedCount = isOwnProfile
+		? (theirAchievements?.earned.length ?? 0)
+		: isFriend
+			? (comparison?.theirTotal ?? 0)
+			: 0;
+	const total = ACHIEVEMENTS.length;
+
+	// SVG ring progress
+	const radius = 38;
 	const circumference = 2 * Math.PI * radius;
-	const strokeDash = circumference * (pct / 100);
-	const size = 80;
-	const center = size / 2;
+	const progress = (earnedCount / total) * circumference;
 
 	return (
-		<div className="mt-6">
+		<>
 			<button
 				type="button"
-				onClick={() => setOpen(true)}
-				className="group flex w-full flex-col items-center gap-1 py-2 transition-all"
+				onClick={() => (isFriend || isOwnProfile) && setShowGrid(true)}
+				className="group flex flex-col items-center gap-2"
 			>
-				{/* Ring progress */}
-				<div
-					className="relative flex items-center justify-center"
-					style={{ width: size, height: size }}
-				>
-					<svg
-						className="absolute inset-0"
-						viewBox={`0 0 ${size} ${size}`}
-						fill="none"
-						role="img"
-						aria-label="Achievement progress"
-					>
-						<circle
-							cx={center}
-							cy={center}
-							r={radius}
-							stroke="rgba(255,255,240,0.06)"
-							strokeWidth="4"
-						/>
-						<circle
-							cx={center}
-							cy={center}
-							r={radius}
-							stroke="rgba(255,184,0,0.5)"
-							strokeWidth="4"
-							strokeLinecap="round"
-							strokeDasharray={`${strokeDash} ${circumference}`}
-							transform={`rotate(-90 ${center} ${center})`}
-						/>
+				<div className="relative flex h-24 w-24 items-center justify-center">
+					<svg className="absolute inset-0 -rotate-90" viewBox="0 0 96 96">
+						<circle cx="48" cy="48" r={radius} fill="none" stroke="currentColor" strokeWidth="3" className="text-cream/10" />
+						<circle cx="48" cy="48" r={radius} fill="none" stroke="url(#achievement-gradient)" strokeWidth="3" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference - progress} className="transition-all duration-700" />
+						<defs>
+							<linearGradient id="achievement-gradient">
+								<stop offset="0%" stopColor="#FF2D78" />
+								<stop offset="50%" stopColor="#FFB800" />
+								<stop offset="100%" stopColor="#00E5FF" />
+							</linearGradient>
+						</defs>
 					</svg>
-					<Trophy className="trophy-wiggle h-6 w-6 text-neon-amber/70" />
+					<Trophy className="h-6 w-6 text-neon-amber transition-transform group-hover:scale-110" />
 				</div>
-				<p className="font-mono-retro text-[10px] uppercase tracking-[2px] text-cream/70">
-					Achievements
-				</p>
-				<p className="text-xs text-cream/40">
-					<span
-						className="text-neon-amber"
-						style={{ textShadow: "0 0 6px rgba(255,184,0,0.2)" }}
-					>
-						{earned}
-					</span>
-					<span className="text-cream/25"> / {total}</span>
-				</p>
+				<span className="font-mono text-xs text-cream/50">Achievements</span>
+				<span className="font-mono text-sm text-cream">
+					{earnedCount} / {total}
+				</span>
 			</button>
-			<AchievementsPopup open={open} onClose={() => setOpen(false)} />
-		</div>
+
+			{showGrid && isOwnProfile && theirAchievements && (
+				<AchievementGrid
+					myEarned={theirAchievements.earned.map((e) => ({ id: e.id, earnedAt: e.earnedAt }))}
+					onClose={() => setShowGrid(false)}
+				/>
+			)}
+
+			{showGrid && isFriend && !isOwnProfile && comparison && (
+				<AchievementGrid
+					myEarned={comparison.achievements
+						.filter((a) => a.myEarnedAt)
+						.map((a) => ({ id: a.id, earnedAt: a.myEarnedAt! }))}
+					theirEarned={comparison.achievements
+						.filter((a) => a.theirEarnedAt)
+						.map((a) => ({ id: a.id, earnedAt: a.theirEarnedAt! }))}
+					theirName={friendName}
+					onClose={() => setShowGrid(false)}
+				/>
+			)}
+		</>
 	);
 }
 
