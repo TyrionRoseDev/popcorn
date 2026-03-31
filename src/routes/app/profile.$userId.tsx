@@ -297,7 +297,7 @@ function ProfilePage() {
 			profile?.favouriteFilmTmdbId
 				? {
 						tmdbId: profile.favouriteFilmTmdbId,
-						mediaType: "movie" as const,
+						mediaType: profile.favouriteFilmMediaType === "tv" ? "tv" : "movie",
 					}
 				: skipToken,
 		),
@@ -807,17 +807,23 @@ function ProfilePage() {
 						{/* ── 7. Achievements ──────────────────── */}
 						<AchievementsDesignB />
 
-						{/* ── 8. Favourite film ────────────────── */}
+						{/* ── 8. Favourite pick ────────────────── */}
 						{profile.favouriteFilmTmdbId && (
 							<div className="mt-5">
 								<div className="mb-2 flex items-center justify-center gap-1.5">
 									<Heart className="h-3 w-3 text-neon-pink/60" />
 									<span className="font-mono-retro text-[10px] uppercase tracking-[2px] text-cream/70">
-										Favourite Film
+										Favourite{" "}
+										{profile.favouriteFilmMediaType === "tv"
+											? "TV Show"
+											: "Film"}
 									</span>
 								</div>
 								<FavouriteFilmPoster
 									tmdbId={profile.favouriteFilmTmdbId}
+									mediaType={
+										profile.favouriteFilmMediaType === "tv" ? "tv" : "movie"
+									}
 									film={favFilm ?? null}
 								/>
 							</div>
@@ -1002,9 +1008,11 @@ function AchievementsDesignB() {
 
 function FavouriteFilmPoster({
 	tmdbId,
+	mediaType,
 	film,
 }: {
 	tmdbId: number;
+	mediaType: "movie" | "tv";
 	film: {
 		title: string;
 		year: string;
@@ -1019,7 +1027,7 @@ function FavouriteFilmPoster({
 	return (
 		<Link
 			to="/app/title/$mediaType/$tmdbId"
-			params={{ mediaType: "movie", tmdbId }}
+			params={{ mediaType, tmdbId }}
 			className="group flex flex-col items-center no-underline"
 		>
 			<div className="relative w-[140px] overflow-hidden rounded-lg shadow-lg transition-transform duration-300 group-hover:scale-105">

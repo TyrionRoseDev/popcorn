@@ -137,6 +137,7 @@ export const friendRouter = createTRPCRouter({
 				username: user.username,
 				avatarUrl: user.avatarUrl,
 				favouriteFilmTmdbId: user.favouriteFilmTmdbId,
+				favouriteFilmMediaType: user.favouriteFilmMediaType,
 				favouriteGenreId: user.favouriteGenreId,
 				bio: user.bio,
 			})
@@ -522,6 +523,7 @@ export const friendRouter = createTRPCRouter({
 					avatarUrl: user.avatarUrl,
 					bio: user.bio,
 					favouriteFilmTmdbId: user.favouriteFilmTmdbId,
+					favouriteFilmMediaType: user.favouriteFilmMediaType,
 					favouriteGenreId: user.favouriteGenreId,
 				})
 				.from(user)

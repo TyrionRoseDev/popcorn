@@ -333,6 +333,7 @@ export const tasteProfileRouter = {
 		.input(
 			z.object({
 				favouriteFilmTmdbId: z.number().nullable(),
+				favouriteFilmMediaType: z.enum(["movie", "tv"]).nullable(),
 				favouriteGenreId: z.number().nullable(),
 				bio: z.string().max(100).nullable(),
 			}),
@@ -342,6 +343,7 @@ export const tasteProfileRouter = {
 				.update(user)
 				.set({
 					favouriteFilmTmdbId: input.favouriteFilmTmdbId,
+					favouriteFilmMediaType: input.favouriteFilmMediaType,
 					favouriteGenreId: input.favouriteGenreId,
 					bio: input.bio,
 					onboardingCompleted: true,

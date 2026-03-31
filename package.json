@@ -17,11 +17,7 @@
     "check": "biome check",
     "check:fix": "biome check --write --unsafe",
     "typecheck": "tsc --noEmit",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:pull": "drizzle-kit pull",
-    "db:studio": "drizzle-kit studio",
     "dev:email": "email dev -d src/emails",
     "prepare": "husky"
   },

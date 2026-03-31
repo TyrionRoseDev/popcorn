@@ -62,6 +62,7 @@ interface Friend {
 	username: string | null;
 	avatarUrl: string | null;
 	favouriteFilmTmdbId: number | null;
+	favouriteFilmMediaType: string | null;
 	favouriteGenreId: number | null;
 	bio: string | null;
 }
@@ -142,7 +143,7 @@ function TicketStubCard({ friend }: { friend: Friend }) {
 						<Heart className="h-3 w-3 shrink-0 text-neon-pink/75" />
 						<span className="truncate text-xs text-cream/40">
 							{friend.favouriteFilmTmdbId
-								? `Film #${friend.favouriteFilmTmdbId}`
+								? `${friend.favouriteFilmMediaType === "tv" ? "Show" : "Film"} #${friend.favouriteFilmTmdbId}`
 								: "No fave yet"}
 						</span>
 					</div>

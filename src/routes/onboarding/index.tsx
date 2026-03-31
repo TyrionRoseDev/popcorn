@@ -39,7 +39,7 @@ const STEPS: StepConfig[] = [
 	{ label: "Username", component: UsernameStep },
 	{ label: "Avatar", component: AvatarStep },
 	{ label: "Taste", component: TasteProfileStep },
-	{ label: "Film", component: FavouriteFilmStep },
+	{ label: "Favourite", component: FavouriteFilmStep },
 	{ label: "Genre", component: FavouriteGenreStep },
 	{ label: "Bio", component: BioStep },
 ];
@@ -51,6 +51,7 @@ function OnboardingPage() {
 	const [cardUnlocked, setCardUnlocked] = useState(false);
 	const [onboardingState, setOnboardingStateRaw] = useState<OnboardingState>({
 		favouriteFilmTmdbId: null,
+		favouriteFilmMediaType: null,
 		favouriteGenreId: null,
 		bio: null,
 	});

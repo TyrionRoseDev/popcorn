@@ -11,6 +11,7 @@ import type { GenreColorMap } from "./title-card";
 import { TitleGrid } from "./title-grid";
 
 const MIN_GENRES = 3;
+const MIN_TITLES = 3;
 const MAX_TITLES = 10;
 
 const NEON_COLORS: { bg: string; text: string }[] = [
@@ -73,7 +74,9 @@ export function TasteProfileStep({ onNext }: { onNext: () => void }) {
 			},
 			onError: (error) => {
 				console.error("[TasteProfile] Save failed:", error);
-				toast.error(error.message || "Failed to save. Please try again.");
+				toast.error("Couldn't save your taste profile.", {
+					description: error.message || "Please try again in a moment.",
+				});
 			},
 		}),
 	);
@@ -139,6 +142,16 @@ export function TasteProfileStep({ onNext }: { onNext: () => void }) {
 	}, []);
 
 	const handleContinue = useCallback(() => {
+		if (selectedGenres.size < MIN_GENRES) {
+			toast.error("Pick at least 3 genres to continue.");
+			return;
+		}
+
+		if (selectedTitles.size < MIN_TITLES) {
+			toast.error("Pick at least 3 titles to continue.");
+			return;
+		}
+
 		const payload = {
 			genreIds: Array.from(selectedGenres),
 			titles: Array.from(selectedTitles.values()).map((item) => ({
@@ -247,6 +260,7 @@ export function TasteProfileStep({ onNext }: { onNext: () => void }) {
 				createPortal(
 					<SelectionFooter
 						selectedTitles={selectedTitles}
+						selectedGenreCount={selectedGenres.size}
 						onDeselect={handleDeselect}
 						onContinue={handleContinue}
 						isSaving={saveMutation.isPending}

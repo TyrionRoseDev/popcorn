@@ -3,10 +3,12 @@ import type { FeedItem } from "#/lib/feed-assembler";
 import { getTmdbImageUrl } from "#/lib/tmdb";
 
 const MIN_TITLES = 3;
+const MIN_GENRES = 3;
 const MAX_TITLES = 10;
 
 interface SelectionFooterProps {
 	selectedTitles: Map<string, FeedItem>;
+	selectedGenreCount: number;
 	onDeselect: (key: string) => void;
 	onContinue: () => void;
 	isSaving: boolean;
@@ -14,6 +16,7 @@ interface SelectionFooterProps {
 
 export function SelectionFooter({
 	selectedTitles,
+	selectedGenreCount,
 	onDeselect,
 	onContinue,
 	isSaving,
@@ -21,7 +24,9 @@ export function SelectionFooter({
 	if (selectedTitles.size === 0) return null;
 
 	const entries = Array.from(selectedTitles.entries());
-	const canContinue = selectedTitles.size >= MIN_TITLES;
+	const hasEnoughTitles = selectedTitles.size >= MIN_TITLES;
+	const hasEnoughGenres = selectedGenreCount >= MIN_GENRES;
+	const canContinue = hasEnoughTitles && hasEnoughGenres;
 
 	return (
 		<div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#FF2D78]/20 bg-[#0a0a0a]/95 shadow-[0_-4px_24px_rgba(0,0,0,0.5)] backdrop-blur-xl">
@@ -60,12 +65,17 @@ export function SelectionFooter({
 				</div>
 
 				{/* Count */}
-				<span className="shrink-0 text-sm text-cream/50">
-					<span className="font-bold text-[#FF2D78]">
-						{selectedTitles.size}
-					</span>
-					/{MAX_TITLES}
-				</span>
+				<div className="shrink-0 text-right text-sm text-cream/50">
+					<div>
+						<span className="font-bold text-[#FF2D78]">
+							{selectedTitles.size}
+						</span>
+						/{MAX_TITLES} titles
+					</div>
+					<div className={hasEnoughGenres ? "text-cream/50" : "text-[#FFB800]"}>
+						{selectedGenreCount}/{MIN_GENRES} genres
+					</div>
+				</div>
 
 				{/* Continue */}
 				<button

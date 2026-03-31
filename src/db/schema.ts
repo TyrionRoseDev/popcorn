@@ -27,6 +27,7 @@ export const user = pgTable("user", {
 	onboardingCompleted: boolean("onboarding_completed").default(false),
 	bio: text("bio"),
 	favouriteFilmTmdbId: integer("favourite_film_tmdb_id"),
+	favouriteFilmMediaType: text("favourite_film_media_type"),
 	favouriteGenreId: integer("favourite_genre_id"),
 });
 

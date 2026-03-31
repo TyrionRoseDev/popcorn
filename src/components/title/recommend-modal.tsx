@@ -1,9 +1,4 @@
-import {
-	skipToken,
-	useMutation,
-	useQuery,
-	useQueryClient,
-} from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
 import { Loader2, Send, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -32,7 +27,6 @@ export function RecommendModal({
 	titleName,
 }: RecommendModalProps) {
 	const trpc = useTRPC();
-	const queryClient = useQueryClient();
 	const [searchInput, setSearchInput] = useState("");
 	const [debouncedQuery, setDebouncedQuery] = useState("");
 	const [selectedFriends, setSelectedFriends] = useState<
