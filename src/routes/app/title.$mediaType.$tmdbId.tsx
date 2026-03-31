@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Plus, Send } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { ArcadeButton } from "#/components/title/arcade-button";
 import { RecommendModal } from "#/components/title/recommend-modal";
@@ -23,6 +23,10 @@ const paramsSchema = z.object({
 	tmdbId: z.coerce.number(),
 });
 
+const searchParamsSchema = z.object({
+	reviewReminder: z.string().optional(),
+});
+
 export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
 	params: {
 		parse: (raw) => paramsSchema.parse(raw),
@@ -31,6 +35,7 @@ export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
 			tmdbId: String(params.tmdbId),
 		}),
 	},
+	validateSearch: (search) => searchParamsSchema.parse(search),
 	loader: async ({ context: { queryClient, trpc }, params }) => {
 		await queryClient.ensureQueryData(
 			trpc.title.details.queryOptions({
@@ -46,6 +51,7 @@ export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
 
 function TitlePage() {
 	const { mediaType, tmdbId } = Route.useParams();
+	const { reviewReminder } = Route.useSearch();
 	const trpc = useTRPC();
 	const { data } = useQuery(
 		trpc.title.details.queryOptions({ mediaType, tmdbId }),
@@ -53,6 +59,20 @@ function TitlePage() {
 	const [recommendOpen, setRecommendOpen] = useState(false);
 	const [reviewModalOpen, setReviewModalOpen] = useState(false);
 	const [watchEventId, setWatchEventId] = useState<string | null>(null);
+
+	const { data: reminderEvent } = useQuery(
+		trpc.watched.getById.queryOptions(
+			{ id: reviewReminder! },
+			{ enabled: !!reviewReminder },
+		),
+	);
+
+	useEffect(() => {
+		if (reminderEvent && reviewReminder) {
+			setWatchEventId(reminderEvent.id);
+			setReviewModalOpen(true);
+		}
+	}, [reminderEvent, reviewReminder]);
 
 	const createWatchEvent = useMutation(
 		trpc.watched.create.mutationOptions({
@@ -148,6 +168,12 @@ function TitlePage() {
 				year={data.year}
 				tmdbId={Number(tmdbId)}
 				mediaType={mediaType as "movie" | "tv"}
+				isReminder={!!reviewReminder}
+				defaultWatchedAt={
+					reminderEvent?.watchedAt
+						? new Date(reminderEvent.watchedAt)
+						: undefined
+				}
 			/>
 		</div>
 	);
