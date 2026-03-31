@@ -82,6 +82,20 @@ function getNotificationMessage(
 					? `/app/title/${data.mediaType}/${data.tmdbId}`
 					: undefined,
 			};
+		case "recommendation":
+			return {
+				text: `recommended ${data.titleName || "a title"} to you`,
+				link: data.tmdbId
+					? `/app/title/${data.mediaType}/${data.tmdbId}`
+					: undefined,
+			};
+		case "achievement_earned": {
+			const achievementName = data.achievementName || "an achievement";
+			return {
+				text: `earned the ${achievementName} achievement`,
+				link: actorId ? `/app/profile/${actorId}` : undefined,
+			};
+		}
 		default:
 			return { text: "sent you a notification" };
 	}
