@@ -522,6 +522,8 @@ export const watchlistRouter = {
 					},
 				});
 			}
+
+			await evaluateAchievements(input.userId, "watchlist_joined");
 		}),
 
 	removeMember: protectedProcedure

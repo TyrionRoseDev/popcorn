@@ -27,6 +27,7 @@ import {
 	discoverTvWithParams,
 	fetchTrending,
 } from "#/lib/tmdb";
+import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import { createNotification } from "./notification";
 import { mapMovieToFeedItem, mapTvToFeedItem } from "./taste-profile";
 
@@ -263,6 +264,8 @@ export const shuffleRouter = {
 					set: { action: input.action },
 				});
 
+			await evaluateAchievements(ctx.userId, "swipe");
+
 			// Check watchlist type to determine solo vs group behavior
 			const wl = await db.query.watchlist.findFirst({
 				where: eq(watchlist.id, input.watchlistId),
@@ -291,6 +294,8 @@ export const shuffleRouter = {
 							addedBy: ctx.userId,
 						})
 						.onConflictDoNothing();
+
+					await evaluateAchievements(ctx.userId, "shuffle_to_watchlist");
 
 					return { match: false };
 				}
@@ -332,6 +337,8 @@ export const shuffleRouter = {
 								},
 							});
 						}
+
+						await evaluateAchievements(ctx.userId, "shuffle_to_watchlist");
 					}
 
 					return {
