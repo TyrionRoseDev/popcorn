@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Plus, Send } from "lucide-react";
 import { useState } from "react";
@@ -15,6 +15,7 @@ import { Synopsis } from "#/components/title/synopsis";
 import { TitleMetadata } from "#/components/title/title-metadata";
 import { TitlePageAtmosphere } from "#/components/title/title-page-atmosphere";
 import { TitlePageSkeleton } from "#/components/title/title-page-skeleton";
+import { ReviewModal } from "#/components/watched/review-modal";
 import { useTRPC } from "#/integrations/trpc/react";
 
 const paramsSchema = z.object({
@@ -50,6 +51,17 @@ function TitlePage() {
 		trpc.title.details.queryOptions({ mediaType, tmdbId }),
 	);
 	const [recommendOpen, setRecommendOpen] = useState(false);
+	const [reviewModalOpen, setReviewModalOpen] = useState(false);
+	const [watchEventId, setWatchEventId] = useState<string | null>(null);
+
+	const createWatchEvent = useMutation(
+		trpc.watched.create.mutationOptions({
+			onSuccess: (data) => {
+				setWatchEventId(data.id);
+				setReviewModalOpen(true);
+			},
+		}),
+	);
 
 	if (!data) return <TitlePageSkeleton />;
 
@@ -77,7 +89,18 @@ function TitlePage() {
 					<PosterDisplayCase posterPath={data.posterPath} title={data.title} />
 					<div className="flex gap-4 justify-center mt-5">
 						<ArcadeButton icon={Plus} label="Watchlist" color="pink" />
-						<ArcadeButton icon={Check} label="Watched" color="cyan" />
+						<ArcadeButton
+							icon={Check}
+							label="Watched"
+							color="cyan"
+							onClick={() =>
+								createWatchEvent.mutate({
+									tmdbId: Number(tmdbId),
+									mediaType: mediaType as "movie" | "tv",
+									titleName: data.title,
+								})
+							}
+						/>
 						<ArcadeButton
 							icon={Send}
 							label="Recommend"
@@ -116,6 +139,16 @@ function TitlePage() {
 					</SectionBoard>
 				</div>
 			</div>
+
+			<ReviewModal
+				open={reviewModalOpen}
+				onOpenChange={setReviewModalOpen}
+				watchEventId={watchEventId}
+				titleName={data.title}
+				year={data.year}
+				tmdbId={Number(tmdbId)}
+				mediaType={mediaType as "movie" | "tv"}
+			/>
 		</div>
 	);
 }
