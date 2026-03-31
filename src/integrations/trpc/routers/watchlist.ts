@@ -84,7 +84,7 @@ export const watchlistRouter = {
 				},
 			},
 			orderBy: (wl, { desc }) => [
-				sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'custom' THEN 2 WHEN 'shuffle' THEN 3 ELSE 99 END`,
+				sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'recommendations' THEN 2 WHEN 'custom' THEN 3 WHEN 'shuffle' THEN 4 ELSE 99 END`,
 				desc(wl.updatedAt),
 			],
 		});
@@ -179,7 +179,7 @@ export const watchlistRouter = {
 			where: (wl, { inArray }) => inArray(wl.id, watchlistIds),
 			columns: { id: true, name: true, type: true },
 			orderBy: (wl, { desc }) => [
-				sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'custom' THEN 2 WHEN 'shuffle' THEN 3 ELSE 99 END`,
+				sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'recommendations' THEN 2 WHEN 'custom' THEN 3 WHEN 'shuffle' THEN 4 ELSE 99 END`,
 				desc(wl.updatedAt),
 			],
 		});
@@ -290,10 +290,10 @@ export const watchlistRouter = {
 			const wl = await db.query.watchlist.findFirst({
 				where: eq(watchlist.id, input.watchlistId),
 			});
-			if (wl?.type === "default") {
+			if (wl?.type === "default" || wl?.type === "recommendations") {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
-					message: "Cannot delete the default watchlist",
+					message: "Cannot delete this watchlist",
 				});
 			}
 			await db.delete(watchlist).where(eq(watchlist.id, input.watchlistId));
@@ -441,6 +441,16 @@ export const watchlistRouter = {
 		)
 		.mutation(async ({ input, ctx }) => {
 			await assertOwner(input.watchlistId, ctx.userId);
+			const wl = await db.query.watchlist.findFirst({
+				where: eq(watchlist.id, input.watchlistId),
+				columns: { type: true },
+			});
+			if (wl?.type === "recommendations") {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Cannot invite members to the Recommendations watchlist",
+				});
+			}
 			await ensureAreFriends(ctx.userId, [input.userId]);
 
 			const inserted = await db
