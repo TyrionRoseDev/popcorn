@@ -409,7 +409,7 @@ export const watchlistRouter = {
 			if (input.watched) {
 				const wl = await db.query.watchlist.findFirst({
 					where: eq(watchlist.id, input.watchlistId),
-					columns: { name: true },
+					columns: { name: true, type: true },
 				});
 				const members = await db.query.watchlistMember.findMany({
 					where: eq(watchlistMember.watchlistId, input.watchlistId),
@@ -428,6 +428,31 @@ export const watchlistRouter = {
 							mediaType: input.mediaType,
 						},
 					});
+				}
+
+				// If recommended item was watched, notify the recommender
+				if (wl?.type === "recommendations") {
+					const item = await db.query.watchlistItem.findFirst({
+						where: and(
+							eq(watchlistItem.watchlistId, input.watchlistId),
+							eq(watchlistItem.tmdbId, input.tmdbId),
+							eq(watchlistItem.mediaType, input.mediaType),
+						),
+						columns: { recommendedBy: true },
+					});
+
+					if (item?.recommendedBy) {
+						await createNotification({
+							recipientId: item.recommendedBy,
+							actorId: ctx.userId,
+							type: "recommendation_reviewed",
+							data: {
+								titleName: input.titleName ?? "",
+								tmdbId: input.tmdbId,
+								mediaType: input.mediaType,
+							},
+						});
+					}
 				}
 			}
 		}),
