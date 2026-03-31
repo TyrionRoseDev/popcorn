@@ -17,7 +17,6 @@ import {
 	Trophy,
 	UserMinus,
 	UserPlus,
-	Users,
 	X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -37,22 +36,169 @@ const MARQUEE_BULBS = Array.from({ length: MARQUEE_BULB_COUNT }, (_, i) => ({
 	delay: `${(i * 0.12) % 1.0}s`,
 }));
 
-// ── Static heatmap grid for watch activity placeholder ──────────
-const HEATMAP_GRID = Array.from({ length: 12 }, (_, col) => ({
-	key: `hcol-${col}`,
-	cells: Array.from({ length: 7 }, (__, row) => `h-${col}-${row}`),
-}));
+// ── Deterministic hash for seeded "random" demo data ──────────
+function hashStr(s: string) {
+	let h = 0;
+	for (let i = 0; i < s.length; i++)
+		h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+	return Math.abs(h);
+}
+
+function seededRandom(seed: number) {
+	let s = seed;
+	return () => {
+		s = (s * 16807 + 0) % 2147483647;
+		return s / 2147483647;
+	};
+}
+
+// ── Heatmap: flat array of cells in column-major order (7 rows × COLS) ──
+const HEATMAP_COLS = 26;
+const HEATMAP_ROWS = 7;
+
+function buildHeatmapCells(userId: string) {
+	const rand = seededRandom(hashStr(`${userId}heatmap`));
+	const cells: { key: string; level: number }[] = [];
+	for (let row = 0; row < HEATMAP_ROWS; row++) {
+		for (let col = 0; col < HEATMAP_COLS; col++) {
+			const r = rand();
+			const level = r < 0.3 ? 0 : r < 0.55 ? 1 : r < 0.75 ? 2 : r < 0.9 ? 3 : 4;
+			cells.push({ key: `h-${row}-${col}`, level });
+		}
+	}
+	return cells;
+}
+
+const HEATMAP_COLORS = [
+	"bg-cream/[0.04]", // 0 — empty
+	"bg-neon-pink/20", // 1
+	"bg-neon-pink/40", // 2
+	"bg-neon-pink/60", // 3
+	"bg-neon-pink/80", // 4
+];
+
+// ── Demo achievements ─────────────────────────────────────────
+const DEMO_ACHIEVEMENTS_EARNED = [
+	{
+		icon: "🎬",
+		label: "First Watch",
+		desc: "Watched your first title",
+		date: "Jan 12, 2025",
+	},
+	{
+		icon: "🔥",
+		label: "Binge Master",
+		desc: "Watched 5 titles in one day",
+		date: "Feb 3, 2025",
+	},
+	{
+		icon: "🌍",
+		label: "Genre Explorer",
+		desc: "Watched titles in 10 genres",
+		date: "Mar 8, 2025",
+	},
+	{
+		icon: "🍿",
+		label: "Watchlist Creator",
+		desc: "Created 3 watchlists",
+		date: "Mar 15, 2025",
+	},
+	{ icon: "⭐", label: "Critic", desc: "Wrote 5 reviews", date: "Apr 1, 2025" },
+	{
+		icon: "👯",
+		label: "Social Butterfly",
+		desc: "Added 5 friends",
+		date: "Apr 20, 2025",
+	},
+	{
+		icon: "🎯",
+		label: "Completionist",
+		desc: "Finished a watchlist",
+		date: "May 5, 2025",
+	},
+	{
+		icon: "🌙",
+		label: "Night Owl",
+		desc: "Watched something after midnight",
+		date: "May 18, 2025",
+	},
+	{
+		icon: "📺",
+		label: "Series Addict",
+		desc: "Finished a TV series",
+		date: "Jun 2, 2025",
+	},
+	{
+		icon: "🏆",
+		label: "Century Club",
+		desc: "Watched 100 titles",
+		date: "Jul 14, 2025",
+	},
+	{
+		icon: "💀",
+		label: "Horror Fanatic",
+		desc: "Watched 25 horror films",
+		date: "Aug 9, 2025",
+	},
+	{
+		icon: "🎭",
+		label: "Drama Queen",
+		desc: "Watched 15 dramas",
+		date: "Sep 22, 2025",
+	},
+];
+const DEMO_ACHIEVEMENTS_TOTAL = 50;
+
+// ── Demo reviews ──────────────────────────────────────────────
+const DEMO_REVIEWS = [
+	{
+		title: "The Shining",
+		rating: 5,
+		text: "Kubrick at his finest. The Overlook Hotel is a character in itself.",
+		time: "2d ago",
+	},
+	{
+		title: "Alien",
+		rating: 4,
+		text: "Ridley Scott created the perfect sci-fi horror. Still holds up.",
+		time: "1w ago",
+	},
+	{
+		title: "Hereditary",
+		rating: 5,
+		text: "Ari Aster doesn't let you look away. Toni Collette was robbed.",
+		time: "2w ago",
+	},
+];
+
+// ── Demo activity ─────────────────────────────────────────────
+const DEMO_ACTIVITY = [
+	{
+		action: "Watched",
+		title: "The Shining",
+		time: "2d ago",
+		color: "neon-pink",
+	},
+	{
+		action: "Added to watchlist",
+		title: "Midsommar",
+		time: "3d ago",
+		color: "neon-cyan",
+	},
+	{ action: "Reviewed", title: "Alien", time: "1w ago", color: "neon-amber" },
+	{ action: "Watched", title: "Get Out", time: "1w ago", color: "neon-pink" },
+	{
+		action: "Added to watchlist",
+		title: "Nope",
+		time: "2w ago",
+		color: "neon-cyan",
+	},
+];
 
 // ── Avatar gradient by first character ──────────────────────────
-function avatarGradient(letter: string) {
-	const gradients = [
-		"conic-gradient(from 0deg, #FF2D78, #FFB800, #00E5FF, #7B2FBE, #FF2D78)",
-		"conic-gradient(from 60deg, #00E5FF, #FF2D78, #FFB800, #7B2FBE, #00E5FF)",
-		"conic-gradient(from 120deg, #FFB800, #00E5FF, #FF2D78, #7B2FBE, #FFB800)",
-		"conic-gradient(from 180deg, #7B2FBE, #FFB800, #00E5FF, #FF2D78, #7B2FBE)",
-		"conic-gradient(from 240deg, #FF2D78, #7B2FBE, #FFB800, #00E5FF, #FF2D78)",
-	];
-	return gradients[(letter.charCodeAt(0) ?? 0) % gradients.length];
+function avatarGradient(_letter: string) {
+	// Site colors only — pink, amber, cyan — with hard stops to avoid green blending
+	return "conic-gradient(from 0deg, #FF2D78 0deg, #FF2D78 60deg, #FFB800 60deg, #FFB800 180deg, #00E5FF 180deg, #00E5FF 300deg, #FF2D78 300deg)";
 }
 
 // ── Tabs enum ──────────────────────────────────────────────────
@@ -90,8 +236,8 @@ const PROFILE_KEYFRAMES = `
 	50% { opacity: 1; box-shadow: 0 0 6px rgba(255,184,0,0.6), 0 0 14px rgba(255,184,0,0.25); }
 }
 @keyframes avatar-ring-rotate {
-	0% { filter: hue-rotate(0deg); }
-	100% { filter: hue-rotate(360deg); }
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
 }
 @keyframes shimmer-sweep {
 	0% { transform: translateX(-100%); }
@@ -112,6 +258,16 @@ const PROFILE_KEYFRAMES = `
 	50% { transform: translate(-0.5%, 1%); }
 	70% { transform: translate(0.5%, -0.5%); }
 	90% { transform: translate(-1%, 0%); }
+}
+@keyframes trophy-wiggle {
+	0%, 100% { transform: rotate(0deg); }
+	20% { transform: rotate(-12deg); }
+	40% { transform: rotate(10deg); }
+	60% { transform: rotate(-6deg); }
+	80% { transform: rotate(4deg); }
+}
+.group:hover .trophy-wiggle {
+	animation: trophy-wiggle 0.5s ease-in-out;
 }
 `;
 
@@ -195,7 +351,7 @@ function ProfilePage() {
 			<>
 				<style>{PROFILE_KEYFRAMES}</style>
 				<div className="flex justify-center px-4 py-12">
-					<div className="w-full max-w-[460px] animate-pulse rounded-[20px] border border-drive-in-border bg-drive-in-card p-8">
+					<div className="w-full max-w-[560px] animate-pulse rounded-[20px] border border-drive-in-border bg-drive-in-card p-8">
 						<div className="mx-auto mb-4 h-24 w-24 rounded-full bg-cream/[0.06]" />
 						<div className="mx-auto mb-3 h-6 w-40 rounded bg-cream/[0.06]" />
 						<div className="mx-auto mb-6 h-9 w-32 rounded-lg bg-cream/[0.06]" />
@@ -223,7 +379,7 @@ function ProfilePage() {
 			<div className="flex justify-center px-4 py-10 pb-24">
 				{/* ── Main card ──────────────────────────────────── */}
 				<div
-					className="relative w-full max-w-[460px] overflow-hidden rounded-[20px]"
+					className="relative w-full max-w-[560px] overflow-hidden rounded-[20px]"
 					style={{
 						background:
 							"linear-gradient(165deg, rgba(10,10,30,0.95), rgba(5,5,15,0.98))",
@@ -285,8 +441,7 @@ function ProfilePage() {
 									className="absolute -inset-[4px] rounded-full"
 									style={{
 										background: avatarGradient(initial),
-										animation: "avatar-ring-rotate 6s linear infinite",
-									}}
+										}}
 								/>
 								{/* Glow behind avatar */}
 								<div
@@ -529,8 +684,23 @@ function ProfilePage() {
 							) : null}
 						</div>
 
-						{/* ── 5. Stats row ─────────────────────── */}
-						<div className="mt-6 flex items-stretch overflow-hidden rounded-lg border border-drive-in-border">
+						{/* ── 5a. Watch time ─────────────────── */}
+						<div className="mt-6 flex flex-col items-center py-2">
+							<span
+								className="font-display text-2xl text-neon-cyan"
+								style={{
+									textShadow: "0 0 12px rgba(0,229,255,0.3)",
+								}}
+							>
+								72h 0m
+							</span>
+							<span className="mt-0.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/55">
+								Watched
+							</span>
+						</div>
+
+						{/* ── 5b. Stats row ──────────────────── */}
+						<div className="mt-2 flex items-stretch overflow-hidden rounded-lg border border-drive-in-border">
 							{/* Friends count */}
 							<div className="flex flex-1 flex-col items-center justify-center py-3">
 								<span
@@ -541,11 +711,10 @@ function ProfilePage() {
 								>
 									{profile.friendCount}
 								</span>
-								<span className="mt-0.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/35">
+								<span className="mt-0.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/55">
 									Friends
 								</span>
 							</div>
-							{/* Divider */}
 							<div className="w-px bg-drive-in-border" />
 							{/* Favourite genre */}
 							<div className="flex flex-1 flex-col items-center justify-center py-3">
@@ -557,11 +726,10 @@ function ProfilePage() {
 								>
 									{genreName ?? "None"}
 								</span>
-								<span className="mt-0.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/35">
+								<span className="mt-0.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/55">
 									Fav Genre
 								</span>
 							</div>
-							{/* Divider */}
 							<div className="w-px bg-drive-in-border" />
 							{/* Mutual friends */}
 							<div className="flex flex-1 flex-col items-center justify-center py-3">
@@ -573,7 +741,7 @@ function ProfilePage() {
 								>
 									{mutualFriends?.length ?? 0}
 								</span>
-								<span className="mt-0.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/35">
+								<span className="mt-0.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/55">
 									Mutual
 								</span>
 							</div>
@@ -601,50 +769,24 @@ function ProfilePage() {
 							</div>
 						)}
 
-						{/* ── 7. Favourite film ────────────────── */}
+						{/* ── 7. Achievements ──────────────────── */}
+						<AchievementsDesignB />
+
+						{/* ── 8. Favourite film ────────────────── */}
 						{profile.favouriteFilmTmdbId && (
 							<div className="mt-5">
-								<div className="mb-2 flex items-center gap-1.5">
+								<div className="mb-2 flex items-center justify-center gap-1.5">
 									<Heart className="h-3 w-3 text-neon-pink/60" />
-									<span className="font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/40">
+									<span className="font-mono-retro text-[10px] uppercase tracking-[2px] text-cream/70">
 										Favourite Film
 									</span>
 								</div>
-								<FavouriteFilmCard
+								<FavouriteFilmPoster
 									tmdbId={profile.favouriteFilmTmdbId}
 									film={favFilm ?? null}
 								/>
 							</div>
 						)}
-
-						{/* ── 8. Achievements placeholder ──────── */}
-						<div className="mt-5">
-							<div className="mb-2 flex items-center justify-between">
-								<div className="flex items-center gap-1.5">
-									<Trophy className="h-3 w-3 text-neon-amber/50" />
-									<span className="font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/40">
-										Achievements
-									</span>
-								</div>
-								{isFriend && (
-									<span className="cursor-not-allowed font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/25">
-										View all
-									</span>
-								)}
-							</div>
-							<div className="rounded-lg border border-drive-in-border px-4 py-3">
-								<div className="flex items-center gap-2">
-									<Award className="h-4 w-4 text-neon-amber/30" />
-									<span className="text-xs text-cream/30">Coming soon</span>
-								</div>
-								<div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-cream/[0.06]">
-									<div
-										className="h-full rounded-full bg-neon-amber/40"
-										style={{ width: "0%" }}
-									/>
-								</div>
-							</div>
-						</div>
 
 						{/* ═══════════════════════════════════════ */}
 						{/* Friend-only or non-friend sections     */}
@@ -653,6 +795,7 @@ function ProfilePage() {
 						{isFriend ? (
 							<FriendExpandedSections
 								profile={profile}
+								userId={userId}
 								activeTab={activeTab}
 								setActiveTab={setActiveTab}
 							/>
@@ -667,10 +810,162 @@ function ProfilePage() {
 }
 
 // ════════════════════════════════════════════════════════════════
-// FavouriteFilmCard
+// Achievements popup (shared by all designs)
 // ════════════════════════════════════════════════════════════════
 
-function FavouriteFilmCard({
+function AchievementsPopup({
+	open,
+	onClose,
+}: {
+	open: boolean;
+	onClose: () => void;
+}) {
+	const earned = DEMO_ACHIEVEMENTS_EARNED.length;
+	const total = DEMO_ACHIEVEMENTS_TOTAL;
+
+	return (
+		<AnimatePresence>
+			{open && (
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					exit={{ opacity: 0 }}
+					className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+					onClick={onClose}
+				>
+					<motion.div
+						initial={{ opacity: 0, scale: 0.95, y: 10 }}
+						animate={{ opacity: 1, scale: 1, y: 0 }}
+						exit={{ opacity: 0, scale: 0.95, y: 10 }}
+						onClick={(e) => e.stopPropagation()}
+						className="max-h-[70vh] w-full max-w-[420px] overflow-y-auto rounded-xl border border-drive-in-border bg-drive-in-bg p-5"
+					>
+						<div className="mb-4 flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<Trophy className="h-4 w-4 text-neon-amber" />
+								<span className="font-mono-retro text-xs uppercase tracking-[2px] text-cream/80">
+									Achievements
+								</span>
+								<span className="font-mono-retro text-xs text-cream/35">
+									{earned}/{total}
+								</span>
+							</div>
+							<button
+								type="button"
+								onClick={onClose}
+								className="flex h-7 w-7 items-center justify-center rounded-full border border-cream/10 text-cream/40 transition-colors hover:border-cream/25 hover:text-cream/70"
+							>
+								<X className="h-3.5 w-3.5" />
+							</button>
+						</div>
+						<div className="space-y-2">
+							{DEMO_ACHIEVEMENTS_EARNED.map((a) => (
+								<div
+									key={a.label}
+									className="flex items-center gap-3 rounded-lg border border-neon-amber/10 bg-neon-amber/[0.02] px-3 py-2.5"
+								>
+									<span className="text-xl">{a.icon}</span>
+									<div className="min-w-0 flex-1">
+										<p className="text-sm font-medium text-cream/75">
+											{a.label}
+										</p>
+										<p className="text-xs text-cream/35">{a.desc}</p>
+									</div>
+									<span className="shrink-0 font-mono-retro text-[9px] text-cream/45">
+										{a.date}
+									</span>
+								</div>
+							))}
+						</div>
+					</motion.div>
+				</motion.div>
+			)}
+		</AnimatePresence>
+	);
+}
+
+// ════════════════════════════════════════════════════════════════
+// Design A — Recent badges row with count chip
+// Shows last 3 earned icons in a row + "12/50" badge on the right
+// ════════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════
+// Achievements — Centered trophy with ring progress
+// ════════════════════════════════════════════════════════════════
+
+function AchievementsDesignB() {
+	const [open, setOpen] = useState(false);
+	const earned = DEMO_ACHIEVEMENTS_EARNED.length;
+	const total = DEMO_ACHIEVEMENTS_TOTAL;
+	const pct = Math.round((earned / total) * 100);
+	const radius = 34;
+	const circumference = 2 * Math.PI * radius;
+	const strokeDash = circumference * (pct / 100);
+	const size = 80;
+	const center = size / 2;
+
+	return (
+		<div className="mt-6">
+			<button
+				type="button"
+				onClick={() => setOpen(true)}
+				className="group flex w-full flex-col items-center gap-1 py-2 transition-all"
+			>
+				{/* Ring progress */}
+				<div
+					className="relative flex items-center justify-center"
+					style={{ width: size, height: size }}
+				>
+					<svg
+						className="absolute inset-0"
+						viewBox={`0 0 ${size} ${size}`}
+						fill="none"
+						role="img"
+						aria-label="Achievement progress"
+					>
+						<circle
+							cx={center}
+							cy={center}
+							r={radius}
+							stroke="rgba(255,255,240,0.06)"
+							strokeWidth="4"
+						/>
+						<circle
+							cx={center}
+							cy={center}
+							r={radius}
+							stroke="rgba(255,184,0,0.5)"
+							strokeWidth="4"
+							strokeLinecap="round"
+							strokeDasharray={`${strokeDash} ${circumference}`}
+							transform={`rotate(-90 ${center} ${center})`}
+						/>
+					</svg>
+					<Trophy className="trophy-wiggle h-6 w-6 text-neon-amber/70" />
+				</div>
+				<p className="font-mono-retro text-[10px] uppercase tracking-[2px] text-cream/70">
+					Achievements
+				</p>
+				<p className="text-xs text-cream/40">
+					<span
+						className="text-neon-amber"
+						style={{ textShadow: "0 0 6px rgba(255,184,0,0.2)" }}
+					>
+						{earned}
+					</span>
+					<span className="text-cream/25"> / {total}</span>
+				</p>
+			</button>
+			<AchievementsPopup open={open} onClose={() => setOpen(false)} />
+		</div>
+	);
+}
+
+// ════════════════════════════════════════════════════════════════
+// FavouriteFilmPoster (centered, larger)
+// ════════════════════════════════════════════════════════════════
+
+function FavouriteFilmPoster({
 	tmdbId,
 	film,
 }: {
@@ -690,57 +985,29 @@ function FavouriteFilmCard({
 		<Link
 			to="/app/title/$mediaType/$tmdbId"
 			params={{ mediaType: "movie", tmdbId }}
-			className="group flex gap-3 overflow-hidden rounded-lg border border-drive-in-border no-underline transition-all hover:border-neon-pink/25 hover:shadow-[0_0_20px_rgba(255,45,120,0.06)]"
-			style={{
-				background:
-					"linear-gradient(135deg, rgba(10,10,30,0.8), rgba(5,5,15,0.9))",
-			}}
+			className="group flex flex-col items-center no-underline"
 		>
-			{/* Poster */}
-			<div className="relative h-28 w-[75px] shrink-0 overflow-hidden bg-cream/[0.04]">
+			<div className="relative w-[140px] overflow-hidden rounded-lg shadow-lg transition-transform duration-300 group-hover:scale-105">
 				{posterUrl ? (
-					<>
-						<img
-							src={posterUrl}
-							alt={film?.title ?? "Film poster"}
-							className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-						/>
-						{/* Film grain on poster */}
-						<div
-							className="pointer-events-none absolute inset-0 opacity-[0.08]"
-							style={{
-								backgroundImage:
-									"url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-							}}
-						/>
-					</>
+					<img
+						src={posterUrl}
+						alt={film?.title ?? "Film poster"}
+						className="w-full"
+					/>
 				) : (
-					<div className="flex h-full w-full items-center justify-center">
-						<Film className="h-6 w-6 text-cream/15" />
+					<div className="flex aspect-[2/3] w-full items-center justify-center bg-cream/[0.04]">
+						<Film className="h-8 w-8 text-cream/15" />
 					</div>
 				)}
 			</div>
-			{/* Info */}
-			<div className="flex min-w-0 flex-1 flex-col justify-center py-2 pr-3">
-				{film ? (
-					<>
-						<p className="truncate text-sm font-medium text-cream/80 transition-colors group-hover:text-neon-pink/90">
-							{film.title}
-						</p>
-						<p className="mt-0.5 text-xs text-cream/35">{film.year}</p>
-						{film.genres.length > 0 && (
-							<p className="mt-1.5 truncate font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/25">
-								{film.genres.slice(0, 3).join(" / ")}
-							</p>
-						)}
-					</>
-				) : (
-					<>
-						<div className="h-4 w-28 animate-pulse rounded bg-cream/[0.06]" />
-						<div className="mt-1.5 h-3 w-16 animate-pulse rounded bg-cream/[0.04]" />
-					</>
-				)}
-			</div>
+			{film && (
+				<div className="mt-2 text-center">
+					<p className="text-sm font-medium text-cream/75 transition-colors group-hover:text-neon-pink/90">
+						{film.title}
+					</p>
+					<p className="mt-0.5 text-xs text-cream/40">{film.year}</p>
+				</div>
+			)}
 		</Link>
 	);
 }
@@ -798,6 +1065,7 @@ function NonFriendGatedSections({ status }: { status: string }) {
 
 function FriendExpandedSections({
 	profile,
+	userId,
 	activeTab,
 	setActiveTab,
 }: {
@@ -809,70 +1077,83 @@ function FriendExpandedSections({
 			memberCount: number;
 		}>;
 	};
+	userId: string;
 	activeTab: FriendTab;
 	setActiveTab: (tab: FriendTab) => void;
 }) {
+	const heatmapCells = buildHeatmapCells(userId);
 	return (
 		<>
-			{/* ── 9. Top Genres chart placeholder ────── */}
+			{/* ── 9. Top Genres chart ──────────────── */}
 			<div className="mt-5">
 				<div className="mb-2 flex items-center gap-1.5">
 					<BarChart3 className="h-3 w-3 text-neon-cyan/50" />
-					<span className="font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/40">
+					<span className="font-mono-retro text-[10px] uppercase tracking-[2px] text-cream/70">
 						Top Genres
 					</span>
 				</div>
 				<div className="rounded-lg border border-drive-in-border px-4 py-3">
 					<div className="space-y-2">
-						{["Action", "Sci-Fi", "Drama"].map((genre, i) => (
-							<div key={genre} className="flex items-center gap-2">
-								<span className="w-12 text-right font-mono-retro text-[9px] text-cream/25">
-									{genre}
+						{[
+							{ genre: "Horror", pct: 82, color: "rgba(0,229,255,0.6)" },
+							{ genre: "Sci-Fi", pct: 64, color: "rgba(255,45,120,0.5)" },
+							{ genre: "Thriller", pct: 45, color: "rgba(255,184,0,0.5)" },
+							{ genre: "Mystery", pct: 28, color: "rgba(123,47,190,0.5)" },
+						].map((g) => (
+							<div key={g.genre} className="flex items-center gap-2">
+								<span className="w-14 text-right font-mono-retro text-[10px] text-cream/55">
+									{g.genre}
 								</span>
 								<div className="h-1.5 flex-1 overflow-hidden rounded-full bg-cream/[0.04]">
 									<div
-										className="h-full rounded-full"
-										style={{
-											width: "0%",
-											background:
-												i === 0
-													? "rgba(0,229,255,0.5)"
-													: i === 1
-														? "rgba(255,45,120,0.5)"
-														: "rgba(255,184,0,0.5)",
-										}}
+										className="h-full rounded-full transition-all duration-700"
+										style={{ width: `${g.pct}%`, background: g.color }}
 									/>
 								</div>
+								<span className="w-7 font-mono-retro text-[9px] text-cream/45">
+									{g.pct}%
+								</span>
 							</div>
 						))}
 					</div>
-					<p className="mt-2 text-center text-xs text-cream/20">Coming soon</p>
 				</div>
 			</div>
 
-			{/* ── 10. Watch Activity heatmap placeholder */}
+			{/* ── 10. Watch Activity heatmap ──────── */}
 			<div className="mt-5">
 				<div className="mb-2 flex items-center gap-1.5">
 					<CalendarDays className="h-3 w-3 text-neon-pink/50" />
-					<span className="font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/40">
+					<span className="font-mono-retro text-[10px] uppercase tracking-[2px] text-cream/70">
 						Watch Activity
 					</span>
 				</div>
-				<div className="rounded-lg border border-drive-in-border px-4 py-4">
-					{/* Mini heatmap grid */}
-					<div className="flex gap-[3px]">
-						{HEATMAP_GRID.map((column) => (
-							<div key={column.key} className="flex flex-col gap-[3px]">
-								{column.cells.map((cellKey) => (
-									<div
-										key={cellKey}
-										className="h-[8px] w-[8px] rounded-[2px] bg-cream/[0.04]"
-									/>
-								))}
-							</div>
+				<div className="rounded-lg border border-drive-in-border px-3 py-3">
+					<div
+						className="grid gap-[3px]"
+						style={{
+							gridTemplateColumns: `repeat(${HEATMAP_COLS}, 1fr)`,
+							gridTemplateRows: `repeat(${HEATMAP_ROWS}, 1fr)`,
+						}}
+					>
+						{heatmapCells.map((cell) => (
+							<div
+								key={cell.key}
+								className={`aspect-square rounded-[2px] ${HEATMAP_COLORS[cell.level]}`}
+							/>
 						))}
 					</div>
-					<p className="mt-2 text-center text-xs text-cream/20">Coming soon</p>
+					{/* Legend */}
+					<div className="mt-2 flex items-center justify-end gap-1">
+						<span className="font-mono-retro text-[9px] text-cream/40">
+							Less
+						</span>
+						{HEATMAP_COLORS.map((c) => (
+							<div key={c} className={`h-[8px] w-[8px] rounded-[2px] ${c}`} />
+						))}
+						<span className="font-mono-retro text-[9px] text-cream/40">
+							More
+						</span>
+					</div>
 				</div>
 			</div>
 
@@ -885,10 +1166,10 @@ function FriendExpandedSections({
 							key={tab.key}
 							type="button"
 							onClick={() => setActiveTab(tab.key)}
-							className={`-mb-px flex-1 border-b-2 bg-transparent py-2 text-center font-mono-retro text-[10px] uppercase tracking-[1.5px] transition-colors ${
+							className={`-mb-px flex-1 border-b-2 bg-transparent py-2.5 text-center font-mono-retro text-[11px] uppercase tracking-[1.5px] transition-colors ${
 								activeTab === tab.key
 									? tab.activeColor
-									: "border-transparent text-cream/30 hover:text-cream/50"
+									: "border-transparent text-cream/40 hover:text-cream/60"
 							}`}
 						>
 							{tab.label}
@@ -909,8 +1190,8 @@ function FriendExpandedSections({
 						{activeTab === "watchlists" && (
 							<WatchlistsTab watchlists={profile.publicWatchlists} />
 						)}
-						{activeTab === "reviews" && <ComingSoonTab color="neon-amber" />}
-						{activeTab === "activity" && <ComingSoonTab color="neon-pink" />}
+						{activeTab === "reviews" && <DemoReviewsTab />}
+						{activeTab === "activity" && <DemoActivityTab />}
 					</motion.div>
 				</AnimatePresence>
 			</div>
@@ -964,49 +1245,120 @@ function WatchlistsTab({
 					<ChevronRight className="h-4 w-4 shrink-0 text-cream/15 transition-colors group-hover:text-neon-cyan/50" />
 				</Link>
 			))}
-			<div className="flex justify-center pt-2">
-				<span
-					className="cursor-not-allowed font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-cyan/50"
-					style={{
-						textShadow: "0 0 6px rgba(0,229,255,0.15)",
-					}}
-				>
-					See all
-				</span>
-			</div>
+			{watchlists.length > 3 && (
+				<div className="flex justify-center pt-2">
+					<span
+						className="cursor-not-allowed font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-cyan/50"
+						style={{
+							textShadow: "0 0 6px rgba(0,229,255,0.15)",
+						}}
+					>
+						See all
+					</span>
+				</div>
+			)}
 		</div>
 	);
 }
 
 // ════════════════════════════════════════════════════════════════
-// ComingSoonTab
+// DemoReviewsTab
 // ════════════════════════════════════════════════════════════════
 
-function ComingSoonTab({ color }: { color: string }) {
-	const colorMap: Record<string, { text: string; shadow: string }> = {
-		"neon-amber": {
-			text: "text-neon-amber/50",
-			shadow: "0 0 6px rgba(255,184,0,0.15)",
-		},
-		"neon-pink": {
-			text: "text-neon-pink/50",
-			shadow: "0 0 6px rgba(255,45,120,0.15)",
-		},
+function DemoReviewsTab() {
+	return (
+		<div className="space-y-3">
+			{DEMO_REVIEWS.map((r) => (
+				<div
+					key={r.title}
+					className="rounded-lg border border-drive-in-border px-4 py-3"
+					style={{
+						background:
+							"linear-gradient(135deg, rgba(10,10,30,0.6), rgba(5,5,15,0.8))",
+					}}
+				>
+					<div className="flex items-center justify-between">
+						<span className="text-sm font-medium text-cream/75">{r.title}</span>
+						<span className="font-mono-retro text-[9px] text-cream/25">
+							{r.time}
+						</span>
+					</div>
+					<div
+						className="mt-1 flex items-center gap-0.5"
+						style={{ fontSize: "10px" }}
+					>
+						<span className="text-neon-amber">{"★".repeat(r.rating)}</span>
+						<span className="text-cream/10">{"★".repeat(5 - r.rating)}</span>
+					</div>
+					<p className="mt-1.5 text-xs leading-relaxed text-cream/45">
+						{r.text}
+					</p>
+				</div>
+			))}
+			{DEMO_REVIEWS.length > 3 && (
+				<div className="flex justify-center pt-2">
+					<span
+						className="cursor-not-allowed font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-amber/50"
+						style={{ textShadow: "0 0 6px rgba(255,184,0,0.15)" }}
+					>
+						See all
+					</span>
+				</div>
+			)}
+		</div>
+	);
+}
+
+// ════════════════════════════════════════════════════════════════
+// DemoActivityTab
+// ════════════════════════════════════════════════════════════════
+
+function DemoActivityTab() {
+	const colorMap: Record<string, string> = {
+		"neon-pink": "bg-neon-pink/30 text-neon-pink",
+		"neon-cyan": "bg-neon-cyan/30 text-neon-cyan",
+		"neon-amber": "bg-neon-amber/30 text-neon-amber",
 	};
-	const c = colorMap[color] ?? colorMap["neon-amber"];
 
 	return (
-		<div className="flex flex-col items-center py-8 text-center">
-			<Users className="mb-2 h-6 w-6 text-cream/15" />
-			<p className="text-xs text-cream/25">Coming soon</p>
-			<div className="mt-3">
-				<span
-					className={`cursor-not-allowed font-mono-retro text-[10px] uppercase tracking-[1.5px] ${c.text}`}
-					style={{ textShadow: c.shadow }}
+		<div className="space-y-1">
+			{DEMO_ACTIVITY.map((a) => (
+				<div
+					key={`${a.action}-${a.title}`}
+					className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-cream/[0.02]"
 				>
-					See all
-				</span>
-			</div>
+					<div
+						className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${colorMap[a.color]}`}
+					>
+						{a.action === "Watched" ? (
+							<Film className="h-3 w-3" />
+						) : a.action === "Reviewed" ? (
+							<Award className="h-3 w-3" />
+						) : (
+							<Heart className="h-3 w-3" />
+						)}
+					</div>
+					<div className="min-w-0 flex-1">
+						<p className="truncate text-xs text-cream/60">
+							<span className="text-cream/35">{a.action}</span>{" "}
+							<span className="font-medium text-cream/75">{a.title}</span>
+						</p>
+					</div>
+					<span className="shrink-0 font-mono-retro text-[9px] text-cream/40">
+						{a.time}
+					</span>
+				</div>
+			))}
+			{DEMO_ACTIVITY.length > 5 && (
+				<div className="flex justify-center pt-2">
+					<span
+						className="cursor-not-allowed font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-pink/50"
+						style={{ textShadow: "0 0 6px rgba(255,45,120,0.15)" }}
+					>
+						See all
+					</span>
+				</div>
+			)}
 		</div>
 	);
 }

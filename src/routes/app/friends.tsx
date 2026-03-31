@@ -71,7 +71,11 @@ function TicketStubCard({ friend }: { friend: Friend }) {
 	const gradient = getAvatarGradient(initial);
 
 	return (
-		<Link to={`/app/profile/${friend.id}`} className="group block no-underline">
+		<Link
+			to="/app/profile/$userId"
+			params={{ userId: friend.id }}
+			className="group block no-underline"
+		>
 			<div
 				className="relative overflow-hidden rounded-lg border border-neon-amber/12 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-neon-amber/45 group-hover:shadow-[0_4px_20px_rgba(255,184,0,0.12),0_2px_12px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.03)]"
 				style={{
@@ -209,29 +213,36 @@ function PendingRequestCard({
 					"linear-gradient(180deg, rgba(10,10,30,0.9) 0%, rgba(10,10,30,0.8) 100%)",
 			}}
 		>
-			{/* Avatar */}
-			{request.avatarUrl ? (
-				<img
-					src={request.avatarUrl}
-					alt=""
-					className="h-10 w-10 shrink-0 rounded-full border border-neon-amber/20 object-cover"
-				/>
-			) : (
-				<div
-					className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neon-amber/20"
-					style={{ background: gradient }}
-				>
-					<span className="text-[15px] font-bold text-cream/90">{initial}</span>
-				</div>
-			)}
+			{/* Avatar + Info (links to profile) */}
+			<Link
+				to="/app/profile/$userId"
+				params={{ userId: request.requesterId }}
+				className="flex min-w-0 flex-1 items-center gap-4"
+			>
+				{request.avatarUrl ? (
+					<img
+						src={request.avatarUrl}
+						alt=""
+						className="h-10 w-10 shrink-0 rounded-full border border-neon-amber/20 object-cover"
+					/>
+				) : (
+					<div
+						className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neon-amber/20"
+						style={{ background: gradient }}
+					>
+						<span className="text-[15px] font-bold text-cream/90">
+							{initial}
+						</span>
+					</div>
+				)}
 
-			{/* Info */}
-			<div className="min-w-0 flex-1">
-				<p className="truncate font-mono-retro text-sm text-cream/85">
-					@{request.username ?? "unknown"}
-				</p>
-				{timeAgo && <p className="mt-0.5 text-xs text-cream/30">{timeAgo}</p>}
-			</div>
+				<div className="min-w-0 flex-1">
+					<p className="truncate font-mono-retro text-sm text-cream/85">
+						@{request.username ?? "unknown"}
+					</p>
+					{timeAgo && <p className="mt-0.5 text-xs text-cream/30">{timeAgo}</p>}
+				</div>
+			</Link>
 
 			{/* Actions */}
 			<div className="flex shrink-0 items-center gap-2">
