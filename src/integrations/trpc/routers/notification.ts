@@ -28,8 +28,12 @@ export async function createNotification(params: {
 	type: NotificationType;
 	data: Record<string, unknown>;
 }) {
-	// Don't notify yourself
-	if (params.recipientId === params.actorId) return;
+	// Don't notify yourself (except for system reminders like review_reminder)
+	if (
+		params.recipientId === params.actorId &&
+		params.type !== "review_reminder"
+	)
+		return;
 
 	await db.insert(notification).values({
 		recipientId: params.recipientId,
