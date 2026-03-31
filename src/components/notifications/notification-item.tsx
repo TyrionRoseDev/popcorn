@@ -92,10 +92,22 @@ function getNotificationMessage(
 			};
 		case "recommendation_reviewed":
 			return {
+				text: `reviewed ${data.titleName || "a title"} you recommended`,
+				link: data.tmdbId
+					? `/app/title/${data.mediaType}/${data.tmdbId}`
+					: undefined,
+			};
+		case "recommendation_watched":
+			return {
 				text: `watched ${data.titleName || "a title"} that you recommended`,
 				link: data.tmdbId
 					? `/app/title/${data.mediaType}/${data.tmdbId}`
 					: undefined,
+			};
+		case "review_reminder":
+			return {
+				text: `How was ${data.titleName || "a title"}? Leave a quick review`,
+				link: `/app/title/${data.mediaType}/${data.tmdbId}?reviewReminder=${data.watchEventId}`,
 			};
 		default:
 			return { text: "sent you a notification" };
