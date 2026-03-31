@@ -3,7 +3,6 @@ import {
 	Link,
 	Outlet,
 	redirect,
-	useMatches,
 } from "@tanstack/react-router";
 import { Bookmark, Search, Shuffle, Users } from "lucide-react";
 import { NotificationBell } from "#/components/notifications/notification-bell";
@@ -29,14 +28,9 @@ export const Route = createFileRoute("/app")({
 });
 
 function AppLayout() {
-	const matches = useMatches();
-	const isTitlePage = matches.some(
-		(m) => m.routeId === "/app/title/$mediaType/$tmdbId",
-	);
-
 	return (
 		<div className="relative min-h-screen bg-drive-in-bg">
-			{!isTitlePage && <RetroOverlays />}
+			<RetroOverlays />
 
 			{/* Navbar */}
 			<header className="sticky top-0 z-50 border-b border-cream/8 bg-drive-in-bg/80 backdrop-blur-lg">
