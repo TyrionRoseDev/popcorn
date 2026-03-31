@@ -1,8 +1,11 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "./init";
+import { achievementRouter } from "./routers/achievement";
 import { friendRouter } from "./routers/friend";
 import { notificationRouter } from "./routers/notification";
+import { recommendationRouter } from "./routers/recommendation";
+import { reviewRouter } from "./routers/review";
 import { searchRouter } from "./routers/search";
 import { shuffleRouter } from "./routers/shuffle";
 import { tasteProfileRouter } from "./routers/taste-profile";
@@ -28,7 +31,10 @@ const todosRouter = {
 
 export const trpcRouter = createTRPCRouter({
 	todos: todosRouter,
+	achievement: achievementRouter,
 	friend: friendRouter,
+	review: reviewRouter,
+	recommendation: recommendationRouter,
 	tasteProfile: tasteProfileRouter,
 	search: searchRouter,
 	shuffle: shuffleRouter,
