@@ -206,7 +206,7 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 				>
 					{formatTimeAgo(n.createdAt)}
 				</span>
-				{n.type === "recommendation_received" && !n.actionTaken && (
+				{n.type === "recommendation_received" && !n.actionTaken && n.actorId && (
 					<div className="mt-1.5 flex items-center gap-2">
 						<button
 							type="button"
@@ -217,7 +217,7 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 									notificationId: n.id,
 									tmdbId: data.tmdbId as number,
 									mediaType: data.mediaType as "movie" | "tv",
-									recommendedBy: n.actorId!,
+									recommendedBy: n.actorId as string,
 									message: (data.message as string) ?? null,
 								});
 							}}

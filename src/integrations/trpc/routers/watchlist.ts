@@ -275,6 +275,16 @@ export const watchlistRouter = {
 		)
 		.mutation(async ({ input, ctx }) => {
 			await assertOwner(input.watchlistId, ctx.userId);
+			const wl = await db.query.watchlist.findFirst({
+				where: eq(watchlist.id, input.watchlistId),
+				columns: { type: true },
+			});
+			if (wl?.type === "recommendations") {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Cannot modify the Recommendations watchlist",
+				});
+			}
 			const { watchlistId, ...updates } = input;
 			if (Object.keys(updates).length === 0) return;
 			await db

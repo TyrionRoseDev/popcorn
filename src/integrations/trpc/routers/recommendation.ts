@@ -170,6 +170,7 @@ export const recommendationRouter = {
 	searchFriends: protectedProcedure
 		.input(z.object({ query: z.string().min(1) }))
 		.query(async ({ input, ctx }) => {
+			const escaped = input.query.replace(/%/g, "\\%").replace(/_/g, "\\_");
 			const friends = await db
 				.select({
 					id: user.id,
@@ -197,7 +198,7 @@ export const recommendationRouter = {
 							eq(friendship.requesterId, ctx.userId),
 							eq(friendship.addresseeId, ctx.userId),
 						),
-						ilike(user.username, `%${input.query}%`),
+						ilike(user.username, `%${escaped}%`),
 					),
 				)
 				.limit(10);
