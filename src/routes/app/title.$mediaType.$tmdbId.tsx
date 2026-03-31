@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Plus, Send } from "lucide-react";
+import { useState } from "react";
 import { z } from "zod";
 import { ArcadeButton } from "#/components/title/arcade-button";
+import { RecommendDialog } from "#/components/title/recommend-dialog";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { CastList } from "#/components/title/cast-list";
 import { DriveInScreen } from "#/components/title/drive-in-screen";
@@ -47,6 +49,7 @@ function TitlePage() {
 	const { data } = useQuery(
 		trpc.title.details.queryOptions({ mediaType, tmdbId }),
 	);
+	const [showRecommend, setShowRecommend] = useState(false);
 
 	if (!data) return <TitlePageSkeleton />;
 
@@ -75,7 +78,12 @@ function TitlePage() {
 					<div className="flex gap-4 justify-center mt-5">
 						<ArcadeButton icon={Plus} label="Watchlist" color="pink" />
 						<ArcadeButton icon={Check} label="Watched" color="cyan" />
-						<ArcadeButton icon={Send} label="Invite" color="amber" />
+						<ArcadeButton
+							icon={Send}
+							label="Recommend"
+							color="amber"
+							onClick={() => setShowRecommend(true)}
+						/>
 					</div>
 				</div>
 
@@ -101,6 +109,15 @@ function TitlePage() {
 					</SectionBoard>
 				</div>
 			</div>
+
+			{showRecommend && (
+				<RecommendDialog
+					tmdbId={data.tmdbId}
+					mediaType={mediaType}
+					titleName={data.title}
+					onClose={() => setShowRecommend(false)}
+				/>
+			)}
 		</div>
 	);
 }
