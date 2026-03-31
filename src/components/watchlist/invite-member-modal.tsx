@@ -62,6 +62,13 @@ export function InviteMemberModal({
 				);
 				resetAndClose();
 			},
+			onError: (err) => {
+				const message =
+					err.data?.code === "FORBIDDEN"
+						? "You can only invite friends to watchlists"
+						: "Failed to invite user";
+				toast.error(message);
+			},
 		}),
 	);
 

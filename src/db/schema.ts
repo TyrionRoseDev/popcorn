@@ -275,9 +275,10 @@ export const friendship = pgTable(
 			.$onUpdateFn(() => new Date()),
 	},
 	(table) => [
-		uniqueIndex("friendship_requester_addressee_idx").on(
-			table.requesterId,
-			table.addresseeId,
+		uniqueIndex("friendship_pair_idx").using(
+			"btree",
+			sql`least(${table.requesterId}, ${table.addresseeId})`,
+			sql`greatest(${table.requesterId}, ${table.addresseeId})`,
 		),
 		index("friendship_addressee_id_idx").on(table.addresseeId),
 		check(

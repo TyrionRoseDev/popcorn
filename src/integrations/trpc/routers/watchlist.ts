@@ -35,6 +35,34 @@ async function assertMember(watchlistId: string, userId: string) {
 	if (!membership) throw new TRPCError({ code: "FORBIDDEN" });
 }
 
+async function ensureAreFriends(userId: string, candidateIds: string[]) {
+	if (candidateIds.length === 0) return;
+	const friends = await db
+		.select({ id: friendship.id })
+		.from(friendship)
+		.where(
+			and(
+				eq(friendship.status, "accepted"),
+				or(
+					and(
+						eq(friendship.requesterId, userId),
+						inArray(friendship.addresseeId, candidateIds),
+					),
+					and(
+						eq(friendship.addresseeId, userId),
+						inArray(friendship.requesterId, candidateIds),
+					),
+				),
+			),
+		);
+	if (friends.length !== candidateIds.length) {
+		throw new TRPCError({
+			code: "FORBIDDEN",
+			message: "You can only invite friends to watchlists",
+		});
+	}
+}
+
 export const watchlistRouter = {
 	list: protectedProcedure.query(async ({ ctx }) => {
 		const memberships = await db
@@ -199,6 +227,8 @@ export const watchlistRouter = {
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			await ensureAreFriends(ctx.userId, input.memberIds);
+
 			return db.transaction(async (tx) => {
 				const [wl] = await tx
 					.insert(watchlist)
@@ -408,30 +438,7 @@ export const watchlistRouter = {
 		)
 		.mutation(async ({ input, ctx }) => {
 			await assertOwner(input.watchlistId, ctx.userId);
-
-			// Check friendship
-			const areFriends = await db.query.friendship.findFirst({
-				where: and(
-					eq(friendship.status, "accepted"),
-					or(
-						and(
-							eq(friendship.requesterId, ctx.userId),
-							eq(friendship.addresseeId, input.userId),
-						),
-						and(
-							eq(friendship.requesterId, input.userId),
-							eq(friendship.addresseeId, ctx.userId),
-						),
-					),
-				),
-			});
-
-			if (!areFriends) {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "You can only invite friends to watchlists",
-				});
-			}
+			await ensureAreFriends(ctx.userId, [input.userId]);
 
 			const inserted = await db
 				.insert(watchlistMember)

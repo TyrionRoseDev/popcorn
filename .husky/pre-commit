@@ -1,1 +1,2 @@
-bunx biome check --staged --write --unsafe
+bunx biome check --staged --write --unsafe --no-errors-on-unmatched --files-ignore-unknown=true
+git update-index --again

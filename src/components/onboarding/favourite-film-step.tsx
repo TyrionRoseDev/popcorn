@@ -56,7 +56,9 @@ export function FavouriteFilmStep({
 		onNext();
 	}
 
-	const items = searchResults.data?.items ?? [];
+	const items = (searchResults.data?.items ?? []).filter(
+		(item) => item.mediaType === "movie",
+	);
 	const showResults = debouncedQuery.length >= 2;
 
 	return (
