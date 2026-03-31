@@ -8,18 +8,39 @@ vi.mock("#/env", () => ({
 }));
 
 // ── Fake DB layer ──────────────────────────────────────────────────────
-// Declare mocks at module level so they can be referenced in vi.mock factory
-const mockWhere = vi.fn();
-const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
-const mockSelect = vi.fn().mockReturnValue({ from: mockFrom });
-const mockSelectDistinct = vi.fn().mockReturnValue({ from: mockFrom });
-
-const mockOnConflictDoNothing = vi.fn();
-const mockValues = vi.fn().mockReturnValue({ onConflictDoNothing: mockOnConflictDoNothing });
-const mockInsert = vi.fn().mockReturnValue({ values: mockValues });
-
-const mockExecute = vi.fn();
-const mockQueryWatchlistItemFindMany = vi.fn();
+// Use vi.hoisted so mock variables are available inside vi.mock factories
+const {
+	mockWhere,
+	mockFrom,
+	mockSelect,
+	mockSelectDistinct,
+	mockOnConflictDoNothing,
+	mockValues,
+	mockInsert,
+	mockExecute,
+	mockQueryWatchlistItemFindMany,
+} = vi.hoisted(() => {
+	const mockWhere = vi.fn();
+	const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
+	const mockSelect = vi.fn().mockReturnValue({ from: mockFrom });
+	const mockSelectDistinct = vi.fn().mockReturnValue({ from: mockFrom });
+	const mockOnConflictDoNothing = vi.fn();
+	const mockValues = vi.fn().mockReturnValue({ onConflictDoNothing: mockOnConflictDoNothing });
+	const mockInsert = vi.fn().mockReturnValue({ values: mockValues });
+	const mockExecute = vi.fn();
+	const mockQueryWatchlistItemFindMany = vi.fn();
+	return {
+		mockWhere,
+		mockFrom,
+		mockSelect,
+		mockSelectDistinct,
+		mockOnConflictDoNothing,
+		mockValues,
+		mockInsert,
+		mockExecute,
+		mockQueryWatchlistItemFindMany,
+	};
+});
 
 vi.mock("#/db", () => ({
 	db: {

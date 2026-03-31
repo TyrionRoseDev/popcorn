@@ -81,6 +81,17 @@ vi.mock("../routers/notification", () => ({
 	createNotification: vi.fn(),
 }));
 
+// Mock evaluateAchievements to avoid DB calls for achievement evaluation
+vi.mock("#/lib/evaluate-achievements", () => ({
+	evaluateAchievements: vi.fn().mockResolvedValue([]),
+}));
+
+// Mock ACHIEVEMENTS_BY_ID to avoid import issues
+vi.mock("#/lib/achievements", () => ({
+	ACHIEVEMENTS_BY_ID: new Map(),
+	ACHIEVEMENTS: [],
+}));
+
 // ── Import router + create caller ──────────────────────────────────────
 import { createTRPCRouter } from "../init";
 import { watchlistRouter } from "../routers/watchlist";
@@ -155,7 +166,8 @@ describe("watchlist.create", () => {
 		const caller = createCaller(OWNER_ID);
 		const result = await caller.watchlist.create({ name: "My List" });
 
-		expect(result).toEqual(newWatchlist);
+		expect(result).toMatchObject(newWatchlist);
+		expect(result).toHaveProperty("newAchievements");
 		expect(mockTransaction).toHaveBeenCalledTimes(1);
 	});
 

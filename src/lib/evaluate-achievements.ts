@@ -330,7 +330,7 @@ async function checkCondition(
 		}
 
 		default: {
-			const _exhaustive: never = condition;
+			condition satisfies never;
 			return false;
 		}
 	}
