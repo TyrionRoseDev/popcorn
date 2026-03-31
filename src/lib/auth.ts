@@ -56,6 +56,21 @@ export const auth = betterAuth({
 				defaultValue: false,
 				input: true,
 			},
+			bio: {
+				type: "string",
+				required: false,
+				input: true,
+			},
+			favouriteFilmTmdbId: {
+				type: "number",
+				required: false,
+				input: true,
+			},
+			favouriteGenreId: {
+				type: "number",
+				required: false,
+				input: true,
+			},
 		},
 	},
 	plugins: [
