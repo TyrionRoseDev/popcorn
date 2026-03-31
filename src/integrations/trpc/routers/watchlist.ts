@@ -468,7 +468,7 @@ export const watchlistRouter = {
 			await assertOwner(input.watchlistId, ctx.userId);
 			const wl = await db.query.watchlist.findFirst({
 				where: eq(watchlist.id, input.watchlistId),
-				columns: { type: true },
+				columns: { type: true, name: true },
 			});
 			if (wl?.type === "recommendations") {
 				throw new TRPCError({
@@ -491,10 +491,6 @@ export const watchlistRouter = {
 			if (inserted.length === 0) return; // Already existed, skip notifications
 
 			// Notify other members (including the new member)
-			const wl = await db.query.watchlist.findFirst({
-				where: eq(watchlist.id, input.watchlistId),
-				columns: { name: true },
-			});
 			const members = await db.query.watchlistMember.findMany({
 				where: eq(watchlistMember.watchlistId, input.watchlistId),
 				columns: { userId: true },
