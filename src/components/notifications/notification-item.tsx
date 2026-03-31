@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Check, X } from "lucide-react";
+import { toast } from "sonner";
 import { useTRPC } from "#/integrations/trpc/react";
 
 interface NotificationItemProps {
@@ -136,6 +137,9 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 				);
 				queryClient.invalidateQueries(trpc.watchlist.list.queryFilter());
 			},
+			onError: () => {
+				toast.error("Failed to accept recommendation");
+			},
 		}),
 	);
 
@@ -146,6 +150,9 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 				queryClient.invalidateQueries(
 					trpc.notification.getUnreadCount.queryFilter(),
 				);
+			},
+			onError: () => {
+				toast.error("Failed to decline recommendation");
 			},
 		}),
 	);
@@ -206,53 +213,57 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 				>
 					{formatTimeAgo(n.createdAt)}
 				</span>
-				{n.type === "recommendation_received" && !n.actionTaken && n.actorId && (
-					<div className="mt-1.5 flex items-center gap-2">
-						<button
-							type="button"
-							onClick={(e) => {
-								e.preventDefault();
-								e.stopPropagation();
-								acceptRecommendation.mutate({
-									notificationId: n.id,
-									tmdbId: data.tmdbId as number,
-									mediaType: data.mediaType as "movie" | "tv",
-									recommendedBy: n.actorId as string,
-									message: (data.message as string) ?? null,
-								});
-							}}
-							disabled={acceptRecommendation.isPending}
-							className="inline-flex items-center gap-1 rounded-full border border-neon-cyan/30 bg-neon-cyan/10 px-2.5 py-1 text-[11px] font-semibold text-neon-cyan transition-colors hover:bg-neon-cyan/20 disabled:opacity-50"
-						>
-							<Check className="h-3 w-3" />
-							Accept
-						</button>
-						<button
-							type="button"
-							onClick={(e) => {
-								e.preventDefault();
-								e.stopPropagation();
-								declineRecommendation.mutate({
-									notificationId: n.id,
-								});
-							}}
-							disabled={declineRecommendation.isPending}
-							className="rounded-full border border-cream/15 px-2.5 py-1 text-[11px] text-cream/40 transition-colors hover:text-cream/60 hover:border-cream/25 disabled:opacity-50"
-						>
-							Decline
-						</button>
-					</div>
-				)}
-				{n.type === "recommendation_received" && n.actionTaken === "accepted" && (
-					<span className="mt-1 inline-block text-[10px] text-neon-cyan/60">
-						Added to your Recommendations
-					</span>
-				)}
-				{n.type === "recommendation_received" && n.actionTaken === "declined" && (
-					<span className="mt-1 inline-block text-[10px] text-cream/25">
-						Declined
-					</span>
-				)}
+				{n.type === "recommendation_received" &&
+					!n.actionTaken &&
+					n.actorId && (
+						<div className="mt-1.5 flex items-center gap-2">
+							<button
+								type="button"
+								onClick={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									acceptRecommendation.mutate({
+										notificationId: n.id,
+										tmdbId: data.tmdbId as number,
+										mediaType: data.mediaType as "movie" | "tv",
+										recommendedBy: n.actorId as string,
+										message: (data.message as string) ?? null,
+									});
+								}}
+								disabled={acceptRecommendation.isPending}
+								className="inline-flex items-center gap-1 rounded-full border border-neon-cyan/30 bg-neon-cyan/10 px-2.5 py-1 text-[11px] font-semibold text-neon-cyan transition-colors hover:bg-neon-cyan/20 disabled:opacity-50"
+							>
+								<Check className="h-3 w-3" />
+								Accept
+							</button>
+							<button
+								type="button"
+								onClick={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									declineRecommendation.mutate({
+										notificationId: n.id,
+									});
+								}}
+								disabled={declineRecommendation.isPending}
+								className="rounded-full border border-cream/15 px-2.5 py-1 text-[11px] text-cream/40 transition-colors hover:text-cream/60 hover:border-cream/25 disabled:opacity-50"
+							>
+								Decline
+							</button>
+						</div>
+					)}
+				{n.type === "recommendation_received" &&
+					n.actionTaken === "accepted" && (
+						<span className="mt-1 inline-block text-[10px] text-neon-cyan/60">
+							Added to your Recommendations
+						</span>
+					)}
+				{n.type === "recommendation_received" &&
+					n.actionTaken === "declined" && (
+						<span className="mt-1 inline-block text-[10px] text-cream/25">
+							Declined
+						</span>
+					)}
 			</div>
 
 			{/* Dismiss */}
