@@ -433,12 +433,8 @@ describe("watchlist.addMember", () => {
 			role: "owner",
 		});
 
-		// friendship check — users are friends
-		mockQueryFriendshipFindFirst.mockResolvedValueOnce({
-			requesterId: OWNER_ID,
-			addresseeId: OTHER_USER_ID,
-			status: "accepted",
-		});
+		// ensureAreFriends: db.select().from().where() — one friend found
+		mockWhere.mockResolvedValueOnce([{ id: "f-1" }]);
 
 		// insert().values().onConflictDoNothing().returning() — member already exists
 		mockReturning.mockResolvedValueOnce([]);
@@ -482,8 +478,8 @@ describe("watchlist.addMember", () => {
 			role: "owner",
 		});
 
-		// friendship check — no friendship exists
-		mockQueryFriendshipFindFirst.mockResolvedValueOnce(null);
+		// ensureAreFriends: db.select().from().where() — no friends found
+		mockWhere.mockResolvedValueOnce([]);
 
 		const caller = createCaller(OWNER_ID);
 

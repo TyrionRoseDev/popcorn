@@ -34,9 +34,12 @@ function BlockedUsersPage() {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 
-	const { data: blockedUsers, isLoading } = useQuery(
-		trpc.friend.getBlockedUsers.queryOptions(),
-	);
+	const {
+		data: blockedUsers,
+		isLoading,
+		isError,
+		error,
+	} = useQuery(trpc.friend.getBlockedUsers.queryOptions());
 
 	const unblockMutation = useMutation({
 		...trpc.friend.unblock.mutationOptions(),
@@ -70,7 +73,17 @@ function BlockedUsersPage() {
 			</p>
 
 			{/* Content */}
-			{isLoading ? (
+			{isError ? (
+				<div className="flex flex-col items-center py-20 text-center">
+					<Ban className="mb-3 h-10 w-10 text-neon-pink/20" />
+					<p className="font-display text-lg text-cream/50">
+						Something went wrong
+					</p>
+					<p className="mt-1 font-mono-retro text-xs text-cream/30">
+						{error?.message ?? "Could not load blocked users."}
+					</p>
+				</div>
+			) : isLoading ? (
 				<div className="space-y-3">
 					{Array.from({ length: 3 }, (_, i) => (
 						<div

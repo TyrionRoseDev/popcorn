@@ -282,14 +282,18 @@ export const tasteProfileRouter = {
 			await db.transaction(async (tx) => {
 				await tx
 					.insert(userGenre)
-					.values(input.genreIds.map((genreId) => ({ userId, genreId })));
-				await tx.insert(userTitle).values(
-					input.titles.map((t) => ({
-						userId,
-						tmdbId: t.tmdbId,
-						mediaType: t.mediaType,
-					})),
-				);
+					.values(input.genreIds.map((genreId) => ({ userId, genreId })))
+					.onConflictDoNothing();
+				await tx
+					.insert(userTitle)
+					.values(
+						input.titles.map((t) => ({
+							userId,
+							tmdbId: t.tmdbId,
+							mediaType: t.mediaType,
+						})),
+					)
+					.onConflictDoNothing();
 
 				// Create default watchlist seeded with onboarding picks
 				const [defaultWatchlist] = await tx
@@ -315,6 +319,11 @@ export const tasteProfileRouter = {
 						addedBy: userId,
 					})),
 				);
+
+				await tx
+					.update(user)
+					.set({ onboardingCompleted: true })
+					.where(eq(user.id, userId));
 			});
 
 			return { success: true };

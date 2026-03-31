@@ -181,6 +181,9 @@ function PendingRequestCard({
 				queryClient.invalidateQueries({
 					queryKey: trpc.friend.pendingRequests.queryKey(),
 				});
+				queryClient.invalidateQueries(
+					trpc.notification.getUnreadCount.queryFilter(),
+				);
 			},
 		}),
 	);
@@ -191,6 +194,9 @@ function PendingRequestCard({
 				queryClient.invalidateQueries({
 					queryKey: trpc.friend.pendingRequests.queryKey(),
 				});
+				queryClient.invalidateQueries(
+					trpc.notification.getUnreadCount.queryFilter(),
+				);
 			},
 		}),
 	);
@@ -333,7 +339,11 @@ function DiscoverResultCard({
 			<div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-neon-cyan/0 transition-colors duration-200 group-hover:bg-neon-cyan/25" />
 
 			{/* Avatar */}
-			<a href={`/app/profile/${user.id}`} className="shrink-0 no-underline">
+			<Link
+				to="/app/profile/$userId"
+				params={{ userId: user.id }}
+				className="shrink-0 no-underline"
+			>
 				{user.avatarUrl ? (
 					<img
 						src={user.avatarUrl}
@@ -350,16 +360,17 @@ function DiscoverResultCard({
 						</span>
 					</div>
 				)}
-			</a>
+			</Link>
 
 			{/* Info */}
 			<div className="min-w-0 flex-1">
-				<a
-					href={`/app/profile/${user.id}`}
+				<Link
+					to="/app/profile/$userId"
+					params={{ userId: user.id }}
 					className="block truncate font-mono-retro text-sm text-cream/85 no-underline transition-colors hover:text-neon-cyan"
 				>
 					@{user.username ?? "unknown"}
-				</a>
+				</Link>
 			</div>
 
 			{/* Action */}

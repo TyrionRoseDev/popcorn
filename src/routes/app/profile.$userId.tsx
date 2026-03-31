@@ -281,9 +281,12 @@ function ProfilePage() {
 	const queryClient = useQueryClient();
 
 	// ── Queries ────────────────────────────────────────────────
-	const { data: profile, isLoading } = useQuery(
-		trpc.friend.profile.queryOptions({ userId }),
-	);
+	const {
+		data: profile,
+		isLoading,
+		isError,
+		error,
+	} = useQuery(trpc.friend.profile.queryOptions({ userId }));
 
 	const { data: mutualFriends } = useQuery(
 		trpc.friend.mutualFriends.queryOptions({ userId }),
@@ -346,7 +349,7 @@ function ProfilePage() {
 		blockUser.isPending;
 
 	// ── Loading skeleton ──────────────────────────────────────
-	if (isLoading || !profile) {
+	if (isLoading) {
 		return (
 			<>
 				<style>{PROFILE_KEYFRAMES}</style>
@@ -360,6 +363,38 @@ function ProfilePage() {
 								<div key={n} className="h-14 flex-1 rounded bg-cream/[0.04]" />
 							))}
 						</div>
+					</div>
+				</div>
+			</>
+		);
+	}
+
+	if (isError || !profile) {
+		const isNotFound = error?.message === "User not found";
+		return (
+			<>
+				<style>{PROFILE_KEYFRAMES}</style>
+				<div className="flex justify-center px-4 py-20">
+					<div className="flex w-full max-w-[560px] flex-col items-center rounded-[20px] border border-drive-in-border bg-drive-in-card px-8 py-14 text-center">
+						{isNotFound ? (
+							<Film className="mb-4 h-10 w-10 text-cream/15" />
+						) : (
+							<X className="mb-4 h-10 w-10 text-neon-pink/30" />
+						)}
+						<p className="font-display text-lg text-cream/50">
+							{isNotFound ? "User not found" : "Something went wrong"}
+						</p>
+						<p className="mt-1.5 font-mono-retro text-xs text-cream/30">
+							{isNotFound
+								? "This profile doesn\u2019t exist or may have been removed."
+								: "We couldn\u2019t load this profile right now."}
+						</p>
+						<Link
+							to="/app/friends"
+							className="mt-6 rounded-lg border border-neon-cyan/20 bg-neon-cyan/5 px-5 py-2 font-mono-retro text-xs uppercase tracking-wider text-neon-cyan/70 no-underline transition-colors hover:border-neon-cyan/40 hover:bg-neon-cyan/10 hover:text-neon-cyan"
+						>
+							Back to friends
+						</Link>
 					</div>
 				</div>
 			</>
@@ -441,7 +476,7 @@ function ProfilePage() {
 									className="absolute -inset-[4px] rounded-full"
 									style={{
 										background: avatarGradient(initial),
-										}}
+									}}
 								/>
 								{/* Glow behind avatar */}
 								<div
@@ -1245,18 +1280,6 @@ function WatchlistsTab({
 					<ChevronRight className="h-4 w-4 shrink-0 text-cream/15 transition-colors group-hover:text-neon-cyan/50" />
 				</Link>
 			))}
-			{watchlists.length > 3 && (
-				<div className="flex justify-center pt-2">
-					<span
-						className="cursor-not-allowed font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-cyan/50"
-						style={{
-							textShadow: "0 0 6px rgba(0,229,255,0.15)",
-						}}
-					>
-						See all
-					</span>
-				</div>
-			)}
 		</div>
 	);
 }

@@ -1,7 +1,13 @@
 import "dotenv/config";
 import pg from "pg";
 
-const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+	console.error("DATABASE_URL is not set");
+	process.exit(1);
+}
+
+const client = new pg.Client({ connectionString: DATABASE_URL });
 await client.connect();
 
 // Get Alice's ID
@@ -10,6 +16,7 @@ const { rows } = await client.query(
 );
 if (!rows.length) {
 	console.error("Alice not found");
+	await client.end();
 	process.exit(1);
 }
 const aliceId = rows[0].id;
