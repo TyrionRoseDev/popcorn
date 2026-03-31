@@ -14,6 +14,8 @@ const NOTIFICATION_TYPES = [
 	"friend_request",
 	"friend_request_accepted",
 	"title_reviewed",
+	"recommendation_received",
+	"recommendation_reviewed",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
