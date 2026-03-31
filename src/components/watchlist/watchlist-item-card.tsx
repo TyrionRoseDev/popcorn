@@ -28,6 +28,13 @@ interface WatchlistItemCardProps {
 			username: string | null;
 			avatarUrl: string | null;
 		};
+		recommendedBy?: string | null;
+		recommendationMessage?: string | null;
+		recommendedByUser?: {
+			id: string;
+			username: string | null;
+			avatarUrl: string | null;
+		} | null;
 	};
 	watchlistId: string;
 	userRole: string | null;
@@ -149,12 +156,16 @@ export function WatchlistItemCard({
 				</div>
 			</div>
 
-			{/* Added by info */}
-			{isShared && item.addedByUser.username && (
+			{/* Attribution */}
+			{item.recommendedByUser?.username ? (
+				<p className="mt-1.5 truncate text-[11px] text-neon-amber/50">
+					Recommended by @{item.recommendedByUser.username}
+				</p>
+			) : isShared && item.addedByUser.username ? (
 				<p className="mt-1.5 truncate text-[11px] text-cream/30">
 					Added by @{item.addedByUser.username}
 				</p>
-			)}
+			) : null}
 		</div>
 	);
 }
