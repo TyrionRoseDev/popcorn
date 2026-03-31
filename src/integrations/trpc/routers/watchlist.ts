@@ -12,6 +12,8 @@ import {
 	watchlistMember,
 } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
+import { ACHIEVEMENTS_BY_ID } from "#/lib/achievements";
+import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import { createNotification } from "./notification";
 
 async function assertOwner(watchlistId: string, userId: string) {
@@ -259,6 +261,9 @@ export const watchlistRouter = {
 				}
 
 				return wl;
+			}).then(async (wl) => {
+				const newAchievements = await evaluateAchievements(ctx.userId, "watchlist_created");
+				return { ...wl, newAchievements };
 			});
 		}),
 
@@ -374,6 +379,7 @@ export const watchlistRouter = {
 				mediaType: z.enum(["movie", "tv"]),
 				watched: z.boolean(),
 				titleName: z.string().optional(),
+				watchedAt: z.string().datetime().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -391,9 +397,16 @@ export const watchlistRouter = {
 
 			if (!existing || existing.watched === input.watched) return;
 
+			const watchedAtDate = input.watched
+				? (input.watchedAt ? new Date(input.watchedAt) : new Date())
+				: null;
+
 			await db
 				.update(watchlistItem)
-				.set({ watched: input.watched })
+				.set({
+					watched: input.watched,
+					watchedAt: watchedAtDate,
+				})
 				.where(
 					and(
 						eq(watchlistItem.watchlistId, input.watchlistId),
@@ -426,6 +439,43 @@ export const watchlistRouter = {
 						},
 					});
 				}
+
+				// Evaluate achievements
+				const newAchievements = await evaluateAchievements(
+					ctx.userId,
+					"watched",
+					{
+						tmdbId: input.tmdbId,
+						mediaType: input.mediaType,
+						watchedAt: watchedAtDate ?? undefined,
+						watchlistId: input.watchlistId,
+					},
+				);
+
+				// Notify friends about any new achievements
+				if (newAchievements.length > 0) {
+					const friends = await db.query.friendship.findMany({
+						where: and(
+							sql`(${friendship.requesterId} = ${ctx.userId} OR ${friendship.addresseeId} = ${ctx.userId})`,
+							eq(friendship.status, "accepted"),
+						),
+					});
+					for (const f of friends) {
+						const friendId =
+							f.requesterId === ctx.userId ? f.addresseeId : f.requesterId;
+						for (const achievementId of newAchievements) {
+							const achievementDef = ACHIEVEMENTS_BY_ID.get(achievementId);
+							await createNotification({
+								recipientId: friendId,
+								actorId: ctx.userId,
+								type: "achievement_earned",
+								data: { achievementId, achievementName: achievementDef?.name ?? "" },
+							});
+						}
+					}
+				}
+
+				return { newAchievements };
 			}
 		}),
 
