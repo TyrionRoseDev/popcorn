@@ -8,6 +8,7 @@ import { searchRouter } from "./routers/search";
 import { shuffleRouter } from "./routers/shuffle";
 import { tasteProfileRouter } from "./routers/taste-profile";
 import { titleRouter } from "./routers/title";
+import { userRouter } from "./routers/user";
 import { watchedRouter } from "./routers/watched";
 import { watchlistRouter } from "./routers/watchlist";
 
@@ -39,5 +40,6 @@ export const trpcRouter = createTRPCRouter({
 	recommendation: recommendationRouter,
 	watched: watchedRouter,
 	watchlist: watchlistRouter,
+	user: userRouter,
 });
 export type TRPCRouter = typeof trpcRouter;
