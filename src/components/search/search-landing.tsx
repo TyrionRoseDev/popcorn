@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { useTRPC } from "#/integrations/trpc/react";
 import { PosterCard } from "./poster-card";
 
@@ -45,7 +46,17 @@ function LandingRow({
 			) : (
 				<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
 					{items.map((item) => (
-						<PosterCard key={`${item.tmdbId}-${item.mediaType}`} item={item} />
+						<Link
+							key={`${item.tmdbId}-${item.mediaType}`}
+							to="/app/title/$mediaType/$tmdbId"
+							params={{
+								mediaType: item.mediaType,
+								tmdbId: item.tmdbId,
+							}}
+							className="block"
+						>
+							<PosterCard item={item} />
+						</Link>
 					))}
 				</div>
 			)}

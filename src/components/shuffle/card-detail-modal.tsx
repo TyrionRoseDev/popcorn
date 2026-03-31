@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import type { FeedItem } from "#/lib/feed-assembler";
 import { getGenreNameByTmdbId } from "#/lib/genre-map";
@@ -105,14 +106,28 @@ export function CardDetailModal({ item, onClose }: CardDetailModalProps) {
 								</div>
 							)}
 
-							{/* Close button */}
-							<button
-								type="button"
-								onClick={onClose}
-								className="mt-1 w-full rounded-xl border border-cream/10 py-3 text-sm font-medium text-cream/50 transition-colors hover:border-cream/20 hover:text-cream/80"
-							>
-								Close
-							</button>
+							{/* Actions */}
+							<div className="mt-1 flex flex-col gap-2">
+								<Link
+									to="/app/title/$mediaType/$tmdbId"
+									params={{
+										mediaType: item.mediaType,
+										tmdbId: item.tmdbId,
+									}}
+									state={{ from: "shuffle" }}
+									className="block w-full rounded-xl bg-neon-pink/15 border border-neon-pink/30 py-3 text-center text-sm font-medium text-neon-pink no-underline transition-colors hover:bg-neon-pink/25 hover:border-neon-pink/50"
+									onClick={onClose}
+								>
+									View Full Details
+								</Link>
+								<button
+									type="button"
+									onClick={onClose}
+									className="w-full rounded-xl border border-cream/10 py-3 text-sm font-medium text-cream/50 transition-colors hover:border-cream/20 hover:text-cream/80"
+								>
+									Close
+								</button>
+							</div>
 						</div>
 					</motion.div>
 				</>

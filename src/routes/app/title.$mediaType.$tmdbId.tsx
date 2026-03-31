@@ -1,6 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check, Plus, Send } from "lucide-react";
+import {
+	createFileRoute,
+	Link,
+	useLocation,
+	useRouter,
+} from "@tanstack/react-router";
+import { ArrowLeft, Check, Plus, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { ArcadeButton } from "#/components/title/arcade-button";
@@ -52,6 +57,10 @@ export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
 function TitlePage() {
 	const { mediaType, tmdbId } = Route.useParams();
 	const { reviewReminder } = Route.useSearch();
+	const location = useLocation();
+	const router = useRouter();
+	const fromShuffle =
+		(location.state as Record<string, unknown> | undefined)?.from === "shuffle";
 	const trpc = useTRPC();
 	const { data } = useQuery(
 		trpc.title.details.queryOptions({ mediaType, tmdbId }),
@@ -93,10 +102,38 @@ function TitlePage() {
 		<div className="relative z-10">
 			<TitlePageAtmosphere />
 
-			<DriveInScreen
-				backdropPath={data.backdropPath}
-				trailerKey={data.trailerKey}
-			/>
+			<div className="relative">
+				{fromShuffle && (
+					<>
+						{/* Large screens: centered in left margin */}
+						<div className="absolute z-50 top-[calc(2.5rem+6px)] left-0 hidden xl:flex w-[calc((100%-1100px)/2)] items-start justify-center">
+							<button
+								type="button"
+								onClick={() => router.history.back()}
+								className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-neon-pink/25 bg-neon-pink/10 px-3 py-1.5 font-mono-retro text-[11px] uppercase tracking-wider text-neon-pink transition-colors hover:bg-neon-pink/20 hover:border-neon-pink/40"
+							>
+								<ArrowLeft className="h-3.5 w-3.5" />
+								Return to Shuffle
+							</button>
+						</div>
+						{/* Smaller screens: above trailer */}
+						<div className="xl:hidden px-6 pt-4 pb-2 flex justify-start max-w-[1100px] mx-auto">
+							<button
+								type="button"
+								onClick={() => router.history.back()}
+								className="inline-flex items-center gap-1.5 rounded-lg border border-neon-pink/25 bg-neon-pink/10 px-3 py-1.5 font-mono-retro text-[11px] uppercase tracking-wider text-neon-pink transition-colors hover:bg-neon-pink/20 hover:border-neon-pink/40"
+							>
+								<ArrowLeft className="h-3.5 w-3.5" />
+								Return to Shuffle
+							</button>
+						</div>
+					</>
+				)}
+				<DriveInScreen
+					backdropPath={data.backdropPath}
+					trailerKey={data.trailerKey}
+				/>
+			</div>
 
 			<CarSilhouettes />
 

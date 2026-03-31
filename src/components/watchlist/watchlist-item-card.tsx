@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { Check, Eye, EyeOff, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ReviewModal } from "#/components/watched/review-modal";
@@ -102,44 +103,62 @@ export function WatchlistItemCard({
 		<>
 			<div className="group/card flex flex-col">
 				<div className="overflow-hidden rounded-xl border border-cream/8 bg-cream/[0.03] transition-all duration-200 hover:border-[#FF2D78]/30 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
-					{/* Poster area */}
-					<div className="relative aspect-[2/3] overflow-hidden">
-						{posterUrl ? (
-							<img
-								src={posterUrl}
-								alt={item.titleName || `Title #${item.tmdbId}`}
-								className="h-full w-full object-cover"
-								loading="lazy"
-							/>
-						) : (
-							<div
-								className="h-full w-full"
-								style={{ background: gradientForId(item.tmdbId) }}
-							/>
-						)}
+					{/* Poster area — links to title page */}
+					<Link
+						to="/app/title/$mediaType/$tmdbId"
+						params={{
+							mediaType: item.mediaType as "movie" | "tv",
+							tmdbId: item.tmdbId,
+						}}
+						className="block no-underline"
+					>
+						<div className="relative aspect-[2/3] overflow-hidden">
+							{posterUrl ? (
+								<img
+									src={posterUrl}
+									alt={item.titleName || `Title #${item.tmdbId}`}
+									className="h-full w-full object-cover"
+									loading="lazy"
+								/>
+							) : (
+								<div
+									className="h-full w-full"
+									style={{ background: gradientForId(item.tmdbId) }}
+								/>
+							)}
 
-						{/* Media type badge */}
-						<div className="absolute top-2 right-2 rounded-md bg-black/60 px-1.5 py-0.5 font-mono-retro text-[9px] font-semibold uppercase tracking-wider text-cream/60">
-							{item.mediaType === "tv" ? "TV" : "Film"}
-						</div>
-
-						{/* Watched overlay */}
-						{item.watched && (
-							<div className="absolute inset-0 flex items-center justify-center bg-black/50">
-								<div className="rounded-full bg-neon-cyan/20 p-3">
-									<Check className="h-8 w-8 text-neon-cyan" />
-								</div>
+							{/* Media type badge */}
+							<div className="absolute top-2 right-2 rounded-md bg-black/60 px-1.5 py-0.5 font-mono-retro text-[9px] font-semibold uppercase tracking-wider text-cream/60">
+								{item.mediaType === "tv" ? "TV" : "Film"}
 							</div>
-						)}
-					</div>
+
+							{/* Watched overlay */}
+							{item.watched && (
+								<div className="absolute inset-0 flex items-center justify-center bg-black/50">
+									<div className="rounded-full bg-neon-cyan/20 p-3">
+										<Check className="h-8 w-8 text-neon-cyan" />
+									</div>
+								</div>
+							)}
+						</div>
+					</Link>
 
 					{/* Info & actions */}
 					<div className="p-3">
-						<h3
-							className={`truncate text-sm font-bold ${item.watched ? "text-cream/40" : "text-cream"}`}
+						<Link
+							to="/app/title/$mediaType/$tmdbId"
+							params={{
+								mediaType: item.mediaType as "movie" | "tv",
+								tmdbId: item.tmdbId,
+							}}
+							className="no-underline"
 						>
-							{item.titleName || `Title #${item.tmdbId}`}
-						</h3>
+							<h3
+								className={`truncate text-sm font-bold ${item.watched ? "text-cream/40" : "text-cream"}`}
+							>
+								{item.titleName || `Title #${item.tmdbId}`}
+							</h3>
+						</Link>
 
 						{/* Action buttons */}
 						<div className="mt-2 flex items-center gap-1.5">
