@@ -56,28 +56,25 @@ export function ShuffleAtmosphere() {
 				/>
 			))}
 
-			{/* ===== PROJECTOR BEAM — cone of light from top to card ===== */}
+			{/* ===== PROJECTOR BEAM — single cone with stacked radial gradients ===== */}
 			<div
-				className="fixed inset-x-0 top-0"
+				className="fixed"
 				style={{
-					height: "100%",
-					clipPath: "polygon(44% 0%, 56% 0%, 68% 100%, 32% 100%)",
-					background:
-						"linear-gradient(180deg, rgba(255,220,140,0.18) 0%, rgba(255,184,0,0.06) 40%, rgba(255,184,0,0.02) 100%)",
+					top: "-10%",
+					left: "-10%",
+					right: "-10%",
+					height: "120%",
+					clipPath: "polygon(42% 8%, 58% 8%, 72% 100%, 28% 100%)",
+					background: [
+						"radial-gradient(ellipse 18% 80% at 50% 8%, rgba(255,245,210,0.1) 0%, transparent 100%)",
+						"radial-gradient(ellipse 30% 90% at 50% 8%, rgba(255,235,180,0.07) 0%, transparent 100%)",
+						"radial-gradient(ellipse 45% 100% at 50% 8%, rgba(255,220,140,0.04) 0%, transparent 100%)",
+					].join(", "),
+					filter: "blur(20px)",
 					animationName: "projector-flicker",
 					animationDuration: "4s",
 					animationTimingFunction: "steps(1)",
 					animationIterationCount: "infinite",
-				}}
-			/>
-			{/* Projector beam inner hotspot */}
-			<div
-				className="fixed inset-x-0 top-0"
-				style={{
-					height: "100%",
-					clipPath: "polygon(46% 0%, 54% 0%, 62% 100%, 38% 100%)",
-					background:
-						"linear-gradient(180deg, rgba(255,240,200,0.12) 0%, rgba(255,240,200,0.03) 50%, transparent 100%)",
 				}}
 			/>
 
