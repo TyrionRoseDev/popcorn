@@ -166,6 +166,7 @@ export const watchlistItem = pgTable(
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
 		watched: boolean("watched").default(false).notNull(),
+		watchedAt: timestamp("watched_at"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},
 	(table) => [
@@ -315,6 +316,74 @@ export const block = pgTable(
 	],
 );
 
+export const earnedAchievement = pgTable(
+	"earned_achievement",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		achievementId: text("achievement_id").notNull(),
+		earnedAt: timestamp("earned_at").defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("earned_achievement_unique").on(
+			table.userId,
+			table.achievementId,
+		),
+		index("earned_achievement_user_id_idx").on(table.userId),
+	],
+);
+
+export const review = pgTable(
+	"review",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		tmdbId: integer("tmdb_id").notNull(),
+		mediaType: text("media_type").notNull(),
+		rating: integer("rating").notNull(),
+		text: text("text"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("review_unique").on(
+			table.userId,
+			table.tmdbId,
+			table.mediaType,
+		),
+		index("review_user_id_idx").on(table.userId),
+	],
+);
+
+export const recommendation = pgTable(
+	"recommendation",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		senderId: text("sender_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		recipientId: text("recipient_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		tmdbId: integer("tmdb_id").notNull(),
+		mediaType: text("media_type").notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("recommendation_sender_id_idx").on(table.senderId),
+		index("recommendation_recipient_id_idx").on(table.recipientId),
+	],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
@@ -335,6 +404,14 @@ export const userRelations = relations(user, ({ many }) => ({
 	}),
 	blocksCreated: many(block, { relationName: "blockBlocker" }),
 	blocksReceived: many(block, { relationName: "blockBlocked" }),
+	earnedAchievements: many(earnedAchievement),
+	reviews: many(review),
+	recommendationsSent: many(recommendation, {
+		relationName: "recommendationSender",
+	}),
+	recommendationsReceived: many(recommendation, {
+		relationName: "recommendationRecipient",
+	}),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -444,5 +521,35 @@ export const blockRelations = relations(block, ({ one }) => ({
 		fields: [block.blockedId],
 		references: [user.id],
 		relationName: "blockBlocked",
+	}),
+}));
+
+export const earnedAchievementRelations = relations(
+	earnedAchievement,
+	({ one }) => ({
+		user: one(user, {
+			fields: [earnedAchievement.userId],
+			references: [user.id],
+		}),
+	}),
+);
+
+export const reviewRelations = relations(review, ({ one }) => ({
+	user: one(user, {
+		fields: [review.userId],
+		references: [user.id],
+	}),
+}));
+
+export const recommendationRelations = relations(recommendation, ({ one }) => ({
+	sender: one(user, {
+		fields: [recommendation.senderId],
+		references: [user.id],
+		relationName: "recommendationSender",
+	}),
+	recipient: one(user, {
+		fields: [recommendation.recipientId],
+		references: [user.id],
+		relationName: "recommendationRecipient",
 	}),
 }));
