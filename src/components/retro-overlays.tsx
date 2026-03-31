@@ -1,12 +1,25 @@
-const STARS = Array.from({ length: 30 }, (_, i) => ({
+// Seeded PRNG (mulberry32) for deterministic but scattered star positions
+function mulberry32(seed: number) {
+	return () => {
+		seed |= 0;
+		seed = (seed + 0x6d2b79f5) | 0;
+		let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+	};
+}
+
+const rand = mulberry32(42);
+
+const STARS = Array.from({ length: 100 }, (_, i) => ({
 	id: i,
-	top: `${Math.round((((i * 37 + 13) % 97) / 97) * 100)}%`,
-	left: `${Math.round((((i * 53 + 7) % 97) / 97) * 100)}%`,
-	size: 1 + ((i * 17) % 3) * 0.5,
-	dur: `${2.5 + ((i * 23) % 20) / 10}s`,
-	delay: `${-((i * 41) % 30) / 10}s`,
-	o1: 0.1 + ((i * 13) % 10) / 100,
-	o2: 0.6 + ((i * 19) % 35) / 100,
+	top: `${(rand() * 100).toFixed(1)}%`,
+	left: `${(rand() * 100).toFixed(1)}%`,
+	size: 1 + rand() * 1.5,
+	dur: `${2.5 + rand() * 2}s`,
+	delay: `${-(rand() * 3)}s`,
+	o1: 0.1 + rand() * 0.1,
+	o2: 0.6 + rand() * 0.35,
 }));
 
 export function RetroOverlays() {
@@ -16,11 +29,20 @@ export function RetroOverlays() {
 			className="pointer-events-none fixed inset-0"
 			style={{ zIndex: 0 }}
 		>
-			{/* Starfield */}
+			{/* Night sky gradient */}
+			<div
+				className="fixed inset-0"
+				style={{
+					background:
+						"radial-gradient(ellipse at 50% 0%, #0a0a20 0%, #030305 60%)",
+				}}
+			/>
+
+			{/* Starfield — 100 scattered stars */}
 			{STARS.map((star) => (
 				<div
 					key={star.id}
-					className="absolute rounded-full bg-white"
+					className="fixed rounded-full bg-white"
 					style={
 						{
 							top: star.top,
@@ -41,7 +63,7 @@ export function RetroOverlays() {
 
 			{/* Film grain */}
 			<div
-				className="absolute"
+				className="fixed"
 				style={{
 					inset: "-50%",
 					width: "200%",
@@ -58,7 +80,7 @@ export function RetroOverlays() {
 
 			{/* Scanlines */}
 			<div
-				className="absolute inset-0"
+				className="fixed inset-0"
 				style={{
 					zIndex: 50,
 					opacity: 0.4,
@@ -69,7 +91,7 @@ export function RetroOverlays() {
 
 			{/* VHS scan line */}
 			<div
-				className="absolute left-0 right-0"
+				className="fixed left-0 right-0"
 				style={{
 					height: "2px",
 					zIndex: 51,
