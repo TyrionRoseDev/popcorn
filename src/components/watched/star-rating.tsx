@@ -32,13 +32,13 @@ export function StarRating({ value, onChange }: StarRatingProps) {
 						onMouseLeave={() => setHovered(null)}
 						onClick={() => onChange(value === star ? null : star)}
 					>
-						{star <= displayValue && (
-							<div className="absolute inset-0.5 rounded-full bg-neon-amber/15 shadow-[0_0_16px_rgba(255,184,0,0.4)]" />
-						)}
+						<div
+							className={`absolute inset-0.5 rounded-full bg-neon-amber/15 shadow-[0_0_16px_rgba(255,184,0,0.4)] transition-opacity duration-150 ${star <= displayValue ? "opacity-100" : "opacity-0"}`}
+						/>
 						<span
-							className={`text-[2rem] leading-none relative z-10 transition-transform duration-100 ${
+							className={`text-[2rem] leading-none relative z-10 transition-all duration-100 ${
 								star <= displayValue
-									? "text-neon-amber drop-shadow-[0_0_6px_rgba(255,184,0,0.7)] scale-115"
+									? "text-neon-amber drop-shadow-[0_0_6px_rgba(255,184,0,0.7)]"
 									: "text-cream/10"
 							}`}
 						>
@@ -47,8 +47,8 @@ export function StarRating({ value, onChange }: StarRatingProps) {
 					</button>
 				))}
 			</div>
-			<div className="font-display text-sm text-neon-amber/60 tracking-wider">
-				{displayValue > 0 ? ratingLabels[displayValue] : ""}
+			<div className="font-display text-sm text-neon-amber/60 tracking-wider h-5">
+				{displayValue > 0 ? ratingLabels[displayValue] : "\u00A0"}
 			</div>
 		</div>
 	);

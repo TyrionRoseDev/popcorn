@@ -196,6 +196,15 @@ export function WatchlistItemCard({
 				titleName={""}
 				tmdbId={item.tmdbId}
 				mediaType={item.mediaType as "movie" | "tv"}
+				onCancel={() => {
+					markWatched.mutate({
+						watchlistId,
+						tmdbId: item.tmdbId,
+						mediaType: item.mediaType as "movie" | "tv",
+						watched: false,
+						titleName: "",
+					});
+				}}
 			/>
 		</>
 	);

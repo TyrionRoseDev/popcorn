@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { X } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogOverlay, DialogPortal } from "#/components/ui/dialog";
 import { useTRPC } from "#/integrations/trpc/react";
@@ -15,6 +16,7 @@ interface ReviewModalProps {
 	mediaType: "movie" | "tv";
 	defaultWatchedAt?: Date;
 	isReminder?: boolean;
+	onCancel?: () => void;
 }
 
 export function ReviewModal({
@@ -27,6 +29,7 @@ export function ReviewModal({
 	mediaType,
 	defaultWatchedAt,
 	isReminder = false,
+	onCancel,
 }: ReviewModalProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
@@ -56,10 +59,36 @@ export function ReviewModal({
 		}),
 	);
 
+	const deleteWatchEvent = useMutation(
+		trpc.watched.delete.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					trpc.watched.getForTitle.queryFilter({ tmdbId, mediaType }),
+				);
+				queryClient.invalidateQueries(
+					trpc.watched.getCount.queryFilter({ tmdbId, mediaType }),
+				);
+				handleClose();
+			},
+		}),
+	);
+
 	function handleClose() {
 		setRating(null);
 		setReviewText("");
 		onOpenChange(false);
+	}
+
+	function handleCancel() {
+		if (!watchEventId) return;
+		deleteWatchEvent.mutate(
+			{ watchEventId },
+			{
+				onSuccess: () => {
+					onCancel?.();
+				},
+			},
+		);
 	}
 
 	function handleSave() {
@@ -100,7 +129,15 @@ export function ReviewModal({
 					<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 						<div className="w-full max-w-[360px] flex flex-col items-center">
 							{/* Marquee header */}
-							<div className="w-[calc(100%-16px)] border-2 border-neon-amber/30 border-b-0 rounded-t-lg bg-drive-in-card px-5 py-2.5 text-center shadow-[0_0_20px_rgba(255,184,0,0.08)]">
+							<div className="w-[calc(100%-16px)] border-2 border-neon-amber/30 border-b-0 rounded-t-lg bg-drive-in-card px-5 py-2.5 text-center shadow-[0_0_20px_rgba(255,184,0,0.08)] relative">
+								<button
+									type="button"
+									onClick={handleCancel}
+									disabled={deleteWatchEvent.isPending}
+									className="absolute top-2.5 right-3 p-1 text-cream/25 hover:text-cream/60 transition-colors duration-200 disabled:opacity-50"
+								>
+									<X className="w-4 h-4" />
+								</button>
 								<div className="flex justify-center gap-3 mb-1.5">
 									{Array.from({ length: 8 }).map((_, i) => (
 										<div

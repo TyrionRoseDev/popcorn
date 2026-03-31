@@ -146,6 +146,19 @@ export const watchedRouter = createTRPCRouter({
 			return result[0]?.count ?? 0;
 		}),
 
+	delete: protectedProcedure
+		.input(z.object({ watchEventId: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			await db
+				.delete(watchEvent)
+				.where(
+					and(
+						eq(watchEvent.id, input.watchEventId),
+						eq(watchEvent.userId, ctx.userId),
+					),
+				);
+		}),
+
 	getById: protectedProcedure
 		.input(z.object({ id: z.string() }))
 		.query(async ({ input, ctx }) => {
