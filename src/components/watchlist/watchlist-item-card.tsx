@@ -3,6 +3,7 @@ import { Check, Eye, EyeOff, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { useTRPC } from "#/integrations/trpc/react";
+import { getTmdbImageUrl } from "#/lib/tmdb";
 
 const POSTER_GRADIENTS = [
 	"linear-gradient(135deg, #1a3a5c, #0d2240)",
@@ -23,6 +24,8 @@ interface WatchlistItemCardProps {
 	item: {
 		tmdbId: number;
 		mediaType: string;
+		title: string | null;
+		posterPath: string | null;
 		watched: boolean;
 		createdAt: Date | string;
 		addedByUser: {
@@ -93,6 +96,7 @@ export function WatchlistItemCard({
 
 	const canToggleWatched = userRole === "owner" || userRole === "member";
 	const canRemove = userRole === "owner";
+	const posterUrl = getTmdbImageUrl(item.posterPath, "w342");
 
 	return (
 		<>
@@ -100,10 +104,19 @@ export function WatchlistItemCard({
 				<div className="overflow-hidden rounded-xl border border-cream/8 bg-cream/[0.03] transition-all duration-200 hover:border-[#FF2D78]/30 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
 					{/* Poster area */}
 					<div className="relative aspect-[2/3] overflow-hidden">
-						<div
-							className="h-full w-full"
-							style={{ background: gradientForId(item.tmdbId) }}
-						/>
+						{posterUrl ? (
+							<img
+								src={posterUrl}
+								alt={item.titleName || `Title #${item.tmdbId}`}
+								className="h-full w-full object-cover"
+								loading="lazy"
+							/>
+						) : (
+							<div
+								className="h-full w-full"
+								style={{ background: gradientForId(item.tmdbId) }}
+							/>
+						)}
 
 						{/* Media type badge */}
 						<div className="absolute top-2 right-2 rounded-md bg-black/60 px-1.5 py-0.5 font-mono-retro text-[9px] font-semibold uppercase tracking-wider text-cream/60">

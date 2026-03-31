@@ -1,6 +1,15 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { and, eq, ilike, inArray, notInArray, or, sql } from "drizzle-orm";
+import {
+	and,
+	eq,
+	ilike,
+	inArray,
+	isNull,
+	notInArray,
+	or,
+	sql,
+} from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import {
@@ -12,7 +21,53 @@ import {
 	watchlistMember,
 } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
+import { tmdbFetch } from "#/lib/tmdb";
 import { createNotification } from "./notification";
+
+/** Fetch poster_path and title from TMDB for items missing that data, then update DB. */
+async function backfillPosterData(
+	items: Array<{
+		tmdbId: number;
+		mediaType: string;
+		posterPath: string | null;
+		title: string | null;
+	}>,
+) {
+	const missing = items.filter((i) => i.posterPath === null);
+	if (missing.length === 0) return;
+
+	await Promise.allSettled(
+		missing.map(async (item) => {
+			try {
+				const endpoint =
+					item.mediaType === "tv"
+						? `/tv/${item.tmdbId}`
+						: `/movie/${item.tmdbId}`;
+				const data = await tmdbFetch<{
+					poster_path: string | null;
+					title?: string;
+					name?: string;
+				}>(endpoint);
+				const title = data.title ?? data.name ?? null;
+				const posterPath = data.poster_path ?? null;
+				item.posterPath = posterPath;
+				item.title = item.title ?? title;
+				await db
+					.update(watchlistItem)
+					.set({ posterPath, title: item.title })
+					.where(
+						and(
+							eq(watchlistItem.tmdbId, item.tmdbId),
+							eq(watchlistItem.mediaType, item.mediaType),
+							isNull(watchlistItem.posterPath),
+						),
+					);
+			} catch {
+				// Non-critical — leave as gradient fallback
+			}
+		}),
+	);
+}
 
 async function assertOwner(watchlistId: string, userId: string) {
 	const membership = await db.query.watchlistMember.findFirst({
@@ -76,7 +131,15 @@ export const watchlistRouter = {
 		const watchlists = await db.query.watchlist.findMany({
 			where: (wl, { inArray }) => inArray(wl.id, watchlistIds),
 			with: {
-				items: { columns: { tmdbId: true, mediaType: true }, limit: 20 },
+				items: {
+					columns: {
+						tmdbId: true,
+						mediaType: true,
+						posterPath: true,
+						title: true,
+					},
+					limit: 20,
+				},
 				members: {
 					with: {
 						user: { columns: { id: true, username: true, avatarUrl: true } },
@@ -88,6 +151,10 @@ export const watchlistRouter = {
 				desc(wl.updatedAt),
 			],
 		});
+
+		// Lazily backfill poster data for items added before the column existed
+		const allItems = watchlists.flatMap((wl) => wl.items);
+		await backfillPosterData(allItems);
 
 		return watchlists.map((wl) => ({
 			...wl,
@@ -134,6 +201,8 @@ export const watchlistRouter = {
 			if (!wl.isPublic && !membership) {
 				throw new TRPCError({ code: "FORBIDDEN" });
 			}
+
+			await backfillPosterData(wl.items);
 
 			const userRole = membership?.role ?? null;
 			return { ...wl, userRole };
@@ -316,6 +385,7 @@ export const watchlistRouter = {
 				tmdbId: z.number(),
 				mediaType: z.enum(["movie", "tv"]),
 				titleName: z.string().optional(),
+				posterPath: z.string().nullish(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -326,6 +396,8 @@ export const watchlistRouter = {
 					watchlistId: input.watchlistId,
 					tmdbId: input.tmdbId,
 					mediaType: input.mediaType,
+					title: input.titleName,
+					posterPath: input.posterPath ?? null,
 					addedBy: ctx.userId,
 					titleName: input.titleName ?? null,
 				})

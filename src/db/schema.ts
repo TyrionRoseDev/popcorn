@@ -163,6 +163,8 @@ export const watchlistItem = pgTable(
 			.references(() => watchlist.id, { onDelete: "cascade" }),
 		tmdbId: integer("tmdb_id").notNull(),
 		mediaType: text("media_type").notNull(),
+		title: text("title"),
+		posterPath: text("poster_path"),
 		addedBy: text("added_by")
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),

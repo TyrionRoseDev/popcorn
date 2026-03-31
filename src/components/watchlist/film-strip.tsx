@@ -1,7 +1,12 @@
 import { useMemo } from "react";
+import { getTmdbImageUrl } from "#/lib/tmdb";
 
 interface FilmStripProps {
-	items: Array<{ tmdbId: number; mediaType: string }>;
+	items: Array<{
+		tmdbId: number;
+		mediaType: string;
+		posterPath: string | null;
+	}>;
 }
 
 /** Palette of dark gradient backgrounds keyed by tmdbId. */
@@ -55,6 +60,7 @@ export function FilmStrip({ items }: FilmStripProps) {
 		const repeated: Array<{
 			tmdbId: number;
 			mediaType: string;
+			posterPath: string | null;
 			key: string;
 		}> = [];
 		let cycle = 0;
@@ -107,32 +113,49 @@ export function FilmStrip({ items }: FilmStripProps) {
 
 				{/* Poster row */}
 				<div className="flex" style={{ background: "#0a0a1e" }}>
-					{reelItems.map((item, i) => (
-						<div
-							key={item.key}
-							className="relative flex-shrink-0"
-							style={{ padding: "8px 6px" }}
-						>
+					{reelItems.map((item, i) => {
+						const posterUrl = getTmdbImageUrl(item.posterPath, "w185");
+						return (
 							<div
-								style={{
-									width: 115,
-									height: 165,
-									borderRadius: 3,
-									background: gradientForId(item.tmdbId),
-								}}
-							/>
-							{/* Thin divider between slots */}
-							{i < reelItems.length - 1 && (
-								<div
-									className="absolute top-0 right-0 h-full"
-									style={{
-										width: 1,
-										background: "rgba(255,255,240,0.04)",
-									}}
-								/>
-							)}
-						</div>
-					))}
+								key={item.key}
+								className="relative flex-shrink-0"
+								style={{ padding: "8px 6px" }}
+							>
+								{posterUrl ? (
+									<img
+										src={posterUrl}
+										alt=""
+										className="object-cover"
+										style={{
+											width: 115,
+											height: 165,
+											borderRadius: 3,
+										}}
+										loading="lazy"
+									/>
+								) : (
+									<div
+										style={{
+											width: 115,
+											height: 165,
+											borderRadius: 3,
+											background: gradientForId(item.tmdbId),
+										}}
+									/>
+								)}
+								{/* Thin divider between slots */}
+								{i < reelItems.length - 1 && (
+									<div
+										className="absolute top-0 right-0 h-full"
+										style={{
+											width: 1,
+											background: "rgba(255,255,240,0.04)",
+										}}
+									/>
+								)}
+							</div>
+						);
+					})}
 				</div>
 
 				{/* Bottom strip line */}

@@ -30,6 +30,7 @@ export function PosterCard({ item }: PosterCardProps) {
 						tmdbId={item.tmdbId}
 						mediaType={item.mediaType as "movie" | "tv"}
 						titleName={item.title}
+						posterPath={item.posterPath}
 					/>
 				</div>
 				<div className="absolute top-2 right-2 rounded-md bg-black/60 px-1.5 py-0.5 font-mono-retro text-[9px] font-semibold uppercase tracking-wider text-cream/60">
