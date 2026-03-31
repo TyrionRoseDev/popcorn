@@ -3,11 +3,11 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "./init";
 import { friendRouter } from "./routers/friend";
 import { notificationRouter } from "./routers/notification";
+import { recommendationRouter } from "./routers/recommendation";
 import { searchRouter } from "./routers/search";
 import { shuffleRouter } from "./routers/shuffle";
 import { tasteProfileRouter } from "./routers/taste-profile";
 import { titleRouter } from "./routers/title";
-import { recommendationRouter } from "./routers/recommendation";
 import { watchedRouter } from "./routers/watched";
 import { watchlistRouter } from "./routers/watchlist";
 

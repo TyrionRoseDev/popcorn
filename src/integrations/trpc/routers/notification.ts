@@ -16,6 +16,8 @@ const NOTIFICATION_TYPES = [
 	"title_reviewed",
 	"recommendation_received",
 	"recommendation_reviewed",
+	"recommendation_watched",
+	"review_reminder",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

@@ -99,6 +99,7 @@ export const recommendationRouter = {
 					recipientId,
 					tmdbId: input.tmdbId,
 					mediaType: input.mediaType,
+					titleName: input.titleName,
 					message: input.message ?? null,
 				});
 
