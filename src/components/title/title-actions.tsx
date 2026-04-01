@@ -281,7 +281,7 @@ export function TitleActions({
 					icon={Check}
 					label="Watched"
 					color="cyan"
-					active={isWatched === true}
+					active={!!isWatched}
 					onClick={handleWatched}
 				/>
 
@@ -323,6 +323,15 @@ export function TitleActions({
 							}}
 						/>
 					</div>
+					{mediaType === "tv" && isWatched && seasonList && (
+						<button
+							type="button"
+							onClick={() => setSeasonPickerOpen(true)}
+							className="mt-2 w-full font-mono-retro text-[10px] tracking-[2px] uppercase text-neon-cyan/40 hover:text-neon-cyan/70 transition-colors duration-200 py-1.5 text-center"
+						>
+							Edit Seasons Watched
+						</button>
+					)}
 				</div>
 			)}
 
@@ -359,6 +368,7 @@ export function TitleActions({
 					onOpenChange={setSeasonPickerOpen}
 					titleName={title}
 					seasons={seasonList}
+					initialSelected={isWatched?.watchedSeasons ?? undefined}
 					onConfirm={handleSeasonConfirm}
 					isPending={quickWatchedMutation.isPending}
 				/>

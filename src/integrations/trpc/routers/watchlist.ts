@@ -636,8 +636,14 @@ export const watchlistRouter = {
 					eq(watchlistItem.mediaType, input.mediaType),
 					eq(watchlistItem.watched, true),
 				),
+				columns: { watched: true, watchedSeasons: true },
 			});
-			return !!item;
+
+			if (!item) return null;
+			return {
+				watched: true,
+				watchedSeasons: item.watchedSeasons as number[] | null,
+			};
 		}),
 
 	quickMarkWatched: protectedProcedure
@@ -686,7 +692,12 @@ export const watchlistRouter = {
 				columns: { watched: true },
 			});
 
-			const newWatched = !item?.watched;
+			// If already watched and seasons provided, update seasons (don't toggle)
+			const isSeasonEdit =
+				item?.watched &&
+				input.watchedSeasons &&
+				input.watchedSeasons.length > 0;
+			const newWatched = isSeasonEdit ? true : !item?.watched;
 
 			// Compute runtime for TV shows based on selected seasons
 			let computedRuntime: number | null = input.runtime ?? null;

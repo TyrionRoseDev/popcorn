@@ -559,6 +559,46 @@ describe("watchlist.quickMarkWatched", () => {
 		);
 	});
 
+	it("updates seasons without toggling watched off when editing", async () => {
+		// getOrCreateDefaultWatchlist
+		mockQueryWatchlistFindFirst.mockResolvedValueOnce({ id: WATCHLIST_ID });
+
+		// insert().values().onConflictDoNothing()
+		mockOnConflictDoNothing.mockResolvedValueOnce(undefined);
+
+		// query.watchlistItem.findFirst — already watched
+		mockQueryWatchlistItemFindFirst.mockResolvedValueOnce({ watched: true });
+
+		// update().set().where()
+		mockWhere.mockResolvedValueOnce(undefined);
+
+		const caller = createCaller(OWNER_ID);
+		const result = await caller.watchlist.quickMarkWatched({
+			tmdbId: 1399,
+			mediaType: "tv",
+			titleName: "Breaking Bad",
+			runtime: 47,
+			watchedSeasons: [1, 2, 3, 4, 5],
+			seasonEpisodeCounts: [
+				{ seasonNumber: 1, episodeCount: 7 },
+				{ seasonNumber: 2, episodeCount: 13 },
+				{ seasonNumber: 3, episodeCount: 13 },
+				{ seasonNumber: 4, episodeCount: 13 },
+				{ seasonNumber: 5, episodeCount: 16 },
+			],
+		});
+
+		expect(result.watched).toBe(true);
+		// 47 * (7 + 13 + 13 + 13 + 16) = 47 * 62 = 2914
+		expect(mockSet).toHaveBeenCalledWith(
+			expect.objectContaining({
+				watched: true,
+				runtime: 2914,
+				watchedSeasons: [1, 2, 3, 4, 5],
+			}),
+		);
+	});
+
 	it("stores plain runtime for movies (no watchedSeasons)", async () => {
 		mockQueryWatchlistFindFirst.mockResolvedValueOnce({ id: WATCHLIST_ID });
 		mockOnConflictDoNothing.mockResolvedValueOnce(undefined);
