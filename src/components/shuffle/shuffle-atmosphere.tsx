@@ -66,46 +66,6 @@ export function ShuffleAtmosphere() {
 				}}
 			/>
 
-			{/* ===== DRIVE-IN SCREEN FRAME — structural posts ===== */}
-			{/* Left post */}
-			<div
-				className="fixed hidden sm:block"
-				style={{
-					left: "calc(50% - 220px)",
-					top: "15%",
-					bottom: "35%",
-					width: "3px",
-					background:
-						"linear-gradient(180deg, rgba(40,40,60,0.6) 0%, rgba(40,40,60,0.2) 100%)",
-					borderRadius: "2px",
-				}}
-			/>
-			{/* Right post */}
-			<div
-				className="fixed hidden sm:block"
-				style={{
-					right: "calc(50% - 220px)",
-					top: "15%",
-					bottom: "35%",
-					width: "3px",
-					background:
-						"linear-gradient(180deg, rgba(40,40,60,0.6) 0%, rgba(40,40,60,0.2) 100%)",
-					borderRadius: "2px",
-				}}
-			/>
-			{/* Top crossbar */}
-			<div
-				className="fixed hidden sm:block"
-				style={{
-					left: "calc(50% - 220px)",
-					right: "calc(50% - 220px)",
-					top: "15%",
-					height: "2px",
-					background:
-						"linear-gradient(90deg, rgba(40,40,60,0.4) 0%, rgba(40,40,60,0.6) 50%, rgba(40,40,60,0.4) 100%)",
-				}}
-			/>
-
 			{/* Vignette overlay — strong dark edges like looking through a windshield */}
 			<div
 				className="fixed inset-0"
