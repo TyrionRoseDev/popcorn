@@ -865,9 +865,12 @@ function WatchActivityHeatmap({
 
 	// Compute grid for selected year: Jan 1 → Dec 31 (or today if current year)
 	const yearNum = Number.parseInt(selectedYear, 10);
-	const isCurrentYear = selectedYear === currentYear;
+	const _isCurrentYear = selectedYear === currentYear;
 	const jan1 = new Date(yearNum, 0, 1);
-	const endDate = isCurrentYear ? new Date() : new Date(yearNum, 11, 31);
+	const todayDate = new Date();
+	todayDate.setHours(0, 0, 0, 0);
+	const todayStr = fmtDate(todayDate);
+	const endDate = new Date(yearNum, 11, 31);
 	endDate.setHours(0, 0, 0, 0);
 	const endStr = fmtDate(endDate);
 
@@ -942,9 +945,11 @@ function WatchActivityHeatmap({
 									height: 10,
 									borderRadius: 2,
 									backgroundColor:
-										cell.count > 0
-											? `rgba(255, 45, 120, ${0.2 + (cell.count / maxCount) * 0.8})`
-											: "rgba(255, 255, 240, 0.04)",
+										cell.date > todayStr
+											? "rgba(255, 255, 240, 0.02)"
+											: cell.count > 0
+												? `rgba(255, 45, 120, ${0.2 + (cell.count / maxCount) * 0.8})`
+												: "rgba(255, 255, 240, 0.04)",
 								}}
 							/>
 						),
