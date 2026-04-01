@@ -166,7 +166,7 @@ export function WatchEventCard({
 							to="/app/title/$mediaType/$tmdbId"
 							params={{
 								mediaType: event.mediaType as "movie" | "tv",
-								tmdbId: event.tmdbId.toString(),
+								tmdbId: event.tmdbId,
 							}}
 							className="text-sm font-semibold text-cream/90 hover:text-cream no-underline"
 						>
