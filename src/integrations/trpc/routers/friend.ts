@@ -6,12 +6,14 @@ import {
 	block,
 	friendship,
 	user,
+	watchEvent,
 	watchlist,
 	watchlistItem,
 	watchlistMember,
 } from "#/db/schema";
 import { createTRPCRouter, protectedProcedure } from "#/integrations/trpc/init";
 import { createNotification } from "#/integrations/trpc/routers/notification";
+import { getUnifiedGenreById, getUnifiedIdByTmdbId } from "#/lib/genre-map";
 
 async function forkSharedWatchlists(
 	tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
@@ -674,5 +676,69 @@ export const friendRouter = createTRPCRouter({
 			}
 
 			return profile;
+		}),
+
+	genreStats: protectedProcedure
+		.input(z.object({ userId: z.string() }))
+		.query(async ({ input }) => {
+			const events = await db
+				.select({ genreIds: watchEvent.genreIds })
+				.from(watchEvent)
+				.where(
+					and(
+						eq(watchEvent.userId, input.userId),
+						sql`${watchEvent.genreIds} IS NOT NULL`,
+					),
+				);
+
+			// Count occurrences of each TMDB genre ID
+			const counts = new Map<number, number>();
+			for (const event of events) {
+				if (!event.genreIds) continue;
+				for (const id of event.genreIds as number[]) {
+					counts.set(id, (counts.get(id) ?? 0) + 1);
+				}
+			}
+
+			// Convert to unified genre IDs and merge
+			const unifiedCounts = new Map<number, { name: string; count: number }>();
+			for (const [tmdbId, count] of counts) {
+				const unifiedId = getUnifiedIdByTmdbId(tmdbId);
+				if (unifiedId === null) continue;
+				const genre = getUnifiedGenreById(unifiedId);
+				if (!genre) continue;
+				const existing = unifiedCounts.get(unifiedId);
+				if (existing) {
+					existing.count += count;
+				} else {
+					unifiedCounts.set(unifiedId, { name: genre.name, count });
+				}
+			}
+
+			// Sort by count descending, return top 5
+			return Array.from(unifiedCounts.values())
+				.sort((a, b) => b.count - a.count)
+				.slice(0, 5);
+		}),
+
+	watchActivity: protectedProcedure
+		.input(z.object({ userId: z.string() }))
+		.query(async ({ input }) => {
+			const result = await db
+				.select({
+					date: sql<string>`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`,
+					count: sql<number>`count(*)::int`,
+				})
+				.from(watchEvent)
+				.where(
+					and(
+						eq(watchEvent.userId, input.userId),
+						sql`${watchEvent.watchedAt} >= now() - interval '365 days'`,
+					),
+				)
+				.groupBy(sql`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`)
+				.orderBy(sql`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`);
+
+			return result;
 		}),
 });
