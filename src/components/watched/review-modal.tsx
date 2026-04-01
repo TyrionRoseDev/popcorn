@@ -72,6 +72,9 @@ export function ReviewModal({
 			trpc.watchEvent.getLatestRating.queryFilter(),
 		);
 		queryClient.invalidateQueries(trpc.watchEvent.getFeed.queryFilter());
+		queryClient.invalidateQueries(trpc.friend.genreStats.queryFilter());
+		queryClient.invalidateQueries(trpc.friend.watchActivity.queryFilter());
+		queryClient.invalidateQueries(trpc.friend.profile.queryFilter());
 	}
 
 	const createEvent = useMutation(
