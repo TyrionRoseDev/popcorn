@@ -7,6 +7,7 @@ import {
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
 	Award,
+	Ban,
 	BarChart3,
 	CalendarDays,
 	ChevronRight,
@@ -331,16 +332,21 @@ function ProfilePage() {
 	const removeFriend = useMutation(
 		trpc.friend.removeFriend.mutationOptions({ onSuccess: invalidateAll }),
 	);
+	const blockUser = useMutation(
+		trpc.friend.block.mutationOptions({ onSuccess: invalidateAll }),
+	);
 
 	const [activeTab, setActiveTab] = useState<FriendTab>("watchlists");
 	const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+	const [showBlockConfirm, setShowBlockConfirm] = useState(false);
 
 	const anyMutating =
 		sendRequest.isPending ||
 		cancelRequest.isPending ||
 		acceptRequest.isPending ||
 		declineRequest.isPending ||
-		removeFriend.isPending;
+		removeFriend.isPending ||
+		blockUser.isPending;
 
 	// ── Loading skeleton ──────────────────────────────────────
 	if (isLoading) {
@@ -518,110 +524,49 @@ function ProfilePage() {
 						{/* ── 4. Action buttons (hidden for own profile) ── */}
 						{!isSelf && (
 							<div className="mt-3 flex justify-center gap-2">
-								{profile.relationshipStatus ===
-								"blocked" ? null : profile.relationshipStatus === "none" ? (
-									/* Add Friend */
-									<button
-										type="button"
-										onClick={() => sendRequest.mutate({ userId })}
-										disabled={anyMutating}
-										className="relative flex items-center gap-2 overflow-hidden rounded-lg border border-neon-pink/40 bg-neon-pink/10 px-5 py-2.5 font-mono-retro text-xs uppercase tracking-[2px] text-neon-pink transition-all hover:border-neon-pink/60 hover:bg-neon-pink/15 disabled:opacity-50"
-										style={{
-											textShadow: "0 0 10px rgba(255,45,120,0.3)",
-										}}
-									>
-										<div
-											className="pointer-events-none absolute inset-0 opacity-20"
-											style={{
-												background:
-													"linear-gradient(90deg, transparent, rgba(255,45,120,0.4), transparent)",
-												animation: "shimmer-sweep 2.5s ease-in-out infinite",
-											}}
-										/>
-										<UserPlus className="relative z-10 h-4 w-4" />
-										<span className="relative z-10">Add Friend</span>
-									</button>
-								) : profile.relationshipStatus === "request_sent" ? (
-									/* Request Sent */
-									<div className="flex items-center gap-2">
-										<span className="font-mono-retro text-[10px] uppercase tracking-[1.5px] text-cream/35">
-											Request Sent
-										</span>
-										<button
-											type="button"
-											onClick={() =>
-												profile.friendshipId &&
-												cancelRequest.mutate({
-													friendshipId: profile.friendshipId,
-												})
-											}
-											disabled={anyMutating}
-											className="flex items-center gap-1 rounded-md border border-cream/12 bg-cream/[0.04] px-3 py-1.5 font-mono-retro text-[10px] uppercase tracking-[1px] text-cream/40 transition-all hover:border-cream/25 hover:text-cream/60 disabled:opacity-50"
-										>
-											<X className="h-3 w-3" />
-											Cancel
-										</button>
-									</div>
-								) : profile.relationshipStatus === "request_received" ? (
-									/* Accept / Decline */
-									<div className="flex items-center gap-2">
-										<button
-											type="button"
-											onClick={() =>
-												profile.friendshipId &&
-												acceptRequest.mutate({
-													friendshipId: profile.friendshipId,
-												})
-											}
-											disabled={anyMutating}
-											className="flex items-center gap-1.5 rounded-lg border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-2 font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-cyan transition-all hover:border-neon-cyan/60 hover:bg-neon-cyan/15 disabled:opacity-50"
-											style={{
-												textShadow: "0 0 8px rgba(0,229,255,0.25)",
-											}}
-										>
-											Accept
-										</button>
-										<button
-											type="button"
-											onClick={() =>
-												profile.friendshipId &&
-												declineRequest.mutate({
-													friendshipId: profile.friendshipId,
-												})
-											}
-											disabled={anyMutating}
-											className="flex items-center gap-1 rounded-lg border border-cream/12 bg-cream/[0.04] px-4 py-2 font-mono-retro text-[10px] uppercase tracking-[1.5px] text-cream/35 transition-all hover:border-cream/25 hover:text-cream/55 disabled:opacity-50"
-										>
-											Decline
-										</button>
-									</div>
-								) : isFriend ? (
-									/* Friend actions: Remove / Block */
+								{profile.relationshipStatus === "blocked" ? null : (
 									<AnimatePresence mode="wait">
-										{showRemoveConfirm ? (
+										{showBlockConfirm ? (
+											<motion.div
+												key="block-confirm"
+												initial={{ opacity: 0, scale: 0.95 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.95 }}
+												className="flex items-center gap-2"
+											>
+												<span className="text-xs text-cream/40">Block?</span>
+												<button
+													type="button"
+													onClick={() => {
+														blockUser.mutate({ userId });
+														setShowBlockConfirm(false);
+													}}
+													disabled={anyMutating}
+													className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1 font-mono-retro text-[10px] uppercase text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/20 disabled:opacity-50"
+												>
+													Yes
+												</button>
+												<button
+													type="button"
+													onClick={() => setShowBlockConfirm(false)}
+													className="rounded-md border border-cream/12 bg-cream/[0.04] px-3 py-1 font-mono-retro text-[10px] uppercase text-cream/40 transition-all hover:border-cream/25"
+												>
+													No
+												</button>
+											</motion.div>
+										) : showRemoveConfirm ? (
 											<motion.div
 												key="remove-confirm"
-												initial={{
-													opacity: 0,
-													scale: 0.95,
-												}}
-												animate={{
-													opacity: 1,
-													scale: 1,
-												}}
-												exit={{
-													opacity: 0,
-													scale: 0.95,
-												}}
+												initial={{ opacity: 0, scale: 0.95 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.95 }}
 												className="flex items-center gap-2"
 											>
 												<span className="text-xs text-cream/40">Remove?</span>
 												<button
 													type="button"
 													onClick={() => {
-														removeFriend.mutate({
-															userId,
-														});
+														removeFriend.mutate({ userId });
 														setShowRemoveConfirm(false);
 													}}
 													disabled={anyMutating}
@@ -637,21 +582,134 @@ function ProfilePage() {
 													No
 												</button>
 											</motion.div>
-										) : (
+										) : profile.relationshipStatus === "none" ? (
+											/* No relationship: Add Friend + Block */
+											<motion.div
+												key="none-actions"
+												initial={{ opacity: 0, scale: 0.95 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.95 }}
+												className="flex items-center gap-2"
+											>
+												<button
+													type="button"
+													onClick={() => sendRequest.mutate({ userId })}
+													disabled={anyMutating}
+													className="relative flex items-center gap-2 overflow-hidden rounded-lg border border-neon-pink/40 bg-neon-pink/10 px-5 py-2.5 font-mono-retro text-xs uppercase tracking-[2px] text-neon-pink transition-all hover:border-neon-pink/60 hover:bg-neon-pink/15 disabled:opacity-50"
+													style={{
+														textShadow: "0 0 10px rgba(255,45,120,0.3)",
+													}}
+												>
+													<div
+														className="pointer-events-none absolute inset-0 opacity-20"
+														style={{
+															background:
+																"linear-gradient(90deg, transparent, rgba(255,45,120,0.4), transparent)",
+															animation:
+																"shimmer-sweep 2.5s ease-in-out infinite",
+														}}
+													/>
+													<UserPlus className="relative z-10 h-4 w-4" />
+													<span className="relative z-10">Add Friend</span>
+												</button>
+												<button
+													type="button"
+													onClick={() => setShowBlockConfirm(true)}
+													className="flex items-center gap-1 rounded-md border border-cream/10 bg-cream/[0.03] px-3 py-1.5 font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/30 transition-all hover:border-red-500/25 hover:text-red-400/60"
+												>
+													<Ban className="h-3 w-3" />
+													Block
+												</button>
+											</motion.div>
+										) : profile.relationshipStatus === "request_sent" ? (
+											/* Request Sent: Cancel + Block */
+											<motion.div
+												key="sent-actions"
+												initial={{ opacity: 0, scale: 0.95 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.95 }}
+												className="flex items-center gap-2"
+											>
+												<span className="font-mono-retro text-[10px] uppercase tracking-[1.5px] text-cream/35">
+													Request Sent
+												</span>
+												<button
+													type="button"
+													onClick={() =>
+														profile.friendshipId &&
+														cancelRequest.mutate({
+															friendshipId: profile.friendshipId,
+														})
+													}
+													disabled={anyMutating}
+													className="flex items-center gap-1 rounded-md border border-cream/12 bg-cream/[0.04] px-3 py-1.5 font-mono-retro text-[10px] uppercase tracking-[1px] text-cream/40 transition-all hover:border-cream/25 hover:text-cream/60 disabled:opacity-50"
+												>
+													<X className="h-3 w-3" />
+													Cancel
+												</button>
+												<button
+													type="button"
+													onClick={() => setShowBlockConfirm(true)}
+													className="flex items-center gap-1 rounded-md border border-cream/10 bg-cream/[0.03] px-3 py-1.5 font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/30 transition-all hover:border-red-500/25 hover:text-red-400/60"
+												>
+													<Ban className="h-3 w-3" />
+													Block
+												</button>
+											</motion.div>
+										) : profile.relationshipStatus === "request_received" ? (
+											/* Request Received: Accept + Decline + Block */
+											<motion.div
+												key="received-actions"
+												initial={{ opacity: 0, scale: 0.95 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.95 }}
+												className="flex items-center gap-2"
+											>
+												<button
+													type="button"
+													onClick={() =>
+														profile.friendshipId &&
+														acceptRequest.mutate({
+															friendshipId: profile.friendshipId,
+														})
+													}
+													disabled={anyMutating}
+													className="flex items-center gap-1.5 rounded-lg border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-2 font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-cyan transition-all hover:border-neon-cyan/60 hover:bg-neon-cyan/15 disabled:opacity-50"
+													style={{
+														textShadow: "0 0 8px rgba(0,229,255,0.25)",
+													}}
+												>
+													Accept
+												</button>
+												<button
+													type="button"
+													onClick={() =>
+														profile.friendshipId &&
+														declineRequest.mutate({
+															friendshipId: profile.friendshipId,
+														})
+													}
+													disabled={anyMutating}
+													className="flex items-center gap-1 rounded-lg border border-cream/12 bg-cream/[0.04] px-4 py-2 font-mono-retro text-[10px] uppercase tracking-[1.5px] text-cream/35 transition-all hover:border-cream/25 hover:text-cream/55 disabled:opacity-50"
+												>
+													Decline
+												</button>
+												<button
+													type="button"
+													onClick={() => setShowBlockConfirm(true)}
+													className="flex items-center gap-1 rounded-md border border-cream/10 bg-cream/[0.03] px-3 py-1.5 font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/30 transition-all hover:border-red-500/25 hover:text-red-400/60"
+												>
+													<Ban className="h-3 w-3" />
+													Block
+												</button>
+											</motion.div>
+										) : isFriend ? (
+											/* Friends: Remove + Block */
 											<motion.div
 												key="friend-actions"
-												initial={{
-													opacity: 0,
-													scale: 0.95,
-												}}
-												animate={{
-													opacity: 1,
-													scale: 1,
-												}}
-												exit={{
-													opacity: 0,
-													scale: 0.95,
-												}}
+												initial={{ opacity: 0, scale: 0.95 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.95 }}
 												className="flex items-center gap-2"
 											>
 												<button
@@ -662,10 +720,18 @@ function ProfilePage() {
 													<UserMinus className="h-3 w-3" />
 													Remove
 												</button>
+												<button
+													type="button"
+													onClick={() => setShowBlockConfirm(true)}
+													className="flex items-center gap-1 rounded-md border border-cream/10 bg-cream/[0.03] px-3 py-1.5 font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/30 transition-all hover:border-red-500/25 hover:text-red-400/60"
+												>
+													<Ban className="h-3 w-3" />
+													Block
+												</button>
 											</motion.div>
-										)}
+										) : null}
 									</AnimatePresence>
-								) : null}
+								)}
 							</div>
 						)}
 
