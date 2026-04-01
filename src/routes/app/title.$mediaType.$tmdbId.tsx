@@ -4,12 +4,12 @@ import { Check, Plus, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { ArcadeButton } from "#/components/title/arcade-button";
-import { RecommendModal } from "#/components/title/recommend-modal";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { CastList } from "#/components/title/cast-list";
 import { DriveInScreen } from "#/components/title/drive-in-screen";
 import { NowShowingMarquee } from "#/components/title/now-showing-marquee";
 import { PosterDisplayCase } from "#/components/title/poster-display-case";
+import { RecommendModal } from "#/components/title/recommend-modal";
 import { SectionBoard } from "#/components/title/section-board";
 import { Synopsis } from "#/components/title/synopsis";
 import { TitleMetadata } from "#/components/title/title-metadata";
@@ -62,7 +62,7 @@ function TitlePage() {
 
 	const { data: reminderEvent } = useQuery(
 		trpc.watched.getById.queryOptions(
-			{ id: reviewReminder! },
+			{ id: reviewReminder ?? "" },
 			{ enabled: !!reviewReminder },
 		),
 	);

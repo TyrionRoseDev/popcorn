@@ -17,14 +17,20 @@ import { createNotification } from "./notification";
 
 async function getOrCreateRecommendationsWatchlist(userId: string) {
 	const existing = await db.query.watchlist.findFirst({
-		where: and(eq(watchlist.ownerId, userId), eq(watchlist.type, "recommendations")),
+		where: and(
+			eq(watchlist.ownerId, userId),
+			eq(watchlist.type, "recommendations"),
+		),
 	});
 	if (existing) return existing.id;
 
 	return db.transaction(async (tx) => {
 		// Double-check inside transaction to prevent race condition
 		const check = await tx.query.watchlist.findFirst({
-			where: and(eq(watchlist.ownerId, userId), eq(watchlist.type, "recommendations")),
+			where: and(
+				eq(watchlist.ownerId, userId),
+				eq(watchlist.type, "recommendations"),
+			),
 		});
 		if (check) return check.id;
 
