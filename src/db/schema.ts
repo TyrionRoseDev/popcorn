@@ -466,7 +466,6 @@ export const userRelations = relations(user, ({ many }) => ({
 	ownedWatchlists: many(watchlist),
 	watchlistMemberships: many(watchlistMember),
 	swipes: many(shuffleSwipe),
-	reviews: many(review),
 	watchEvents: many(watchEvent),
 	notificationsReceived: many(notification, {
 		relationName: "notificationRecipient",
@@ -601,13 +600,6 @@ export const blockRelations = relations(block, ({ one }) => ({
 		fields: [block.blockedId],
 		references: [user.id],
 		relationName: "blockBlocked",
-	}),
-}));
-
-export const reviewRelations = relations(review, ({ one }) => ({
-	user: one(user, {
-		fields: [review.userId],
-		references: [user.id],
 	}),
 }));
 

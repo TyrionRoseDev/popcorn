@@ -15,7 +15,6 @@ import { db } from "#/db";
 import {
 	block,
 	friendship,
-	review,
 	user,
 	watchlist,
 	watchlistItem,
@@ -748,63 +747,5 @@ export const watchlistRouter = {
 						eq(watchlistMember.userId, input.userId),
 					),
 				);
-		}),
-
-	// ── Reviews ──────────────────────────────────────────────────
-
-	submitReview: protectedProcedure
-		.input(
-			z.object({
-				tmdbId: z.number(),
-				mediaType: z.enum(["movie", "tv"]),
-				rating: z.number().min(1).max(5),
-				text: z.string().max(1000).optional(),
-				titleName: z.string().optional(),
-			}),
-		)
-		.mutation(async ({ input, ctx }) => {
-			const [result] = await db
-				.insert(review)
-				.values({
-					userId: ctx.userId,
-					tmdbId: input.tmdbId,
-					mediaType: input.mediaType,
-					rating: input.rating,
-					text: input.text ?? null,
-				})
-				.onConflictDoUpdate({
-					target: [review.userId, review.tmdbId, review.mediaType],
-					set: { rating: input.rating, text: input.text ?? null },
-				})
-				.returning();
-
-			return result;
-		}),
-
-	getReview: protectedProcedure
-		.input(
-			z.object({
-				tmdbId: z.number(),
-				mediaType: z.enum(["movie", "tv"]),
-			}),
-		)
-		.query(async ({ input, ctx }) => {
-			const r = await db.query.review.findFirst({
-				where: and(
-					eq(review.userId, ctx.userId),
-					eq(review.tmdbId, input.tmdbId),
-					eq(review.mediaType, input.mediaType),
-				),
-			});
-			return r ?? null;
-		}),
-
-	getUserReviews: protectedProcedure
-		.input(z.object({ userId: z.string() }))
-		.query(async ({ input }) => {
-			return db.query.review.findMany({
-				where: eq(review.userId, input.userId),
-				orderBy: (r, { desc }) => [desc(r.createdAt)],
-			});
 		}),
 } satisfies TRPCRouterRecord;

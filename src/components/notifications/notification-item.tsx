@@ -104,6 +104,13 @@ function getNotificationMessage(
 					? `/app/title/${data.mediaType}/${data.tmdbId}`
 					: undefined,
 			};
+		case "watched_with":
+			return {
+				text: `watched ${data.titleName || "a title"} with you`,
+				link: data.tmdbId
+					? `/app/title/${data.mediaType}/${data.tmdbId}`
+					: undefined,
+			};
 		case "review_reminder":
 			return {
 				text: `How was ${data.titleName || "a title"}? Leave a quick review`,
