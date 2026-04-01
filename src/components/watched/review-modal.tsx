@@ -23,6 +23,8 @@ interface WatchEventModalProps {
 		watchedAt: string;
 		companions: Companion[];
 	};
+	/** Called when user taps "Remind me later" in create mode */
+	onRemindMe?: () => void;
 }
 
 function toLocalDatetime(date: Date): string {
@@ -38,6 +40,7 @@ export function ReviewModal({
 	tmdbId,
 	mediaType,
 	editEvent,
+	onRemindMe,
 }: WatchEventModalProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
@@ -127,6 +130,28 @@ export function ReviewModal({
 				titleName,
 			});
 		}
+	}
+
+	function handleRemindMe() {
+		const watchedAtISO = watchedAt
+			? new Date(watchedAt).toISOString()
+			: undefined;
+
+		createEvent.mutate(
+			{
+				tmdbId,
+				mediaType,
+				watchedAt: watchedAtISO,
+				companions,
+				titleName,
+				remindMe: true,
+			},
+			{
+				onSuccess: () => {
+					onRemindMe?.();
+				},
+			},
+		);
 	}
 
 	const isPending = createEvent.isPending || updateEvent.isPending;
@@ -247,15 +272,25 @@ export function ReviewModal({
 										{editEvent ? "Save Changes" : "Save & Done"}
 									</button>
 
-									{/* Skip (create mode only) */}
+									{/* Skip / Remind me later (create mode only) */}
 									{!editEvent && (
-										<div className="flex justify-center items-center gap-6">
+										<div className="flex justify-center items-center gap-3">
 											<button
 												type="button"
 												onClick={handleClose}
+												disabled={isPending}
 												className="font-mono-retro text-[10px] tracking-[2px] uppercase text-cream/25 hover:text-cream/50 transition-colors duration-200 py-1.5"
 											>
 												skip
+											</button>
+											<span className="text-cream/15 text-[10px]">·</span>
+											<button
+												type="button"
+												onClick={handleRemindMe}
+												disabled={isPending}
+												className="font-mono-retro text-[10px] tracking-[2px] uppercase text-neon-amber/40 hover:text-neon-amber/70 transition-colors duration-200 py-1.5"
+											>
+												remind me later
 											</button>
 										</div>
 									)}
