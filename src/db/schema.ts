@@ -427,6 +427,7 @@ export const watchEvent = pgTable(
 		note: text("note"),
 		title: text("title"),
 		posterPath: text("poster_path"),
+		genreIds: jsonb("genre_ids").$type<number[]>(),
 		watchedAt: timestamp("watched_at").defaultNow().notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},
