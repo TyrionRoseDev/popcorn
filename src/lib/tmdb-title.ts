@@ -85,6 +85,7 @@ export interface TitleData {
 	rating: number;
 	contentRating: string;
 	genres: string[];
+	tmdbGenreIds: number[];
 	posterPath: string | null;
 	backdropPath: string | null;
 	director: string | null;
@@ -195,6 +196,7 @@ export async function fetchTitleDetails(
 			rating: movie.vote_average,
 			contentRating,
 			genres: movie.genres.map((g) => g.name),
+			tmdbGenreIds: movie.genres.map((g) => g.id),
 			posterPath: movie.poster_path,
 			backdropPath: movie.backdrop_path,
 			director: findDirector(credits),
@@ -223,6 +225,7 @@ export async function fetchTitleDetails(
 		rating: tv.vote_average,
 		contentRating,
 		genres: tv.genres.map((g) => g.name),
+		tmdbGenreIds: tv.genres.map((g) => g.id),
 		posterPath: tv.poster_path,
 		backdropPath: tv.backdrop_path,
 		director: tv.created_by[0]?.name ?? null,

@@ -12,6 +12,7 @@ import {
 	watchlistMember,
 } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
+import { fetchTitleDetails } from "#/lib/tmdb-title";
 import { createNotification } from "./notification";
 
 const companionSchema = z.object({
@@ -34,6 +35,14 @@ export const watchEventRouter = {
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			let genreIds: number[] | null = null;
+			try {
+				const details = await fetchTitleDetails(input.mediaType, input.tmdbId);
+				genreIds = details.tmdbGenreIds;
+			} catch {
+				// Non-critical — event still gets created without genres
+			}
+
 			const [event] = await db
 				.insert(watchEvent)
 				.values({
@@ -45,6 +54,7 @@ export const watchEventRouter = {
 					title: input.titleName ?? null,
 					posterPath: input.posterPath ?? null,
 					watchedAt: input.watchedAt ? new Date(input.watchedAt) : new Date(),
+					genreIds,
 				})
 				.returning();
 
@@ -417,4 +427,37 @@ export const watchEventRouter = {
 					: undefined,
 			};
 		}),
+	backfillGenres: protectedProcedure.mutation(async ({ ctx }) => {
+		const events = await db
+			.select({
+				id: watchEvent.id,
+				tmdbId: watchEvent.tmdbId,
+				mediaType: watchEvent.mediaType,
+			})
+			.from(watchEvent)
+			.where(
+				and(
+					eq(watchEvent.userId, ctx.userId),
+					sql`${watchEvent.genreIds} IS NULL`,
+				),
+			);
+
+		let updated = 0;
+		for (const event of events) {
+			try {
+				const details = await fetchTitleDetails(
+					event.mediaType as "movie" | "tv",
+					event.tmdbId,
+				);
+				await db
+					.update(watchEvent)
+					.set({ genreIds: details.tmdbGenreIds })
+					.where(eq(watchEvent.id, event.id));
+				updated++;
+			} catch {
+				// Skip events where TMDB lookup fails
+			}
+		}
+		return { updated, total: events.length };
+	}),
 } satisfies TRPCRouterRecord;
