@@ -425,6 +425,8 @@ export const watchEvent = pgTable(
 		mediaType: text("media_type").notNull(),
 		rating: integer("rating"),
 		note: text("note"),
+		title: text("title"),
+		posterPath: text("poster_path"),
 		watchedAt: timestamp("watched_at").defaultNow().notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},

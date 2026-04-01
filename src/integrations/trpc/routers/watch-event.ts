@@ -30,6 +30,7 @@ export const watchEventRouter = {
 				watchedAt: z.string().datetime().optional(),
 				companions: z.array(companionSchema).optional(),
 				titleName: z.string().optional(),
+				posterPath: z.string().nullish(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -41,6 +42,8 @@ export const watchEventRouter = {
 					mediaType: input.mediaType,
 					rating: input.rating ?? null,
 					note: input.note ?? null,
+					title: input.titleName ?? null,
+					posterPath: input.posterPath ?? null,
 					watchedAt: input.watchedAt ? new Date(input.watchedAt) : new Date(),
 				})
 				.returning();

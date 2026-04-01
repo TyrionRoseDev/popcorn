@@ -993,6 +993,7 @@ function DiaryTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 		open: boolean;
 		tmdbId: number;
 		mediaType: "movie" | "tv";
+		titleName: string;
 		event?: {
 			id: string;
 			rating: number | null;
@@ -1028,13 +1029,16 @@ function DiaryTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 					<WatchEventCard
 						key={event.id}
 						event={event}
-						showTitle={{ name: `${event.tmdbId}` }}
+						showTitle={{
+							name: (event as any).title ?? `Title #${event.tmdbId}`,
+						}}
 						isOwn={isOwn}
 						onEdit={(e) =>
 							setEditModal({
 								open: true,
 								tmdbId: event.tmdbId,
 								mediaType: event.mediaType as "movie" | "tv",
+								titleName: (event as any).title ?? `Title #${event.tmdbId}`,
 								event: e,
 							})
 						}
@@ -1049,7 +1053,7 @@ function DiaryTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 					}}
 					tmdbId={editModal.tmdbId}
 					mediaType={editModal.mediaType}
-					titleName={`${editModal.tmdbId}`}
+					titleName={editModal.titleName}
 					editEvent={editModal.event}
 				/>
 			)}

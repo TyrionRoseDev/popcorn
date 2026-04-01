@@ -77,7 +77,7 @@ function FeedPage() {
 							key={event.id}
 							event={event}
 							showTitle={{
-								name: `${event.tmdbId}`,
+								name: (event as any).title ?? `Title #${event.tmdbId}`,
 							}}
 							actor={event.user}
 							isOwn={event.userId === currentUserId}
@@ -86,7 +86,7 @@ function FeedPage() {
 									open: true,
 									tmdbId: event.tmdbId,
 									mediaType: event.mediaType as "movie" | "tv",
-									titleName: `${event.tmdbId}`,
+									titleName: (event as any).title ?? `Title #${event.tmdbId}`,
 									event: e,
 								})
 							}
