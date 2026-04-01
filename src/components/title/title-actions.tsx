@@ -47,8 +47,8 @@ export function TitleActions({
 		trpc.watchlist.isWatched.queryOptions({ tmdbId, mediaType }),
 	);
 
-	const { data: existingReview } = useQuery(
-		trpc.watchlist.getReview.queryOptions({ tmdbId, mediaType }),
+	const { data: latestRating } = useQuery(
+		trpc.watchEvent.getLatestRating.queryOptions({ tmdbId, mediaType }),
 	);
 
 	// Mutations
@@ -75,9 +75,16 @@ export function TitleActions({
 				);
 				queryClient.invalidateQueries(trpc.watchlist.list.queryFilter());
 				queryClient.invalidateQueries(trpc.friend.profile.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.watchEvent.getForTitle.queryFilter(),
+				);
+				queryClient.invalidateQueries(
+					trpc.watchEvent.getLatestRating.queryFilter(),
+				);
+				queryClient.invalidateQueries(trpc.watchEvent.getFeed.queryFilter());
 				if (data.watched) {
 					toast.success("Marked as watched");
-					if (!existingReview) {
+					if (latestRating === null) {
 						setReviewOpen(true);
 					}
 				} else {
