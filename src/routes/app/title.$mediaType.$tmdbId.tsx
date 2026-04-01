@@ -6,7 +6,6 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
 import { z } from "zod";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { CastList } from "#/components/title/cast-list";
@@ -19,7 +18,6 @@ import { TitleActions } from "#/components/title/title-actions";
 import { TitleMetadata } from "#/components/title/title-metadata";
 import { TitlePageAtmosphere } from "#/components/title/title-page-atmosphere";
 import { TitlePageSkeleton } from "#/components/title/title-page-skeleton";
-import { ReviewModal } from "#/components/watched/review-modal";
 import { useTRPC } from "#/integrations/trpc/react";
 
 const paramsSchema = z.object({
@@ -27,8 +25,8 @@ const paramsSchema = z.object({
 	tmdbId: z.coerce.number(),
 });
 
-const searchParamsSchema = z.object({
-	reviewReminder: z.string().optional(),
+const searchSchema = z.object({
+	reviewEventId: z.string().optional(),
 });
 
 export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
@@ -39,7 +37,7 @@ export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
 			tmdbId: String(params.tmdbId),
 		}),
 	},
-	validateSearch: (search) => searchParamsSchema.parse(search),
+	validateSearch: (search) => searchSchema.parse(search),
 	loader: async ({ context: { queryClient, trpc }, params }) => {
 		await queryClient.ensureQueryData(
 			trpc.title.details.queryOptions({
@@ -55,7 +53,7 @@ export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
 
 function TitlePage() {
 	const { mediaType, tmdbId } = Route.useParams();
-	const { reviewReminder } = Route.useSearch();
+	const { reviewEventId } = Route.useSearch();
 	const location = useLocation();
 	const router = useRouter();
 	const fromShuffle =
@@ -64,27 +62,6 @@ function TitlePage() {
 	const { data } = useQuery(
 		trpc.title.details.queryOptions({ mediaType, tmdbId }),
 	);
-	const navigate = Route.useNavigate();
-	const [reviewModalOpen, setReviewModalOpen] = useState(false);
-	const [watchEventId, setWatchEventId] = useState<string | null>(null);
-	const [isReminderMode, setIsReminderMode] = useState(false);
-
-	const { data: reminderEvent } = useQuery(
-		trpc.watched.getById.queryOptions(
-			{ id: reviewReminder ?? "" },
-			{ enabled: !!reviewReminder },
-		),
-	);
-
-	useEffect(() => {
-		if (reminderEvent && reviewReminder) {
-			setWatchEventId(reminderEvent.id);
-			setIsReminderMode(true);
-			setReviewModalOpen(true);
-			navigate({ search: {}, replace: true });
-		}
-	}, [reminderEvent, reviewReminder, navigate]);
-
 	if (!data) return <TitlePageSkeleton />;
 
 	return (
@@ -144,6 +121,7 @@ function TitlePage() {
 						posterPath={data.posterPath}
 						runtime={data.runtimeMinutes}
 						year={data.year}
+						reviewEventId={reviewEventId}
 					/>
 				</div>
 
@@ -170,24 +148,6 @@ function TitlePage() {
 				</div>
 			</div>
 
-			<ReviewModal
-				open={reviewModalOpen}
-				onOpenChange={(open) => {
-					setReviewModalOpen(open);
-					if (!open) setIsReminderMode(false);
-				}}
-				watchEventId={watchEventId}
-				titleName={data.title}
-				year={data.year}
-				tmdbId={Number(tmdbId)}
-				mediaType={mediaType as "movie" | "tv"}
-				isReminder={isReminderMode}
-				defaultWatchedAt={
-					isReminderMode && reminderEvent?.watchedAt
-						? new Date(reminderEvent.watchedAt)
-						: undefined
-				}
-			/>
 		</div>
 	);
 }

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { Check, Loader2, Plus, Send, Star } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArcadeButton } from "#/components/title/arcade-button";
 import {
@@ -21,6 +22,7 @@ interface TitleActionsProps {
 	posterPath: string | null;
 	runtime: number | null;
 	year: string;
+	reviewEventId?: string;
 }
 
 export function TitleActions({
@@ -30,9 +32,11 @@ export function TitleActions({
 	posterPath,
 	runtime,
 	year,
+	reviewEventId,
 }: TitleActionsProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
+	const navigate = useNavigate();
 
 	const [watchlistOpen, setWatchlistOpen] = useState(false);
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -65,6 +69,31 @@ export function TitleActions({
 	const { data: watchEvents } = useQuery(
 		trpc.watchEvent.getForTitle.queryOptions({ tmdbId, mediaType }),
 	);
+
+	// Auto-open review modal from reminder notification
+	useEffect(() => {
+		if (!reviewEventId || !watchEvents) return;
+		const event = watchEvents.find((e) => e.id === reviewEventId);
+		if (!event) return;
+
+		setEditEvent({
+			id: event.id,
+			rating: event.rating,
+			note: event.note,
+			watchedAt: new Date(event.watchedAt).toISOString(),
+			companions: event.companions.map((c) => ({
+				friendId: c.friendId ?? undefined,
+				name: c.name,
+			})),
+		});
+		setReviewOpen(true);
+
+		// Clear the search param
+		navigate({
+			search: { reviewEventId: undefined },
+			replace: true,
+		});
+	}, [reviewEventId, watchEvents, navigate]);
 
 	// Mutations
 	const addItemMutation = useMutation(
