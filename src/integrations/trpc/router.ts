@@ -9,6 +9,7 @@ import { shuffleRouter } from "./routers/shuffle";
 import { tasteProfileRouter } from "./routers/taste-profile";
 import { titleRouter } from "./routers/title";
 import { userRouter } from "./routers/user";
+import { watchEventRouter } from "./routers/watch-event";
 import { watchedRouter } from "./routers/watched";
 import { watchlistRouter } from "./routers/watchlist";
 
@@ -39,6 +40,7 @@ export const trpcRouter = createTRPCRouter({
 	notification: notificationRouter,
 	recommendation: recommendationRouter,
 	watched: watchedRouter,
+	watchEvent: watchEventRouter,
 	watchlist: watchlistRouter,
 	user: userRouter,
 });
