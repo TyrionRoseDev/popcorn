@@ -94,20 +94,14 @@ function LandingPage() {
 					POPCORN
 				</h1>
 
-				{/* CTA buttons */}
-				<div className="relative z-10 mt-14 flex flex-col items-center gap-4 sm:flex-row">
+				{/* CTA */}
+				<div className="relative z-10 mt-14">
 					<Link
 						to="/login"
-						className="rounded border-[1.5px] border-neon-pink/50 px-8 py-3.5 font-display text-[15px] tracking-wide text-neon-pink no-underline transition-all duration-300 hover:bg-neon-pink/8 hover:shadow-[0_0_25px_rgba(255,45,120,0.3)]"
+						className="rounded border-[1.5px] border-neon-pink/50 px-10 py-3.5 font-display text-[15px] tracking-wide text-neon-pink no-underline transition-all duration-300 hover:bg-neon-pink/8 hover:shadow-[0_0_25px_rgba(255,45,120,0.3)]"
 						style={{
 							boxShadow: "0 0 12px rgba(255,45,120,0.15)",
 						}}
-					>
-						Log In
-					</Link>
-					<Link
-						to="/login"
-						className="rounded border-[1.5px] border-neon-cyan/25 px-8 py-3.5 font-display text-[15px] tracking-wide text-neon-cyan/60 no-underline transition-all duration-300 hover:border-neon-cyan/45 hover:text-neon-cyan/85 hover:shadow-[0_0_20px_rgba(0,229,255,0.15)]"
 					>
 						Get Started
 					</Link>
