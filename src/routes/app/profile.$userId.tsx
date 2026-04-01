@@ -847,41 +847,22 @@ function fmtDate(d: Date) {
 	return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 
-function WatchActivityHeatmap({
-	data,
-}: {
-	data: Array<{ date: string; count: number; titles: string[] }>;
-}) {
-	// Determine which years have data
-	const years = [...new Set(data.map((d) => d.date.slice(0, 4)))].sort();
-	const currentYear = new Date().getFullYear().toString();
-	if (!years.includes(currentYear)) years.push(currentYear);
-	const hasMultipleYears = years.length > 1;
+// Year colors: current year = pink, past years cycle cyan → amber → pink
+const YEAR_COLORS = [
+	{ r: 0, g: 229, b: 255 }, // cyan
+	{ r: 255, g: 184, b: 0 }, // amber
+	{ r: 255, g: 45, b: 120 }, // pink
+];
 
-	const [selectedYear, setSelectedYear] = useState(currentYear);
-	const [hover, setHover] = useState<{
-		date: string;
-		count: number;
-		titles: string[];
-		x: number;
-		y: number;
-	} | null>(null);
+type HeatmapData = Array<{ date: string; count: number; titles: string[] }>;
 
-	// Build date→data lookup
-	const dataMap = new Map(
-		data.map((d) => [d.date, { count: d.count, titles: d.titles }]),
-	);
-
-	// Compute grid for selected year: Jan 1 → Dec 31
-	const yearNum = Number.parseInt(selectedYear, 10);
-	const jan1 = new Date(yearNum, 0, 1);
-	const todayDate = new Date();
-	todayDate.setHours(0, 0, 0, 0);
-	const todayStr = fmtDate(todayDate);
-	const endDate = new Date(yearNum, 11, 31);
-	endDate.setHours(0, 0, 0, 0);
+function buildYearGrid(
+	year: number,
+	dataMap: Map<string, { count: number; titles: string[] }>,
+) {
+	const jan1 = new Date(year, 0, 1);
+	const endDate = new Date(year, 11, 31);
 	const endStr = fmtDate(endDate);
-
 	const startDow = jan1.getDay();
 	const cells: Array<{ date: string; count: number } | null> = [];
 
@@ -894,37 +875,41 @@ function WatchActivityHeatmap({
 		cursor.setDate(cursor.getDate() + 1);
 	}
 
-	const maxCount = Math.max(...data.map((d) => d.count), 1);
+	return cells;
+}
 
-	function formatDisplayDate(dateStr: string) {
-		const d = new Date(`${dateStr}T00:00:00`);
-		return d.toLocaleDateString("en-US", {
-			weekday: "short",
-			month: "short",
-			day: "numeric",
-		});
-	}
+function formatDisplayDate(dateStr: string) {
+	const d = new Date(`${dateStr}T00:00:00`);
+	return d.toLocaleDateString("en-US", {
+		weekday: "short",
+		month: "short",
+		day: "numeric",
+	});
+}
+
+function HeatmapGrid({
+	cells,
+	dataMap,
+	maxCount,
+	todayStr,
+	color,
+}: {
+	cells: Array<{ date: string; count: number } | null>;
+	dataMap: Map<string, { count: number; titles: string[] }>;
+	maxCount: number;
+	todayStr: string;
+	color: { r: number; g: number; b: number };
+}) {
+	const [hover, setHover] = useState<{
+		date: string;
+		count: number;
+		titles: string[];
+		x: number;
+		y: number;
+	} | null>(null);
 
 	return (
-		<div className="relative rounded-lg border border-drive-in-border p-3">
-			{hasMultipleYears && (
-				<div className="mb-2 flex gap-2">
-					{years.map((yr) => (
-						<button
-							key={yr}
-							type="button"
-							onClick={() => setSelectedYear(yr)}
-							className={`font-mono-retro text-[10px] tracking-[1px] transition-colors ${
-								yr === selectedYear
-									? "text-neon-pink"
-									: "text-cream/30 hover:text-cream/50"
-							}`}
-						>
-							{yr}
-						</button>
-					))}
-				</div>
-			)}
+		<div className="relative">
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: tooltip dismiss on mouse leave */}
 			<div
 				className="overflow-x-auto"
@@ -972,7 +957,7 @@ function WatchActivityHeatmap({
 										cell.date > todayStr
 											? "rgba(255, 255, 240, 0.02)"
 											: cell.count > 0
-												? `rgba(255, 45, 120, ${0.2 + (cell.count / maxCount) * 0.8})`
+												? `rgba(${color.r}, ${color.g}, ${color.b}, ${0.2 + (cell.count / maxCount) * 0.8})`
 												: "rgba(255, 255, 240, 0.04)",
 								}}
 							/>
@@ -992,7 +977,13 @@ function WatchActivityHeatmap({
 						{hover.count > 0 ? (
 							<div className="mt-1 flex flex-col gap-0.5">
 								{[...new Set(hover.titles.filter(Boolean))].map((title) => (
-									<p key={title} className="text-[11px] text-neon-pink">
+									<p
+										key={title}
+										className="text-[11px]"
+										style={{
+											color: `rgb(${color.r}, ${color.g}, ${color.b})`,
+										}}
+									>
 										{title}
 									</p>
 								))}
@@ -1006,6 +997,116 @@ function WatchActivityHeatmap({
 				</div>
 			)}
 		</div>
+	);
+}
+
+function WatchActivityHeatmap({ data }: { data: HeatmapData }) {
+	const currentYear = new Date().getFullYear().toString();
+	const todayStr = fmtDate(new Date());
+	const [showHistory, setShowHistory] = useState(false);
+
+	// Build date→data lookup
+	const dataMap = new Map(
+		data.map((d) => [d.date, { count: d.count, titles: d.titles }]),
+	);
+
+	// Past years with data (excluding current year), newest first
+	const pastYears = [...new Set(data.map((d) => d.date.slice(0, 4)))]
+		.filter((y) => y !== currentYear)
+		.sort()
+		.reverse();
+
+	const maxCount = Math.max(...data.map((d) => d.count), 1);
+	const currentYearCells = buildYearGrid(
+		Number.parseInt(currentYear, 10),
+		dataMap,
+	);
+
+	return (
+		<>
+			<div className="rounded-lg border border-drive-in-border p-3">
+				<HeatmapGrid
+					cells={currentYearCells}
+					dataMap={dataMap}
+					maxCount={maxCount}
+					todayStr={todayStr}
+					color={YEAR_COLORS[2]}
+				/>
+				{pastYears.length > 0 && (
+					<button
+						type="button"
+						onClick={() => setShowHistory(true)}
+						className="mt-2.5 w-full rounded-md border border-cream/[0.06] bg-cream/[0.02] py-1.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/35 transition-colors hover:border-cream/15 hover:text-cream/55"
+					>
+						See previous years
+					</button>
+				)}
+			</div>
+
+			{/* History modal */}
+			<AnimatePresence>
+				{showHistory && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+						onClick={() => setShowHistory(false)}
+					>
+						<motion.div
+							initial={{ opacity: 0, scale: 0.95 }}
+							animate={{ opacity: 1, scale: 1 }}
+							exit={{ opacity: 0, scale: 0.95 }}
+							onClick={(e) => e.stopPropagation()}
+							className="max-h-[80vh] w-full max-w-[600px] overflow-y-auto rounded-xl border border-drive-in-border bg-[#0a0a1e] p-5 shadow-2xl"
+						>
+							<div className="mb-4 flex items-center justify-between">
+								<h3 className="font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/70">
+									Watch History
+								</h3>
+								<button
+									type="button"
+									onClick={() => setShowHistory(false)}
+									className="text-cream/30 transition-colors hover:text-cream/60"
+								>
+									<X className="h-4 w-4" />
+								</button>
+							</div>
+							<div className="flex flex-col gap-5">
+								{pastYears.map((year, i) => {
+									const yearCells = buildYearGrid(
+										Number.parseInt(year, 10),
+										dataMap,
+									);
+									const color = YEAR_COLORS[i % YEAR_COLORS.length];
+									return (
+										<div key={year}>
+											<p
+												className="mb-1.5 font-mono-retro text-[10px] tracking-[1px]"
+												style={{
+													color: `rgb(${color.r}, ${color.g}, ${color.b})`,
+												}}
+											>
+												{year}
+											</p>
+											<div className="rounded-lg border border-drive-in-border p-3">
+												<HeatmapGrid
+													cells={yearCells}
+													dataMap={dataMap}
+													maxCount={maxCount}
+													todayStr={todayStr}
+													color={color}
+												/>
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+		</>
 	);
 }
 
