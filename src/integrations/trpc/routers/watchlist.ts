@@ -327,6 +327,7 @@ export const watchlistRouter = {
 					tmdbId: input.tmdbId,
 					mediaType: input.mediaType,
 					addedBy: ctx.userId,
+					titleName: input.titleName ?? null,
 				})
 				.onConflictDoNothing()
 				.returning({ id: watchlistItem.id });

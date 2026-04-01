@@ -56,9 +56,11 @@ function TitlePage() {
 	const { data } = useQuery(
 		trpc.title.details.queryOptions({ mediaType, tmdbId }),
 	);
+	const navigate = Route.useNavigate();
 	const [recommendOpen, setRecommendOpen] = useState(false);
 	const [reviewModalOpen, setReviewModalOpen] = useState(false);
 	const [watchEventId, setWatchEventId] = useState<string | null>(null);
+	const [isReminderMode, setIsReminderMode] = useState(false);
 
 	const { data: reminderEvent } = useQuery(
 		trpc.watched.getById.queryOptions(
@@ -70,9 +72,11 @@ function TitlePage() {
 	useEffect(() => {
 		if (reminderEvent && reviewReminder) {
 			setWatchEventId(reminderEvent.id);
+			setIsReminderMode(true);
 			setReviewModalOpen(true);
+			navigate({ search: {}, replace: true });
 		}
-	}, [reminderEvent, reviewReminder]);
+	}, [reminderEvent, reviewReminder, navigate]);
 
 	const createWatchEvent = useMutation(
 		trpc.watched.create.mutationOptions({
@@ -162,15 +166,18 @@ function TitlePage() {
 
 			<ReviewModal
 				open={reviewModalOpen}
-				onOpenChange={setReviewModalOpen}
+				onOpenChange={(open) => {
+					setReviewModalOpen(open);
+					if (!open) setIsReminderMode(false);
+				}}
 				watchEventId={watchEventId}
 				titleName={data.title}
 				year={data.year}
 				tmdbId={Number(tmdbId)}
 				mediaType={mediaType as "movie" | "tv"}
-				isReminder={!!reviewReminder}
+				isReminder={isReminderMode}
 				defaultWatchedAt={
-					reminderEvent?.watchedAt
+					isReminderMode && reminderEvent?.watchedAt
 						? new Date(reminderEvent.watchedAt)
 						: undefined
 				}

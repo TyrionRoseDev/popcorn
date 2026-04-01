@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
@@ -40,11 +41,26 @@ export const watchedRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			// Fetch existing event to check prior review state
+			const existing = await db.query.watchEvent.findFirst({
+				where: and(
+					eq(watchEvent.id, input.watchEventId),
+					eq(watchEvent.userId, ctx.userId),
+				),
+			});
+
+			if (!existing) {
+				throw new TRPCError({ code: "NOT_FOUND" });
+			}
+
+			const hadReview = existing.rating != null || !!existing.reviewText;
+
 			await db
 				.update(watchEvent)
 				.set({
 					rating: input.rating,
 					reviewText: input.reviewText,
+					reviewReminderAt: null,
 					...(input.watchedAt && { watchedAt: new Date(input.watchedAt) }),
 					updatedAt: new Date(),
 				})
@@ -55,37 +71,29 @@ export const watchedRouter = createTRPCRouter({
 					),
 				);
 
-			// Notify recommenders if this is a public review
-			if (input.rating || input.reviewText) {
-				const event = await db.query.watchEvent.findFirst({
+			// Notify recommenders only on first review (not edits)
+			const hasReview = input.rating != null || !!input.reviewText;
+			if (!hadReview && hasReview && existing.reviewPublic) {
+				const recs = await db.query.recommendation.findMany({
 					where: and(
-						eq(watchEvent.id, input.watchEventId),
-						eq(watchEvent.userId, ctx.userId),
+						eq(recommendation.recipientId, ctx.userId),
+						eq(recommendation.tmdbId, existing.tmdbId),
+						eq(recommendation.mediaType, existing.mediaType),
+						eq(recommendation.status, "accepted"),
 					),
 				});
 
-				if (event?.reviewPublic) {
-					const recs = await db.query.recommendation.findMany({
-						where: and(
-							eq(recommendation.recipientId, ctx.userId),
-							eq(recommendation.tmdbId, event.tmdbId),
-							eq(recommendation.mediaType, event.mediaType),
-							eq(recommendation.status, "accepted"),
-						),
+				for (const rec of recs) {
+					await createNotification({
+						recipientId: rec.senderId,
+						actorId: ctx.userId,
+						type: "recommendation_watched",
+						data: {
+							titleName: existing.titleName,
+							tmdbId: existing.tmdbId,
+							mediaType: existing.mediaType,
+						},
 					});
-
-					for (const rec of recs) {
-						await createNotification({
-							recipientId: rec.senderId,
-							actorId: ctx.userId,
-							type: "recommendation_watched",
-							data: {
-								titleName: event.titleName,
-								tmdbId: event.tmdbId,
-								mediaType: event.mediaType,
-							},
-						});
-					}
 				}
 			}
 		}),
@@ -96,7 +104,7 @@ export const watchedRouter = createTRPCRouter({
 			const reminderDate = new Date();
 			reminderDate.setDate(reminderDate.getDate() + 7);
 
-			await db
+			const result = await db
 				.update(watchEvent)
 				.set({ reviewReminderAt: reminderDate, updatedAt: new Date() })
 				.where(
@@ -105,6 +113,10 @@ export const watchedRouter = createTRPCRouter({
 						eq(watchEvent.userId, ctx.userId),
 					),
 				);
+
+			if (result.rowCount === 0) {
+				throw new TRPCError({ code: "NOT_FOUND" });
+			}
 		}),
 
 	getForTitle: protectedProcedure
@@ -149,7 +161,7 @@ export const watchedRouter = createTRPCRouter({
 	delete: protectedProcedure
 		.input(z.object({ watchEventId: z.string() }))
 		.mutation(async ({ input, ctx }) => {
-			await db
+			const result = await db
 				.delete(watchEvent)
 				.where(
 					and(
@@ -157,6 +169,10 @@ export const watchedRouter = createTRPCRouter({
 						eq(watchEvent.userId, ctx.userId),
 					),
 				);
+
+			if (result.rowCount === 0) {
+				throw new TRPCError({ code: "NOT_FOUND" });
+			}
 		}),
 
 	getById: protectedProcedure

@@ -171,6 +171,7 @@ export const watchlistItem = pgTable(
 			onDelete: "set null",
 		}),
 		recommendationMessage: text("recommendation_message"),
+		titleName: text("title_name"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},
 	(table) => [
@@ -276,7 +277,10 @@ export const watchEvent = pgTable(
 		watchedAt: timestamp("watched_at").notNull(),
 		reviewReminderAt: timestamp("review_reminder_at"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
-		updatedAt: timestamp("updated_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at")
+			.defaultNow()
+			.notNull()
+			.$onUpdate(() => new Date()),
 	},
 	(table) => [
 		index("watch_event_userId_idx").on(table.userId),
@@ -286,6 +290,10 @@ export const watchEvent = pgTable(
 			table.mediaType,
 		),
 		index("watch_event_reminder_idx").on(table.reviewReminderAt),
+		check(
+			"watch_event_rating_range",
+			sql`${table.rating} IS NULL OR (${table.rating} >= 1 AND ${table.rating} <= 5)`,
+		),
 	],
 );
 

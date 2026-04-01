@@ -22,14 +22,22 @@ export function StarRating({ value, onChange }: StarRatingProps) {
 			<div className="font-mono-retro text-[10px] tracking-[3px] uppercase text-cream/30 mb-3">
 				How was it?
 			</div>
-			<div className="flex justify-center gap-1.5 mb-2.5">
+			<div
+				className="flex justify-center gap-1.5 mb-2.5"
+				role="radiogroup"
+				aria-label="Star rating"
+			>
 				{[1, 2, 3, 4, 5].map((star) => (
 					<button
 						key={star}
 						type="button"
+						aria-pressed={value === star}
+						aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
 						className="relative w-12 h-12 flex items-center justify-center cursor-pointer"
 						onMouseEnter={() => setHovered(star)}
 						onMouseLeave={() => setHovered(null)}
+						onFocus={() => setHovered(star)}
+						onBlur={() => setHovered(null)}
 						onClick={() => onChange(value === star ? null : star)}
 					>
 						<div

@@ -1362,18 +1362,17 @@ Create `src/routes/api/cron/review-reminders.ts`:
 
 ```typescript
 import { createAPIFileRoute } from "@tanstack/react-start/api";
-import { and, isNotNull, lte } from "drizzle-orm";
+import { and, eq, isNotNull, lte } from "drizzle-orm";
 import { db } from "#/db";
 import { watchEvent } from "#/db/schema";
 import { createNotification } from "#/integrations/trpc/routers/notification";
 
 export const APIRoute = createAPIFileRoute("/api/cron/review-reminders")({
 	GET: async ({ request }) => {
-		// Optional: verify a cron secret header
-		// const authHeader = request.headers.get("authorization");
-		// if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-		//   return new Response("Unauthorized", { status: 401 });
-		// }
+		const authHeader = request.headers.get("authorization");
+		if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+			return new Response("Unauthorized", { status: 401 });
+		}
 
 		const now = new Date();
 
@@ -1401,7 +1400,7 @@ export const APIRoute = createAPIFileRoute("/api/cron/review-reminders")({
 			await db
 				.update(watchEvent)
 				.set({ reviewReminderAt: null, updatedAt: new Date() })
-				.where(lte(watchEvent.id, event.id));
+				.where(eq(watchEvent.id, event.id));
 
 			sent++;
 		}

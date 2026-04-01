@@ -32,6 +32,7 @@ interface WatchlistItemCardProps {
 		};
 		recommendedBy?: string | null;
 		recommendationMessage?: string | null;
+		titleName?: string | null;
 		recommendedByUser?: {
 			id: string;
 			username: string | null;
@@ -73,7 +74,7 @@ export function WatchlistItemCard({
 					createWatchEvent.mutate({
 						tmdbId: variables.tmdbId,
 						mediaType: variables.mediaType as "movie" | "tv",
-						titleName: variables.titleName ?? "",
+						titleName: item.titleName ?? "",
 					});
 				}
 			},
@@ -124,7 +125,7 @@ export function WatchlistItemCard({
 						<h3
 							className={`truncate text-sm font-bold ${item.watched ? "text-cream/40" : "text-cream"}`}
 						>
-							Title #{item.tmdbId}
+							{item.titleName || `Title #${item.tmdbId}`}
 						</h3>
 
 						{/* Action buttons */}
@@ -138,7 +139,7 @@ export function WatchlistItemCard({
 											tmdbId: item.tmdbId,
 											mediaType: item.mediaType as "movie" | "tv",
 											watched: !item.watched,
-											titleName: "",
+											titleName: item.titleName ?? "",
 										})
 									}
 									disabled={markWatched.isPending}
@@ -193,7 +194,7 @@ export function WatchlistItemCard({
 				open={reviewModalOpen}
 				onOpenChange={setReviewModalOpen}
 				watchEventId={watchEventId}
-				titleName={""}
+				titleName={item.titleName ?? ""}
 				tmdbId={item.tmdbId}
 				mediaType={item.mediaType as "movie" | "tv"}
 				onCancel={() => {
@@ -202,7 +203,7 @@ export function WatchlistItemCard({
 						tmdbId: item.tmdbId,
 						mediaType: item.mediaType as "movie" | "tv",
 						watched: false,
-						titleName: "",
+						titleName: item.titleName ?? "",
 					});
 				}}
 			/>

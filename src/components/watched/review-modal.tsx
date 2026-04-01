@@ -1,10 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogOverlay, DialogPortal } from "#/components/ui/dialog";
 import { useTRPC } from "#/integrations/trpc/react";
 import { RecommendModal } from "./recommend-modal";
 import { StarRating } from "./star-rating";
+
+function formatLocalDatetime(date: Date): string {
+	const y = date.getFullYear();
+	const m = String(date.getMonth() + 1).padStart(2, "0");
+	const d = String(date.getDate()).padStart(2, "0");
+	const h = String(date.getHours()).padStart(2, "0");
+	const min = String(date.getMinutes()).padStart(2, "0");
+	return `${y}-${m}-${d}T${h}:${min}`;
+}
 
 interface ReviewModalProps {
 	open: boolean;
@@ -38,6 +47,10 @@ export function ReviewModal({
 	const [reviewText, setReviewText] = useState("");
 	const [watchedAt, setWatchedAt] = useState(defaultWatchedAt ?? new Date());
 	const [recommendOpen, setRecommendOpen] = useState(false);
+
+	useEffect(() => {
+		setWatchedAt(defaultWatchedAt ?? new Date());
+	}, [defaultWatchedAt]);
 
 	const updateReview = useMutation(
 		trpc.watched.updateReview.mutationOptions({
@@ -76,11 +89,17 @@ export function ReviewModal({
 	function handleClose() {
 		setRating(null);
 		setReviewText("");
+		setWatchedAt(defaultWatchedAt ?? new Date());
 		onOpenChange(false);
 	}
 
 	function handleCancel() {
 		if (!watchEventId) return;
+		if (isReminder) {
+			handleClose();
+			onCancel?.();
+			return;
+		}
 		deleteWatchEvent.mutate(
 			{ watchEventId },
 			{
@@ -198,7 +217,7 @@ export function ReviewModal({
 											</div>
 											<input
 												type="datetime-local"
-												value={watchedAt.toISOString().slice(0, 16)}
+												value={formatLocalDatetime(watchedAt)}
 												onChange={(e) => {
 													if (e.target.value) {
 														setWatchedAt(new Date(e.target.value));
