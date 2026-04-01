@@ -174,6 +174,7 @@ export const watchlistItem = pgTable(
 		}),
 		recommendationMessage: text("recommendation_message"),
 		titleName: text("title_name"),
+		runtime: integer("runtime"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},
 	(table) => [
@@ -386,6 +387,31 @@ export const block = pgTable(
 	],
 );
 
+export const review = pgTable(
+	"review",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		tmdbId: integer("tmdb_id").notNull(),
+		mediaType: text("media_type").notNull(),
+		rating: integer("rating").notNull(), // 1-5 stars
+		text: text("text"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("review_user_title_unique").on(
+			table.userId,
+			table.tmdbId,
+			table.mediaType,
+		),
+		index("review_user_id_idx").on(table.userId),
+	],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
@@ -394,6 +420,7 @@ export const userRelations = relations(user, ({ many }) => ({
 	ownedWatchlists: many(watchlist),
 	watchlistMemberships: many(watchlistMember),
 	swipes: many(shuffleSwipe),
+	reviews: many(review),
 	notificationsReceived: many(notification, {
 		relationName: "notificationRecipient",
 	}),
@@ -527,6 +554,13 @@ export const blockRelations = relations(block, ({ one }) => ({
 		fields: [block.blockedId],
 		references: [user.id],
 		relationName: "blockBlocked",
+	}),
+}));
+
+export const reviewRelations = relations(review, ({ one }) => ({
+	user: one(user, {
+		fields: [review.userId],
+		references: [user.id],
 	}),
 }));
 

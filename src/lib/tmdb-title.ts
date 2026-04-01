@@ -81,6 +81,7 @@ export interface TitleData {
 	overview: string;
 	year: string;
 	runtime: string;
+	runtimeMinutes: number | null;
 	rating: number;
 	contentRating: string;
 	genres: string[];
@@ -190,6 +191,7 @@ export async function fetchTitleDetails(
 			overview: movie.overview,
 			year: movie.release_date?.slice(0, 4) ?? "",
 			runtime: formatRuntime(movie.runtime),
+			runtimeMinutes: movie.runtime ?? null,
 			rating: movie.vote_average,
 			contentRating,
 			genres: movie.genres.map((g) => g.name),
@@ -217,6 +219,7 @@ export async function fetchTitleDetails(
 		overview: tv.overview,
 		year: tv.first_air_date?.slice(0, 4) ?? "",
 		runtime: episodeRuntime ? `${episodeRuntime}m per episode` : "",
+		runtimeMinutes: episodeRuntime ?? null,
 		rating: tv.vote_average,
 		contentRating,
 		genres: tv.genres.map((g) => g.name),

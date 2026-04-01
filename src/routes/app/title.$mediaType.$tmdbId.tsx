@@ -1,22 +1,21 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
 	Link,
 	useLocation,
 	useRouter,
 } from "@tanstack/react-router";
-import { ArrowLeft, Check, Plus, Send } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { ArcadeButton } from "#/components/title/arcade-button";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { CastList } from "#/components/title/cast-list";
 import { DriveInScreen } from "#/components/title/drive-in-screen";
 import { NowShowingMarquee } from "#/components/title/now-showing-marquee";
 import { PosterDisplayCase } from "#/components/title/poster-display-case";
-import { RecommendModal } from "#/components/title/recommend-modal";
 import { SectionBoard } from "#/components/title/section-board";
 import { Synopsis } from "#/components/title/synopsis";
+import { TitleActions } from "#/components/title/title-actions";
 import { TitleMetadata } from "#/components/title/title-metadata";
 import { TitlePageAtmosphere } from "#/components/title/title-page-atmosphere";
 import { TitlePageSkeleton } from "#/components/title/title-page-skeleton";
@@ -66,7 +65,6 @@ function TitlePage() {
 		trpc.title.details.queryOptions({ mediaType, tmdbId }),
 	);
 	const navigate = Route.useNavigate();
-	const [recommendOpen, setRecommendOpen] = useState(false);
 	const [reviewModalOpen, setReviewModalOpen] = useState(false);
 	const [watchEventId, setWatchEventId] = useState<string | null>(null);
 	const [isReminderMode, setIsReminderMode] = useState(false);
@@ -86,15 +84,6 @@ function TitlePage() {
 			navigate({ search: {}, replace: true });
 		}
 	}, [reminderEvent, reviewReminder, navigate]);
-
-	const createWatchEvent = useMutation(
-		trpc.watched.create.mutationOptions({
-			onSuccess: (data) => {
-				setWatchEventId(data.id);
-				setReviewModalOpen(true);
-			},
-		}),
-	);
 
 	if (!data) return <TitlePageSkeleton />;
 
@@ -148,33 +137,13 @@ function TitlePage() {
 				{/* Left column */}
 				<div className="w-full md:w-[280px] flex-shrink-0">
 					<PosterDisplayCase posterPath={data.posterPath} title={data.title} />
-					<div className="flex gap-4 justify-center mt-5">
-						<ArcadeButton icon={Plus} label="Watchlist" color="pink" />
-						<ArcadeButton
-							icon={Check}
-							label="Watched"
-							color="cyan"
-							onClick={() =>
-								createWatchEvent.mutate({
-									tmdbId: Number(tmdbId),
-									mediaType: mediaType as "movie" | "tv",
-									titleName: data.title,
-								})
-							}
-						/>
-						<ArcadeButton
-							icon={Send}
-							label="Recommend"
-							color="amber"
-							onClick={() => setRecommendOpen(true)}
-						/>
-					</div>
-					<RecommendModal
-						open={recommendOpen}
-						onOpenChange={setRecommendOpen}
+					<TitleActions
 						tmdbId={tmdbId}
 						mediaType={mediaType}
-						titleName={data.title}
+						title={data.title}
+						posterPath={data.posterPath}
+						runtime={data.runtimeMinutes}
+						year={data.year}
 					/>
 				</div>
 

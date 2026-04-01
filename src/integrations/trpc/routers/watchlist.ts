@@ -15,6 +15,7 @@ import { db } from "#/db";
 import {
 	block,
 	friendship,
+	review,
 	user,
 	watchlist,
 	watchlistItem,
@@ -116,6 +117,34 @@ async function ensureAreFriends(userId: string, candidateIds: string[]) {
 			message: "You can only invite friends to watchlists",
 		});
 	}
+}
+
+async function getOrCreateDefaultWatchlist(userId: string) {
+	const existing = await db.query.watchlist.findFirst({
+		where: and(eq(watchlist.ownerId, userId), eq(watchlist.type, "default")),
+		columns: { id: true },
+	});
+	if (existing) return existing;
+
+	return db.transaction(async (tx) => {
+		// Double-check inside transaction to avoid race conditions
+		const check = await tx.query.watchlist.findFirst({
+			where: and(eq(watchlist.ownerId, userId), eq(watchlist.type, "default")),
+			columns: { id: true },
+		});
+		if (check) return check;
+
+		const [wl] = await tx
+			.insert(watchlist)
+			.values({ name: "My Picks", ownerId: userId, type: "default" })
+			.returning({ id: watchlist.id });
+
+		await tx
+			.insert(watchlistMember)
+			.values({ watchlistId: wl.id, userId, role: "owner" });
+
+		return wl;
+	});
 }
 
 export const watchlistRouter = {
@@ -591,6 +620,111 @@ export const watchlistRouter = {
 			}
 		}),
 
+	isWatched: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+			}),
+		)
+		.query(async ({ input, ctx }) => {
+			const defaultWl = await getOrCreateDefaultWatchlist(ctx.userId);
+
+			const item = await db.query.watchlistItem.findFirst({
+				where: and(
+					eq(watchlistItem.watchlistId, defaultWl.id),
+					eq(watchlistItem.tmdbId, input.tmdbId),
+					eq(watchlistItem.mediaType, input.mediaType),
+					eq(watchlistItem.watched, true),
+				),
+			});
+			return !!item;
+		}),
+
+	quickMarkWatched: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+				titleName: z.string().optional(),
+				posterPath: z.string().nullish(),
+				runtime: z.number().optional(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const defaultWl = await getOrCreateDefaultWatchlist(ctx.userId);
+
+			// Add item if not already there
+			await db
+				.insert(watchlistItem)
+				.values({
+					watchlistId: defaultWl.id,
+					tmdbId: input.tmdbId,
+					mediaType: input.mediaType,
+					title: input.titleName,
+					posterPath: input.posterPath ?? null,
+					addedBy: ctx.userId,
+					runtime: input.runtime ?? null,
+				})
+				.onConflictDoNothing();
+
+			// Get current watched state
+			const item = await db.query.watchlistItem.findFirst({
+				where: and(
+					eq(watchlistItem.watchlistId, defaultWl.id),
+					eq(watchlistItem.tmdbId, input.tmdbId),
+					eq(watchlistItem.mediaType, input.mediaType),
+				),
+				columns: { watched: true },
+			});
+
+			const newWatched = !item?.watched;
+
+			await db
+				.update(watchlistItem)
+				.set({
+					watched: newWatched,
+					...(input.runtime ? { runtime: input.runtime } : {}),
+				})
+				.where(
+					and(
+						eq(watchlistItem.watchlistId, defaultWl.id),
+						eq(watchlistItem.tmdbId, input.tmdbId),
+						eq(watchlistItem.mediaType, input.mediaType),
+					),
+				);
+
+			return { watched: newWatched };
+		}),
+
+	recommendTitle: protectedProcedure
+		.input(
+			z.object({
+				friendIds: z.array(z.string()).min(1),
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+				titleName: z.string().optional(),
+				message: z.string().max(280).optional(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			await ensureAreFriends(ctx.userId, input.friendIds);
+
+			for (const friendId of input.friendIds) {
+				await createNotification({
+					recipientId: friendId,
+					actorId: ctx.userId,
+					type: "title_recommendation",
+					data: {
+						tmdbId: input.tmdbId,
+						mediaType: input.mediaType,
+						titleName: input.titleName ?? "",
+						message: input.message ?? "",
+					},
+				});
+			}
+		}),
+
 	removeMember: protectedProcedure
 		.input(
 			z.object({
@@ -614,5 +748,63 @@ export const watchlistRouter = {
 						eq(watchlistMember.userId, input.userId),
 					),
 				);
+		}),
+
+	// ── Reviews ──────────────────────────────────────────────────
+
+	submitReview: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+				rating: z.number().min(1).max(5),
+				text: z.string().max(1000).optional(),
+				titleName: z.string().optional(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const [result] = await db
+				.insert(review)
+				.values({
+					userId: ctx.userId,
+					tmdbId: input.tmdbId,
+					mediaType: input.mediaType,
+					rating: input.rating,
+					text: input.text ?? null,
+				})
+				.onConflictDoUpdate({
+					target: [review.userId, review.tmdbId, review.mediaType],
+					set: { rating: input.rating, text: input.text ?? null },
+				})
+				.returning();
+
+			return result;
+		}),
+
+	getReview: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+			}),
+		)
+		.query(async ({ input, ctx }) => {
+			const r = await db.query.review.findFirst({
+				where: and(
+					eq(review.userId, ctx.userId),
+					eq(review.tmdbId, input.tmdbId),
+					eq(review.mediaType, input.mediaType),
+				),
+			});
+			return r ?? null;
+		}),
+
+	getUserReviews: protectedProcedure
+		.input(z.object({ userId: z.string() }))
+		.query(async ({ input }) => {
+			return db.query.review.findMany({
+				where: eq(review.userId, input.userId),
+				orderBy: (r, { desc }) => [desc(r.createdAt)],
+			});
 		}),
 } satisfies TRPCRouterRecord;

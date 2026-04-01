@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, or, sql } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import {
@@ -598,10 +598,33 @@ export const friendRouter = createTRPCRouter({
 			const isSelf = ctx.userId === input.userId;
 			const isFriend = relationshipStatus === "friends";
 
+			// Compute total watch time (sum of runtime for watched items across user's watchlists)
+			const userMemberships = await db
+				.select({ watchlistId: watchlistMember.watchlistId })
+				.from(watchlistMember)
+				.where(eq(watchlistMember.userId, input.userId));
+			const wlIds = userMemberships.map((m) => m.watchlistId);
+			let watchTimeMinutes = 0;
+			if (wlIds.length > 0) {
+				const [result] = await db
+					.select({
+						total: sql<number>`coalesce(sum(${watchlistItem.runtime}), 0)::int`,
+					})
+					.from(watchlistItem)
+					.where(
+						and(
+							inArray(watchlistItem.watchlistId, wlIds),
+							eq(watchlistItem.watched, true),
+						),
+					);
+				watchTimeMinutes = result?.total ?? 0;
+			}
+
 			// Base profile (always returned)
 			const profile = {
 				...targetUser,
 				friendCount: friendCount?.count ?? 0,
+				watchTimeMinutes,
 				relationshipStatus,
 				friendshipId,
 				isFriend,

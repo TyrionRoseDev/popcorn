@@ -14,6 +14,7 @@ import {
 	Film,
 	Heart,
 	Lock,
+	Star,
 	Trophy,
 	UserMinus,
 	UserPlus,
@@ -584,7 +585,8 @@ function ProfilePage() {
 									textShadow: "0 0 12px rgba(255,184,0,0.3)",
 								}}
 							>
-								0h 0m
+								{Math.floor((profile.watchTimeMinutes ?? 0) / 60)}h{" "}
+								{(profile.watchTimeMinutes ?? 0) % 60}m
 							</span>
 							<span className="mt-0.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/55">
 								Watched
@@ -836,6 +838,7 @@ function FriendExpandedSections({
 	setActiveTab,
 }: {
 	profile: {
+		id: string;
 		publicWatchlists: Array<{
 			id: string;
 			name: string;
@@ -911,7 +914,7 @@ function FriendExpandedSections({
 						{activeTab === "watchlists" && (
 							<WatchlistsTab watchlists={profile.publicWatchlists} />
 						)}
-						{activeTab === "reviews" && <ReviewsTab />}
+						{activeTab === "reviews" && <ReviewsTab userId={profile.id} />}
 						{activeTab === "activity" && <ActivityTab />}
 					</motion.div>
 				</AnimatePresence>
@@ -974,11 +977,58 @@ function WatchlistsTab({
 // ReviewsTab
 // ════════════════════════════════════════════════════════════════
 
-function ReviewsTab() {
+function ReviewsTab({ userId }: { userId: string }) {
+	const trpc = useTRPC();
+	const { data: reviews, isLoading } = useQuery(
+		trpc.watchlist.getUserReviews.queryOptions({ userId }),
+	);
+
+	if (isLoading) {
+		return (
+			<div className="flex justify-center py-8">
+				<div className="h-4 w-4 animate-spin rounded-full border-2 border-cream/20 border-t-cream/60" />
+			</div>
+		);
+	}
+
+	if (!reviews || reviews.length === 0) {
+		return (
+			<div className="flex flex-col items-center py-8 text-center">
+				<Award className="mb-2 h-6 w-6 text-neon-amber/20" />
+				<p className="text-xs text-cream/30">No reviews yet</p>
+			</div>
+		);
+	}
+
 	return (
-		<div className="flex flex-col items-center py-8 text-center">
-			<Award className="mb-2 h-6 w-6 text-neon-amber/20" />
-			<p className="text-xs text-cream/30">No reviews yet</p>
+		<div className="flex flex-col gap-3">
+			{reviews.map((r) => (
+				<Link
+					key={r.id}
+					to="/app/title/$mediaType/$tmdbId"
+					params={{
+						mediaType: r.mediaType as "movie" | "tv",
+						tmdbId: r.tmdbId,
+					}}
+					className="rounded-lg border border-drive-in-border p-3 transition-colors hover:bg-cream/[0.03] no-underline"
+				>
+					<div className="flex items-center gap-1.5 mb-1">
+						{[1, 2, 3, 4, 5].map((s) => (
+							<Star
+								key={s}
+								className={`h-3 w-3 ${
+									s <= r.rating
+										? "text-neon-amber fill-neon-amber"
+										: "text-cream/15"
+								}`}
+							/>
+						))}
+					</div>
+					{r.text && (
+						<p className="text-xs text-cream/60 line-clamp-2">{r.text}</p>
+					)}
+				</Link>
+			))}
 		</div>
 	);
 }
