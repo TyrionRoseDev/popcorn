@@ -1,6 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { and, eq, ilike, or } from "drizzle-orm";
+import { and, eq, ilike, isNull, or } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import {
@@ -15,36 +15,47 @@ import {
 import { protectedProcedure } from "#/integrations/trpc/init";
 import { createNotification } from "./notification";
 
-async function getOrCreateRecommendationsWatchlist(userId: string) {
-	const existing = await db.query.watchlist.findFirst({
-		where: and(eq(watchlist.ownerId, userId), eq(watchlist.type, "recommendations")),
+async function getOrCreateRecommendationsWatchlist(
+	tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+	userId: string,
+) {
+	const existing = await tx.query.watchlist.findFirst({
+		where: and(
+			eq(watchlist.ownerId, userId),
+			eq(watchlist.type, "recommendations"),
+		),
 	});
 	if (existing) return existing.id;
 
-	return db.transaction(async (tx) => {
-		// Double-check inside transaction to prevent race condition
-		const check = await tx.query.watchlist.findFirst({
-			where: and(eq(watchlist.ownerId, userId), eq(watchlist.type, "recommendations")),
+	const [wl] = await tx
+		.insert(watchlist)
+		.values({
+			name: "Recommendations",
+			ownerId: userId,
+			type: "recommendations",
+		})
+		.onConflictDoNothing()
+		.returning({ id: watchlist.id });
+
+	if (!wl) {
+		// Race: another transaction created it; re-query
+		const retry = await tx.query.watchlist.findFirst({
+			where: and(
+				eq(watchlist.ownerId, userId),
+				eq(watchlist.type, "recommendations"),
+			),
 		});
-		if (check) return check.id;
+		if (!retry) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+		return retry.id;
+	}
 
-		const [wl] = await tx
-			.insert(watchlist)
-			.values({
-				name: "Recommendations",
-				ownerId: userId,
-				type: "recommendations",
-			})
-			.returning({ id: watchlist.id });
-
-		await tx.insert(watchlistMember).values({
-			watchlistId: wl.id,
-			userId,
-			role: "owner",
-		});
-
-		return wl.id;
+	await tx.insert(watchlistMember).values({
+		watchlistId: wl.id,
+		userId,
+		role: "owner",
 	});
+
+	return wl.id;
 }
 
 export const recommendationRouter = {
@@ -59,8 +70,10 @@ export const recommendationRouter = {
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			const recipientIds = [...new Set(input.recipientIds)];
+
 			// Verify all recipients are friends
-			for (const recipientId of input.recipientIds) {
+			for (const recipientId of recipientIds) {
 				if (recipientId === ctx.userId) {
 					throw new TRPCError({
 						code: "BAD_REQUEST",
@@ -93,12 +106,13 @@ export const recommendationRouter = {
 			}
 
 			// Insert recommendations and send notifications
-			for (const recipientId of input.recipientIds) {
+			for (const recipientId of recipientIds) {
 				await db.insert(recommendation).values({
 					senderId: ctx.userId,
 					recipientId,
 					tmdbId: input.tmdbId,
 					mediaType: input.mediaType,
+					titleName: input.titleName,
 					message: input.message ?? null,
 				});
 
@@ -124,33 +138,40 @@ export const recommendationRouter = {
 				mediaType: z.enum(["movie", "tv"]),
 				recommendedBy: z.string(),
 				message: z.string().nullable().optional(),
+				titleName: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
-			const watchlistId = await getOrCreateRecommendationsWatchlist(ctx.userId);
-
-			await db
-				.insert(watchlistItem)
-				.values({
-					watchlistId,
-					tmdbId: input.tmdbId,
-					mediaType: input.mediaType,
-					addedBy: ctx.userId,
-					recommendedBy: input.recommendedBy,
-					recommendationMessage: input.message ?? null,
-				})
-				.onConflictDoNothing();
-
-			// Mark notification as actioned
-			await db
-				.update(notification)
-				.set({ actionTaken: "accepted", read: true })
-				.where(
-					and(
-						eq(notification.id, input.notificationId),
-						eq(notification.recipientId, ctx.userId),
-					),
+			await db.transaction(async (tx) => {
+				const watchlistId = await getOrCreateRecommendationsWatchlist(
+					tx,
+					ctx.userId,
 				);
+
+				await tx
+					.insert(watchlistItem)
+					.values({
+						watchlistId,
+						tmdbId: input.tmdbId,
+						mediaType: input.mediaType,
+						addedBy: ctx.userId,
+						recommendedBy: input.recommendedBy,
+						recommendationMessage: input.message ?? null,
+						titleName: input.titleName ?? null,
+					})
+					.onConflictDoNothing();
+
+				// Mark notification as actioned
+				await tx
+					.update(notification)
+					.set({ actionTaken: "accepted", read: true })
+					.where(
+						and(
+							eq(notification.id, input.notificationId),
+							eq(notification.recipientId, ctx.userId),
+						),
+					);
+			});
 		}),
 
 	decline: protectedProcedure
@@ -163,6 +184,7 @@ export const recommendationRouter = {
 					and(
 						eq(notification.id, input.notificationId),
 						eq(notification.recipientId, ctx.userId),
+						isNull(notification.actionTaken),
 					),
 				);
 		}),

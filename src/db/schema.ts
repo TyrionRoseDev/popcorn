@@ -171,6 +171,7 @@ export const watchlistItem = pgTable(
 			onDelete: "set null",
 		}),
 		recommendationMessage: text("recommendation_message"),
+		titleName: text("title_name"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},
 	(table) => [
@@ -258,6 +259,69 @@ export const notification = pgTable(
 	],
 );
 
+export const watchEvent = pgTable(
+	"watch_event",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		tmdbId: integer("tmdb_id").notNull(),
+		mediaType: text("media_type").notNull(),
+		titleName: text("title_name").notNull(),
+		rating: integer("rating"),
+		reviewText: text("review_text"),
+		reviewPublic: boolean("review_public").default(true).notNull(),
+		watchedAt: timestamp("watched_at").notNull(),
+		reviewReminderAt: timestamp("review_reminder_at"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at")
+			.defaultNow()
+			.notNull()
+			.$onUpdate(() => new Date()),
+	},
+	(table) => [
+		index("watch_event_userId_idx").on(table.userId),
+		index("watch_event_tmdbId_idx").on(
+			table.userId,
+			table.tmdbId,
+			table.mediaType,
+		),
+		index("watch_event_reminder_idx").on(table.reviewReminderAt),
+		check(
+			"watch_event_rating_range",
+			sql`${table.rating} IS NULL OR (${table.rating} >= 1 AND ${table.rating} <= 5)`,
+		),
+	],
+);
+
+export const recommendation = pgTable(
+	"recommendation",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		senderId: text("sender_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		recipientId: text("recipient_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		tmdbId: integer("tmdb_id").notNull(),
+		mediaType: text("media_type").notNull(),
+		titleName: text("title_name").notNull(),
+		message: text("message"),
+		status: text("status").notNull().default("pending"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("recommendation_recipientId_idx").on(table.recipientId),
+		index("recommendation_senderId_idx").on(table.senderId),
+	],
+);
+
 export const friendship = pgTable(
 	"friendship",
 	{
@@ -340,6 +404,13 @@ export const userRelations = relations(user, ({ many }) => ({
 	}),
 	blocksCreated: many(block, { relationName: "blockBlocker" }),
 	blocksReceived: many(block, { relationName: "blockBlocked" }),
+	watchEvents: many(watchEvent),
+	sentRecommendations: many(recommendation, {
+		relationName: "sentRecommendations",
+	}),
+	receivedRecommendations: many(recommendation, {
+		relationName: "receivedRecommendations",
+	}),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -457,38 +528,22 @@ export const blockRelations = relations(block, ({ one }) => ({
 	}),
 }));
 
-export const recommendation = pgTable(
-	"recommendation",
-	{
-		id: text("id")
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		senderId: text("sender_id")
-			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
-		recipientId: text("recipient_id")
-			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
-		tmdbId: integer("tmdb_id").notNull(),
-		mediaType: text("media_type").notNull(),
-		message: text("message"),
-		createdAt: timestamp("created_at").defaultNow().notNull(),
-	},
-	(table) => [
-		index("recommendation_sender_id_idx").on(table.senderId),
-		index("recommendation_recipient_id_idx").on(table.recipientId),
-	],
-);
+export const watchEventRelations = relations(watchEvent, ({ one }) => ({
+	user: one(user, {
+		fields: [watchEvent.userId],
+		references: [user.id],
+	}),
+}));
 
 export const recommendationRelations = relations(recommendation, ({ one }) => ({
 	sender: one(user, {
 		fields: [recommendation.senderId],
 		references: [user.id],
-		relationName: "recommendationSender",
+		relationName: "sentRecommendations",
 	}),
 	recipient: one(user, {
 		fields: [recommendation.recipientId],
 		references: [user.id],
-		relationName: "recommendationRecipient",
+		relationName: "receivedRecommendations",
 	}),
 }));

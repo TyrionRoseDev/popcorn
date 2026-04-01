@@ -10,6 +10,7 @@ export const env = createEnv({
 		RESEND_FROM_EMAIL: z.string().email(),
 		UPLOADTHING_TOKEN: z.string().min(1),
 		TMDB_READ_ACCESS_TOKEN: z.string().min(1),
+		CRON_SECRET: z.string().min(1),
 	},
 
 	clientPrefix: "VITE_",

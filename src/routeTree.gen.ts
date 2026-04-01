@@ -25,6 +25,7 @@ import { Route as AppSettingsBlockedRouteImport } from './routes/app/settings/bl
 import { Route as AppProfileUserIdRouteImport } from './routes/app/profile.$userId'
 import { Route as ApiUploadthingSplatRouteImport } from './routes/api/uploadthing/$'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
+import { Route as ApiCronReviewRemindersRouteImport } from './routes/api/cron/review-reminders'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppTitleMediaTypeTmdbIdRouteImport } from './routes/app/title.$mediaType.$tmdbId'
 
@@ -109,6 +110,11 @@ const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   path: '/api/trpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronReviewRemindersRoute = ApiCronReviewRemindersRouteImport.update({
+  id: '/api/cron/review-reminders',
+  path: '/api/cron/review-reminders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/onboarding/': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/review-reminders': typeof ApiCronReviewRemindersRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
@@ -149,6 +156,7 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/onboarding': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/review-reminders': typeof ApiCronReviewRemindersRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
@@ -170,6 +178,7 @@ export interface FileRoutesById {
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/onboarding/': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/review-reminders': typeof ApiCronReviewRemindersRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
@@ -192,6 +201,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/onboarding/'
     | '/api/auth/$'
+    | '/api/cron/review-reminders'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
     | '/app/profile/$userId'
@@ -211,6 +221,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/onboarding'
     | '/api/auth/$'
+    | '/api/cron/review-reminders'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
     | '/app/profile/$userId'
@@ -231,6 +242,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/onboarding/'
     | '/api/auth/$'
+    | '/api/cron/review-reminders'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
     | '/app/profile/$userId'
@@ -248,6 +260,7 @@ export interface RootRouteChildren {
   OnboardingRouteRoute: typeof OnboardingRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiCronReviewRemindersRoute: typeof ApiCronReviewRemindersRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
   ApiUploadthingSplatRoute: typeof ApiUploadthingSplatRoute
 }
@@ -366,6 +379,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTrpcSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/review-reminders': {
+      id: '/api/cron/review-reminders'
+      path: '/api/cron/review-reminders'
+      fullPath: '/api/cron/review-reminders'
+      preLoaderRoute: typeof ApiCronReviewRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -441,6 +461,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRouteRoute: OnboardingRouteRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiCronReviewRemindersRoute: ApiCronReviewRemindersRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
   ApiUploadthingSplatRoute: ApiUploadthingSplatRoute,
 }

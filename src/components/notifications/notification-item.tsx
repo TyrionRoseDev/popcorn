@@ -37,7 +37,7 @@ function getNotificationMessage(
 	data: Record<string, unknown>,
 	_actorName: string,
 	actorId: string | null,
-): { text: string; link?: string } {
+): { text: string; link?: string; showActor?: boolean } {
 	switch (type) {
 		case "watchlist_item_added":
 			return {
@@ -92,10 +92,23 @@ function getNotificationMessage(
 			};
 		case "recommendation_reviewed":
 			return {
+				text: `reviewed ${data.titleName || "a title"} you recommended`,
+				link: data.tmdbId
+					? `/app/title/${data.mediaType}/${data.tmdbId}`
+					: undefined,
+			};
+		case "recommendation_watched":
+			return {
 				text: `watched ${data.titleName || "a title"} that you recommended`,
 				link: data.tmdbId
 					? `/app/title/${data.mediaType}/${data.tmdbId}`
 					: undefined,
+			};
+		case "review_reminder":
+			return {
+				text: `How was ${data.titleName || "a title"}? Leave a quick review`,
+				link: `/app/title/${data.mediaType}/${data.tmdbId}?reviewReminder=${data.watchEventId}`,
+				showActor: false,
 			};
 		default:
 			return { text: "sent you a notification" };
@@ -159,13 +172,14 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 
 	const data = (n.data ?? {}) as Record<string, unknown>;
 	const actorName = n.actorUsername ?? "Someone";
-	const { text, link } = getNotificationMessage(
+	const { text, link, showActor } = getNotificationMessage(
 		n.type,
 		data,
 		actorName,
 		n.actorId,
 	);
 	const isMatch = n.type === "shuffle_match";
+	const hideActor = showActor === false;
 
 	const content = (
 		<div
@@ -197,7 +211,7 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 				<p
 					className={`text-[13px] leading-snug ${n.read ? "text-cream/50" : "text-cream/90"}`}
 				>
-					{isMatch ? (
+					{isMatch || hideActor ? (
 						text
 					) : (
 						<>
@@ -228,6 +242,7 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 										mediaType: data.mediaType as "movie" | "tv",
 										recommendedBy: n.actorId as string,
 										message: (data.message as string) ?? null,
+										titleName: (data.titleName as string) ?? undefined,
 									});
 								}}
 								disabled={acceptRecommendation.isPending}

@@ -1,25 +1,30 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Plus, Send } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { ArcadeButton } from "#/components/title/arcade-button";
-import { RecommendModal } from "#/components/title/recommend-modal";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { CastList } from "#/components/title/cast-list";
 import { DriveInScreen } from "#/components/title/drive-in-screen";
 import { NowShowingMarquee } from "#/components/title/now-showing-marquee";
 import { PosterDisplayCase } from "#/components/title/poster-display-case";
+import { RecommendModal } from "#/components/title/recommend-modal";
 import { SectionBoard } from "#/components/title/section-board";
 import { Synopsis } from "#/components/title/synopsis";
 import { TitleMetadata } from "#/components/title/title-metadata";
 import { TitlePageAtmosphere } from "#/components/title/title-page-atmosphere";
 import { TitlePageSkeleton } from "#/components/title/title-page-skeleton";
+import { ReviewModal } from "#/components/watched/review-modal";
 import { useTRPC } from "#/integrations/trpc/react";
 
 const paramsSchema = z.object({
 	mediaType: z.enum(["movie", "tv"]),
 	tmdbId: z.coerce.number(),
+});
+
+const searchParamsSchema = z.object({
+	reviewReminder: z.string().optional(),
 });
 
 export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
@@ -30,6 +35,7 @@ export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
 			tmdbId: String(params.tmdbId),
 		}),
 	},
+	validateSearch: (search) => searchParamsSchema.parse(search),
 	loader: async ({ context: { queryClient, trpc }, params }) => {
 		await queryClient.ensureQueryData(
 			trpc.title.details.queryOptions({
@@ -45,11 +51,41 @@ export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
 
 function TitlePage() {
 	const { mediaType, tmdbId } = Route.useParams();
+	const { reviewReminder } = Route.useSearch();
 	const trpc = useTRPC();
 	const { data } = useQuery(
 		trpc.title.details.queryOptions({ mediaType, tmdbId }),
 	);
+	const navigate = Route.useNavigate();
 	const [recommendOpen, setRecommendOpen] = useState(false);
+	const [reviewModalOpen, setReviewModalOpen] = useState(false);
+	const [watchEventId, setWatchEventId] = useState<string | null>(null);
+	const [isReminderMode, setIsReminderMode] = useState(false);
+
+	const { data: reminderEvent } = useQuery(
+		trpc.watched.getById.queryOptions(
+			{ id: reviewReminder ?? "" },
+			{ enabled: !!reviewReminder },
+		),
+	);
+
+	useEffect(() => {
+		if (reminderEvent && reviewReminder) {
+			setWatchEventId(reminderEvent.id);
+			setIsReminderMode(true);
+			setReviewModalOpen(true);
+			navigate({ search: {}, replace: true });
+		}
+	}, [reminderEvent, reviewReminder, navigate]);
+
+	const createWatchEvent = useMutation(
+		trpc.watched.create.mutationOptions({
+			onSuccess: (data) => {
+				setWatchEventId(data.id);
+				setReviewModalOpen(true);
+			},
+		}),
+	);
 
 	if (!data) return <TitlePageSkeleton />;
 
@@ -77,7 +113,18 @@ function TitlePage() {
 					<PosterDisplayCase posterPath={data.posterPath} title={data.title} />
 					<div className="flex gap-4 justify-center mt-5">
 						<ArcadeButton icon={Plus} label="Watchlist" color="pink" />
-						<ArcadeButton icon={Check} label="Watched" color="cyan" />
+						<ArcadeButton
+							icon={Check}
+							label="Watched"
+							color="cyan"
+							onClick={() =>
+								createWatchEvent.mutate({
+									tmdbId: Number(tmdbId),
+									mediaType: mediaType as "movie" | "tv",
+									titleName: data.title,
+								})
+							}
+						/>
 						<ArcadeButton
 							icon={Send}
 							label="Recommend"
@@ -116,6 +163,25 @@ function TitlePage() {
 					</SectionBoard>
 				</div>
 			</div>
+
+			<ReviewModal
+				open={reviewModalOpen}
+				onOpenChange={(open) => {
+					setReviewModalOpen(open);
+					if (!open) setIsReminderMode(false);
+				}}
+				watchEventId={watchEventId}
+				titleName={data.title}
+				year={data.year}
+				tmdbId={Number(tmdbId)}
+				mediaType={mediaType as "movie" | "tv"}
+				isReminder={isReminderMode}
+				defaultWatchedAt={
+					isReminderMode && reminderEvent?.watchedAt
+						? new Date(reminderEvent.watchedAt)
+						: undefined
+				}
+			/>
 		</div>
 	);
 }
