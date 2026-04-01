@@ -107,7 +107,7 @@ function LoginPage() {
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
 							placeholder="you@email.com"
-							className="mb-4 w-full rounded-lg border border-cream/12 bg-cream/6 px-3.5 py-3 text-sm text-cream placeholder:text-cream/30 focus:border-neon-pink/40 focus:outline-none"
+							className="mb-4 w-full rounded-lg border border-cream/12 bg-cream/6 px-3.5 py-3 text-base md:text-sm text-cream placeholder:text-cream/30 focus:border-neon-pink/40 focus:outline-none"
 						/>
 
 						<button
