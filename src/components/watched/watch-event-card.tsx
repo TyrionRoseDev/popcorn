@@ -132,9 +132,26 @@ export function WatchEventCard({
 			: null;
 
 	return (
-		<div className="rounded-lg border border-drive-in-border p-3 transition-colors hover:bg-cream/[0.03]">
+		<div
+			className="relative rounded-[10px] border border-neon-amber/20 p-4 transition-colors hover:border-neon-amber/30"
+			style={{
+				background:
+					"linear-gradient(145deg, rgba(10,10,30,0.95) 0%, rgba(15,15,35,0.8) 100%)",
+				boxShadow:
+					"0 0 12px rgba(255,184,0,0.05), inset 0 1px 0 rgba(255,255,240,0.03)",
+			}}
+		>
+			{/* Warm radial light overlay */}
+			<div
+				aria-hidden="true"
+				className="pointer-events-none absolute inset-0 rounded-[10px]"
+				style={{
+					background:
+						"radial-gradient(ellipse at top left, rgba(255,184,0,0.06), transparent 50%)",
+				}}
+			/>
 			{actor && (
-				<div className="flex items-center gap-2 mb-2">
+				<div className="relative z-10 flex items-center gap-2 mb-2">
 					<Link
 						to="/app/profile/$userId"
 						params={{ userId: actor.id }}
@@ -162,7 +179,7 @@ export function WatchEventCard({
 				</div>
 			)}
 
-			<div className="flex items-start justify-between gap-2">
+			<div className="relative z-10 flex items-start justify-between gap-2">
 				<div className="min-w-0 flex-1">
 					{showTitle && (
 						<Link
@@ -177,35 +194,51 @@ export function WatchEventCard({
 						</Link>
 					)}
 
+					{/* Stars — larger with amber glow */}
 					{event.rating && (
 						<div className="flex items-center gap-1 mt-1">
 							{[1, 2, 3, 4, 5].map((s) => (
 								<Star
 									key={s}
-									className={`h-3 w-3 ${
+									className={`h-[15px] w-[15px] ${
 										s <= (event.rating ?? 0)
-											? "text-neon-amber fill-neon-amber"
-											: "text-cream/15"
+											? "text-neon-amber fill-neon-amber drop-shadow-[0_0_6px_rgba(255,184,0,0.5)]"
+											: "text-cream/8"
 									}`}
 								/>
 							))}
 						</div>
 					)}
 
+					{/* Date — amber-tinted Space Mono */}
 					{!actor && (
-						<div className="text-[11px] text-cream/35 mt-1">
+						<div className="font-mono-retro text-[10px] tracking-[1px] text-[rgba(255,184,0,0.45)] mt-1.5">
 							{formatDate(event.watchedAt)}
 						</div>
 					)}
 
+					{/* Divider — amber gradient line (only show if there are companions or a note) */}
+					{(companionText || event.note) && (
+						<div
+							className="h-px mt-2.5 mb-2"
+							style={{
+								background:
+									"linear-gradient(90deg, rgba(255,184,0,0.2), transparent 80%)",
+							}}
+						/>
+					)}
+
+					{/* Companions — cyan dot prefix */}
 					{companionText && (
-						<div className="text-[11px] text-cream/30 mt-0.5">
+						<div className="flex items-center gap-1.5 text-[11px] text-cream/30">
+							<span className="inline-block h-1 w-1 rounded-full bg-neon-cyan/50 shrink-0" />
 							{companionText}
 						</div>
 					)}
 
+					{/* Note — cyan quote bar */}
 					{event.note && (
-						<p className="text-xs text-cream/50 mt-1.5 line-clamp-2">
+						<p className="relative text-[12.5px] leading-[1.6] text-cream/55 mt-1.5 pl-3 line-clamp-2 before:absolute before:left-0 before:top-0.5 before:bottom-0.5 before:w-0.5 before:rounded-full before:bg-[rgba(0,229,255,0.2)]">
 							{event.note}
 						</p>
 					)}
