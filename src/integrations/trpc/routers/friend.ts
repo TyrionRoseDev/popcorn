@@ -770,12 +770,7 @@ export const friendRouter = createTRPCRouter({
 					count: sql<number>`count(*)::int`,
 				})
 				.from(watchEvent)
-				.where(
-					and(
-						eq(watchEvent.userId, input.userId),
-						sql`${watchEvent.watchedAt} >= now() - interval '365 days'`,
-					),
-				)
+				.where(eq(watchEvent.userId, input.userId))
 				.groupBy(sql`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`)
 				.orderBy(sql`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`);
 

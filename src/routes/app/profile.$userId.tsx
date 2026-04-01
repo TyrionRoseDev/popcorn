@@ -19,7 +19,7 @@ import {
 	X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { useTRPC } from "#/integrations/trpc/react";
@@ -839,109 +839,120 @@ function NonFriendGatedSections() {
 // WatchActivityHeatmap
 // ════════════════════════════════════════════════════════════════
 
-const HEATMAP_WEEKS = 52;
-const DAYS_IN_WEEK = 7;
+function pad2(n: number) {
+	return n.toString().padStart(2, "0");
+}
+
+function fmtDate(d: Date) {
+	return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
 
 function WatchActivityHeatmap({
 	data,
 }: {
 	data: Array<{ date: string; count: number }>;
 }) {
-	const scrollRef = useRef<HTMLDivElement>(null);
+	// Determine which years have data
+	const years = [...new Set(data.map((d) => d.date.slice(0, 4)))].sort();
+	const currentYear = new Date().getFullYear().toString();
+	if (!years.includes(currentYear)) years.push(currentYear);
+	const hasMultipleYears = years.length > 1;
 
-	// Auto-scroll to the right (most recent dates)
-	useEffect(() => {
-		if (scrollRef.current) {
-			scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
-		}
-	}, []);
+	const [selectedYear, setSelectedYear] = useState(currentYear);
 
-	// Build a map of date -> count for fast lookup
-	const countMap = new Map<string, number>();
-	let maxCount = 0;
-	for (const d of data) {
-		countMap.set(d.date, d.count);
-		if (d.count > maxCount) maxCount = d.count;
+	// Build date→count lookup
+	const countMap = new Map(data.map((d) => [d.date, d.count]));
+
+	// Compute grid for selected year: Jan 1 → Dec 31 (or today if current year)
+	const yearNum = Number.parseInt(selectedYear, 10);
+	const isCurrentYear = selectedYear === currentYear;
+	const jan1 = new Date(yearNum, 0, 1);
+	const endDate = isCurrentYear ? new Date() : new Date(yearNum, 11, 31);
+	endDate.setHours(0, 0, 0, 0);
+	const endStr = fmtDate(endDate);
+
+	// Build 7-row (Sun–Sat) × N-column grid
+	// First column may have empty cells before Jan 1's day-of-week
+	const startDow = jan1.getDay(); // 0=Sun
+	const cells: Array<{ date: string; count: number } | null> = [];
+
+	// Pad the first week with nulls
+	for (let i = 0; i < startDow; i++) cells.push(null);
+
+	// Fill in actual days
+	const cursor = new Date(jan1);
+	while (fmtDate(cursor) <= endStr) {
+		const ds = fmtDate(cursor);
+		cells.push({ date: ds, count: countMap.get(ds) ?? 0 });
+		cursor.setDate(cursor.getDate() + 1);
 	}
 
-	// Build the grid: 52 weeks of 7 days, ending today
-	const today = new Date();
-	today.setHours(0, 0, 0, 0);
-	const todayStr = formatDate(today);
-
-	// Find the Sunday of the week containing the start date (52 weeks ago)
-	const startDate = new Date(today);
-	startDate.setDate(startDate.getDate() - HEATMAP_WEEKS * DAYS_IN_WEEK + 1);
-	// Roll back to Sunday
-	startDate.setDate(startDate.getDate() - startDate.getDay());
-
-	const weeks: Array<
-		Array<{ date: string; count: number; isFuture: boolean } | null>
-	> = [];
-
-	const cursor = new Date(startDate);
-	while (weeks.length < HEATMAP_WEEKS) {
-		const week: Array<{
-			date: string;
-			count: number;
-			isFuture: boolean;
-		} | null> = [];
-		for (let dow = 0; dow < DAYS_IN_WEEK; dow++) {
-			const dateStr = formatDate(cursor);
-			const isFuture = dateStr > todayStr;
-			week.push({
-				date: dateStr,
-				count: countMap.get(dateStr) ?? 0,
-				isFuture,
-			});
-			cursor.setDate(cursor.getDate() + 1);
-		}
+	// Group into columns of 7 (weeks)
+	const weeks: Array<typeof cells> = [];
+	for (let i = 0; i < cells.length; i += 7) {
+		const week = cells.slice(i, i + 7);
+		// Pad last week if incomplete
+		while (week.length < 7) week.push(null);
 		weeks.push(week);
 	}
 
+	const maxCount = Math.max(...data.map((d) => d.count), 1);
+
 	return (
-		<div
-			ref={scrollRef}
-			className="overflow-x-auto rounded-lg border border-drive-in-border p-3"
-		>
-			<div className="inline-flex gap-[3px]">
-				{weeks.map((week) => (
-					<div key={week[0]?.date} className="flex shrink-0 flex-col gap-[3px]">
-						{week.map((day) => {
-							if (!day) return null;
-							if (day.isFuture) {
-								return (
-									<div
-										key={day.date}
-										className="h-[10px] w-[10px] rounded-[2px] bg-transparent"
-									/>
-								);
-							}
-							const bg =
-								day.count > 0
-									? `rgba(255, 45, 120, ${maxCount === 1 ? 0.8 : 0.2 + (day.count / maxCount) * 0.8})`
-									: "rgba(255, 255, 240, 0.04)";
-							return (
-								<div
-									key={day.date}
-									className="h-[10px] w-[10px] shrink-0 rounded-[2px]"
-									style={{ backgroundColor: bg }}
-									title={`${day.date}: ${day.count} film${day.count !== 1 ? "s" : ""}`}
-								/>
-							);
-						})}
-					</div>
-				))}
+		<div className="rounded-lg border border-drive-in-border p-3">
+			{hasMultipleYears && (
+				<div className="mb-2 flex gap-2">
+					{years.map((yr) => (
+						<button
+							key={yr}
+							type="button"
+							onClick={() => setSelectedYear(yr)}
+							className={`font-mono-retro text-[10px] tracking-[1px] transition-colors ${
+								yr === selectedYear
+									? "text-neon-pink"
+									: "text-cream/30 hover:text-cream/50"
+							}`}
+						>
+							{yr}
+						</button>
+					))}
+				</div>
+			)}
+			<div className="overflow-x-auto" style={{ direction: "rtl" }}>
+				<div
+					style={{
+						direction: "ltr",
+						display: "grid",
+						gridTemplateRows: "repeat(7, 10px)",
+						gridAutoColumns: "10px",
+						gridAutoFlow: "column",
+						gap: "3px",
+					}}
+				>
+					{cells.map((cell, idx) =>
+						cell === null ? (
+							// biome-ignore lint/suspicious/noArrayIndexKey: null padding cells have no unique id
+							<div key={`empty-${idx}`} />
+						) : (
+							<div
+								key={cell.date}
+								title={`${cell.date}: ${cell.count} film${cell.count !== 1 ? "s" : ""}`}
+								style={{
+									width: 10,
+									height: 10,
+									borderRadius: 2,
+									backgroundColor:
+										cell.count > 0
+											? `rgba(255, 45, 120, ${0.2 + (cell.count / maxCount) * 0.8})`
+											: "rgba(255, 255, 240, 0.04)",
+								}}
+							/>
+						),
+					)}
+				</div>
 			</div>
 		</div>
 	);
-}
-
-function formatDate(d: Date): string {
-	const y = d.getFullYear();
-	const m = String(d.getMonth() + 1).padStart(2, "0");
-	const day = String(d.getDate()).padStart(2, "0");
-	return `${y}-${m}-${day}`;
 }
 
 // ════════════════════════════════════════════════════════════════
