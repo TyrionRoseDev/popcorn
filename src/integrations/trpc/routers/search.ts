@@ -8,6 +8,7 @@ import {
 	discoverTvWithParams,
 	fetchTrending,
 	searchMovies,
+	searchMulti,
 	searchTvShows,
 } from "#/lib/tmdb";
 import {
@@ -15,6 +16,9 @@ import {
 	mapSearchResultToFeedItem,
 	mapTvToFeedItem,
 } from "./taste-profile";
+
+const PAGES_PER_ENDPOINT_ALL = 2;
+const PAGES_PER_ENDPOINT_SINGLE = 3;
 
 const PAGE_SIZE = 20;
 
@@ -36,37 +40,56 @@ type SearchParams = z.infer<typeof searchParamsSchema>;
 export async function fetchSearchResults(params: SearchParams) {
 	const { q, type, genre, yearMin, yearMax, rating, sort, page } = params;
 
-	// Determine how many pages to fetch per endpoint.
-	// "all" = 2 pages each (4 calls), single type = 3 pages (3 calls).
-	const pagesPerEndpoint = type === "all" ? 2 : 3;
-	const pageNumbers = Array.from({ length: pagesPerEndpoint }, (_, i) => i + 1);
-
 	let allItems: FeedItem[] = [];
 
-	if (type === "all" || type === "movie") {
-		const moviePages = await Promise.all(
-			pageNumbers.map((p) => searchMovies(q, p).catch(() => null)),
+	if (type === "all") {
+		// Use TMDB's /search/multi for unified relevance ranking across movies & TV
+		const pageNumbers = Array.from(
+			{ length: PAGES_PER_ENDPOINT_ALL },
+			(_, i) => i + 1,
 		);
-		if (moviePages.every((r) => r == null)) {
-			throw new Error("TMDB: all movie page requests failed");
+		const multiPages = await Promise.all(
+			pageNumbers.map((p) => searchMulti(q, p).catch(() => null)),
+		);
+		if (multiPages.every((r) => r == null)) {
+			throw new Error("TMDB: all search requests failed");
 		}
-		for (const res of moviePages) {
+		for (const res of multiPages) {
 			if (res) {
-				allItems.push(...res.results.map((r) => mapMovieToFeedItem(r)));
+				allItems.push(...res.results.map((r) => mapSearchResultToFeedItem(r)));
 			}
 		}
-	}
-
-	if (type === "all" || type === "tv") {
-		const tvPages = await Promise.all(
-			pageNumbers.map((p) => searchTvShows(q, p).catch(() => null)),
+	} else {
+		const pageNumbers = Array.from(
+			{ length: PAGES_PER_ENDPOINT_SINGLE },
+			(_, i) => i + 1,
 		);
-		if (tvPages.every((r) => r == null)) {
-			throw new Error("TMDB: all TV page requests failed");
+
+		if (type === "movie") {
+			const moviePages = await Promise.all(
+				pageNumbers.map((p) => searchMovies(q, p).catch(() => null)),
+			);
+			if (moviePages.every((r) => r == null)) {
+				throw new Error("TMDB: all movie page requests failed");
+			}
+			for (const res of moviePages) {
+				if (res) {
+					allItems.push(...res.results.map((r) => mapMovieToFeedItem(r)));
+				}
+			}
 		}
-		for (const res of tvPages) {
-			if (res) {
-				allItems.push(...res.results.map((r) => mapTvToFeedItem(r)));
+
+		if (type === "tv") {
+			const tvPages = await Promise.all(
+				pageNumbers.map((p) => searchTvShows(q, p).catch(() => null)),
+			);
+			if (tvPages.every((r) => r == null)) {
+				throw new Error("TMDB: all TV page requests failed");
+			}
+			for (const res of tvPages) {
+				if (res) {
+					allItems.push(...res.results.map((r) => mapTvToFeedItem(r)));
+				}
 			}
 		}
 	}
