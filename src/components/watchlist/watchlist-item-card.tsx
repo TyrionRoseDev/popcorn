@@ -56,17 +56,7 @@ export function WatchlistItemCard({
 }: WatchlistItemCardProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
-	const [reviewModalOpen, setReviewModalOpen] = useState(false);
-	const [watchEventId, setWatchEventId] = useState<string | null>(null);
-
-	const createWatchEvent = useMutation(
-		trpc.watched.create.mutationOptions({
-			onSuccess: (data) => {
-				setWatchEventId(data.id);
-				setReviewModalOpen(true);
-			},
-		}),
-	);
+	const [reviewOpen, setReviewOpen] = useState(false);
 
 	const markWatched = useMutation(
 		trpc.watchlist.markWatched.mutationOptions({
@@ -74,12 +64,8 @@ export function WatchlistItemCard({
 				queryClient.invalidateQueries(
 					trpc.watchlist.get.queryFilter({ watchlistId }),
 				);
-				if (variables.watched) {
-					createWatchEvent.mutate({
-						tmdbId: variables.tmdbId,
-						mediaType: variables.mediaType as "movie" | "tv",
-						titleName: item.titleName ?? "",
-					});
+				if (!item.watched) {
+					setReviewOpen(true);
 				}
 			},
 		}),
@@ -223,21 +209,11 @@ export function WatchlistItemCard({
 				) : null}
 			</div>
 			<ReviewModal
-				open={reviewModalOpen}
-				onOpenChange={setReviewModalOpen}
-				watchEventId={watchEventId}
-				titleName={item.titleName ?? ""}
+				open={reviewOpen}
+				onOpenChange={setReviewOpen}
 				tmdbId={item.tmdbId}
 				mediaType={item.mediaType as "movie" | "tv"}
-				onCancel={() => {
-					markWatched.mutate({
-						watchlistId,
-						tmdbId: item.tmdbId,
-						mediaType: item.mediaType as "movie" | "tv",
-						watched: false,
-						titleName: item.titleName ?? "",
-					});
-				}}
+				titleName={item.titleName ?? ""}
 			/>
 		</>
 	);
