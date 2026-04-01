@@ -42,12 +42,18 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 				}}
 			>
 				<Head>
+					<meta name="color-scheme" content="only light" />
+					<meta name="supported-color-schemes" content="only light" />
 					<style>{`
             @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+            :root { color-scheme: only light; }
+            body, .body { background-color: #0c0c1a !important; }
           `}</style>
 				</Head>
 				<Preview>Your Popcorn sign-in link</Preview>
+				{/* @ts-expect-error bgcolor is a valid HTML attribute for email clients */}
 				<Body
+					bgcolor="#0c0c1a"
 					style={{
 						fontFamily: "'Manrope', sans-serif",
 						margin: 0,
@@ -57,8 +63,10 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 				>
 					<Container className="mx-auto max-w-lg py-10 px-4">
 						{/* === HEADER AREA === */}
+						{/* @ts-expect-error bgcolor is a valid HTML attribute for email clients */}
 						<Container
 							className="mx-auto rounded-t-2xl px-10 pt-10 pb-8 text-center"
+							bgcolor="#0f1025"
 							style={{
 								backgroundColor: "#0f1025",
 								border: "1px solid #1e1e3a",
@@ -108,7 +116,9 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 						</Container>
 
 						{/* === FILM STRIP DIVIDER === */}
+						{/* @ts-expect-error bgcolor is a valid HTML attribute for email clients */}
 						<Container
+							bgcolor="#2a2a3e"
 							style={{ backgroundColor: "#2a2a3e", padding: "6px 12px" }}
 						>
 							<Row>
@@ -133,8 +143,10 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 						</Container>
 
 						{/* === TICKET STUB === */}
+						{/* @ts-expect-error bgcolor is a valid HTML attribute for email clients */}
 						<Container
 							className="mx-auto"
+							bgcolor="#12132a"
 							style={{
 								backgroundColor: "#12132a",
 								border: "1px solid #1e1e3a",
@@ -182,7 +194,9 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 
 							{/* Ticket body */}
 							<Section style={{ padding: "0 24px" }}>
+								{/* @ts-expect-error bgcolor is a valid HTML attribute for email clients */}
 								<Container
+									bgcolor="#171835"
 									style={{
 										backgroundColor: "#171835",
 										padding: "28px 24px 32px",
