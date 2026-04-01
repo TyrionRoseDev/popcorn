@@ -6,7 +6,6 @@ import {
 } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-	Award,
 	Ban,
 	BarChart3,
 	CalendarDays,
@@ -14,7 +13,6 @@ import {
 	Film,
 	Heart,
 	Lock,
-	Star,
 	Trophy,
 	UserMinus,
 	UserPlus,
@@ -22,6 +20,8 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
+import { ReviewModal } from "#/components/watched/review-modal";
+import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { useTRPC } from "#/integrations/trpc/react";
 import { getUnifiedGenreById } from "#/lib/genre-map";
 import { getTmdbImageUrl } from "#/lib/tmdb";
@@ -44,7 +44,7 @@ function avatarGradient(_letter: string) {
 }
 
 // ── Tabs enum ──────────────────────────────────────────────────
-type FriendTab = "watchlists" | "reviews" | "activity";
+type FriendTab = "watchlists" | "diary" | "activity";
 const TABS: {
 	key: FriendTab;
 	label: string;
@@ -58,8 +58,8 @@ const TABS: {
 		activeColor: "text-neon-cyan border-neon-cyan",
 	},
 	{
-		key: "reviews",
-		label: "Reviews",
+		key: "diary",
+		label: "Diary",
 		color: "neon-amber",
 		activeColor: "text-neon-amber border-neon-amber",
 	},
@@ -119,6 +119,7 @@ const PROFILE_KEYFRAMES = `
 
 function ProfilePage() {
 	const { userId } = Route.useParams();
+	const _routeContext = Route.useRouteContext();
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 
@@ -914,7 +915,12 @@ function FriendExpandedSections({
 						{activeTab === "watchlists" && (
 							<WatchlistsTab watchlists={profile.publicWatchlists} />
 						)}
-						{activeTab === "reviews" && <ReviewsTab userId={profile.id} />}
+						{activeTab === "diary" && (
+							<DiaryTab
+								userId={profile.id}
+								isOwn={profile.id === routeContext.user.id}
+							/>
+						)}
 						{activeTab === "activity" && <ActivityTab />}
 					</motion.div>
 				</AnimatePresence>
@@ -974,14 +980,27 @@ function WatchlistsTab({
 }
 
 // ════════════════════════════════════════════════════════════════
-// ReviewsTab
+// DiaryTab
 // ════════════════════════════════════════════════════════════════
 
-function ReviewsTab({ userId }: { userId: string }) {
+function DiaryTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 	const trpc = useTRPC();
-	const { data: reviews, isLoading } = useQuery(
-		trpc.watchlist.getUserReviews.queryOptions({ userId }),
+	const { data, isLoading } = useQuery(
+		trpc.watchEvent.getUserEvents.queryOptions({ userId, limit: 50 }),
 	);
+
+	const [editModal, setEditModal] = useState<{
+		open: boolean;
+		tmdbId: number;
+		mediaType: "movie" | "tv";
+		event?: {
+			id: string;
+			rating: number | null;
+			note: string | null;
+			watchedAt: string;
+			companions: Array<{ friendId?: string; name: string }>;
+		};
+	} | null>(null);
 
 	if (isLoading) {
 		return (
@@ -991,45 +1010,50 @@ function ReviewsTab({ userId }: { userId: string }) {
 		);
 	}
 
-	if (!reviews || reviews.length === 0) {
+	const events = data?.items ?? [];
+
+	if (events.length === 0) {
 		return (
 			<div className="flex flex-col items-center py-8 text-center">
-				<Award className="mb-2 h-6 w-6 text-neon-amber/20" />
-				<p className="text-xs text-cream/30">No reviews yet</p>
+				<Film className="mb-2 h-6 w-6 text-neon-amber/20" />
+				<p className="text-xs text-cream/30">No diary entries yet</p>
 			</div>
 		);
 	}
 
 	return (
-		<div className="flex flex-col gap-3">
-			{reviews.map((r) => (
-				<Link
-					key={r.id}
-					to="/app/title/$mediaType/$tmdbId"
-					params={{
-						mediaType: r.mediaType as "movie" | "tv",
-						tmdbId: r.tmdbId,
+		<>
+			<div className="flex flex-col gap-3">
+				{events.map((event) => (
+					<WatchEventCard
+						key={event.id}
+						event={event}
+						showTitle={{ name: `${event.tmdbId}` }}
+						isOwn={isOwn}
+						onEdit={(e) =>
+							setEditModal({
+								open: true,
+								tmdbId: event.tmdbId,
+								mediaType: event.mediaType as "movie" | "tv",
+								event: e,
+							})
+						}
+					/>
+				))}
+			</div>
+			{editModal && (
+				<ReviewModal
+					open={editModal.open}
+					onOpenChange={(open) => {
+						if (!open) setEditModal(null);
 					}}
-					className="rounded-lg border border-drive-in-border p-3 transition-colors hover:bg-cream/[0.03] no-underline"
-				>
-					<div className="flex items-center gap-1.5 mb-1">
-						{[1, 2, 3, 4, 5].map((s) => (
-							<Star
-								key={s}
-								className={`h-3 w-3 ${
-									s <= r.rating
-										? "text-neon-amber fill-neon-amber"
-										: "text-cream/15"
-								}`}
-							/>
-						))}
-					</div>
-					{r.text && (
-						<p className="text-xs text-cream/60 line-clamp-2">{r.text}</p>
-					)}
-				</Link>
-			))}
-		</div>
+					tmdbId={editModal.tmdbId}
+					mediaType={editModal.mediaType}
+					titleName={`${editModal.tmdbId}`}
+					editEvent={editModal.event}
+				/>
+			)}
+		</>
 	);
 }
 
