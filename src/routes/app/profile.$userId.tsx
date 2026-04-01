@@ -23,7 +23,6 @@ import { useState } from "react";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { useTRPC } from "#/integrations/trpc/react";
-import { getUnifiedGenreById } from "#/lib/genre-map";
 import { getTmdbImageUrl } from "#/lib/tmdb";
 
 export const Route = createFileRoute("/app/profile/$userId")({
@@ -146,6 +145,12 @@ function ProfilePage() {
 		),
 	);
 
+	const { data: genreStats } = useQuery(
+		trpc.friend.genreStats.queryOptions(
+			profile ? { userId: profile.id } : skipToken,
+		),
+	);
+
 	// ── Mutations ──────────────────────────────────────────────
 	const invalidateAll = () => {
 		queryClient.invalidateQueries({
@@ -247,9 +252,7 @@ function ProfilePage() {
 	const isSelf = profile.isSelf;
 	const isFriend = profile.isFriend;
 	const initial = (profile.username ?? "?").charAt(0).toUpperCase();
-	const genreName = profile.favouriteGenreId
-		? (getUnifiedGenreById(profile.favouriteGenreId)?.name ?? null)
-		: null;
+	const genreName = genreStats?.[0]?.name ?? null;
 
 	return (
 		<>
@@ -700,6 +703,7 @@ function ProfilePage() {
 						{isFriend || isSelf ? (
 							<FriendExpandedSections
 								profile={profile}
+								genreStats={genreStats ?? []}
 								activeTab={activeTab}
 								setActiveTab={setActiveTab}
 							/>
@@ -830,11 +834,126 @@ function NonFriendGatedSections() {
 }
 
 // ════════════════════════════════════════════════════════════════
+// WatchActivityHeatmap
+// ════════════════════════════════════════════════════════════════
+
+const HEATMAP_WEEKS = 52;
+const DAYS_IN_WEEK = 7;
+
+function WatchActivityHeatmap({
+	data,
+}: {
+	data: Array<{ date: string; count: number }>;
+}) {
+	// Build a map of date -> count for fast lookup
+	const countMap = new Map<string, number>();
+	let maxCount = 0;
+	for (const d of data) {
+		countMap.set(d.date, d.count);
+		if (d.count > maxCount) maxCount = d.count;
+	}
+
+	// Build the grid: 52 weeks of 7 days, ending today
+	const today = new Date();
+	today.setHours(0, 0, 0, 0);
+	const todayStr = formatDate(today);
+
+	// Find the Sunday of the week containing the start date (52 weeks ago)
+	const startDate = new Date(today);
+	startDate.setDate(startDate.getDate() - HEATMAP_WEEKS * DAYS_IN_WEEK + 1);
+	// Roll back to Sunday
+	startDate.setDate(startDate.getDate() - startDate.getDay());
+
+	const weeks: Array<
+		Array<{ date: string; count: number; isFuture: boolean } | null>
+	> = [];
+
+	const cursor = new Date(startDate);
+	while (cursor <= today || weeks.length < HEATMAP_WEEKS) {
+		const week: Array<{
+			date: string;
+			count: number;
+			isFuture: boolean;
+		} | null> = [];
+		for (let dow = 0; dow < DAYS_IN_WEEK; dow++) {
+			const dateStr = formatDate(cursor);
+			const isFuture = dateStr > todayStr;
+			week.push({
+				date: dateStr,
+				count: countMap.get(dateStr) ?? 0,
+				isFuture,
+			});
+			cursor.setDate(cursor.getDate() + 1);
+		}
+		weeks.push(week);
+		if (weeks.length >= HEATMAP_WEEKS + 1) break;
+	}
+
+	return (
+		<div className="overflow-x-auto rounded-lg border border-drive-in-border p-3">
+			<div className="flex gap-[3px]">
+				{weeks.map((week) => (
+					<div key={week[0]?.date} className="flex flex-col gap-[3px]">
+						{week.map((day) => {
+							if (!day) return null;
+							if (day.isFuture) {
+								return (
+									<div
+										key={day.date}
+										className="h-[10px] w-[10px] rounded-[2px] bg-transparent"
+									/>
+								);
+							}
+							const opacity =
+								day.count === 0
+									? 0
+									: maxCount === 1
+										? 0.8
+										: 0.2 + (day.count / maxCount) * 0.8;
+							return (
+								<div
+									key={day.date}
+									className={`h-[10px] w-[10px] rounded-[2px] ${day.count === 0 ? "bg-cream/[0.04]" : ""}`}
+									style={
+										day.count > 0
+											? {
+													backgroundColor: `rgba(255, 45, 120, ${opacity})`,
+												}
+											: undefined
+									}
+									title={`${day.date}: ${day.count} film${day.count !== 1 ? "s" : ""}`}
+								/>
+							);
+						})}
+					</div>
+				))}
+			</div>
+		</div>
+	);
+}
+
+function formatDate(d: Date): string {
+	const y = d.getFullYear();
+	const m = String(d.getMonth() + 1).padStart(2, "0");
+	const day = String(d.getDate()).padStart(2, "0");
+	return `${y}-${m}-${day}`;
+}
+
+// ════════════════════════════════════════════════════════════════
 // FriendExpandedSections (9-11)
 // ════════════════════════════════════════════════════════════════
 
+const GENRE_BAR_COLORS = [
+	"rgb(0, 229, 255)", // neon-cyan
+	"rgb(255, 45, 120)", // neon-pink
+	"rgb(255, 184, 0)", // neon-amber
+	"rgba(0, 229, 255, 0.5)", // cyan soft
+	"rgba(255, 45, 120, 0.5)", // pink soft
+];
+
 function FriendExpandedSections({
 	profile,
+	genreStats,
 	activeTab,
 	setActiveTab,
 }: {
@@ -847,9 +966,18 @@ function FriendExpandedSections({
 			memberCount: number;
 		}>;
 	};
+	genreStats: Array<{ name: string; count: number }>;
 	activeTab: FriendTab;
 	setActiveTab: (tab: FriendTab) => void;
 }) {
+	const trpc = useTRPC();
+
+	const { data: watchActivity } = useQuery(
+		trpc.friend.watchActivity.queryOptions({ userId: profile.id }),
+	);
+
+	const maxGenreCount = genreStats.length > 0 ? genreStats[0].count : 0;
+
 	return (
 		<>
 			{/* ── 9. Top Genres ────────────────────── */}
@@ -860,12 +988,38 @@ function FriendExpandedSections({
 						Top Genres
 					</span>
 				</div>
-				<div className="flex flex-col items-center rounded-lg border border-drive-in-border py-6 text-center">
-					<BarChart3 className="mb-2 h-5 w-5 text-cream/15" />
-					<p className="text-[10px] text-cream/25">
-						Watch more films to see your genre breakdown
-					</p>
-				</div>
+				{genreStats.length > 0 ? (
+					<div className="space-y-2 rounded-lg border border-drive-in-border p-4">
+						{genreStats.map((genre, i) => (
+							<div key={genre.name} className="flex items-center gap-3">
+								<span className="w-20 shrink-0 text-right font-mono-retro text-[10px] uppercase tracking-wider text-cream/60">
+									{genre.name}
+								</span>
+								<div className="relative h-4 flex-1 overflow-hidden rounded-full bg-cream/[0.04]">
+									<div
+										className="absolute inset-y-0 left-0 rounded-full"
+										style={{
+											width: `${maxGenreCount > 0 ? (genre.count / maxGenreCount) * 100 : 0}%`,
+											backgroundColor:
+												GENRE_BAR_COLORS[i] ?? GENRE_BAR_COLORS[4],
+											boxShadow: `0 0 8px ${GENRE_BAR_COLORS[i] ?? GENRE_BAR_COLORS[4]}40`,
+										}}
+									/>
+								</div>
+								<span className="w-8 shrink-0 font-mono-retro text-[10px] text-cream/40">
+									{genre.count}
+								</span>
+							</div>
+						))}
+					</div>
+				) : (
+					<div className="flex flex-col items-center rounded-lg border border-drive-in-border py-6 text-center">
+						<BarChart3 className="mb-2 h-5 w-5 text-cream/15" />
+						<p className="text-[10px] text-cream/25">
+							Watch more films to see your genre breakdown
+						</p>
+					</div>
+				)}
 			</div>
 
 			{/* ── 10. Watch Activity heatmap ──────── */}
@@ -876,10 +1030,14 @@ function FriendExpandedSections({
 						Watch Activity
 					</span>
 				</div>
-				<div className="flex flex-col items-center rounded-lg border border-drive-in-border py-6 text-center">
-					<CalendarDays className="mb-2 h-5 w-5 text-cream/15" />
-					<p className="text-[10px] text-cream/25">No watch activity yet</p>
-				</div>
+				{watchActivity && watchActivity.length > 0 ? (
+					<WatchActivityHeatmap data={watchActivity} />
+				) : (
+					<div className="flex flex-col items-center rounded-lg border border-drive-in-border py-6 text-center">
+						<CalendarDays className="mb-2 h-5 w-5 text-cream/15" />
+						<p className="text-[10px] text-cream/25">No watch activity yet</p>
+					</div>
+				)}
 			</div>
 
 			{/* ── 11. Tabbed content ───────────────── */}
