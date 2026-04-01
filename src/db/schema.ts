@@ -412,6 +412,50 @@ export const review = pgTable(
 	],
 );
 
+export const watchEvent = pgTable(
+	"watch_event",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		tmdbId: integer("tmdb_id").notNull(),
+		mediaType: text("media_type").notNull(),
+		rating: integer("rating"),
+		note: text("note"),
+		watchedAt: timestamp("watched_at").defaultNow().notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("watch_event_user_id_idx").on(table.userId),
+		index("watch_event_user_title_idx").on(
+			table.userId,
+			table.tmdbId,
+			table.mediaType,
+		),
+		index("watch_event_watched_at_idx").on(table.watchedAt),
+	],
+);
+
+export const watchEventCompanion = pgTable(
+	"watch_event_companion",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		watchEventId: text("watch_event_id")
+			.notNull()
+			.references(() => watchEvent.id, { onDelete: "cascade" }),
+		friendId: text("friend_id").references(() => user.id, {
+			onDelete: "set null",
+		}),
+		name: text("name").notNull(),
+	},
+	(table) => [index("watch_event_companion_event_idx").on(table.watchEventId)],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
@@ -421,6 +465,7 @@ export const userRelations = relations(user, ({ many }) => ({
 	watchlistMemberships: many(watchlistMember),
 	swipes: many(shuffleSwipe),
 	reviews: many(review),
+	watchEvents: many(watchEvent),
 	notificationsReceived: many(notification, {
 		relationName: "notificationRecipient",
 	}),
@@ -564,12 +609,27 @@ export const reviewRelations = relations(review, ({ one }) => ({
 	}),
 }));
 
-export const watchEventRelations = relations(watchEvent, ({ one }) => ({
+export const watchEventRelations = relations(watchEvent, ({ one, many }) => ({
 	user: one(user, {
 		fields: [watchEvent.userId],
 		references: [user.id],
 	}),
+	companions: many(watchEventCompanion),
 }));
+
+export const watchEventCompanionRelations = relations(
+	watchEventCompanion,
+	({ one }) => ({
+		watchEvent: one(watchEvent, {
+			fields: [watchEventCompanion.watchEventId],
+			references: [watchEvent.id],
+		}),
+		friend: one(user, {
+			fields: [watchEventCompanion.friendId],
+			references: [user.id],
+		}),
+	}),
+);
 
 export const recommendationRelations = relations(recommendation, ({ one }) => ({
 	sender: one(user, {
