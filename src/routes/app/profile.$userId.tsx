@@ -36,93 +36,6 @@ const MARQUEE_BULBS = Array.from({ length: MARQUEE_BULB_COUNT }, (_, i) => ({
 	delay: `${(i * 0.12) % 1.0}s`,
 }));
 
-// ── Deterministic hash for seeded "random" demo data ──────────
-function hashStr(s: string) {
-	let h = 0;
-	for (let i = 0; i < s.length; i++)
-		h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
-	return Math.abs(h);
-}
-
-function seededRandom(seed: number) {
-	let s = seed;
-	return () => {
-		s = (s * 16807 + 0) % 2147483647;
-		return s / 2147483647;
-	};
-}
-
-// ── Heatmap: flat array of cells in column-major order (7 rows × COLS) ──
-const HEATMAP_COLS = 26;
-const HEATMAP_ROWS = 7;
-
-function buildHeatmapCells(userId: string) {
-	const rand = seededRandom(hashStr(`${userId}heatmap`));
-	const cells: { key: string; level: number }[] = [];
-	for (let row = 0; row < HEATMAP_ROWS; row++) {
-		for (let col = 0; col < HEATMAP_COLS; col++) {
-			const r = rand();
-			const level = r < 0.3 ? 0 : r < 0.55 ? 1 : r < 0.75 ? 2 : r < 0.9 ? 3 : 4;
-			cells.push({ key: `h-${row}-${col}`, level });
-		}
-	}
-	return cells;
-}
-
-const HEATMAP_COLORS = [
-	"bg-cream/[0.04]", // 0 — empty
-	"bg-neon-pink/20", // 1
-	"bg-neon-pink/40", // 2
-	"bg-neon-pink/60", // 3
-	"bg-neon-pink/80", // 4
-];
-
-// ── Demo reviews ──────────────────────────────────────────────
-const DEMO_REVIEWS = [
-	{
-		title: "The Shining",
-		rating: 5,
-		text: "Kubrick at his finest. The Overlook Hotel is a character in itself.",
-		time: "2d ago",
-	},
-	{
-		title: "Alien",
-		rating: 4,
-		text: "Ridley Scott created the perfect sci-fi horror. Still holds up.",
-		time: "1w ago",
-	},
-	{
-		title: "Hereditary",
-		rating: 5,
-		text: "Ari Aster doesn't let you look away. Toni Collette was robbed.",
-		time: "2w ago",
-	},
-];
-
-// ── Demo activity ─────────────────────────────────────────────
-const DEMO_ACTIVITY = [
-	{
-		action: "Watched",
-		title: "The Shining",
-		time: "2d ago",
-		color: "neon-pink",
-	},
-	{
-		action: "Added to watchlist",
-		title: "Midsommar",
-		time: "3d ago",
-		color: "neon-cyan",
-	},
-	{ action: "Reviewed", title: "Alien", time: "1w ago", color: "neon-amber" },
-	{ action: "Watched", title: "Get Out", time: "1w ago", color: "neon-pink" },
-	{
-		action: "Added to watchlist",
-		title: "Nope",
-		time: "2w ago",
-		color: "neon-cyan",
-	},
-];
-
 // ── Avatar gradient by first character ──────────────────────────
 function avatarGradient(_letter: string) {
 	// Site colors only — pink, amber, cyan — with hard stops to avoid green blending
@@ -671,7 +584,7 @@ function ProfilePage() {
 									textShadow: "0 0 12px rgba(255,184,0,0.3)",
 								}}
 							>
-								72h 0m
+								0h 0m
 							</span>
 							<span className="mt-0.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/55">
 								Watched
@@ -784,7 +697,6 @@ function ProfilePage() {
 						{isFriend || isSelf ? (
 							<FriendExpandedSections
 								profile={profile}
-								userId={userId}
 								activeTab={activeTab}
 								setActiveTab={setActiveTab}
 							/>
@@ -920,7 +832,6 @@ function NonFriendGatedSections() {
 
 function FriendExpandedSections({
 	profile,
-	userId,
 	activeTab,
 	setActiveTab,
 }: {
@@ -932,14 +843,12 @@ function FriendExpandedSections({
 			memberCount: number;
 		}>;
 	};
-	userId: string;
 	activeTab: FriendTab;
 	setActiveTab: (tab: FriendTab) => void;
 }) {
-	const heatmapCells = buildHeatmapCells(userId);
 	return (
 		<>
-			{/* ── 9. Top Genres chart ──────────────── */}
+			{/* ── 9. Top Genres ────────────────────── */}
 			<div className="mt-5">
 				<div className="mb-2 flex items-center gap-1.5">
 					<BarChart3 className="h-3 w-3 text-neon-cyan/50" />
@@ -947,30 +856,11 @@ function FriendExpandedSections({
 						Top Genres
 					</span>
 				</div>
-				<div className="rounded-lg border border-drive-in-border px-4 py-3">
-					<div className="space-y-2">
-						{[
-							{ genre: "Horror", pct: 82, color: "rgba(0,229,255,0.6)" },
-							{ genre: "Sci-Fi", pct: 64, color: "rgba(255,45,120,0.5)" },
-							{ genre: "Thriller", pct: 45, color: "rgba(255,184,0,0.5)" },
-							{ genre: "Mystery", pct: 28, color: "rgba(123,47,190,0.5)" },
-						].map((g) => (
-							<div key={g.genre} className="flex items-center gap-2">
-								<span className="w-14 text-right font-mono-retro text-[10px] text-cream/55">
-									{g.genre}
-								</span>
-								<div className="h-1.5 flex-1 overflow-hidden rounded-full bg-cream/[0.04]">
-									<div
-										className="h-full rounded-full transition-all duration-700"
-										style={{ width: `${g.pct}%`, background: g.color }}
-									/>
-								</div>
-								<span className="w-7 font-mono-retro text-[9px] text-cream/45">
-									{g.pct}%
-								</span>
-							</div>
-						))}
-					</div>
+				<div className="flex flex-col items-center rounded-lg border border-drive-in-border py-6 text-center">
+					<BarChart3 className="mb-2 h-5 w-5 text-cream/15" />
+					<p className="text-[10px] text-cream/25">
+						Watch more films to see your genre breakdown
+					</p>
 				</div>
 			</div>
 
@@ -982,33 +872,9 @@ function FriendExpandedSections({
 						Watch Activity
 					</span>
 				</div>
-				<div className="rounded-lg border border-drive-in-border px-3 py-3">
-					<div
-						className="grid gap-[3px]"
-						style={{
-							gridTemplateColumns: `repeat(${HEATMAP_COLS}, 1fr)`,
-							gridTemplateRows: `repeat(${HEATMAP_ROWS}, 1fr)`,
-						}}
-					>
-						{heatmapCells.map((cell) => (
-							<div
-								key={cell.key}
-								className={`aspect-square rounded-[2px] ${HEATMAP_COLORS[cell.level]}`}
-							/>
-						))}
-					</div>
-					{/* Legend */}
-					<div className="mt-2 flex items-center justify-end gap-1">
-						<span className="font-mono-retro text-[9px] text-cream/40">
-							Less
-						</span>
-						{HEATMAP_COLORS.map((c) => (
-							<div key={c} className={`h-[8px] w-[8px] rounded-[2px] ${c}`} />
-						))}
-						<span className="font-mono-retro text-[9px] text-cream/40">
-							More
-						</span>
-					</div>
+				<div className="flex flex-col items-center rounded-lg border border-drive-in-border py-6 text-center">
+					<CalendarDays className="mb-2 h-5 w-5 text-cream/15" />
+					<p className="text-[10px] text-cream/25">No watch activity yet</p>
 				</div>
 			</div>
 
@@ -1045,8 +911,8 @@ function FriendExpandedSections({
 						{activeTab === "watchlists" && (
 							<WatchlistsTab watchlists={profile.publicWatchlists} />
 						)}
-						{activeTab === "reviews" && <DemoReviewsTab />}
-						{activeTab === "activity" && <DemoActivityTab />}
+						{activeTab === "reviews" && <ReviewsTab />}
+						{activeTab === "activity" && <ActivityTab />}
 					</motion.div>
 				</AnimatePresence>
 			</div>
@@ -1105,103 +971,27 @@ function WatchlistsTab({
 }
 
 // ════════════════════════════════════════════════════════════════
-// DemoReviewsTab
+// ReviewsTab
 // ════════════════════════════════════════════════════════════════
 
-function DemoReviewsTab() {
+function ReviewsTab() {
 	return (
-		<div className="space-y-3">
-			{DEMO_REVIEWS.map((r) => (
-				<div
-					key={r.title}
-					className="rounded-lg border border-drive-in-border px-4 py-3"
-					style={{
-						background:
-							"linear-gradient(135deg, rgba(10,10,30,0.6), rgba(5,5,15,0.8))",
-					}}
-				>
-					<div className="flex items-center justify-between">
-						<span className="text-sm font-medium text-cream/75">{r.title}</span>
-						<span className="font-mono-retro text-[9px] text-cream/25">
-							{r.time}
-						</span>
-					</div>
-					<div
-						className="mt-1 flex items-center gap-0.5"
-						style={{ fontSize: "10px" }}
-					>
-						<span className="text-neon-amber">{"★".repeat(r.rating)}</span>
-						<span className="text-cream/10">{"★".repeat(5 - r.rating)}</span>
-					</div>
-					<p className="mt-1.5 text-xs leading-relaxed text-cream/45">
-						{r.text}
-					</p>
-				</div>
-			))}
-			{DEMO_REVIEWS.length > 3 && (
-				<div className="flex justify-center pt-2">
-					<span
-						className="cursor-not-allowed font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-amber/50"
-						style={{ textShadow: "0 0 6px rgba(255,184,0,0.15)" }}
-					>
-						See all
-					</span>
-				</div>
-			)}
+		<div className="flex flex-col items-center py-8 text-center">
+			<Award className="mb-2 h-6 w-6 text-neon-amber/20" />
+			<p className="text-xs text-cream/30">No reviews yet</p>
 		</div>
 	);
 }
 
 // ════════════════════════════════════════════════════════════════
-// DemoActivityTab
+// ActivityTab
 // ════════════════════════════════════════════════════════════════
 
-function DemoActivityTab() {
-	const colorMap: Record<string, string> = {
-		"neon-pink": "bg-neon-pink/30 text-neon-pink",
-		"neon-cyan": "bg-neon-cyan/30 text-neon-cyan",
-		"neon-amber": "bg-neon-amber/30 text-neon-amber",
-	};
-
+function ActivityTab() {
 	return (
-		<div className="space-y-1">
-			{DEMO_ACTIVITY.map((a) => (
-				<div
-					key={`${a.action}-${a.title}`}
-					className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-cream/[0.02]"
-				>
-					<div
-						className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${colorMap[a.color]}`}
-					>
-						{a.action === "Watched" ? (
-							<Film className="h-3 w-3" />
-						) : a.action === "Reviewed" ? (
-							<Award className="h-3 w-3" />
-						) : (
-							<Heart className="h-3 w-3" />
-						)}
-					</div>
-					<div className="min-w-0 flex-1">
-						<p className="truncate text-xs text-cream/60">
-							<span className="text-cream/35">{a.action}</span>{" "}
-							<span className="font-medium text-cream/75">{a.title}</span>
-						</p>
-					</div>
-					<span className="shrink-0 font-mono-retro text-[9px] text-cream/40">
-						{a.time}
-					</span>
-				</div>
-			))}
-			{DEMO_ACTIVITY.length > 5 && (
-				<div className="flex justify-center pt-2">
-					<span
-						className="cursor-not-allowed font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-pink/50"
-						style={{ textShadow: "0 0 6px rgba(255,45,120,0.15)" }}
-					>
-						See all
-					</span>
-				</div>
-			)}
+		<div className="flex flex-col items-center py-8 text-center">
+			<Film className="mb-2 h-6 w-6 text-neon-pink/20" />
+			<p className="text-xs text-cream/30">No activity yet</p>
 		</div>
 	);
 }
