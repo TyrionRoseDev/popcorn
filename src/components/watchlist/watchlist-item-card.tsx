@@ -1,8 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { Check, Eye, EyeOff, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { useTRPC } from "#/integrations/trpc/react";
+import { getTmdbImageUrl } from "#/lib/tmdb";
 
 const POSTER_GRADIENTS = [
 	"linear-gradient(135deg, #1a3a5c, #0d2240)",
@@ -23,7 +26,10 @@ interface WatchlistItemCardProps {
 	item: {
 		tmdbId: number;
 		mediaType: string;
+		title: string | null;
+		posterPath: string | null;
 		watched: boolean;
+		keptInWatchlist: boolean;
 		createdAt: Date | string;
 		addedByUser: {
 			id: string;
@@ -52,30 +58,16 @@ export function WatchlistItemCard({
 }: WatchlistItemCardProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
-	const [reviewModalOpen, setReviewModalOpen] = useState(false);
-	const [watchEventId, setWatchEventId] = useState<string | null>(null);
-
-	const createWatchEvent = useMutation(
-		trpc.watched.create.mutationOptions({
-			onSuccess: (data) => {
-				setWatchEventId(data.id);
-				setReviewModalOpen(true);
-			},
-		}),
-	);
+	const [reviewOpen, setReviewOpen] = useState(false);
 
 	const markWatched = useMutation(
 		trpc.watchlist.markWatched.mutationOptions({
-			onSuccess: (_data, variables) => {
+			onSuccess: () => {
 				queryClient.invalidateQueries(
 					trpc.watchlist.get.queryFilter({ watchlistId }),
 				);
-				if (variables.watched) {
-					createWatchEvent.mutate({
-						tmdbId: variables.tmdbId,
-						mediaType: variables.mediaType as "movie" | "tv",
-						titleName: item.titleName ?? "",
-					});
+				if (!item.watched) {
+					setReviewOpen(true);
 				}
 			},
 		}),
@@ -91,42 +83,83 @@ export function WatchlistItemCard({
 		}),
 	);
 
+	const keepInWatchlist = useMutation(
+		trpc.watchlist.keepInWatchlist.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					trpc.watchlist.get.queryFilter({ watchlistId }),
+				);
+			},
+		}),
+	);
+
+	const [imageFailed, setImageFailed] = useState(false);
 	const canToggleWatched = userRole === "owner" || userRole === "member";
 	const canRemove = userRole === "owner";
+	const posterUrl = getTmdbImageUrl(item.posterPath, "w342");
+	const displayTitle = item.title || `Title #${item.tmdbId}`;
 
 	return (
 		<>
 			<div className="group/card flex flex-col">
 				<div className="overflow-hidden rounded-xl border border-cream/8 bg-cream/[0.03] transition-all duration-200 hover:border-[#FF2D78]/30 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
-					{/* Poster area */}
-					<div className="relative aspect-[2/3] overflow-hidden">
-						<div
-							className="h-full w-full"
-							style={{ background: gradientForId(item.tmdbId) }}
-						/>
+					{/* Poster area — links to title page */}
+					<Link
+						to="/app/title/$mediaType/$tmdbId"
+						params={{
+							mediaType: item.mediaType as "movie" | "tv",
+							tmdbId: item.tmdbId,
+						}}
+						className="block no-underline"
+					>
+						<div className="relative aspect-[2/3] overflow-hidden">
+							{posterUrl && !imageFailed ? (
+								<img
+									src={posterUrl}
+									alt={displayTitle}
+									className="h-full w-full object-cover"
+									loading="lazy"
+									onError={() => setImageFailed(true)}
+								/>
+							) : (
+								<div
+									className="h-full w-full"
+									style={{ background: gradientForId(item.tmdbId) }}
+								/>
+							)}
 
-						{/* Media type badge */}
-						<div className="absolute top-2 right-2 rounded-md bg-black/60 px-1.5 py-0.5 font-mono-retro text-[9px] font-semibold uppercase tracking-wider text-cream/60">
-							{item.mediaType === "tv" ? "TV" : "Film"}
-						</div>
-
-						{/* Watched overlay */}
-						{item.watched && (
-							<div className="absolute inset-0 flex items-center justify-center bg-black/50">
-								<div className="rounded-full bg-neon-cyan/20 p-3">
-									<Check className="h-8 w-8 text-neon-cyan" />
-								</div>
+							{/* Media type badge */}
+							<div className="absolute top-2 right-2 rounded-md bg-black/60 px-1.5 py-0.5 font-mono-retro text-[9px] font-semibold uppercase tracking-wider text-cream/60">
+								{item.mediaType === "tv" ? "TV" : "Film"}
 							</div>
-						)}
-					</div>
+
+							{/* Watched overlay */}
+							{item.watched && !item.keptInWatchlist && (
+								<div className="absolute inset-0 flex items-center justify-center bg-black/50">
+									<div className="rounded-full bg-neon-cyan/20 p-3">
+										<Check className="h-8 w-8 text-neon-cyan" />
+									</div>
+								</div>
+							)}
+						</div>
+					</Link>
 
 					{/* Info & actions */}
 					<div className="p-3">
-						<h3
-							className={`truncate text-sm font-bold ${item.watched ? "text-cream/40" : "text-cream"}`}
+						<Link
+							to="/app/title/$mediaType/$tmdbId"
+							params={{
+								mediaType: item.mediaType as "movie" | "tv",
+								tmdbId: item.tmdbId,
+							}}
+							className="no-underline"
 						>
-							{item.titleName || `Title #${item.tmdbId}`}
-						</h3>
+							<h3
+								className={`truncate text-sm font-bold ${item.watched && !item.keptInWatchlist ? "text-cream/40" : "text-cream"}`}
+							>
+								{displayTitle}
+							</h3>
+						</Link>
 
 						{/* Action buttons */}
 						<div className="mt-2 flex items-center gap-1.5">
@@ -139,7 +172,6 @@ export function WatchlistItemCard({
 											tmdbId: item.tmdbId,
 											mediaType: item.mediaType as "movie" | "tv",
 											watched: !item.watched,
-											titleName: item.titleName ?? "",
 										})
 									}
 									disabled={markWatched.isPending}
@@ -191,20 +223,30 @@ export function WatchlistItemCard({
 				) : null}
 			</div>
 			<ReviewModal
-				open={reviewModalOpen}
-				onOpenChange={setReviewModalOpen}
-				watchEventId={watchEventId}
-				titleName={item.titleName ?? ""}
+				open={reviewOpen}
+				onOpenChange={setReviewOpen}
 				tmdbId={item.tmdbId}
 				mediaType={item.mediaType as "movie" | "tv"}
-				onCancel={() => {
-					markWatched.mutate({
-						watchlistId,
+				titleName={item.title ?? ""}
+				onEventCreated={() => {
+					keepInWatchlist.mutate({
 						tmdbId: item.tmdbId,
 						mediaType: item.mediaType as "movie" | "tv",
-						watched: false,
-						titleName: item.titleName ?? "",
 					});
+					if (canRemove) {
+						toast(`Remove ${displayTitle} from this watchlist?`, {
+							duration: 8000,
+							action: {
+								label: "Remove",
+								onClick: () =>
+									removeItem.mutate({
+										watchlistId,
+										tmdbId: item.tmdbId,
+										mediaType: item.mediaType as "movie" | "tv",
+									}),
+							},
+						});
+					}
 				}}
 			/>
 		</>

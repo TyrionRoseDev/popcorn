@@ -199,10 +199,8 @@ function AvatarStep({ onNext }: { onNext: () => void }) {
 		const file = e.target.files?.[0];
 		if (!file) return;
 
-		// Show preview
-		const reader = new FileReader();
-		reader.onloadend = () => setPreview(reader.result as string);
-		reader.readAsDataURL(file);
+		// Show preview immediately via blob URL
+		setPreview(URL.createObjectURL(file));
 
 		// Upload
 		await startUpload([file]);

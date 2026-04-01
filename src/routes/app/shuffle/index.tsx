@@ -3,8 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { CardStack } from "#/components/shuffle/card-stack";
-import { ModeSwitcher } from "#/components/shuffle/mode-switcher";
+import { CountdownLoader } from "#/components/shuffle/countdown-loader";
+import { ModePill } from "#/components/shuffle/mode-pill";
 import { ShuffleAtmosphere } from "#/components/shuffle/shuffle-atmosphere";
+import { ShuffleMarquee } from "#/components/shuffle/shuffle-marquee";
 import { useTRPC } from "#/integrations/trpc/react";
 
 const shuffleSearchSchema = z.object({
@@ -30,23 +32,7 @@ function ShufflePage() {
 
 	const resolvedWatchlistId = activeWatchlistId ?? shuffleWatchlist?.id ?? null;
 
-	if (isLoading) {
-		return (
-			<>
-				<ShuffleAtmosphere />
-				<div
-					className="relative flex h-[100dvh] items-center justify-center"
-					style={{ zIndex: 2 }}
-				>
-					<p className="animate-pulse font-mono-retro text-xs text-cream/30">
-						Setting up Showtime Shuffle...
-					</p>
-				</div>
-			</>
-		);
-	}
-
-	if (!resolvedWatchlistId) {
+	if (!resolvedWatchlistId && !isLoading) {
 		return (
 			<>
 				<ShuffleAtmosphere />
@@ -66,26 +52,44 @@ function ShufflePage() {
 		<>
 			<ShuffleAtmosphere />
 
-			{/* Full-screen immersive layout — card-dominant drive-in experience */}
+			{/* Full-screen immersive layout */}
 			<div
-				className="relative mx-auto flex h-[100dvh] max-w-md flex-col items-center px-4 pt-3 pb-4"
+				className="relative mx-auto flex h-[100dvh] max-w-md flex-col items-center px-3 pt-3 pb-3"
 				style={{ zIndex: 2 }}
 			>
-				{/* TOP: Mode switcher — centered with breathing room */}
-				<div className="shrink-0 flex justify-center">
-					<ModeSwitcher
-						currentWatchlistId={activeWatchlistId}
-						shuffleWatchlistId={shuffleWatchlist?.id ?? resolvedWatchlistId}
-						onSelect={setActiveWatchlistId}
-					/>
+				{/* TOP: Theater marquee */}
+				<div className="flex shrink-0 justify-center">
+					<ShuffleMarquee />
 				</div>
 
-				{/* CENTER: Card stack — fills all remaining vertical space */}
-				<div className="flex w-full flex-1 items-center justify-center py-3">
-					<CardStack
-						key={resolvedWatchlistId}
-						watchlistId={resolvedWatchlistId}
-					/>
+				{/* Mode pill */}
+				<div className="mt-2.5 shrink-0">
+					{shuffleWatchlist && (
+						<ModePill
+							currentWatchlistId={activeWatchlistId}
+							shuffleWatchlistId={
+								shuffleWatchlist.id ?? resolvedWatchlistId ?? ""
+							}
+							onSelect={setActiveWatchlistId}
+						/>
+					)}
+				</div>
+
+				{/* CENTER: Card stack or countdown loader */}
+				<div className="flex w-full flex-1 items-center justify-center py-2">
+					{isLoading || !resolvedWatchlistId ? (
+						<div
+							className="w-full max-w-[360px]"
+							style={{ aspectRatio: "2/3" }}
+						>
+							<CountdownLoader />
+						</div>
+					) : (
+						<CardStack
+							key={resolvedWatchlistId}
+							watchlistId={resolvedWatchlistId}
+						/>
+					)}
 				</div>
 			</div>
 		</>

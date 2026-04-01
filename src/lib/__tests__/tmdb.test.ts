@@ -373,14 +373,14 @@ describe("searchTvShows", () => {
 });
 
 describe("searchMulti", () => {
-	it("queries /search/movie and /search/tv separately and merges results", async () => {
-		// Mock /search/movie response
+	it("queries /search/multi and filters out person results", async () => {
 		mockFetch.mockResolvedValueOnce({
 			ok: true,
 			json: async () => ({
 				results: [
 					{
 						id: 1,
+						media_type: "movie",
 						title: "Test Movie",
 						poster_path: "/m.jpg",
 						overview: "...",
@@ -388,20 +388,18 @@ describe("searchMulti", () => {
 						vote_average: 8,
 						genre_ids: [28],
 					},
-				],
-				page: 1,
-				total_pages: 2,
-				total_results: 25,
-			}),
-		});
-
-		// Mock /search/tv response
-		mockFetch.mockResolvedValueOnce({
-			ok: true,
-			json: async () => ({
-				results: [
+					{
+						id: 2,
+						media_type: "person",
+						name: "Test Person",
+						poster_path: "/p.jpg",
+						overview: "",
+						vote_average: 0,
+						genre_ids: [],
+					},
 					{
 						id: 3,
+						media_type: "tv",
 						name: "Test Show",
 						poster_path: "/t.jpg",
 						overview: "...",
@@ -411,23 +409,22 @@ describe("searchMulti", () => {
 					},
 				],
 				page: 1,
-				total_pages: 1,
-				total_results: 15,
+				total_pages: 2,
+				total_results: 40,
 			}),
 		});
 
 		const result = await searchMulti("test", 1);
 
+		// Person result should be filtered out
 		expect(result.results).toHaveLength(2);
 		expect(result.results[0].media_type).toBe("movie");
 		expect(result.results[1].media_type).toBe("tv");
 		expect(result.total_results).toBe(40);
-		expect(result.total_pages).toBe(2); // Math.ceil(40 / 20)
+		expect(result.total_pages).toBe(2);
 
-		// Verify both endpoints were called
-		const calls = mockFetch.mock.calls;
-		const urls = calls.slice(-2).map((c) => c[0] as string);
-		expect(urls.some((u) => u.includes("/search/movie"))).toBe(true);
-		expect(urls.some((u) => u.includes("/search/tv"))).toBe(true);
+		// Verify /search/multi was called
+		const url = mockFetch.mock.calls.at(-1)?.[0] as string;
+		expect(url).toContain("/search/multi");
 	});
 });

@@ -42,12 +42,17 @@ export default function ChangeEmailEmail({ url }: ChangeEmailProps) {
 				}}
 			>
 				<Head>
+					<meta name="color-scheme" content="only light" />
+					<meta name="supported-color-schemes" content="only light" />
 					<style>{`
             @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+            :root { color-scheme: only light; }
+            body, .body { background-color: #0c0c1a !important; }
           `}</style>
 				</Head>
 				<Preview>Verify your new email address</Preview>
 				<Body
+					{...({ bgcolor: "#0c0c1a" } as Record<string, string>)}
 					style={{
 						fontFamily: "'Manrope', sans-serif",
 						margin: 0,
@@ -59,6 +64,7 @@ export default function ChangeEmailEmail({ url }: ChangeEmailProps) {
 						{/* === HEADER AREA === */}
 						<Container
 							className="mx-auto rounded-t-2xl px-10 pt-10 pb-8 text-center"
+							{...({ bgcolor: "#0f1025" } as Record<string, string>)}
 							style={{
 								backgroundColor: "#0f1025",
 								border: "1px solid #1e1e3a",
@@ -109,6 +115,7 @@ export default function ChangeEmailEmail({ url }: ChangeEmailProps) {
 
 						{/* === FILM STRIP DIVIDER === */}
 						<Container
+							{...({ bgcolor: "#2a2a3e" } as Record<string, string>)}
 							style={{ backgroundColor: "#2a2a3e", padding: "6px 12px" }}
 						>
 							<Row>
@@ -135,6 +142,7 @@ export default function ChangeEmailEmail({ url }: ChangeEmailProps) {
 						{/* === TICKET STUB === */}
 						<Container
 							className="mx-auto"
+							{...({ bgcolor: "#12132a" } as Record<string, string>)}
 							style={{
 								backgroundColor: "#12132a",
 								border: "1px solid #1e1e3a",
@@ -183,6 +191,7 @@ export default function ChangeEmailEmail({ url }: ChangeEmailProps) {
 							{/* Ticket body */}
 							<Section style={{ padding: "0 24px" }}>
 								<Container
+									{...({ bgcolor: "#171835" } as Record<string, string>)}
 									style={{
 										backgroundColor: "#171835",
 										padding: "28px 24px 32px",

@@ -1,86 +1,109 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { format } from "date-fns";
+import { CalendarDays, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Calendar } from "#/components/ui/calendar";
 import { Dialog, DialogOverlay, DialogPortal } from "#/components/ui/dialog";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "#/components/ui/popover";
 import { useTRPC } from "#/integrations/trpc/react";
 import { RecommendModal } from "./recommend-modal";
 import { StarRating } from "./star-rating";
+import type { Companion } from "./watched-with-modal";
+import { WatchedWithModal } from "./watched-with-modal";
 
-function formatLocalDatetime(date: Date): string {
-	const y = date.getFullYear();
-	const m = String(date.getMonth() + 1).padStart(2, "0");
-	const d = String(date.getDate()).padStart(2, "0");
-	const h = String(date.getHours()).padStart(2, "0");
-	const min = String(date.getMinutes()).padStart(2, "0");
-	return `${y}-${m}-${d}T${h}:${min}`;
-}
-
-interface ReviewModalProps {
+interface WatchEventModalProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	watchEventId: string | null;
 	titleName: string;
 	year?: string;
 	tmdbId: number;
 	mediaType: "movie" | "tv";
-	defaultWatchedAt?: Date;
-	isReminder?: boolean;
-	onCancel?: () => void;
+	/** If provided, modal is in edit mode */
+	editEvent?: {
+		id: string;
+		rating: number | null;
+		note: string | null;
+		watchedAt: string;
+		companions: Companion[];
+	};
+	/** Called when user taps "Remind me later" in create mode */
+	onRemindMe?: () => void;
+	/** Called when a new watch event is successfully created */
+	onEventCreated?: () => void;
+}
+
+function toLocalDatetime(date: Date): string {
+	const pad = (n: number) => n.toString().padStart(2, "0");
+	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 export function ReviewModal({
 	open,
 	onOpenChange,
-	watchEventId,
 	titleName,
 	year,
 	tmdbId,
 	mediaType,
-	defaultWatchedAt,
-	isReminder = false,
-	onCancel,
-}: ReviewModalProps) {
+	editEvent,
+	onRemindMe,
+	onEventCreated,
+}: WatchEventModalProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 
 	const [rating, setRating] = useState<number | null>(null);
-	const [reviewText, setReviewText] = useState("");
-	const [watchedAt, setWatchedAt] = useState(defaultWatchedAt ?? new Date());
+	const [note, setNote] = useState("");
+	const [watchedAt, setWatchedAt] = useState("");
+	const [companions, setCompanions] = useState<Companion[]>([]);
+	const [watchedWithOpen, setWatchedWithOpen] = useState(false);
 	const [recommendOpen, setRecommendOpen] = useState(false);
 
 	useEffect(() => {
-		setWatchedAt(defaultWatchedAt ?? new Date());
-	}, [defaultWatchedAt]);
+		if (open) {
+			if (editEvent) {
+				setRating(editEvent.rating);
+				setNote(editEvent.note ?? "");
+				setWatchedAt(editEvent.watchedAt.slice(0, 16));
+				setCompanions(editEvent.companions);
+			} else {
+				setRating(null);
+				setNote("");
+				setWatchedAt(toLocalDatetime(new Date()));
+				setCompanions([]);
+			}
+		}
+	}, [open, editEvent]);
 
-	const updateReview = useMutation(
-		trpc.watched.updateReview.mutationOptions({
+	function invalidateQueries() {
+		queryClient.invalidateQueries(trpc.watchEvent.getForTitle.queryFilter());
+		queryClient.invalidateQueries(trpc.watchEvent.getUserEvents.queryFilter());
+		queryClient.invalidateQueries(
+			trpc.watchEvent.getLatestRating.queryFilter(),
+		);
+		queryClient.invalidateQueries(trpc.watchEvent.getFeed.queryFilter());
+		queryClient.invalidateQueries(trpc.friend.genreStats.queryFilter());
+		queryClient.invalidateQueries(trpc.friend.watchActivity.queryFilter());
+		queryClient.invalidateQueries(trpc.friend.profile.queryFilter());
+	}
+
+	const createEvent = useMutation(
+		trpc.watchEvent.create.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries(
-					trpc.watched.getForTitle.queryFilter({ tmdbId, mediaType }),
-				);
-				queryClient.invalidateQueries(
-					trpc.watched.getCount.queryFilter({ tmdbId, mediaType }),
-				);
+				invalidateQueries();
+				onEventCreated?.();
 				handleClose();
 			},
 		}),
 	);
 
-	const setReminder = useMutation(
-		trpc.watched.setReminder.mutationOptions({
-			onSuccess: () => handleClose(),
-		}),
-	);
-
-	const deleteWatchEvent = useMutation(
-		trpc.watched.delete.mutationOptions({
+	const updateEvent = useMutation(
+		trpc.watchEvent.update.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries(
-					trpc.watched.getForTitle.queryFilter({ tmdbId, mediaType }),
-				);
-				queryClient.invalidateQueries(
-					trpc.watched.getCount.queryFilter({ tmdbId, mediaType }),
-				);
+				invalidateQueries();
 				handleClose();
 			},
 		}),
@@ -88,57 +111,61 @@ export function ReviewModal({
 
 	function handleClose() {
 		setRating(null);
-		setReviewText("");
-		setWatchedAt(defaultWatchedAt ?? new Date());
+		setNote("");
+		setCompanions([]);
 		onOpenChange(false);
 	}
 
-	function handleCancel() {
-		if (!watchEventId) return;
-		if (isReminder) {
-			handleClose();
-			onCancel?.();
-			return;
+	function handleSave() {
+		const watchedAtISO = watchedAt
+			? new Date(watchedAt).toISOString()
+			: undefined;
+
+		if (editEvent) {
+			updateEvent.mutate({
+				id: editEvent.id,
+				rating: rating ?? null,
+				note: note.trim() || null,
+				watchedAt: watchedAtISO,
+				companions,
+				titleName,
+			});
+		} else {
+			createEvent.mutate({
+				tmdbId,
+				mediaType,
+				rating: rating ?? undefined,
+				note: note.trim() || undefined,
+				watchedAt: watchedAtISO,
+				companions,
+				titleName,
+			});
 		}
-		deleteWatchEvent.mutate(
-			{ watchEventId },
+	}
+
+	function handleRemindMe() {
+		const watchedAtISO = watchedAt
+			? new Date(watchedAt).toISOString()
+			: undefined;
+
+		createEvent.mutate(
+			{
+				tmdbId,
+				mediaType,
+				watchedAt: watchedAtISO,
+				companions,
+				titleName,
+				remindMe: true,
+			},
 			{
 				onSuccess: () => {
-					onCancel?.();
+					onRemindMe?.();
 				},
 			},
 		);
 	}
 
-	function handleSave() {
-		if (!watchEventId) return;
-		updateReview.mutate({
-			watchEventId,
-			rating,
-			reviewText: reviewText.trim() || null,
-			watchedAt: watchedAt.toISOString(),
-		});
-	}
-
-	function handleSkip() {
-		handleClose();
-	}
-
-	function handleRemindLater() {
-		if (!watchEventId) return;
-		setReminder.mutate({ watchEventId });
-	}
-
-	const dateStr = watchedAt.toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-	const timeStr = watchedAt.toLocaleTimeString("en-US", {
-		hour: "numeric",
-		minute: "2-digit",
-		hour12: true,
-	});
+	const isPending = createEvent.isPending || updateEvent.isPending;
 
 	return (
 		<>
@@ -151,9 +178,8 @@ export function ReviewModal({
 							<div className="w-[calc(100%-16px)] border-2 border-neon-amber/30 border-b-0 rounded-t-lg bg-drive-in-card px-5 py-2.5 text-center shadow-[0_0_20px_rgba(255,184,0,0.08)] relative">
 								<button
 									type="button"
-									onClick={handleCancel}
-									disabled={deleteWatchEvent.isPending}
-									className="absolute top-2.5 right-3 p-1 text-cream/25 hover:text-cream/60 transition-colors duration-200 disabled:opacity-50"
+									onClick={handleClose}
+									className="absolute top-2.5 right-3 p-1 text-cream/25 hover:text-cream/60 transition-colors duration-200"
 								>
 									<X className="w-4 h-4" />
 								</button>
@@ -162,12 +188,14 @@ export function ReviewModal({
 										<div
 											key={`dot-${i.toString()}`}
 											className="w-1.5 h-1.5 rounded-full bg-neon-amber shadow-[0_0_4px_1px_rgba(255,184,0,0.6)] animate-[chase_1.2s_infinite]"
-											style={{ animationDelay: `${i * 0.15}s` }}
+											style={{
+												animationDelay: `${i * 0.15}s`,
+											}}
 										/>
 									))}
 								</div>
 								<div className="font-display text-2xl text-cream tracking-wide">
-									Watched
+									{editEvent ? "Edit" : "Watched"}
 								</div>
 								<div className="font-mono-retro text-[10px] tracking-[4px] uppercase text-neon-amber/55 mt-0.5">
 									{titleName} {year ? `· ${year}` : ""}
@@ -176,9 +204,7 @@ export function ReviewModal({
 
 							{/* Modal card */}
 							<div className="w-full bg-gradient-to-b from-[#0c0c20] to-[#08081a] border border-cream/[0.06] rounded-b-lg shadow-[0_4px_24px_rgba(0,0,0,0.4)] overflow-hidden relative">
-								{/* Top edge glow */}
 								<div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-neon-cyan/80 to-transparent shadow-[0_0_10px_rgba(0,229,255,0.4)]" />
-								{/* Inner light wash */}
 								<div className="absolute top-0 left-0 right-0 h-[60px] bg-gradient-to-b from-cream/[0.015] to-transparent pointer-events-none" />
 
 								<div className="p-5 flex flex-col gap-5 relative">
@@ -187,108 +213,158 @@ export function ReviewModal({
 
 									<div className="h-px bg-gradient-to-r from-transparent via-cream/[0.06] to-transparent" />
 
-									{/* Review text */}
+									{/* Note */}
 									<div>
 										<div className="font-mono-retro text-[10px] tracking-[3px] uppercase text-cream/30 mb-2">
 											Your Review
 										</div>
 										<textarea
-											value={reviewText}
-											onChange={(e) => setReviewText(e.target.value)}
+											value={note}
+											onChange={(e) => setNote(e.target.value)}
 											placeholder="Share your thoughts…"
 											className="w-full bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-3 min-h-16 font-sans text-sm text-cream placeholder:text-cream/25 placeholder:italic leading-relaxed shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] focus:outline-none focus:border-neon-cyan/20 resize-none transition-colors duration-200"
 										/>
 									</div>
 
-									{/* Date & Time */}
+									{/* Date & time */}
 									<div>
 										<div className="font-mono-retro text-[10px] tracking-[3px] uppercase text-cream/30 mb-2">
 											Watched On
 										</div>
-										<label className="flex items-center gap-4 bg-black/25 border border-cream/[0.06] rounded-md px-3.5 py-2.5 cursor-pointer hover:border-neon-cyan/20 transition-colors duration-200 relative">
-											<span className="text-base opacity-40">📅</span>
-											<div className="flex-1 flex flex-col gap-px">
-												<div className="font-mono-retro text-[9px] tracking-[2px] uppercase text-cream/25">
-													Date & Time
-												</div>
-												<div className="font-mono-retro text-sm text-cream tracking-wide">
-													{dateStr} · {timeStr}
-												</div>
-											</div>
-											<input
-												type="datetime-local"
-												value={formatLocalDatetime(watchedAt)}
-												onChange={(e) => {
-													if (e.target.value) {
-														setWatchedAt(new Date(e.target.value));
-													}
-												}}
-												className="absolute inset-0 opacity-0 cursor-pointer"
-											/>
-											<span className="font-mono-retro text-[9px] tracking-[1px] text-neon-cyan/45">
-												change
-											</span>
-										</label>
+										<Popover>
+											<PopoverTrigger asChild>
+												<button
+													type="button"
+													className="w-full flex items-center gap-2.5 bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-2.5 text-left hover:border-cream/15 focus:outline-none focus:border-neon-cyan/20 transition-colors duration-200"
+												>
+													<CalendarDays className="w-4 h-4 text-neon-cyan/40 shrink-0" />
+													<span className="font-mono-retro text-sm text-cream">
+														{watchedAt
+															? format(
+																	new Date(watchedAt),
+																	"MMM d, yyyy · h:mm a",
+																)
+															: "Select date…"}
+													</span>
+												</button>
+											</PopoverTrigger>
+											<PopoverContent
+												className="dark w-auto p-0 z-[60]"
+												align="start"
+											>
+												<Calendar
+													mode="single"
+													selected={watchedAt ? new Date(watchedAt) : undefined}
+													onSelect={(date) => {
+														if (!date) return;
+														const time = watchedAt
+															? watchedAt.slice(11, 16)
+															: `${String(new Date().getHours()).padStart(2, "0")}:${String(new Date().getMinutes()).padStart(2, "0")}`;
+														const pad = (n: number) =>
+															String(n).padStart(2, "0");
+														setWatchedAt(
+															`${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${time}`,
+														);
+													}}
+												/>
+												<label className="border-t border-border px-3 py-2.5 flex items-center gap-2">
+													<span className="font-mono-retro text-[10px] tracking-[2px] uppercase text-muted-foreground">
+														Time
+													</span>
+													<input
+														type="time"
+														value={watchedAt ? watchedAt.slice(11, 16) : ""}
+														onChange={(e) => {
+															const dateStr = watchedAt
+																? watchedAt.slice(0, 10)
+																: toLocalDatetime(new Date()).slice(0, 10);
+															setWatchedAt(`${dateStr}T${e.target.value}`);
+														}}
+														className="flex-1 bg-transparent border border-border rounded px-2 py-1 font-mono-retro text-sm text-popover-foreground focus:outline-none focus:border-ring [color-scheme:dark]"
+													/>
+												</label>
+											</PopoverContent>
+										</Popover>
 									</div>
 
 									<div className="h-px bg-gradient-to-r from-transparent via-cream/[0.06] to-transparent" />
 
 									{/* Recommend to friend */}
-									{!isReminder && (
-										<button
-											type="button"
-											onClick={() => setRecommendOpen(true)}
-											className="flex items-center gap-3 px-3.5 py-2.5 bg-neon-pink/[0.04] border border-neon-pink/15 rounded-md cursor-pointer hover:border-neon-pink/30 hover:shadow-[0_0_16px_rgba(255,45,120,0.08)] transition-all duration-200"
-										>
-											<div className="w-7 h-7 rounded-full bg-neon-pink/10 border border-neon-pink/20 flex items-center justify-center text-sm shrink-0">
-												📽️
-											</div>
-											<span className="flex-1 text-left text-sm font-semibold text-neon-pink/75">
-												Recommend to a friend
-											</span>
-											<span className="text-base text-neon-pink/30">›</span>
-										</button>
-									)}
+									<button
+										type="button"
+										onClick={() => setRecommendOpen(true)}
+										className="flex items-center gap-3 px-3.5 py-2.5 bg-neon-pink/[0.04] border border-neon-pink/15 rounded-md cursor-pointer hover:border-neon-pink/30 hover:shadow-[0_0_16px_rgba(255,45,120,0.08)] transition-all duration-200"
+									>
+										<div className="w-7 h-7 rounded-full bg-neon-pink/10 border border-neon-pink/20 flex items-center justify-center text-sm shrink-0">
+											📽️
+										</div>
+										<span className="flex-1 text-left text-sm font-semibold text-neon-pink/75">
+											Recommend to a friend
+										</span>
+										<span className="text-base text-neon-pink/30">›</span>
+									</button>
+
+									{/* Watched with */}
+									<button
+										type="button"
+										onClick={() => setWatchedWithOpen(true)}
+										className="flex items-center gap-3 px-3.5 py-2.5 bg-neon-cyan/[0.04] border border-neon-cyan/15 rounded-md cursor-pointer hover:border-neon-cyan/30 hover:shadow-[0_0_16px_rgba(0,229,255,0.08)] transition-all duration-200"
+									>
+										<div className="w-7 h-7 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 flex items-center justify-center text-sm shrink-0">
+											👥
+										</div>
+										<span className="flex-1 text-left text-sm font-semibold text-neon-cyan/75">
+											{companions.length > 0
+												? `Watched with ${companions.map((c) => c.name).join(", ")}`
+												: "Watched with…"}
+										</span>
+										<span className="text-base text-neon-cyan/30">›</span>
+									</button>
 
 									{/* Save button */}
 									<button
 										type="button"
 										onClick={handleSave}
-										disabled={updateReview.isPending}
+										disabled={isPending}
 										className="w-full py-3 px-6 bg-neon-cyan/[0.08] border-2 border-neon-cyan/35 rounded-lg font-display text-base tracking-widest text-neon-cyan text-center shadow-[0_4px_0_rgba(0,229,255,0.15),0_0_16px_rgba(0,229,255,0.1)] cursor-pointer hover:translate-y-0.5 hover:shadow-[0_2px_0_rgba(0,229,255,0.15),0_0_24px_rgba(0,229,255,0.15)] transition-all duration-200 disabled:opacity-50"
 									>
-										Save & Done
+										{editEvent ? "Save Changes" : "Save & Done"}
 									</button>
 
-									{/* Secondary actions */}
-									<div className="flex justify-center items-center gap-6">
-										<button
-											type="button"
-											onClick={handleSkip}
-											className="font-mono-retro text-[10px] tracking-[2px] uppercase text-cream/25 hover:text-cream/50 transition-colors duration-200 py-1.5"
-										>
-											skip
-										</button>
-										{!isReminder && (
-											<>
-												<span className="text-cream/10 text-xs">·</span>
-												<button
-													type="button"
-													onClick={handleRemindLater}
-													disabled={setReminder.isPending}
-													className="font-mono-retro text-[10px] tracking-[2px] uppercase text-neon-amber/40 hover:text-neon-amber/70 transition-colors duration-200 py-1.5 disabled:opacity-50"
-												>
-													remind me later
-												</button>
-											</>
-										)}
-									</div>
+									{/* Skip / Remind me later (create mode only) */}
+									{!editEvent && (
+										<div className="flex justify-center items-center gap-3">
+											<button
+												type="button"
+												onClick={handleClose}
+												disabled={isPending}
+												className="font-mono-retro text-[10px] tracking-[2px] uppercase text-cream/25 hover:text-cream/50 transition-colors duration-200 py-1.5"
+											>
+												skip
+											</button>
+											<span className="text-cream/15 text-[10px]">·</span>
+											<button
+												type="button"
+												onClick={handleRemindMe}
+												disabled={isPending}
+												className="font-mono-retro text-[10px] tracking-[2px] uppercase text-neon-amber/40 hover:text-neon-amber/70 transition-colors duration-200 py-1.5"
+											>
+												remind me later
+											</button>
+										</div>
+									)}
 								</div>
 							</div>
 						</div>
 					</div>
 				</DialogPortal>
 			</Dialog>
+			<WatchedWithModal
+				open={watchedWithOpen}
+				onOpenChange={setWatchedWithOpen}
+				value={companions}
+				onChange={setCompanions}
+			/>
 			<RecommendModal
 				open={recommendOpen}
 				onOpenChange={setRecommendOpen}

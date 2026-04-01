@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTRPC } from "#/integrations/trpc/react";
@@ -104,10 +104,17 @@ function getNotificationMessage(
 					? `/app/title/${data.mediaType}/${data.tmdbId}`
 					: undefined,
 			};
+		case "watched_with":
+			return {
+				text: `watched ${data.titleName || "a title"} with you`,
+				link: data.tmdbId
+					? `/app/title/${data.mediaType}/${data.tmdbId}`
+					: undefined,
+			};
 		case "review_reminder":
 			return {
-				text: `How was ${data.titleName || "a title"}? Leave a quick review`,
-				link: `/app/title/${data.mediaType}/${data.tmdbId}?reviewReminder=${data.watchEventId}`,
+				text: `Time to review ${data.titleName || "a title"}!`,
+				link: undefined,
 				showActor: false,
 			};
 		default:
@@ -166,6 +173,19 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 			},
 			onError: () => {
 				toast.error("Failed to decline recommendation");
+			},
+		}),
+	);
+
+	const navigate = useNavigate();
+
+	const setActionTaken = useMutation(
+		trpc.notification.setActionTaken.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(trpc.notification.getAll.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.notification.getUnreadCount.queryFilter(),
+				);
 			},
 		}),
 	);
@@ -279,6 +299,41 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 							Declined
 						</span>
 					)}
+				{/* Review reminder actions */}
+				{n.type === "review_reminder" && !n.actionTaken && (
+					<div className="flex gap-2 mt-1.5">
+						<button
+							type="button"
+							onClick={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								setActionTaken.mutate({ id: n.id, action: "accepted" });
+								navigate({
+									to: "/app/title/$mediaType/$tmdbId",
+									params: {
+										mediaType: data.mediaType as "movie" | "tv",
+										tmdbId: Number(data.tmdbId),
+									},
+									search: { reviewEventId: data.watchEventId as string },
+								});
+							}}
+							className="px-2.5 py-1 rounded text-[11px] font-semibold bg-neon-cyan/10 border border-neon-cyan/25 text-neon-cyan/80 hover:bg-neon-cyan/20 hover:border-neon-cyan/40 transition-all"
+						>
+							Review now
+						</button>
+						<button
+							type="button"
+							onClick={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								deleteNotification.mutate({ id: n.id });
+							}}
+							className="px-2.5 py-1 rounded text-[11px] font-semibold bg-cream/5 border border-cream/10 text-cream/40 hover:bg-cream/10 hover:text-cream/60 transition-all"
+						>
+							Dismiss
+						</button>
+					</div>
+				)}
 			</div>
 
 			{/* Dismiss */}

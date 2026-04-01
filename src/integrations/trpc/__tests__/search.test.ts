@@ -54,23 +54,33 @@ function makeTvResult(id: number, overrides: object = {}) {
 	};
 }
 
+function makeMultiMovieResult(id: number, overrides: object = {}) {
+	return { ...makeMovieResult(id, overrides), media_type: "movie" };
+}
+
+function makeMultiTvResult(id: number, overrides: object = {}) {
+	return { ...makeTvResult(id, overrides), media_type: "tv" };
+}
+
 beforeEach(() => {
 	mockFetch.mockReset();
 });
 
 describe("fetchSearchResults", () => {
 	it("searches both movies and TV when type is 'all'", async () => {
-		// type="all" => pagesPerEndpoint=2 => 4 fetch calls total
-		// calls: searchMovies p1, searchMovies p2, searchTvShows p1, searchTvShows p2
+		// type="all" => uses /search/multi, 2 pages => 2 fetch calls
 		mockFetch
 			.mockResolvedValueOnce(
-				makeMockPageResponse([makeMovieResult(1), makeMovieResult(2)]),
+				makeMockPageResponse([
+					makeMultiMovieResult(1),
+					makeMultiTvResult(10),
+					makeMultiMovieResult(2),
+					makeMultiTvResult(11),
+				]),
 			)
-			.mockResolvedValueOnce(makeMockPageResponse([makeMovieResult(3)]))
 			.mockResolvedValueOnce(
-				makeMockPageResponse([makeTvResult(10), makeTvResult(11)]),
-			)
-			.mockResolvedValueOnce(makeMockPageResponse([makeTvResult(12)]));
+				makeMockPageResponse([makeMultiMovieResult(3), makeMultiTvResult(12)]),
+			);
 
 		const result = await fetchSearchResults({
 			q: "action",
@@ -86,7 +96,7 @@ describe("fetchSearchResults", () => {
 		// Both movie and TV items present
 		expect(result.results.some((r) => r.mediaType === "movie")).toBe(true);
 		expect(result.results.some((r) => r.mediaType === "tv")).toBe(true);
-		expect(mockFetch).toHaveBeenCalledTimes(4);
+		expect(mockFetch).toHaveBeenCalledTimes(2);
 	});
 
 	it("only searches movies when type is 'movie'", async () => {
@@ -139,10 +149,12 @@ describe("fetchSearchResults", () => {
 	it("deduplicates results with the same tmdbId and mediaType", async () => {
 		// Both pages return the same movie
 		mockFetch
-			.mockResolvedValueOnce(makeMockPageResponse([makeMovieResult(1)]))
-			.mockResolvedValueOnce(makeMockPageResponse([makeMovieResult(1)]))
-			.mockResolvedValueOnce(makeMockPageResponse([makeTvResult(10)]))
-			.mockResolvedValueOnce(makeMockPageResponse([makeTvResult(10)]));
+			.mockResolvedValueOnce(
+				makeMockPageResponse([makeMultiMovieResult(1), makeMultiTvResult(10)]),
+			)
+			.mockResolvedValueOnce(
+				makeMockPageResponse([makeMultiMovieResult(1), makeMultiTvResult(10)]),
+			);
 
 		const result = await fetchSearchResults({
 			q: "test",
@@ -159,18 +171,16 @@ describe("fetchSearchResults", () => {
 	});
 
 	it("returns correct pagination metadata", async () => {
-		// Return 25 movies across 2 pages (all type, 2 pages each endpoint)
-		const movies1 = Array.from({ length: 15 }, (_, i) =>
-			makeMovieResult(i + 1),
+		// Return 25 items across 2 multi pages
+		const page1 = Array.from({ length: 15 }, (_, i) =>
+			makeMultiMovieResult(i + 1),
 		);
-		const movies2 = Array.from({ length: 10 }, (_, i) =>
-			makeMovieResult(i + 16),
+		const page2 = Array.from({ length: 10 }, (_, i) =>
+			makeMultiMovieResult(i + 16),
 		);
 		mockFetch
-			.mockResolvedValueOnce(makeMockPageResponse(movies1))
-			.mockResolvedValueOnce(makeMockPageResponse(movies2))
-			.mockResolvedValueOnce(makeMockPageResponse([]))
-			.mockResolvedValueOnce(makeMockPageResponse([]));
+			.mockResolvedValueOnce(makeMockPageResponse(page1))
+			.mockResolvedValueOnce(makeMockPageResponse(page2));
 
 		const result = await fetchSearchResults({
 			q: "test",
@@ -185,12 +195,10 @@ describe("fetchSearchResults", () => {
 	});
 
 	it("applies rating filter", async () => {
-		const lowRated = makeMovieResult(1, { vote_average: 4.0 });
-		const highRated = makeMovieResult(2, { vote_average: 8.5 });
+		const lowRated = makeMultiMovieResult(1, { vote_average: 4.0 });
+		const highRated = makeMultiMovieResult(2, { vote_average: 8.5 });
 		mockFetch
 			.mockResolvedValueOnce(makeMockPageResponse([lowRated, highRated]))
-			.mockResolvedValueOnce(makeMockPageResponse([]))
-			.mockResolvedValueOnce(makeMockPageResponse([]))
 			.mockResolvedValueOnce(makeMockPageResponse([]));
 
 		const result = await fetchSearchResults({
@@ -207,10 +215,10 @@ describe("fetchSearchResults", () => {
 
 	it("handles fetch failures gracefully by skipping that page", async () => {
 		mockFetch
-			.mockResolvedValueOnce(makeMockPageResponse([makeMovieResult(1)]))
-			.mockRejectedValueOnce(new Error("Network error"))
-			.mockResolvedValueOnce(makeMockPageResponse([makeTvResult(10)]))
-			.mockResolvedValueOnce(makeMockPageResponse([]));
+			.mockResolvedValueOnce(
+				makeMockPageResponse([makeMultiMovieResult(1), makeMultiTvResult(10)]),
+			)
+			.mockRejectedValueOnce(new Error("Network error"));
 
 		const result = await fetchSearchResults({
 			q: "test",
@@ -219,7 +227,7 @@ describe("fetchSearchResults", () => {
 			page: 1,
 		});
 
-		// Should still return results from successful calls
+		// Should still return results from the successful page
 		expect(result.results.some((r) => r.tmdbId === 1)).toBe(true);
 		expect(result.results.some((r) => r.tmdbId === 10)).toBe(true);
 	});

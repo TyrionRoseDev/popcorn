@@ -19,6 +19,7 @@ function LoginPage() {
 	const [sent, setSent] = useState(false);
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
+	const [resent, setResent] = useState(false);
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
@@ -51,6 +52,9 @@ function LoginPage() {
 			});
 			if (authError) {
 				setError(authError.message ?? "Something went wrong");
+			} else {
+				setResent(true);
+				setTimeout(() => setResent(false), 3000);
 			}
 		} catch {
 			setError("Something went wrong. Please try again.");
@@ -86,10 +90,14 @@ function LoginPage() {
 						<button
 							type="button"
 							onClick={handleResend}
-							disabled={loading}
+							disabled={loading || resent}
 							className="text-sm text-cream/35 underline decoration-cream/15 transition-colors hover:text-cream/50 disabled:opacity-50"
 						>
-							Didn't get it? Resend
+							{loading
+								? "Sending..."
+								: resent
+									? "Link resent ✓"
+									: "Didn't get it? Resend"}
 						</button>
 					</div>
 				) : (
@@ -107,7 +115,7 @@ function LoginPage() {
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
 							placeholder="you@email.com"
-							className="mb-4 w-full rounded-lg border border-cream/12 bg-cream/6 px-3.5 py-3 text-sm text-cream placeholder:text-cream/30 focus:border-neon-pink/40 focus:outline-none"
+							className="mb-4 w-full rounded-lg border border-cream/12 bg-cream/6 px-3.5 py-3 text-base md:text-sm text-cream placeholder:text-cream/30 focus:border-neon-pink/40 focus:outline-none"
 						/>
 
 						<button

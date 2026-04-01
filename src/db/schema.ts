@@ -163,6 +163,8 @@ export const watchlistItem = pgTable(
 			.references(() => watchlist.id, { onDelete: "cascade" }),
 		tmdbId: integer("tmdb_id").notNull(),
 		mediaType: text("media_type").notNull(),
+		title: text("title"),
+		posterPath: text("poster_path"),
 		addedBy: text("added_by")
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
@@ -172,6 +174,9 @@ export const watchlistItem = pgTable(
 		}),
 		recommendationMessage: text("recommendation_message"),
 		titleName: text("title_name"),
+		keptInWatchlist: boolean("kept_in_watchlist").default(false).notNull(),
+		runtime: integer("runtime"),
+		watchedSeasons: jsonb("watched_seasons").$type<number[]>(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},
 	(table) => [
@@ -274,6 +279,10 @@ export const watchEvent = pgTable(
 		rating: integer("rating"),
 		reviewText: text("review_text"),
 		reviewPublic: boolean("review_public").default(true).notNull(),
+		title: text("title"),
+		note: text("note"),
+		posterPath: text("poster_path"),
+		genreIds: jsonb("genre_ids").$type<number[]>(),
 		watchedAt: timestamp("watched_at").notNull(),
 		reviewReminderAt: timestamp("review_reminder_at"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -384,6 +393,48 @@ export const block = pgTable(
 	],
 );
 
+export const review = pgTable(
+	"review",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		tmdbId: integer("tmdb_id").notNull(),
+		mediaType: text("media_type").notNull(),
+		rating: integer("rating").notNull(), // 1-5 stars
+		text: text("text"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("review_user_title_unique").on(
+			table.userId,
+			table.tmdbId,
+			table.mediaType,
+		),
+		index("review_user_id_idx").on(table.userId),
+	],
+);
+
+export const watchEventCompanion = pgTable(
+	"watch_event_companion",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		watchEventId: text("watch_event_id")
+			.notNull()
+			.references(() => watchEvent.id, { onDelete: "cascade" }),
+		friendId: text("friend_id").references(() => user.id, {
+			onDelete: "set null",
+		}),
+		name: text("name").notNull(),
+	},
+	(table) => [index("watch_event_companion_event_idx").on(table.watchEventId)],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
@@ -392,6 +443,7 @@ export const userRelations = relations(user, ({ many }) => ({
 	ownedWatchlists: many(watchlist),
 	watchlistMemberships: many(watchlistMember),
 	swipes: many(shuffleSwipe),
+	watchEvents: many(watchEvent),
 	notificationsReceived: many(notification, {
 		relationName: "notificationRecipient",
 	}),
@@ -404,7 +456,6 @@ export const userRelations = relations(user, ({ many }) => ({
 	}),
 	blocksCreated: many(block, { relationName: "blockBlocker" }),
 	blocksReceived: many(block, { relationName: "blockBlocked" }),
-	watchEvents: many(watchEvent),
 	sentRecommendations: many(recommendation, {
 		relationName: "sentRecommendations",
 	}),
@@ -528,12 +579,27 @@ export const blockRelations = relations(block, ({ one }) => ({
 	}),
 }));
 
-export const watchEventRelations = relations(watchEvent, ({ one }) => ({
+export const watchEventRelations = relations(watchEvent, ({ one, many }) => ({
 	user: one(user, {
 		fields: [watchEvent.userId],
 		references: [user.id],
 	}),
+	companions: many(watchEventCompanion),
 }));
+
+export const watchEventCompanionRelations = relations(
+	watchEventCompanion,
+	({ one }) => ({
+		watchEvent: one(watchEvent, {
+			fields: [watchEventCompanion.watchEventId],
+			references: [watchEvent.id],
+		}),
+		friend: one(user, {
+			fields: [watchEventCompanion.friendId],
+			references: [user.id],
+		}),
+	}),
+);
 
 export const recommendationRelations = relations(recommendation, ({ one }) => ({
 	sender: one(user, {

@@ -1,14 +1,3 @@
-const STARS = Array.from({ length: 120 }, (_, i) => ({
-	id: i,
-	top: `${Math.round((((i * 31 + 11) % 97) / 97) * 80)}%`,
-	left: `${Math.round((((i * 53 + 7) % 97) / 97) * 100)}%`,
-	size: 1 + ((i * 17) % 3) * 0.5,
-	dur: `${2.5 + ((i * 23) % 20) / 10}s`,
-	delay: `${-((i * 41) % 30) / 10}s`,
-	o1: 0.1 + ((i * 13) % 10) / 100,
-	o2: 0.6 + ((i * 19) % 35) / 100,
-}));
-
 const DUST_PARTICLES = Array.from({ length: 18 }, (_, i) => ({
 	id: i,
 	left: `${42 + ((i * 7) % 16)}%`,
@@ -24,60 +13,25 @@ export function ShuffleAtmosphere() {
 			className="pointer-events-none fixed inset-0"
 			style={{ zIndex: 0 }}
 		>
-			{/* Night sky gradient — deep cinematic dark */}
+			{/* ===== PROJECTOR BEAM — single cone with stacked radial gradients ===== */}
 			<div
-				className="fixed inset-0"
+				className="fixed"
 				style={{
-					background:
-						"radial-gradient(ellipse at 50% 0%, #0a0a20 0%, #030305 60%)",
-				}}
-			/>
-
-			{/* Starfield — richer with 120 stars */}
-			{STARS.map((star) => (
-				<div
-					key={star.id}
-					className="fixed rounded-full bg-white"
-					style={
-						{
-							top: star.top,
-							left: star.left,
-							width: `${star.size}px`,
-							height: `${star.size}px`,
-							animationName: "twinkle",
-							animationDuration: star.dur,
-							animationTimingFunction: "ease-in-out",
-							animationIterationCount: "infinite",
-							animationDelay: star.delay,
-							"--o1": star.o1,
-							"--o2": star.o2,
-						} as React.CSSProperties
-					}
-				/>
-			))}
-
-			{/* ===== PROJECTOR BEAM — cone of light from top to card ===== */}
-			<div
-				className="fixed inset-x-0 top-0"
-				style={{
-					height: "100%",
-					clipPath: "polygon(44% 0%, 56% 0%, 68% 100%, 32% 100%)",
-					background:
-						"linear-gradient(180deg, rgba(255,220,140,0.18) 0%, rgba(255,184,0,0.06) 40%, rgba(255,184,0,0.02) 100%)",
+					top: "-10%",
+					left: "-10%",
+					right: "-10%",
+					height: "120%",
+					clipPath: "polygon(42% 8%, 58% 8%, 72% 100%, 28% 100%)",
+					background: [
+						"radial-gradient(ellipse 18% 80% at 50% 8%, rgba(255,245,210,0.1) 0%, transparent 100%)",
+						"radial-gradient(ellipse 30% 90% at 50% 8%, rgba(255,235,180,0.07) 0%, transparent 100%)",
+						"radial-gradient(ellipse 45% 100% at 50% 8%, rgba(255,220,140,0.04) 0%, transparent 100%)",
+					].join(", "),
+					filter: "blur(20px)",
 					animationName: "projector-flicker",
 					animationDuration: "4s",
 					animationTimingFunction: "steps(1)",
 					animationIterationCount: "infinite",
-				}}
-			/>
-			{/* Projector beam inner hotspot */}
-			<div
-				className="fixed inset-x-0 top-0"
-				style={{
-					height: "100%",
-					clipPath: "polygon(46% 0%, 54% 0%, 62% 100%, 38% 100%)",
-					background:
-						"linear-gradient(180deg, rgba(255,240,200,0.12) 0%, rgba(255,240,200,0.03) 50%, transparent 100%)",
 				}}
 			/>
 
@@ -112,87 +66,6 @@ export function ShuffleAtmosphere() {
 				}}
 			/>
 
-			{/* ===== SWAYING SPOTLIGHTS — adapted from landing page ===== */}
-			{/* Left spotlight */}
-			<div
-				className="fixed hidden md:block"
-				style={{
-					width: "35vw",
-					height: "100%",
-					bottom: "0%",
-					left: "0%",
-					background:
-						"linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%)",
-					transformOrigin: "0% 0%",
-					animationName: "sway-left",
-					animationDuration: "6s",
-					animationTimingFunction: "ease-in-out",
-					animationIterationCount: "infinite",
-					animationDirection: "alternate",
-					opacity: 0.5,
-				}}
-			/>
-			{/* Right spotlight */}
-			<div
-				className="fixed hidden md:block"
-				style={{
-					width: "35vw",
-					height: "100%",
-					bottom: "0%",
-					right: "0%",
-					background:
-						"linear-gradient(225deg, rgba(255,255,255,0.03) 0%, transparent 60%)",
-					transformOrigin: "100% 0%",
-					animationName: "sway-right",
-					animationDuration: "5.5s",
-					animationTimingFunction: "ease-in-out",
-					animationIterationCount: "infinite",
-					animationDirection: "alternate",
-					animationDelay: "-3s",
-					opacity: 0.5,
-				}}
-			/>
-
-			{/* ===== DRIVE-IN SCREEN FRAME — structural posts ===== */}
-			{/* Left post */}
-			<div
-				className="fixed hidden sm:block"
-				style={{
-					left: "calc(50% - 220px)",
-					top: "15%",
-					bottom: "35%",
-					width: "3px",
-					background:
-						"linear-gradient(180deg, rgba(40,40,60,0.6) 0%, rgba(40,40,60,0.2) 100%)",
-					borderRadius: "2px",
-				}}
-			/>
-			{/* Right post */}
-			<div
-				className="fixed hidden sm:block"
-				style={{
-					right: "calc(50% - 220px)",
-					top: "15%",
-					bottom: "35%",
-					width: "3px",
-					background:
-						"linear-gradient(180deg, rgba(40,40,60,0.6) 0%, rgba(40,40,60,0.2) 100%)",
-					borderRadius: "2px",
-				}}
-			/>
-			{/* Top crossbar */}
-			<div
-				className="fixed hidden sm:block"
-				style={{
-					left: "calc(50% - 220px)",
-					right: "calc(50% - 220px)",
-					top: "15%",
-					height: "2px",
-					background:
-						"linear-gradient(90deg, rgba(40,40,60,0.4) 0%, rgba(40,40,60,0.6) 50%, rgba(40,40,60,0.4) 100%)",
-				}}
-			/>
-
 			{/* Vignette overlay — strong dark edges like looking through a windshield */}
 			<div
 				className="fixed inset-0"
@@ -200,47 +73,6 @@ export function ShuffleAtmosphere() {
 					background:
 						"radial-gradient(ellipse 75% 65% at 50% 45%, transparent 30%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.9) 100%)",
 					zIndex: 1,
-				}}
-			/>
-
-			{/* Film grain overlay */}
-			<div
-				className="fixed"
-				style={{
-					inset: "-50%",
-					width: "200%",
-					height: "200%",
-					opacity: 0.05,
-					backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-					animationName: "grain",
-					animationDuration: "0.3s",
-					animationTimingFunction: "steps(3)",
-					animationIterationCount: "infinite",
-				}}
-			/>
-
-			{/* Scanlines for projector-screen feel */}
-			<div
-				className="fixed inset-0"
-				style={{
-					opacity: 0.12,
-					background:
-						"repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 6px)",
-				}}
-			/>
-
-			{/* VHS scan line */}
-			<div
-				className="fixed left-0 right-0"
-				style={{
-					height: "2px",
-					zIndex: 2,
-					background:
-						"linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
-					animationName: "vhs-scan",
-					animationDuration: "8s",
-					animationTimingFunction: "linear",
-					animationIterationCount: "infinite",
 				}}
 			/>
 

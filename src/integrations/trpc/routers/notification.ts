@@ -18,6 +18,7 @@ const NOTIFICATION_TYPES = [
 	"recommendation_reviewed",
 	"recommendation_watched",
 	"review_reminder",
+	"watched_with",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
@@ -122,6 +123,20 @@ export const notificationRouter = {
 		.mutation(async ({ input, ctx }) => {
 			await db
 				.delete(notification)
+				.where(
+					and(
+						eq(notification.id, input.id),
+						eq(notification.recipientId, ctx.userId),
+					),
+				);
+		}),
+
+	setActionTaken: protectedProcedure
+		.input(z.object({ id: z.string(), action: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			await db
+				.update(notification)
+				.set({ actionTaken: input.action, read: true })
 				.where(
 					and(
 						eq(notification.id, input.id),

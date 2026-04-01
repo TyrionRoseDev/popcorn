@@ -104,9 +104,10 @@ describe("sortResults", () => {
 		expect(result[2].year).toBe("2024");
 	});
 
-	it("returns original order for 'relevance'", () => {
+	it("sorts by rating descending for 'relevance'", () => {
 		const result = sortResults(mockItems, "relevance");
-		expect(result[0].tmdbId).toBe(1);
-		expect(result[2].tmdbId).toBe(3);
+		expect(result[0].tmdbId).toBe(3); // 9.0
+		expect(result[1].tmdbId).toBe(1); // 8.2
+		expect(result[2].tmdbId).toBe(2); // 8.1
 	});
 });

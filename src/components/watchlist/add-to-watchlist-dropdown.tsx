@@ -14,12 +14,14 @@ interface AddToWatchlistDropdownProps {
 	tmdbId: number;
 	mediaType: "movie" | "tv";
 	titleName?: string;
+	posterPath?: string | null;
 }
 
 export function AddToWatchlistDropdown({
 	tmdbId,
 	mediaType,
 	titleName,
+	posterPath,
 }: AddToWatchlistDropdownProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
@@ -50,7 +52,7 @@ export function AddToWatchlistDropdown({
 
 	function handleCreatedWatchlist(watchlist: { id: string; name: string }) {
 		addItemMutation.mutate(
-			{ watchlistId: watchlist.id, tmdbId, mediaType, titleName },
+			{ watchlistId: watchlist.id, tmdbId, mediaType, titleName, posterPath },
 			{
 				onSuccess: () => {
 					toast.success(`Added to ${watchlist.name}`);
@@ -62,7 +64,7 @@ export function AddToWatchlistDropdown({
 
 	function handleAddToWatchlist(watchlistId: string, watchlistName: string) {
 		addItemMutation.mutate(
-			{ watchlistId, tmdbId, mediaType, titleName },
+			{ watchlistId, tmdbId, mediaType, titleName, posterPath },
 			{
 				onSuccess: () => {
 					toast.success(`Added to ${watchlistName}`);

@@ -61,8 +61,7 @@ function WatchlistDetailPage() {
 				);
 				break;
 			case "title":
-				// Placeholder: sort by tmdbId since we don't have TMDB titles yet
-				items.sort((a, b) => a.tmdbId - b.tmdbId);
+				items.sort((a, b) => (a.title ?? "").localeCompare(b.title ?? ""));
 				break;
 			case "year":
 				// Placeholder: sort by tmdbId since we don't have TMDB year data yet

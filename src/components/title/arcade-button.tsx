@@ -11,6 +11,7 @@ interface ArcadeButtonProps {
 	icon: LucideIcon;
 	label: string;
 	color: "pink" | "cyan" | "amber";
+	active?: boolean;
 	onClick?: () => void;
 }
 
@@ -18,9 +19,12 @@ const colorConfig = {
 	pink: {
 		border: "border-neon-pink",
 		bg: "bg-neon-pink/20",
+		activeBg: "bg-neon-pink/40",
 		text: "text-neon-pink",
 		shadow:
 			"shadow-[0_5px_0_rgba(255,45,120,0.35),0_0_20px_rgba(255,45,120,0.2)]",
+		activeShadow:
+			"shadow-[0_3px_0_rgba(255,45,120,0.35),0_0_30px_rgba(255,45,120,0.45)]",
 		shadowHover:
 			"hover:shadow-[0_3px_0_rgba(255,45,120,0.35),0_0_20px_rgba(255,45,120,0.2)]",
 		ringBorder: "border-neon-pink",
@@ -28,9 +32,12 @@ const colorConfig = {
 	cyan: {
 		border: "border-neon-cyan",
 		bg: "bg-neon-cyan/12",
+		activeBg: "bg-neon-cyan/30",
 		text: "text-neon-cyan",
 		shadow:
 			"shadow-[0_5px_0_rgba(0,229,255,0.2),0_0_12px_rgba(0,229,255,0.15)]",
+		activeShadow:
+			"shadow-[0_3px_0_rgba(0,229,255,0.2),0_0_25px_rgba(0,229,255,0.4)]",
 		shadowHover:
 			"hover:shadow-[0_3px_0_rgba(0,229,255,0.2),0_0_12px_rgba(0,229,255,0.15)]",
 		ringBorder: "border-neon-cyan",
@@ -38,9 +45,12 @@ const colorConfig = {
 	amber: {
 		border: "border-neon-amber",
 		bg: "bg-neon-amber/12",
+		activeBg: "bg-neon-amber/30",
 		text: "text-neon-amber",
 		shadow:
 			"shadow-[0_5px_0_rgba(255,184,0,0.2),0_0_12px_rgba(255,184,0,0.12)]",
+		activeShadow:
+			"shadow-[0_3px_0_rgba(255,184,0,0.2),0_0_25px_rgba(255,184,0,0.35)]",
 		shadowHover:
 			"hover:shadow-[0_3px_0_rgba(255,184,0,0.2),0_0_12px_rgba(255,184,0,0.12)]",
 		ringBorder: "border-neon-amber",
@@ -51,6 +61,7 @@ export function ArcadeButton({
 	icon: Icon,
 	label,
 	color,
+	active,
 	onClick,
 }: ArcadeButtonProps) {
 	const c = colorConfig[color];
@@ -68,9 +79,10 @@ export function ArcadeButton({
 								"relative cursor-pointer transition",
 								"hover:translate-y-[2px]",
 								c.border,
-								c.bg,
-								c.shadow,
-								c.shadowHover,
+								active ? c.activeBg : c.bg,
+								active
+									? cn(c.activeShadow, "translate-y-[2px]")
+									: cn(c.shadow, c.shadowHover),
 							)}
 						>
 							{/* Outer glow ring */}

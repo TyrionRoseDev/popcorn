@@ -1,6 +1,15 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { and, eq, ilike, inArray, notInArray, or, sql } from "drizzle-orm";
+import {
+	and,
+	eq,
+	ilike,
+	inArray,
+	isNull,
+	notInArray,
+	or,
+	sql,
+} from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import {
@@ -12,7 +21,56 @@ import {
 	watchlistMember,
 } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
+import { tmdbFetch } from "#/lib/tmdb";
 import { createNotification } from "./notification";
+
+/** Fetch poster_path and title from TMDB for items missing that data, then update DB. */
+async function backfillPosterData(
+	items: Array<{
+		tmdbId: number;
+		mediaType: string;
+		posterPath: string | null;
+		title: string | null;
+	}>,
+) {
+	const missing = items.filter((i) => i.posterPath === null);
+	if (missing.length === 0) return;
+
+	await Promise.allSettled(
+		missing.map(async (item) => {
+			try {
+				const endpoint =
+					item.mediaType === "tv"
+						? `/tv/${item.tmdbId}`
+						: `/movie/${item.tmdbId}`;
+				const data = await tmdbFetch<{
+					poster_path: string | null;
+					title?: string;
+					name?: string;
+				}>(endpoint);
+				const title = data.title ?? data.name ?? null;
+				const posterPath = data.poster_path ?? null;
+				item.posterPath = posterPath;
+				item.title = item.title ?? title;
+				await db
+					.update(watchlistItem)
+					.set({ posterPath, title: item.title })
+					.where(
+						and(
+							eq(watchlistItem.tmdbId, item.tmdbId),
+							eq(watchlistItem.mediaType, item.mediaType),
+							isNull(watchlistItem.posterPath),
+						),
+					);
+			} catch (err) {
+				console.error(
+					`[backfillPosterData] Failed for tmdbId=${item.tmdbId} mediaType=${item.mediaType}:`,
+					err,
+				);
+			}
+		}),
+	);
+}
 
 async function assertOwner(watchlistId: string, userId: string) {
 	const membership = await db.query.watchlistMember.findFirst({
@@ -63,6 +121,34 @@ async function ensureAreFriends(userId: string, candidateIds: string[]) {
 	}
 }
 
+async function getOrCreateDefaultWatchlist(userId: string) {
+	const existing = await db.query.watchlist.findFirst({
+		where: and(eq(watchlist.ownerId, userId), eq(watchlist.type, "default")),
+		columns: { id: true },
+	});
+	if (existing) return existing;
+
+	return db.transaction(async (tx) => {
+		// Double-check inside transaction to avoid race conditions
+		const check = await tx.query.watchlist.findFirst({
+			where: and(eq(watchlist.ownerId, userId), eq(watchlist.type, "default")),
+			columns: { id: true },
+		});
+		if (check) return check;
+
+		const [wl] = await tx
+			.insert(watchlist)
+			.values({ name: "My Picks", ownerId: userId, type: "default" })
+			.returning({ id: watchlist.id });
+
+		await tx
+			.insert(watchlistMember)
+			.values({ watchlistId: wl.id, userId, role: "owner" });
+
+		return wl;
+	});
+}
+
 export const watchlistRouter = {
 	list: protectedProcedure.query(async ({ ctx }) => {
 		const memberships = await db
@@ -76,7 +162,15 @@ export const watchlistRouter = {
 		const watchlists = await db.query.watchlist.findMany({
 			where: (wl, { inArray }) => inArray(wl.id, watchlistIds),
 			with: {
-				items: { columns: { tmdbId: true, mediaType: true }, limit: 20 },
+				items: {
+					columns: {
+						tmdbId: true,
+						mediaType: true,
+						posterPath: true,
+						title: true,
+					},
+					limit: 20,
+				},
 				members: {
 					with: {
 						user: { columns: { id: true, username: true, avatarUrl: true } },
@@ -88,6 +182,10 @@ export const watchlistRouter = {
 				desc(wl.updatedAt),
 			],
 		});
+
+		// Lazily backfill poster data for items added before the column existed (fire-and-forget)
+		const allItems = watchlists.flatMap((wl) => wl.items);
+		void backfillPosterData(allItems);
 
 		return watchlists.map((wl) => ({
 			...wl,
@@ -134,6 +232,8 @@ export const watchlistRouter = {
 			if (!wl.isPublic && !membership) {
 				throw new TRPCError({ code: "FORBIDDEN" });
 			}
+
+			void backfillPosterData(wl.items);
 
 			const userRole = membership?.role ?? null;
 			return { ...wl, userRole };
@@ -316,6 +416,7 @@ export const watchlistRouter = {
 				tmdbId: z.number(),
 				mediaType: z.enum(["movie", "tv"]),
 				titleName: z.string().optional(),
+				posterPath: z.string().nullish(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -326,6 +427,8 @@ export const watchlistRouter = {
 					watchlistId: input.watchlistId,
 					tmdbId: input.tmdbId,
 					mediaType: input.mediaType,
+					title: input.titleName,
+					posterPath: input.posterPath ?? null,
 					addedBy: ctx.userId,
 					titleName: input.titleName ?? null,
 				})
@@ -407,7 +510,7 @@ export const watchlistRouter = {
 
 			await db
 				.update(watchlistItem)
-				.set({ watched: input.watched })
+				.set({ watched: input.watched, keptInWatchlist: false })
 				.where(
 					and(
 						eq(watchlistItem.watchlistId, input.watchlistId),
@@ -514,6 +617,175 @@ export const watchlistRouter = {
 					data: {
 						watchlistId: input.watchlistId,
 						watchlistName: wl?.name ?? "",
+					},
+				});
+			}
+		}),
+
+	isWatched: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+			}),
+		)
+		.query(async ({ input, ctx }) => {
+			const defaultWl = await getOrCreateDefaultWatchlist(ctx.userId);
+
+			const item = await db.query.watchlistItem.findFirst({
+				where: and(
+					eq(watchlistItem.watchlistId, defaultWl.id),
+					eq(watchlistItem.tmdbId, input.tmdbId),
+					eq(watchlistItem.mediaType, input.mediaType),
+					eq(watchlistItem.watched, true),
+				),
+				columns: { watched: true, watchedSeasons: true },
+			});
+
+			if (!item) return null;
+			return {
+				watched: true,
+				watchedSeasons: item.watchedSeasons as number[] | null,
+			};
+		}),
+
+	quickMarkWatched: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+				titleName: z.string().optional(),
+				posterPath: z.string().nullish(),
+				runtime: z.number().optional(),
+				watchedSeasons: z.array(z.number()).optional(),
+				seasonEpisodeCounts: z
+					.array(
+						z.object({
+							seasonNumber: z.number(),
+							episodeCount: z.number(),
+						}),
+					)
+					.optional(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const defaultWl = await getOrCreateDefaultWatchlist(ctx.userId);
+
+			// Add item if not already there
+			await db
+				.insert(watchlistItem)
+				.values({
+					watchlistId: defaultWl.id,
+					tmdbId: input.tmdbId,
+					mediaType: input.mediaType,
+					title: input.titleName,
+					posterPath: input.posterPath ?? null,
+					addedBy: ctx.userId,
+					runtime: input.runtime ?? null,
+				})
+				.onConflictDoNothing();
+
+			// Get current watched state
+			const item = await db.query.watchlistItem.findFirst({
+				where: and(
+					eq(watchlistItem.watchlistId, defaultWl.id),
+					eq(watchlistItem.tmdbId, input.tmdbId),
+					eq(watchlistItem.mediaType, input.mediaType),
+				),
+				columns: { watched: true },
+			});
+
+			// If already watched and seasons provided, update seasons (don't toggle)
+			const isSeasonEdit =
+				item?.watched &&
+				input.watchedSeasons &&
+				input.watchedSeasons.length > 0;
+			const newWatched = isSeasonEdit ? true : !item?.watched;
+
+			// Compute runtime for TV shows based on selected seasons
+			let computedRuntime: number | null = input.runtime ?? null;
+			if (
+				newWatched &&
+				input.watchedSeasons &&
+				input.seasonEpisodeCounts &&
+				input.runtime
+			) {
+				const selectedSet = new Set(input.watchedSeasons);
+				const totalEpisodes = input.seasonEpisodeCounts
+					.filter((s) => selectedSet.has(s.seasonNumber))
+					.reduce((sum, s) => sum + s.episodeCount, 0);
+				computedRuntime = input.runtime * totalEpisodes;
+			}
+
+			await db
+				.update(watchlistItem)
+				.set({
+					watched: newWatched,
+					keptInWatchlist: false,
+					runtime: newWatched ? computedRuntime : null,
+					watchedSeasons: newWatched ? (input.watchedSeasons ?? null) : null,
+				})
+				.where(
+					and(
+						eq(watchlistItem.watchlistId, defaultWl.id),
+						eq(watchlistItem.tmdbId, input.tmdbId),
+						eq(watchlistItem.mediaType, input.mediaType),
+					),
+				);
+
+			return { watched: newWatched, defaultWatchlistId: defaultWl.id };
+		}),
+
+	keepInWatchlist: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const memberships = await db
+				.select({ watchlistId: watchlistMember.watchlistId })
+				.from(watchlistMember)
+				.where(eq(watchlistMember.userId, ctx.userId));
+			const wlIds = memberships.map((m) => m.watchlistId);
+			if (wlIds.length === 0) return;
+
+			await db
+				.update(watchlistItem)
+				.set({ keptInWatchlist: true })
+				.where(
+					and(
+						inArray(watchlistItem.watchlistId, wlIds),
+						eq(watchlistItem.tmdbId, input.tmdbId),
+						eq(watchlistItem.mediaType, input.mediaType),
+					),
+				);
+		}),
+
+	recommendTitle: protectedProcedure
+		.input(
+			z.object({
+				friendIds: z.array(z.string()).min(1),
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+				titleName: z.string().optional(),
+				message: z.string().max(280).optional(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			await ensureAreFriends(ctx.userId, input.friendIds);
+
+			for (const friendId of input.friendIds) {
+				await createNotification({
+					recipientId: friendId,
+					actorId: ctx.userId,
+					type: "recommendation_received",
+					data: {
+						tmdbId: input.tmdbId,
+						mediaType: input.mediaType,
+						titleName: input.titleName ?? "",
+						message: input.message ?? "",
 					},
 				});
 			}

@@ -261,6 +261,49 @@ export const tasteProfileRouter = {
 			return { items, nextCursor };
 		}),
 
+	getUserGenres: protectedProcedure.query(async ({ ctx }) => {
+		const genres = await db
+			.select({ genreId: userGenre.genreId })
+			.from(userGenre)
+			.where(eq(userGenre.userId, ctx.userId));
+		return genres.map((g) => g.genreId);
+	}),
+
+	updateGenres: protectedProcedure
+		.input(z.object({ genreIds: z.array(z.number()).min(3).max(5) }))
+		.mutation(async ({ input, ctx }) => {
+			await db.transaction(async (tx) => {
+				await tx.delete(userGenre).where(eq(userGenre.userId, ctx.userId));
+				await tx.insert(userGenre).values(
+					input.genreIds.map((genreId) => ({
+						userId: ctx.userId,
+						genreId,
+					})),
+				);
+			});
+			return { success: true };
+		}),
+
+	updateFavouriteFilm: protectedProcedure
+		.input(z.object({ tmdbId: z.number().nullable() }))
+		.mutation(async ({ input, ctx }) => {
+			await db
+				.update(user)
+				.set({ favouriteFilmTmdbId: input.tmdbId })
+				.where(eq(user.id, ctx.userId));
+			return { success: true };
+		}),
+
+	updateBio: protectedProcedure
+		.input(z.object({ bio: z.string().max(100).nullable() }))
+		.mutation(async ({ input, ctx }) => {
+			await db
+				.update(user)
+				.set({ bio: input.bio })
+				.where(eq(user.id, ctx.userId));
+			return { success: true };
+		}),
+
 	saveTasteProfile: protectedProcedure
 		.input(
 			z.object({

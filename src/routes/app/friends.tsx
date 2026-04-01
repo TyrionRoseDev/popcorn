@@ -9,39 +9,22 @@ import {
 	Check,
 	Clock,
 	Heart,
-	Inbox,
 	Search,
 	UserPlus,
 	UserSearch,
-	Users,
 	X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { NowShowingHeader } from "#/components/watchlist/now-showing-header";
 import { useTRPC } from "#/integrations/trpc/react";
 
 export const Route = createFileRoute("/app/friends")({
 	component: FriendsPage,
 });
 
-const FRIENDS_LETTERS = [
-	{ letter: "F", pos: 0 },
-	{ letter: "R", pos: 1 },
-	{ letter: "I", pos: 2 },
-	{ letter: "E", pos: 3 },
-	{ letter: "N", pos: 4 },
-	{ letter: "D", pos: 5 },
-	{ letter: "S", pos: 6 },
-];
-
 const SKELETON_KEYS = ["skel-a", "skel-b", "skel-c", "skel-d"];
-
-// Marquee bulbs: 24 bulbs staggered in chase pattern
-const MARQUEE_BULBS = Array.from({ length: 24 }, (_, i) => ({
-	id: `marquee-${i}`,
-	delay: `${(i * 0.1) % 0.8}s`,
-}));
 
 // Avatar gradient options keyed by first char code
 function getAvatarGradient(letter: string) {
@@ -68,8 +51,20 @@ interface Friend {
 }
 
 function TicketStubCard({ friend }: { friend: Friend }) {
+	const trpc = useTRPC();
 	const initial = (friend.username ?? "?").charAt(0).toUpperCase();
 	const gradient = getAvatarGradient(initial);
+
+	const { data: favFilm } = useQuery(
+		trpc.title.details.queryOptions(
+			friend.favouriteFilmTmdbId
+				? {
+						tmdbId: friend.favouriteFilmTmdbId,
+						mediaType: "movie" as const,
+					}
+				: skipToken,
+		),
+	);
 
 	return (
 		<Link
@@ -129,11 +124,8 @@ function TicketStubCard({ friend }: { friend: Friend }) {
 
 				{/* Dashed tear line with punch holes */}
 				<div className="relative flex h-px items-center">
-					{/* Left punch hole */}
 					<div className="absolute -left-2.5 z-10 h-5 w-5 rounded-full bg-drive-in-bg" />
-					{/* Right punch hole */}
 					<div className="absolute -right-2.5 z-10 h-5 w-5 rounded-full bg-drive-in-bg" />
-					{/* Dashed line */}
 					<div className="mx-3 w-full border-t border-dashed border-neon-amber/18" />
 				</div>
 
@@ -142,9 +134,11 @@ function TicketStubCard({ friend }: { friend: Friend }) {
 					<div className="flex min-w-0 flex-1 items-center gap-1.5">
 						<Heart className="h-3 w-3 shrink-0 text-neon-pink/75" />
 						<span className="truncate text-xs text-cream/40">
-							{friend.favouriteFilmTmdbId
-								? `${friend.favouriteFilmMediaType === "tv" ? "Show" : "Film"} #${friend.favouriteFilmTmdbId}`
-								: "No fave yet"}
+							{favFilm?.title
+								? favFilm.title
+								: friend.favouriteFilmTmdbId
+									? "Loading…"
+									: "No fave yet"}
 						</span>
 					</div>
 					<div className="flex shrink-0 items-center gap-1">
@@ -220,7 +214,6 @@ function PendingRequestCard({
 					"linear-gradient(180deg, rgba(10,10,30,0.9) 0%, rgba(10,10,30,0.8) 100%)",
 			}}
 		>
-			{/* Avatar + Info (links to profile) */}
 			<Link
 				to="/app/profile/$userId"
 				params={{ userId: request.requesterId }}
@@ -251,7 +244,6 @@ function PendingRequestCard({
 				</div>
 			</Link>
 
-			{/* Actions */}
 			<div className="flex shrink-0 items-center gap-2">
 				<button
 					type="button"
@@ -336,10 +328,8 @@ function DiscoverResultCard({
 					"0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.02)",
 			}}
 		>
-			{/* Neon top-border glow on hover */}
 			<div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-neon-cyan/0 transition-colors duration-200 group-hover:bg-neon-cyan/25" />
 
-			{/* Avatar */}
 			<Link
 				to="/app/profile/$userId"
 				params={{ userId: user.id }}
@@ -363,7 +353,6 @@ function DiscoverResultCard({
 				)}
 			</Link>
 
-			{/* Info */}
 			<div className="min-w-0 flex-1">
 				<Link
 					to="/app/profile/$userId"
@@ -374,7 +363,6 @@ function DiscoverResultCard({
 				</Link>
 			</div>
 
-			{/* Action */}
 			<div className="shrink-0">
 				{isFriend ? (
 					<span className="flex items-center gap-1.5 rounded-full border border-green-500/20 bg-green-500/8 px-3 py-1.5 font-mono-retro text-xs text-green-400/70">
@@ -402,151 +390,10 @@ function DiscoverResultCard({
 	);
 }
 
-function DiscoverTab({ friendIds }: { friendIds: Set<string> }) {
-	const trpc = useTRPC();
-	const [discoverInput, setDiscoverInput] = useState("");
-	const [debouncedQuery, setDebouncedQuery] = useState("");
-
-	// Debounce the search input
-	useEffect(() => {
-		if (discoverInput.trim().length < 2) {
-			setDebouncedQuery("");
-			return;
-		}
-		const timer = setTimeout(() => {
-			setDebouncedQuery(discoverInput.trim());
-		}, 300);
-		return () => clearTimeout(timer);
-	}, [discoverInput]);
-
-	const { data: searchResults, isLoading: searchLoading } = useQuery(
-		trpc.watchlist.searchUsers.queryOptions(
-			debouncedQuery.length >= 2 ? { query: debouncedQuery } : skipToken,
-		),
-	);
-
-	const hasQuery = debouncedQuery.length >= 2;
-	const isTyping =
-		discoverInput.trim().length >= 2 && discoverInput.trim() !== debouncedQuery;
-
-	return (
-		<div>
-			{/* Search input */}
-			<div className="relative mb-6">
-				<Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neon-amber/50" />
-				<input
-					type="text"
-					placeholder="Search by username..."
-					value={discoverInput}
-					onChange={(e) => setDiscoverInput(e.target.value)}
-					className="w-full rounded-lg border border-neon-amber/25 bg-neon-amber/[0.05] py-3 pl-10 pr-4 text-sm text-cream/85 outline-none transition-all placeholder:text-cream/25 focus:border-neon-amber/50 focus:shadow-[0_0_20px_rgba(255,184,0,0.08)]"
-				/>
-				{(searchLoading || isTyping) && hasQuery && (
-					<div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-						<div className="h-4 w-4 animate-spin rounded-full border-2 border-neon-amber/20 border-t-neon-amber/60" />
-					</div>
-				)}
-			</div>
-
-			{/* Results */}
-			<AnimatePresence mode="wait">
-				{!hasQuery && !isTyping ? (
-					/* Empty state: no search query */
-					<motion.div
-						key="empty"
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						className="flex flex-col items-center py-20 text-center"
-					>
-						<div
-							className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-neon-amber/15"
-							style={{
-								background:
-									"radial-gradient(circle, rgba(255,184,0,0.06) 0%, transparent 70%)",
-							}}
-						>
-							<UserSearch className="h-8 w-8 text-neon-amber/25" />
-						</div>
-						<p className="font-display text-lg text-cream/45">
-							Find your movie buddies
-						</p>
-						<p className="mt-1.5 max-w-xs text-sm text-cream/25">
-							Search by username to discover friends and share your watchlists
-							at the drive-in
-						</p>
-					</motion.div>
-				) : searchLoading || isTyping ? (
-					/* Loading skeletons */
-					<motion.div
-						key="loading"
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						className="flex flex-col gap-2"
-					>
-						{SKELETON_KEYS.map((key) => (
-							<div
-								key={key}
-								className="h-[60px] animate-pulse rounded-lg bg-cream/[0.03]"
-							/>
-						))}
-					</motion.div>
-				) : searchResults && searchResults.length > 0 ? (
-					/* Search results */
-					<motion.div
-						key="results"
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						className="flex flex-col gap-2"
-					>
-						{searchResults.map((result, index) => (
-							<motion.div
-								key={result.id}
-								initial={{ opacity: 0, y: 12 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{
-									duration: 0.25,
-									delay: index * 0.06,
-								}}
-							>
-								<DiscoverResultCard
-									user={result}
-									isFriend={friendIds.has(result.id)}
-								/>
-							</motion.div>
-						))}
-					</motion.div>
-				) : (
-					/* No results */
-					<motion.div
-						key="no-results"
-						initial={{ opacity: 0, y: 6 }}
-						animate={{ opacity: 1, y: 0 }}
-						exit={{ opacity: 0 }}
-						className="flex flex-col items-center py-20 text-center"
-					>
-						<Search className="mb-3 h-10 w-10 text-neon-amber/15" />
-						<p className="text-base text-cream/40">
-							No users found matching &ldquo;{debouncedQuery}&rdquo;
-						</p>
-						<p className="mt-1 text-sm text-cream/20">
-							Try a different username
-						</p>
-					</motion.div>
-				)}
-			</AnimatePresence>
-		</div>
-	);
-}
-
 function FriendsPage() {
 	const trpc = useTRPC();
-	const [activeTab, setActiveTab] = useState<
-		"friends" | "requests" | "discover"
-	>("friends");
-	const [searchQuery, setSearchQuery] = useState("");
+	const [searchInput, setSearchInput] = useState("");
+	const [debouncedQuery, setDebouncedQuery] = useState("");
 
 	const { data: friends, isLoading: friendsLoading } = useQuery(
 		trpc.friend.list.queryOptions(),
@@ -555,322 +402,215 @@ function FriendsPage() {
 		trpc.friend.pendingRequests.queryOptions(),
 	);
 
-	const pendingCount = pendingRequests?.length ?? 0;
+	// Debounce search for the user-discovery API
+	useEffect(() => {
+		if (searchInput.trim().length < 2) {
+			setDebouncedQuery("");
+			return;
+		}
+		const timer = setTimeout(() => {
+			setDebouncedQuery(searchInput.trim());
+		}, 300);
+		return () => clearTimeout(timer);
+	}, [searchInput]);
 
+	const { data: searchResults, isLoading: searchLoading } = useQuery(
+		trpc.watchlist.searchUsers.queryOptions(
+			debouncedQuery.length >= 2 ? { query: debouncedQuery } : skipToken,
+		),
+	);
+
+	const friendIds = new Set((friends ?? []).map((f) => f.id));
+	const isSearching = searchInput.trim().length > 0;
+	const hasApiQuery = debouncedQuery.length >= 2;
+	const isTyping =
+		searchInput.trim().length >= 2 && searchInput.trim() !== debouncedQuery;
+
+	// Local filter of existing friends
 	const filteredFriends = (friends ?? []).filter((f) => {
-		if (!searchQuery.trim()) return true;
-		return f.username?.toLowerCase().includes(searchQuery.toLowerCase().trim());
+		if (!searchInput.trim()) return true;
+		return f.username?.toLowerCase().includes(searchInput.toLowerCase().trim());
 	});
 
+	// Other users from search (exclude existing friends)
+	const otherUsers = (searchResults ?? []).filter((u) => !friendIds.has(u.id));
+
 	return (
-		<>
-			{/* Keyframe injection */}
-			<style>{`
-				@keyframes bulb-chase {
-					0%, 100% { opacity: 0.15; box-shadow: 0 0 2px rgba(255,184,0,0.1); }
-					50% { opacity: 1; box-shadow: 0 0 6px rgba(255,184,0,0.6), 0 0 12px rgba(255,184,0,0.3); }
-				}
-				@keyframes grain {
-					0%, 100% { transform: translate(0, 0); }
-					10% { transform: translate(-1%, -1%); }
-					20% { transform: translate(1%, 0%); }
-					30% { transform: translate(-0.5%, 1%); }
-					40% { transform: translate(0.5%, -0.5%); }
-					50% { transform: translate(-1%, 0.5%); }
-					60% { transform: translate(1%, -1%); }
-					70% { transform: translate(0%, 1%); }
-					80% { transform: translate(-0.5%, -0.5%); }
-					90% { transform: translate(0.5%, 0%); }
-				}
-			`}</style>
+		<div className="relative mx-auto max-w-4xl px-4 pb-16 pt-10">
+			<NowShowingHeader title="Friends" />
 
-			<div className="relative mx-auto max-w-4xl px-4 pb-16 pt-10">
-				{/* Subtle film grain overlay */}
-				<div
-					className="pointer-events-none fixed inset-0 z-50 opacity-[0.03]"
-					style={{
-						backgroundImage:
-							"url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")",
-						animation: "grain 0.5s steps(1) infinite",
-					}}
+			{/* Search bar */}
+			<div className="relative mx-auto mt-8 max-w-xl">
+				<Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neon-amber/50" />
+				<input
+					type="text"
+					placeholder="Search friends or find new people..."
+					value={searchInput}
+					onChange={(e) => setSearchInput(e.target.value)}
+					className="w-full rounded-lg border border-neon-amber/25 bg-neon-amber/[0.05] py-3 pl-10 pr-4 text-sm text-cream/85 outline-none transition-all placeholder:text-cream/25 focus:border-neon-amber/50 focus:shadow-[0_0_20px_rgba(255,184,0,0.08)]"
 				/>
-
-				{/* Ambient projector beam glow */}
-				<div
-					className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2"
-					style={{
-						width: "600px",
-						height: "300px",
-						background:
-							"radial-gradient(ellipse at center, rgba(255,184,0,0.04) 0%, transparent 70%)",
-					}}
-				/>
-
-				{/* Header: F.R.I.E.N.D.S cinema marquee */}
-				<div className="flex justify-center">
-					<div className="relative max-w-[600px] px-12 pb-5 pt-6 text-center">
-						{/* Amber border frame with corner glow */}
-						<div
-							className="pointer-events-none absolute inset-0 rounded-lg"
-							style={{
-								border: "2px solid rgba(255,184,0,0.28)",
-								boxShadow:
-									"0 0 24px rgba(255,184,0,0.06), inset 0 0 24px rgba(255,184,0,0.02), 0 0 60px rgba(255,184,0,0.03)",
-							}}
-						/>
-						{/* Corner glow accents */}
-						<div
-							className="pointer-events-none absolute -left-1 -top-1 h-8 w-8"
-							style={{
-								background:
-									"radial-gradient(circle at top left, rgba(255,184,0,0.15) 0%, transparent 70%)",
-							}}
-						/>
-						<div
-							className="pointer-events-none absolute -right-1 -top-1 h-8 w-8"
-							style={{
-								background:
-									"radial-gradient(circle at top right, rgba(255,184,0,0.15) 0%, transparent 70%)",
-							}}
-						/>
-						<div
-							className="pointer-events-none absolute -bottom-1 -left-1 h-8 w-8"
-							style={{
-								background:
-									"radial-gradient(circle at bottom left, rgba(255,184,0,0.15) 0%, transparent 70%)",
-							}}
-						/>
-						<div
-							className="pointer-events-none absolute -bottom-1 -right-1 h-8 w-8"
-							style={{
-								background:
-									"radial-gradient(circle at bottom right, rgba(255,184,0,0.15) 0%, transparent 70%)",
-							}}
-						/>
-
-						{/* Marquee bulbs row */}
-						<div className="absolute left-6 right-6 -top-[5px] h-[10px]">
-							{MARQUEE_BULBS.map((bulb) => (
-								<div
-									key={bulb.id}
-									className="absolute top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-neon-amber"
-									style={{
-										left: `${(Number.parseInt(bulb.id.split("-")[1], 10) / (MARQUEE_BULBS.length - 1)) * 100}%`,
-										transform: "translateX(-50%) translateY(-50%)",
-										animation: `bulb-chase 1.6s ease-in-out infinite`,
-										animationDelay: bulb.delay,
-									}}
-								/>
-							))}
-						</div>
-
-						{/* NOW SHOWING label */}
-						<p className="m-0 mb-2.5 font-mono-retro text-[9px] uppercase tracking-[5px] text-neon-amber/60">
-							&#9733; NOW SHOWING &#9733;
-						</p>
-
-						{/* F.R.I.E.N.D.S title */}
-						<h1 className="m-0 font-display text-[44px] leading-none">
-							{FRIENDS_LETTERS.map(({ letter, pos }) => (
-								<span key={`letter-${pos}`}>
-									<span
-										className="text-neon-amber"
-										style={{
-											textShadow:
-												"0 0 10px rgba(255,184,0,0.3), 0 0 30px rgba(255,184,0,0.1)",
-										}}
-									>
-										{letter}
-									</span>
-									{pos < 6 && (
-										<span
-											className="inline-block align-middle text-[22px] text-neon-pink/90"
-											style={{
-												textShadow:
-													"0 0 8px rgba(255,45,120,0.4), 0 0 20px rgba(255,45,120,0.15)",
-											}}
-										>
-											.
-										</span>
-									)}
-								</span>
-							))}
-						</h1>
+				{(searchLoading || isTyping) && hasApiQuery && (
+					<div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+						<div className="h-4 w-4 animate-spin rounded-full border-2 border-neon-amber/20 border-t-neon-amber/60" />
 					</div>
-				</div>
+				)}
+			</div>
 
-				{/* Tabs */}
-				<div className="mt-8 flex items-center gap-0 border-b border-neon-amber/12">
-					<button
-						type="button"
-						onClick={() => setActiveTab("friends")}
-						className={`-mb-px flex cursor-pointer items-center gap-2 border-b-2 bg-transparent px-5 py-2.5 text-sm font-medium transition-colors ${
-							activeTab === "friends"
-								? "border-neon-amber text-neon-amber"
-								: "border-transparent text-cream/40 hover:text-cream/60"
-						}`}
+			<div className="mt-8">
+				{/* Pending requests section — only when not searching and requests exist */}
+				{!isSearching && pendingRequests && pendingRequests.length > 0 && (
+					<motion.div
+						initial={{ opacity: 0, y: 8 }}
+						animate={{ opacity: 1, y: 0 }}
+						className="mb-8"
 					>
-						<Users className="h-4 w-4" />
-						My Friends
-						{friends && friends.length > 0 && (
-							<span
-								className={`ml-0.5 rounded px-1.5 py-0.5 text-xs ${
-									activeTab === "friends"
-										? "bg-neon-amber/15 text-neon-amber"
-										: "bg-cream/6 text-cream/30"
-								}`}
-							>
-								{friends.length}
-							</span>
-						)}
-					</button>
-
-					<button
-						type="button"
-						onClick={() => setActiveTab("requests")}
-						className={`-mb-px flex cursor-pointer items-center gap-2 border-b-2 bg-transparent px-5 py-2.5 text-sm font-medium transition-colors ${
-							activeTab === "requests"
-								? "border-neon-amber text-neon-amber"
-								: "border-transparent text-cream/40 hover:text-cream/60"
-						}`}
-					>
-						<Inbox className="h-4 w-4" />
-						Requests
-						{pendingCount > 0 && (
-							<span className="ml-0.5 min-w-[18px] rounded-full bg-neon-pink px-1.5 py-0.5 text-center text-xs font-bold text-white">
-								{pendingCount}
-							</span>
-						)}
-					</button>
-
-					<button
-						type="button"
-						onClick={() => setActiveTab("discover")}
-						className={`-mb-px flex cursor-pointer items-center gap-2 border-b-2 bg-transparent px-5 py-2.5 text-sm font-medium transition-colors ${
-							activeTab === "discover"
-								? "border-neon-amber text-neon-amber"
-								: "border-transparent text-cream/40 hover:text-cream/60"
-						}`}
-					>
-						<UserSearch className="h-4 w-4" />
-						Add a Friend
-					</button>
-				</div>
-
-				{/* Tab content with animated transitions */}
-				<div className="mt-6">
-					<AnimatePresence mode="wait">
-						{activeTab === "friends" && (
-							<motion.div
-								key="friends"
-								initial={{ opacity: 0, y: 8 }}
-								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: -8 }}
-								transition={{ duration: 0.2 }}
-								layout
-							>
-								{/* Search bar */}
-								<div className="relative mb-6">
-									<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neon-amber/50" />
-									<input
-										type="text"
-										placeholder="Search friends..."
-										value={searchQuery}
-										onChange={(e) => setSearchQuery(e.target.value)}
-										className="w-full rounded-lg border border-neon-amber/20 bg-neon-amber/[0.04] py-2.5 pl-9 pr-4 text-sm text-cream/80 outline-none transition-colors placeholder:text-cream/25 focus:border-neon-amber/45"
+						<p className="mb-3 font-mono-retro text-[11px] uppercase tracking-[2px] text-neon-amber/50">
+							Friend Requests
+						</p>
+						<div className="flex flex-col gap-2">
+							<AnimatePresence mode="popLayout">
+								{pendingRequests.map((request) => (
+									<PendingRequestCard
+										key={request.friendshipId}
+										request={request}
 									/>
-								</div>
+								))}
+							</AnimatePresence>
+						</div>
+						<div className="mt-8 border-t border-neon-amber/10" />
+					</motion.div>
+				)}
 
-								{/* Friends grid */}
-								{friendsLoading ? (
-									<div className="grid grid-cols-2 gap-3">
-										{SKELETON_KEYS.map((key) => (
-											<div
-												key={key}
-												className="h-24 animate-pulse rounded-lg bg-cream/[0.04]"
-											/>
-										))}
-									</div>
-								) : filteredFriends.length === 0 ? (
-									<div className="flex flex-col items-center py-20 text-center">
-										<Users className="mb-3 h-10 w-10 text-neon-amber/20" />
-										{searchQuery.trim() ? (
-											<p className="text-sm text-cream/35">
-												No friends match &ldquo;{searchQuery}&rdquo;
-											</p>
-										) : (
-											<>
-												<p className="text-base text-cream/45">
-													No friends yet
-												</p>
-												<p className="mt-1 text-sm text-cream/25">
-													Search for people to add as friends
-												</p>
-											</>
-										)}
-									</div>
-								) : (
+				{/* Main content */}
+				<AnimatePresence mode="wait">
+					{isSearching ? (
+						<motion.div
+							key="search-results"
+							initial={{ opacity: 0, y: 8 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -8 }}
+							transition={{ duration: 0.2 }}
+						>
+							{/* Filtered friends */}
+							{filteredFriends.length > 0 && (
+								<div className="mb-8">
+									<p className="mb-3 font-mono-retro text-[11px] uppercase tracking-[2px] text-neon-amber/50">
+										Your Friends
+									</p>
 									<div className="grid grid-cols-2 gap-3">
 										{filteredFriends.map((friend) => (
 											<TicketStubCard key={friend.id} friend={friend} />
 										))}
 									</div>
-								)}
-							</motion.div>
-						)}
+								</div>
+							)}
 
-						{activeTab === "requests" && (
-							<motion.div
-								key="requests"
-								initial={{ opacity: 0, y: 8 }}
-								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: -8 }}
-								transition={{ duration: 0.2 }}
-								layout
-							>
-								{pendingRequests && pendingRequests.length > 0 ? (
-									<div className="flex flex-col gap-2">
-										<AnimatePresence mode="popLayout">
-											{pendingRequests.map((request) => (
-												<PendingRequestCard
-													key={request.friendshipId}
-													request={request}
+							{/* Other users from search */}
+							{hasApiQuery && (
+								<div>
+									<p className="mb-3 font-mono-retro text-[11px] uppercase tracking-[2px] text-neon-cyan/50">
+										Other Users
+									</p>
+									{searchLoading || isTyping ? (
+										<div className="flex flex-col gap-2">
+											{SKELETON_KEYS.map((key) => (
+												<div
+													key={key}
+													className="h-[60px] animate-pulse rounded-lg bg-cream/[0.03]"
 												/>
 											))}
-										</AnimatePresence>
-									</div>
-								) : (
-									<div className="flex flex-col items-center py-20 text-center">
-										<Inbox className="mb-3 h-10 w-10 text-neon-amber/20" />
-										<p className="text-base text-cream/45">
-											No pending requests
-										</p>
-										<p className="mt-1 text-sm text-cream/25">
-											When someone sends you a friend request, it will appear
-											here
-										</p>
-									</div>
-								)}
-							</motion.div>
-						)}
+										</div>
+									) : otherUsers.length > 0 ? (
+										<div className="flex flex-col gap-2">
+											{otherUsers.map((user, index) => (
+												<motion.div
+													key={user.id}
+													initial={{ opacity: 0, y: 12 }}
+													animate={{ opacity: 1, y: 0 }}
+													transition={{
+														duration: 0.25,
+														delay: index * 0.06,
+													}}
+												>
+													<DiscoverResultCard
+														user={user}
+														isFriend={friendIds.has(user.id)}
+													/>
+												</motion.div>
+											))}
+										</div>
+									) : (
+										<div className="flex flex-col items-center py-12 text-center">
+											<Search className="mb-3 h-8 w-8 text-neon-amber/15" />
+											<p className="text-sm text-cream/40">
+												No other users found matching &ldquo;{debouncedQuery}
+												&rdquo;
+											</p>
+										</div>
+									)}
+								</div>
+							)}
 
-						{activeTab === "discover" && (
-							<motion.div
-								key="discover"
-								initial={{ opacity: 0, y: 8 }}
-								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: -8 }}
-								transition={{ duration: 0.2 }}
-								layout
-							>
-								<DiscoverTab
-									friendIds={new Set((friends ?? []).map((f) => f.id))}
-								/>
-							</motion.div>
-						)}
-					</AnimatePresence>
-				</div>
+							{/* No matches at all */}
+							{filteredFriends.length === 0 && !hasApiQuery && (
+								<div className="flex flex-col items-center py-16 text-center">
+									<Search className="mb-3 h-8 w-8 text-neon-amber/15" />
+									<p className="text-sm text-cream/35">
+										No friends match &ldquo;{searchInput}&rdquo;
+									</p>
+									<p className="mt-1 text-xs text-cream/20">
+										Type at least 2 characters to search all users
+									</p>
+								</div>
+							)}
+						</motion.div>
+					) : (
+						<motion.div
+							key="friends-grid"
+							initial={{ opacity: 0, y: 8 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -8 }}
+							transition={{ duration: 0.2 }}
+						>
+							{friendsLoading ? (
+								<div className="grid grid-cols-2 gap-3">
+									{SKELETON_KEYS.map((key) => (
+										<div
+											key={key}
+											className="h-24 animate-pulse rounded-lg bg-cream/[0.04]"
+										/>
+									))}
+								</div>
+							) : friends && friends.length > 0 ? (
+								<div className="grid grid-cols-2 gap-3">
+									{friends.map((friend) => (
+										<TicketStubCard key={friend.id} friend={friend} />
+									))}
+								</div>
+							) : (
+								<div className="flex flex-col items-center py-20 text-center">
+									<div
+										className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-neon-amber/15"
+										style={{
+											background:
+												"radial-gradient(circle, rgba(255,184,0,0.06) 0%, transparent 70%)",
+										}}
+									>
+										<UserSearch className="h-8 w-8 text-neon-amber/25" />
+									</div>
+									<p className="font-display text-lg text-cream/45">
+										No friends yet
+									</p>
+									<p className="mt-1.5 max-w-xs text-sm text-cream/25">
+										Search by username above to find people and send friend
+										requests
+									</p>
+								</div>
+							)}
+						</motion.div>
+					)}
+				</AnimatePresence>
 			</div>
-		</>
+		</div>
 	);
 }
