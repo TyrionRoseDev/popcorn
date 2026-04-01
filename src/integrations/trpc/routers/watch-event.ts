@@ -228,7 +228,7 @@ export const watchEventRouter = {
 				if (wlIds.length > 0) {
 					await db
 						.update(watchlistItem)
-						.set({ watched: false })
+						.set({ watched: false, keptInWatchlist: false })
 						.where(
 							and(
 								inArray(watchlistItem.watchlistId, wlIds),

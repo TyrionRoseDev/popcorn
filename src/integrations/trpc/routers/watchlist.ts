@@ -507,7 +507,7 @@ export const watchlistRouter = {
 
 			await db
 				.update(watchlistItem)
-				.set({ watched: input.watched })
+				.set({ watched: input.watched, keptInWatchlist: false })
 				.where(
 					and(
 						eq(watchlistItem.watchlistId, input.watchlistId),
@@ -718,6 +718,7 @@ export const watchlistRouter = {
 				.update(watchlistItem)
 				.set({
 					watched: newWatched,
+					keptInWatchlist: false,
 					runtime: newWatched ? computedRuntime : null,
 					watchedSeasons: newWatched ? (input.watchedSeasons ?? null) : null,
 				})
@@ -729,7 +730,34 @@ export const watchlistRouter = {
 					),
 				);
 
-			return { watched: newWatched };
+			return { watched: newWatched, defaultWatchlistId: defaultWl.id };
+		}),
+
+	keepInWatchlist: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const memberships = await db
+				.select({ watchlistId: watchlistMember.watchlistId })
+				.from(watchlistMember)
+				.where(eq(watchlistMember.userId, ctx.userId));
+			const wlIds = memberships.map((m) => m.watchlistId);
+			if (wlIds.length === 0) return;
+
+			await db
+				.update(watchlistItem)
+				.set({ keptInWatchlist: true })
+				.where(
+					and(
+						inArray(watchlistItem.watchlistId, wlIds),
+						eq(watchlistItem.tmdbId, input.tmdbId),
+						eq(watchlistItem.mediaType, input.mediaType),
+					),
+				);
 		}),
 
 	recommendTitle: protectedProcedure

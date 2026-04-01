@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Check, Eye, EyeOff, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { useTRPC } from "#/integrations/trpc/react";
 import { getTmdbImageUrl } from "#/lib/tmdb";
@@ -28,6 +29,7 @@ interface WatchlistItemCardProps {
 		title: string | null;
 		posterPath: string | null;
 		watched: boolean;
+		keptInWatchlist: boolean;
 		createdAt: Date | string;
 		addedByUser: {
 			id: string;
@@ -60,7 +62,7 @@ export function WatchlistItemCard({
 
 	const markWatched = useMutation(
 		trpc.watchlist.markWatched.mutationOptions({
-			onSuccess: (_data, variables) => {
+			onSuccess: () => {
 				queryClient.invalidateQueries(
 					trpc.watchlist.get.queryFilter({ watchlistId }),
 				);
@@ -81,9 +83,20 @@ export function WatchlistItemCard({
 		}),
 	);
 
+	const keepInWatchlist = useMutation(
+		trpc.watchlist.keepInWatchlist.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					trpc.watchlist.get.queryFilter({ watchlistId }),
+				);
+			},
+		}),
+	);
+
 	const canToggleWatched = userRole === "owner" || userRole === "member";
 	const canRemove = userRole === "owner";
 	const posterUrl = getTmdbImageUrl(item.posterPath, "w342");
+	const displayTitle = item.title || `Title #${item.tmdbId}`;
 
 	return (
 		<>
@@ -102,7 +115,7 @@ export function WatchlistItemCard({
 							{posterUrl ? (
 								<img
 									src={posterUrl}
-									alt={item.titleName || `Title #${item.tmdbId}`}
+									alt={displayTitle}
 									className="h-full w-full object-cover"
 									loading="lazy"
 								/>
@@ -119,7 +132,7 @@ export function WatchlistItemCard({
 							</div>
 
 							{/* Watched overlay */}
-							{item.watched && (
+							{item.watched && !item.keptInWatchlist && (
 								<div className="absolute inset-0 flex items-center justify-center bg-black/50">
 									<div className="rounded-full bg-neon-cyan/20 p-3">
 										<Check className="h-8 w-8 text-neon-cyan" />
@@ -140,9 +153,9 @@ export function WatchlistItemCard({
 							className="no-underline"
 						>
 							<h3
-								className={`truncate text-sm font-bold ${item.watched ? "text-cream/40" : "text-cream"}`}
+								className={`truncate text-sm font-bold ${item.watched && !item.keptInWatchlist ? "text-cream/40" : "text-cream"}`}
 							>
-								{item.titleName || `Title #${item.tmdbId}`}
+								{displayTitle}
 							</h3>
 						</Link>
 
@@ -157,7 +170,6 @@ export function WatchlistItemCard({
 											tmdbId: item.tmdbId,
 											mediaType: item.mediaType as "movie" | "tv",
 											watched: !item.watched,
-											titleName: item.titleName ?? "",
 										})
 									}
 									disabled={markWatched.isPending}
@@ -213,7 +225,27 @@ export function WatchlistItemCard({
 				onOpenChange={setReviewOpen}
 				tmdbId={item.tmdbId}
 				mediaType={item.mediaType as "movie" | "tv"}
-				titleName={item.titleName ?? ""}
+				titleName={item.title ?? ""}
+				onEventCreated={() => {
+					keepInWatchlist.mutate({
+						tmdbId: item.tmdbId,
+						mediaType: item.mediaType as "movie" | "tv",
+					});
+					if (canRemove) {
+						toast(`Remove ${displayTitle} from this watchlist?`, {
+							duration: 8000,
+							action: {
+								label: "Remove",
+								onClick: () =>
+									removeItem.mutate({
+										watchlistId,
+										tmdbId: item.tmdbId,
+										mediaType: item.mediaType as "movie" | "tv",
+									}),
+							},
+						});
+					}
+				}}
 			/>
 		</>
 	);

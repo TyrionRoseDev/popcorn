@@ -60,6 +60,9 @@ export function TitleActions({
 		  }
 		| undefined
 	>(undefined);
+	const [pendingWatchlistId, setPendingWatchlistId] = useState<string | null>(
+		null,
+	);
 
 	// Queries
 	const { data: watchlists, isLoading: watchlistsLoading } = useQuery(
@@ -137,7 +140,10 @@ export function TitleActions({
 				if (data.watched) {
 					toast.success("Marked as watched");
 					if (latestRating === null) {
+						setPendingWatchlistId(data.defaultWatchlistId);
 						setReviewOpen(true);
+					} else {
+						showRemovalToast(data.defaultWatchlistId);
 					}
 				} else {
 					toast.success("Removed from watched");
@@ -148,6 +154,40 @@ export function TitleActions({
 			},
 		}),
 	);
+
+	const keepInWatchlistMutation = useMutation(
+		trpc.watchlist.keepInWatchlist.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(trpc.watchlist.list.queryFilter());
+				queryClient.invalidateQueries(trpc.watchlist.get.queryFilter());
+			},
+		}),
+	);
+
+	const removeItemMutation = useMutation(
+		trpc.watchlist.removeItem.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(trpc.watchlist.list.queryFilter());
+				queryClient.invalidateQueries(trpc.watchlist.get.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.watchlist.isBookmarked.queryFilter(),
+				);
+			},
+		}),
+	);
+
+	function showRemovalToast(watchlistId: string) {
+		toast("Remove from watchlist?", {
+			duration: 8000,
+			action: {
+				label: "Remove",
+				onClick: () =>
+					removeItemMutation.mutate({ watchlistId, tmdbId, mediaType }),
+			},
+			onDismiss: () => keepInWatchlistMutation.mutate({ tmdbId, mediaType }),
+			onAutoClose: () => keepInWatchlistMutation.mutate({ tmdbId, mediaType }),
+		});
+	}
 
 	function handleAddToWatchlist(watchlistId: string, watchlistName: string) {
 		addItemMutation.mutate(
@@ -345,13 +385,22 @@ export function TitleActions({
 				open={reviewOpen}
 				onOpenChange={(open) => {
 					setReviewOpen(open);
-					if (!open) setEditEvent(undefined);
+					if (!open) {
+						setEditEvent(undefined);
+						setPendingWatchlistId(null);
+					}
 				}}
 				titleName={title}
 				year={year}
 				tmdbId={tmdbId}
 				mediaType={mediaType}
 				editEvent={editEvent}
+				onEventCreated={() => {
+					if (pendingWatchlistId) {
+						showRemovalToast(pendingWatchlistId);
+						setPendingWatchlistId(null);
+					}
+				}}
 			/>
 
 			<RecommendModal

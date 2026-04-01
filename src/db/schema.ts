@@ -174,6 +174,7 @@ export const watchlistItem = pgTable(
 		}),
 		recommendationMessage: text("recommendation_message"),
 		titleName: text("title_name"),
+		keptInWatchlist: boolean("kept_in_watchlist").default(false).notNull(),
 		runtime: integer("runtime"),
 		watchedSeasons: jsonb("watched_seasons").$type<number[]>(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),

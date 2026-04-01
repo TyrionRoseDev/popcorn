@@ -32,6 +32,8 @@ interface WatchEventModalProps {
 	};
 	/** Called when user taps "Remind me later" in create mode */
 	onRemindMe?: () => void;
+	/** Called when a new watch event is successfully created */
+	onEventCreated?: () => void;
 }
 
 function toLocalDatetime(date: Date): string {
@@ -48,6 +50,7 @@ export function ReviewModal({
 	mediaType,
 	editEvent,
 	onRemindMe,
+	onEventCreated,
 }: WatchEventModalProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
@@ -91,6 +94,7 @@ export function ReviewModal({
 		trpc.watchEvent.create.mutationOptions({
 			onSuccess: () => {
 				invalidateQueries();
+				onEventCreated?.();
 				handleClose();
 			},
 		}),
