@@ -648,6 +648,15 @@ export const watchlistRouter = {
 				titleName: z.string().optional(),
 				posterPath: z.string().nullish(),
 				runtime: z.number().optional(),
+				watchedSeasons: z.array(z.number()).optional(),
+				seasonEpisodeCounts: z
+					.array(
+						z.object({
+							seasonNumber: z.number(),
+							episodeCount: z.number(),
+						}),
+					)
+					.optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -679,11 +688,27 @@ export const watchlistRouter = {
 
 			const newWatched = !item?.watched;
 
+			// Compute runtime for TV shows based on selected seasons
+			let computedRuntime: number | null = input.runtime ?? null;
+			if (
+				newWatched &&
+				input.watchedSeasons &&
+				input.seasonEpisodeCounts &&
+				input.runtime
+			) {
+				const selectedSet = new Set(input.watchedSeasons);
+				const totalEpisodes = input.seasonEpisodeCounts
+					.filter((s) => selectedSet.has(s.seasonNumber))
+					.reduce((sum, s) => sum + s.episodeCount, 0);
+				computedRuntime = input.runtime * totalEpisodes;
+			}
+
 			await db
 				.update(watchlistItem)
 				.set({
 					watched: newWatched,
-					...(input.runtime ? { runtime: input.runtime } : {}),
+					runtime: newWatched ? computedRuntime : null,
+					watchedSeasons: newWatched ? (input.watchedSeasons ?? null) : null,
 				})
 				.where(
 					and(

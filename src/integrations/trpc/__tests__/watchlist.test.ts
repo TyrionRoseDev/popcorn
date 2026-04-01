@@ -496,6 +496,92 @@ describe("watchlist.addMember", () => {
 	});
 });
 
+// ── quickMarkWatched ───────────────────────────────────────────────────
+describe("watchlist.quickMarkWatched", () => {
+	it("stores watchedSeasons and computed runtime for TV shows", async () => {
+		// getOrCreateDefaultWatchlist: findFirst returns existing
+		mockQueryWatchlistFindFirst.mockResolvedValueOnce({ id: WATCHLIST_ID });
+
+		// insert().values().onConflictDoNothing() — item upsert
+		mockOnConflictDoNothing.mockResolvedValueOnce(undefined);
+
+		// query.watchlistItem.findFirst — item not yet watched
+		mockQueryWatchlistItemFindFirst.mockResolvedValueOnce({ watched: false });
+
+		// update().set().where() — mark watched
+		mockWhere.mockResolvedValueOnce(undefined);
+
+		const caller = createCaller(OWNER_ID);
+		const result = await caller.watchlist.quickMarkWatched({
+			tmdbId: 1399,
+			mediaType: "tv",
+			titleName: "Breaking Bad",
+			runtime: 47,
+			watchedSeasons: [1, 2, 3],
+			seasonEpisodeCounts: [
+				{ seasonNumber: 1, episodeCount: 7 },
+				{ seasonNumber: 2, episodeCount: 13 },
+				{ seasonNumber: 3, episodeCount: 13 },
+			],
+		});
+
+		expect(result.watched).toBe(true);
+		// Verify update was called with computed runtime: 47 * (7 + 13 + 13) = 1551
+		expect(mockSet).toHaveBeenCalledWith(
+			expect.objectContaining({
+				watched: true,
+				runtime: 1551,
+				watchedSeasons: [1, 2, 3],
+			}),
+		);
+	});
+
+	it("clears watchedSeasons and runtime when unwatching TV show", async () => {
+		mockQueryWatchlistFindFirst.mockResolvedValueOnce({ id: WATCHLIST_ID });
+		mockOnConflictDoNothing.mockResolvedValueOnce(undefined);
+		mockQueryWatchlistItemFindFirst.mockResolvedValueOnce({ watched: true });
+		mockWhere.mockResolvedValueOnce(undefined);
+
+		const caller = createCaller(OWNER_ID);
+		const result = await caller.watchlist.quickMarkWatched({
+			tmdbId: 1399,
+			mediaType: "tv",
+			titleName: "Breaking Bad",
+		});
+
+		expect(result.watched).toBe(false);
+		expect(mockSet).toHaveBeenCalledWith(
+			expect.objectContaining({
+				watched: false,
+				runtime: null,
+				watchedSeasons: null,
+			}),
+		);
+	});
+
+	it("stores plain runtime for movies (no watchedSeasons)", async () => {
+		mockQueryWatchlistFindFirst.mockResolvedValueOnce({ id: WATCHLIST_ID });
+		mockOnConflictDoNothing.mockResolvedValueOnce(undefined);
+		mockQueryWatchlistItemFindFirst.mockResolvedValueOnce({ watched: false });
+		mockWhere.mockResolvedValueOnce(undefined);
+
+		const caller = createCaller(OWNER_ID);
+		const result = await caller.watchlist.quickMarkWatched({
+			tmdbId: 550,
+			mediaType: "movie",
+			runtime: 139,
+		});
+
+		expect(result.watched).toBe(true);
+		expect(mockSet).toHaveBeenCalledWith(
+			expect.objectContaining({
+				watched: true,
+				runtime: 139,
+			}),
+		);
+	});
+});
+
 // ── removeMember ───────────────────────────────────────────────────────
 describe("watchlist.removeMember", () => {
 	it("throws BAD_REQUEST when removing self as owner", async () => {
