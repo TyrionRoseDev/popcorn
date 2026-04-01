@@ -7,7 +7,6 @@ import {
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
 	Award,
-	Ban,
 	BarChart3,
 	CalendarDays,
 	ChevronRight,
@@ -196,17 +195,9 @@ const DEMO_ACTIVITY = [
 ];
 
 // ── Avatar gradient by first character ──────────────────────────
-function avatarGradient(letter: string) {
-	const gradients = [
-		"linear-gradient(135deg, #FF2D78, #7B2FBE)",
-		"linear-gradient(135deg, #FFB800, #FF2D78)",
-		"linear-gradient(135deg, #00E5FF, #7B2FBE)",
-		"linear-gradient(135deg, #FF2D78, #00E5FF)",
-		"linear-gradient(135deg, #FFB800, #00E5FF)",
-		"linear-gradient(135deg, #7B2FBE, #FF2D78)",
-	];
-	const idx = (letter.charCodeAt(0) ?? 0) % gradients.length;
-	return gradients[idx];
+function avatarGradient(_letter: string) {
+	// Site colors only — pink, amber, cyan — with hard stops to avoid green blending
+	return "conic-gradient(from 0deg, #FF2D78 0deg, #FF2D78 60deg, #FFB800 60deg, #FFB800 180deg, #00E5FF 180deg, #00E5FF 300deg, #FF2D78 300deg)";
 }
 
 // ── Tabs enum ──────────────────────────────────────────────────
@@ -340,21 +331,16 @@ function ProfilePage() {
 	const removeFriend = useMutation(
 		trpc.friend.removeFriend.mutationOptions({ onSuccess: invalidateAll }),
 	);
-	const blockUser = useMutation(
-		trpc.friend.block.mutationOptions({ onSuccess: invalidateAll }),
-	);
 
 	const [activeTab, setActiveTab] = useState<FriendTab>("watchlists");
 	const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
-	const [showBlockConfirm, setShowBlockConfirm] = useState(false);
 
 	const anyMutating =
 		sendRequest.isPending ||
 		cancelRequest.isPending ||
 		acceptRequest.isPending ||
 		declineRequest.isPending ||
-		removeFriend.isPending ||
-		blockUser.isPending;
+		removeFriend.isPending;
 
 	// ── Loading skeleton ──────────────────────────────────────
 	if (isLoading) {
@@ -480,15 +466,22 @@ function ProfilePage() {
 						{/* ── 2. Avatar ────────────────────────── */}
 						<div className="flex justify-center">
 							<div className="relative">
-								{/* Soft glow behind avatar */}
+								{/* Rotating neon ring */}
 								<div
-									className="absolute -inset-4 rounded-full opacity-20 blur-xl"
+									className="absolute -inset-[4px] rounded-full"
+									style={{
+										background: avatarGradient(initial),
+									}}
+								/>
+								{/* Glow behind avatar */}
+								<div
+									className="absolute -inset-3 rounded-full opacity-30 blur-xl"
 									style={{
 										background: avatarGradient(initial),
 									}}
 								/>
 								{/* Avatar itself */}
-								<div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-neon-amber/25">
+								<div className="relative h-36 w-36 overflow-hidden rounded-full border-[3px] border-drive-in-bg">
 									{profile.avatarUrl ? (
 										<img
 											src={profile.avatarUrl}
@@ -503,7 +496,7 @@ function ProfilePage() {
 													"linear-gradient(135deg, rgba(10,10,30,0.9), rgba(20,20,50,0.9))",
 											}}
 										>
-											<span className="font-display text-3xl text-cream/80">
+											<span className="font-display text-5xl text-cream/80">
 												{initial}
 											</span>
 										</div>
@@ -644,45 +637,6 @@ function ProfilePage() {
 													No
 												</button>
 											</motion.div>
-										) : showBlockConfirm ? (
-											<motion.div
-												key="block-confirm"
-												initial={{
-													opacity: 0,
-													scale: 0.95,
-												}}
-												animate={{
-													opacity: 1,
-													scale: 1,
-												}}
-												exit={{
-													opacity: 0,
-													scale: 0.95,
-												}}
-												className="flex items-center gap-2"
-											>
-												<span className="text-xs text-cream/40">Block?</span>
-												<button
-													type="button"
-													onClick={() => {
-														blockUser.mutate({
-															userId,
-														});
-														setShowBlockConfirm(false);
-													}}
-													disabled={anyMutating}
-													className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1 font-mono-retro text-[10px] uppercase text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/20 disabled:opacity-50"
-												>
-													Yes
-												</button>
-												<button
-													type="button"
-													onClick={() => setShowBlockConfirm(false)}
-													className="rounded-md border border-cream/12 bg-cream/[0.04] px-3 py-1 font-mono-retro text-[10px] uppercase text-cream/40 transition-all hover:border-cream/25"
-												>
-													No
-												</button>
-											</motion.div>
 										) : (
 											<motion.div
 												key="friend-actions"
@@ -708,14 +662,6 @@ function ProfilePage() {
 													<UserMinus className="h-3 w-3" />
 													Remove
 												</button>
-												<button
-													type="button"
-													onClick={() => setShowBlockConfirm(true)}
-													className="flex items-center gap-1 rounded-md border border-cream/10 bg-cream/[0.03] px-3 py-1.5 font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/30 transition-all hover:border-red-500/25 hover:text-red-400/60"
-												>
-													<Ban className="h-3 w-3" />
-													Block
-												</button>
 											</motion.div>
 										)}
 									</AnimatePresence>
@@ -726,9 +672,9 @@ function ProfilePage() {
 						{/* ── 5a. Watch time ─────────────────── */}
 						<div className="mt-6 flex flex-col items-center py-2">
 							<span
-								className="font-display text-2xl text-neon-cyan"
+								className="font-display text-2xl text-neon-amber"
 								style={{
-									textShadow: "0 0 12px rgba(0,229,255,0.3)",
+									textShadow: "0 0 12px rgba(255,184,0,0.3)",
 								}}
 							>
 								72h 0m

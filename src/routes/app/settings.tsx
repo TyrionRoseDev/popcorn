@@ -1,5 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	Outlet,
+	useRouterState,
+} from "@tanstack/react-router";
 import { ChevronRight, Loader2, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ChangeAvatarDialog } from "#/components/settings/change-avatar-dialog";
@@ -15,11 +20,19 @@ import { getUnifiedGenreById } from "#/lib/genre-map";
 import { getTmdbImageUrl } from "#/lib/tmdb";
 
 export const Route = createFileRoute("/app/settings")({
-	component: SettingsPage,
+	component: SettingsLayout,
 	head: () => ({
 		meta: [{ title: "Settings — Popcorn" }],
 	}),
 });
+
+function SettingsLayout() {
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	if (pathname !== "/app/settings") {
+		return <Outlet />;
+	}
+	return <SettingsPage />;
+}
 
 function SettingsPage() {
 	const { data: session } = authClient.useSession();
