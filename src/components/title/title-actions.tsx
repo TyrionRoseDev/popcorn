@@ -10,6 +10,7 @@ import {
 } from "#/components/ui/popover";
 import { RecommendModal } from "#/components/watched/recommend-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
+import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { CreateWatchlistDialog } from "#/components/watchlist/create-watchlist-dialog";
 import { useTRPC } from "#/integrations/trpc/react";
 
@@ -37,6 +38,16 @@ export function TitleActions({
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [inviteOpen, setInviteOpen] = useState(false);
 	const [reviewOpen, setReviewOpen] = useState(false);
+	const [editEvent, setEditEvent] = useState<
+		| {
+				id: string;
+				rating: number | null;
+				note: string | null;
+				watchedAt: string;
+				companions: Array<{ friendId?: string; name: string }>;
+		  }
+		| undefined
+	>(undefined);
 
 	// Queries
 	const { data: watchlists, isLoading: watchlistsLoading } = useQuery(
@@ -49,6 +60,10 @@ export function TitleActions({
 
 	const { data: latestRating } = useQuery(
 		trpc.watchEvent.getLatestRating.queryOptions({ tmdbId, mediaType }),
+	);
+
+	const { data: watchEvents } = useQuery(
+		trpc.watchEvent.getForTitle.queryOptions({ tmdbId, mediaType }),
 	);
 
 	// Mutations
@@ -213,6 +228,27 @@ export function TitleActions({
 				/>
 			</div>
 
+			{watchEvents && watchEvents.length > 0 && (
+				<div className="mt-6 mx-auto max-w-sm">
+					<div className="font-mono-retro text-[10px] tracking-[3px] uppercase text-cream/30 mb-3 text-center">
+						Your Watch History
+					</div>
+					<div className="flex flex-col gap-2">
+						{watchEvents.map((event) => (
+							<WatchEventCard
+								key={event.id}
+								event={event}
+								isOwn={true}
+								onEdit={(e) => {
+									setEditEvent(e);
+									setReviewOpen(true);
+								}}
+							/>
+						))}
+					</div>
+				</div>
+			)}
+
 			<CreateWatchlistDialog
 				open={showCreateDialog}
 				onOpenChange={setShowCreateDialog}
@@ -221,11 +257,15 @@ export function TitleActions({
 
 			<ReviewModal
 				open={reviewOpen}
-				onOpenChange={setReviewOpen}
+				onOpenChange={(open) => {
+					setReviewOpen(open);
+					if (!open) setEditEvent(undefined);
+				}}
 				titleName={title}
 				year={year}
 				tmdbId={tmdbId}
 				mediaType={mediaType}
+				editEvent={editEvent}
 			/>
 
 			<RecommendModal
