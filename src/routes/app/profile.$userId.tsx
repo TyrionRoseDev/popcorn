@@ -904,9 +904,9 @@ function WatchActivityHeatmap({
 			ref={scrollRef}
 			className="overflow-x-auto rounded-lg border border-drive-in-border p-3"
 		>
-			<div className="flex gap-[3px]">
+			<div className="inline-flex gap-[3px]">
 				{weeks.map((week) => (
-					<div key={week[0]?.date} className="flex flex-col gap-[3px]">
+					<div key={week[0]?.date} className="flex shrink-0 flex-col gap-[3px]">
 						{week.map((day) => {
 							if (!day) return null;
 							if (day.isFuture) {
@@ -917,23 +917,15 @@ function WatchActivityHeatmap({
 									/>
 								);
 							}
-							const opacity =
-								day.count === 0
-									? 0
-									: maxCount === 1
-										? 0.8
-										: 0.2 + (day.count / maxCount) * 0.8;
+							const bg =
+								day.count > 0
+									? `rgba(255, 45, 120, ${maxCount === 1 ? 0.8 : 0.2 + (day.count / maxCount) * 0.8})`
+									: "rgba(255, 255, 240, 0.04)";
 							return (
 								<div
 									key={day.date}
-									className={`h-[10px] w-[10px] rounded-[2px] ${day.count === 0 ? "bg-cream/[0.04]" : ""}`}
-									style={
-										day.count > 0
-											? {
-													backgroundColor: `rgba(255, 45, 120, ${opacity})`,
-												}
-											: undefined
-									}
+									className="h-[10px] w-[10px] shrink-0 rounded-[2px]"
+									style={{ backgroundColor: bg }}
 									title={`${day.date}: ${day.count} film${day.count !== 1 ? "s" : ""}`}
 								/>
 							);
@@ -1089,7 +1081,7 @@ function FriendExpandedSections({
 						{activeTab === "diary" && (
 							<DiaryTab
 								userId={profile.id}
-								isOwn={profile.id === routeContext.user.id}
+								isOwn={profile.id === _routeContext.user.id}
 							/>
 						)}
 						{activeTab === "activity" && <ActivityTab />}
