@@ -62,8 +62,11 @@ async function backfillPosterData(
 							isNull(watchlistItem.posterPath),
 						),
 					);
-			} catch {
-				// Non-critical — leave as gradient fallback
+			} catch (err) {
+				console.error(
+					`[backfillPosterData] Failed for tmdbId=${item.tmdbId} mediaType=${item.mediaType}:`,
+					err,
+				);
 			}
 		}),
 	);
@@ -180,9 +183,9 @@ export const watchlistRouter = {
 			],
 		});
 
-		// Lazily backfill poster data for items added before the column existed
+		// Lazily backfill poster data for items added before the column existed (fire-and-forget)
 		const allItems = watchlists.flatMap((wl) => wl.items);
-		await backfillPosterData(allItems);
+		void backfillPosterData(allItems);
 
 		return watchlists.map((wl) => ({
 			...wl,
@@ -230,7 +233,7 @@ export const watchlistRouter = {
 				throw new TRPCError({ code: "FORBIDDEN" });
 			}
 
-			await backfillPosterData(wl.items);
+			void backfillPosterData(wl.items);
 
 			const userRole = membership?.role ?? null;
 			return { ...wl, userRole };

@@ -36,7 +36,8 @@ export function ModePill({
 					value={currentWatchlistId ?? shuffleWatchlistId}
 					onChange={(e) => onSelect(e.target.value)}
 					disabled={isLoading}
-					className="appearance-none bg-transparent pr-4 pl-0.5 font-mono-retro text-[10px] tracking-wider text-cream/50 outline-none disabled:opacity-50"
+					aria-label="Shuffle watchlist"
+					className="appearance-none bg-transparent pr-4 pl-0.5 font-mono-retro text-[10px] tracking-wider text-cream/50 outline-none focus-visible:ring-2 focus-visible:ring-cream/20 focus-visible:rounded disabled:opacity-50"
 				>
 					<option value={shuffleWatchlistId}>Just Me</option>
 					{groupWatchlists.map((wl) => (

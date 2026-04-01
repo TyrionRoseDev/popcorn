@@ -29,6 +29,7 @@ export function ActionButtons({
 						"transition-all duration-100",
 						"hover:translate-y-[2px] hover:border-neon-pink/60",
 						"active:scale-[0.88] active:translate-y-1",
+						"outline-none focus-visible:ring-2 focus-visible:ring-neon-pink/50",
 					)}
 					style={{
 						boxShadow:
@@ -73,6 +74,7 @@ export function ActionButtons({
 						"flex size-[42px] items-center justify-center rounded-full",
 						"border-2 border-cream/[0.12] bg-cream/[0.05]",
 						"transition-all duration-100",
+						"outline-none focus-visible:ring-2 focus-visible:ring-cream/30",
 						canUndo
 							? "hover:scale-105 hover:border-neon-amber/20 active:scale-90 active:translate-y-0.5"
 							: "cursor-not-allowed opacity-30",
@@ -106,6 +108,7 @@ export function ActionButtons({
 						"transition-all duration-100",
 						"hover:scale-105 hover:border-neon-amber/20",
 						"active:scale-90 active:translate-y-0.5",
+						"outline-none focus-visible:ring-2 focus-visible:ring-cream/30",
 					)}
 					style={{
 						boxShadow:
@@ -131,6 +134,7 @@ export function ActionButtons({
 						"transition-all duration-100",
 						"hover:translate-y-[2px] hover:border-neon-cyan/60",
 						"active:scale-[0.88] active:translate-y-1",
+						"outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan/50",
 					)}
 					style={{
 						boxShadow:

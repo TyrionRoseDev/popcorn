@@ -117,7 +117,7 @@ export function EditFavouriteFilmDialog({
 						<div className="flex items-center gap-3 rounded-lg border border-neon-cyan/20 bg-neon-cyan/5 px-3 py-2">
 							{selectedFilm.posterPath && (
 								<img
-									src={getTmdbImageUrl(selectedFilm.posterPath, "w92")!}
+									src={getTmdbImageUrl(selectedFilm.posterPath, "w92") ?? ""}
 									alt=""
 									className="h-12 w-8 rounded object-cover"
 								/>
@@ -180,7 +180,7 @@ export function EditFavouriteFilmDialog({
 								>
 									{movie.posterPath ? (
 										<img
-											src={getTmdbImageUrl(movie.posterPath, "w92")!}
+											src={getTmdbImageUrl(movie.posterPath, "w92") ?? ""}
 											alt=""
 											className="h-10 w-7 rounded object-cover"
 										/>

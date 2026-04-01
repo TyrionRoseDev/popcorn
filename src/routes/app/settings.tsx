@@ -209,7 +209,9 @@ function SettingsPage() {
 						<div className="flex items-center gap-2">
 							{filmDetails.data.posterPath && (
 								<img
-									src={getTmdbImageUrl(filmDetails.data.posterPath, "w92")!}
+									src={
+										getTmdbImageUrl(filmDetails.data.posterPath, "w92") ?? ""
+									}
 									alt=""
 									className="h-10 w-7 rounded object-cover"
 								/>

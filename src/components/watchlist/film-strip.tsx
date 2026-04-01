@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { getTmdbImageUrl } from "#/lib/tmdb";
 
 interface FilmStripProps {
@@ -54,6 +54,16 @@ function SprocketRow({ count }: { count: number }) {
 }
 
 export function FilmStrip({ items }: FilmStripProps) {
+	const [failedPosters, setFailedPosters] = useState<Set<number>>(new Set());
+	const handlePosterError = useCallback((tmdbId: number) => {
+		setFailedPosters((prev) => {
+			if (prev.has(tmdbId)) return prev;
+			const next = new Set(prev);
+			next.add(tmdbId);
+			return next;
+		});
+	}, []);
+
 	const reelItems = useMemo(() => {
 		if (items.length === 0) return [];
 		// Repeat to fill at least 12 slots
@@ -121,7 +131,7 @@ export function FilmStrip({ items }: FilmStripProps) {
 								className="relative flex-shrink-0"
 								style={{ padding: "8px 6px" }}
 							>
-								{posterUrl ? (
+								{posterUrl && !failedPosters.has(item.tmdbId) ? (
 									<img
 										src={posterUrl}
 										alt=""
@@ -132,6 +142,7 @@ export function FilmStrip({ items }: FilmStripProps) {
 											borderRadius: 3,
 										}}
 										loading="lazy"
+										onError={() => handlePosterError(item.tmdbId)}
 									/>
 								) : (
 									<div

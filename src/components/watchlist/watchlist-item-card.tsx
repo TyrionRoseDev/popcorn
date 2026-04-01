@@ -93,6 +93,7 @@ export function WatchlistItemCard({
 		}),
 	);
 
+	const [imageFailed, setImageFailed] = useState(false);
 	const canToggleWatched = userRole === "owner" || userRole === "member";
 	const canRemove = userRole === "owner";
 	const posterUrl = getTmdbImageUrl(item.posterPath, "w342");
@@ -112,12 +113,13 @@ export function WatchlistItemCard({
 						className="block no-underline"
 					>
 						<div className="relative aspect-[2/3] overflow-hidden">
-							{posterUrl ? (
+							{posterUrl && !imageFailed ? (
 								<img
 									src={posterUrl}
 									alt={displayTitle}
 									className="h-full w-full object-cover"
 									loading="lazy"
+									onError={() => setImageFailed(true)}
 								/>
 							) : (
 								<div

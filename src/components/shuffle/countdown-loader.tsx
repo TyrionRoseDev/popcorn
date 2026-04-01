@@ -70,7 +70,10 @@ export function CountdownLoader() {
 			/>
 
 			{/* Countdown circle */}
-			<div className="absolute inset-0 z-10 flex items-center justify-center">
+			<div
+				aria-hidden="true"
+				className="absolute inset-0 z-10 flex items-center justify-center"
+			>
 				<div className="relative size-[150px]">
 					{/* Ring */}
 					<div className="absolute inset-0 rounded-full border-2 border-[rgba(255,240,200,0.3)]" />
@@ -121,7 +124,8 @@ export function CountdownLoader() {
 			</div>
 
 			{/* Loading text */}
-			<p
+			<output
+				aria-live="polite"
 				className="absolute bottom-10 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap font-mono-retro text-[9px] uppercase tracking-[3px] text-neon-amber/50"
 				style={{
 					animationName: "pulse-text",
@@ -131,13 +135,13 @@ export function CountdownLoader() {
 				}}
 			>
 				Setting up Showtime Shuffle...
-			</p>
+			</output>
 		</div>
 	);
 }
 
 function FrameMark({ position }: { position: "tl" | "tr" | "bl" | "br" }) {
-	const styles: Record<string, string> = {
+	const styles: React.CSSProperties = {
 		position: "absolute",
 		width: "18px",
 		height: "18px",
