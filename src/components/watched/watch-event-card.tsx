@@ -180,7 +180,7 @@ export function WatchEventCard({
 								<Star
 									key={s}
 									className={`h-3 w-3 ${
-										s <= event.rating!
+										s <= (event.rating ?? 0)
 											? "text-neon-amber fill-neon-amber"
 											: "text-cream/15"
 									}`}

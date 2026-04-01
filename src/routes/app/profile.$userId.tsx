@@ -1030,7 +1030,7 @@ function DiaryTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 						key={event.id}
 						event={event}
 						showTitle={{
-							name: (event as any).title ?? `Title #${event.tmdbId}`,
+							name: event.title ?? `Title #${event.tmdbId}`,
 						}}
 						isOwn={isOwn}
 						onEdit={(e) =>
@@ -1038,7 +1038,7 @@ function DiaryTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 								open: true,
 								tmdbId: event.tmdbId,
 								mediaType: event.mediaType as "movie" | "tv",
-								titleName: (event as any).title ?? `Title #${event.tmdbId}`,
+								titleName: event.title ?? `Title #${event.tmdbId}`,
 								event: e,
 							})
 						}
