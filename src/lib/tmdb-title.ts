@@ -31,6 +31,11 @@ interface TmdbTvDetail {
 	poster_path: string | null;
 	backdrop_path: string | null;
 	created_by: Array<{ name: string }>;
+	seasons: Array<{
+		season_number: number;
+		episode_count: number;
+		name: string;
+	}>;
 }
 
 interface TmdbCreditsResponse {
@@ -99,6 +104,11 @@ export interface TitleData {
 	seasons?: number;
 	episodes?: number;
 	status?: string;
+	seasonList?: Array<{
+		seasonNumber: number;
+		episodeCount: number;
+		name: string;
+	}>;
 }
 
 // --- Helpers ---
@@ -239,5 +249,10 @@ export async function fetchTitleDetails(
 		seasons: tv.number_of_seasons,
 		episodes: tv.number_of_episodes,
 		status: tv.status,
+		seasonList: tv.seasons.map((s) => ({
+			seasonNumber: s.season_number,
+			episodeCount: s.episode_count,
+			name: s.name,
+		})),
 	};
 }
