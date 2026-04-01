@@ -196,9 +196,17 @@ const DEMO_ACTIVITY = [
 ];
 
 // ── Avatar gradient by first character ──────────────────────────
-function avatarGradient(_letter: string) {
-	// Site colors only — pink, amber, cyan — with hard stops to avoid green blending
-	return "conic-gradient(from 0deg, #FF2D78 0deg, #FF2D78 60deg, #FFB800 60deg, #FFB800 180deg, #00E5FF 180deg, #00E5FF 300deg, #FF2D78 300deg)";
+function avatarGradient(letter: string) {
+	const gradients = [
+		"linear-gradient(135deg, #FF2D78, #7B2FBE)",
+		"linear-gradient(135deg, #FFB800, #FF2D78)",
+		"linear-gradient(135deg, #00E5FF, #7B2FBE)",
+		"linear-gradient(135deg, #FF2D78, #00E5FF)",
+		"linear-gradient(135deg, #FFB800, #00E5FF)",
+		"linear-gradient(135deg, #7B2FBE, #FF2D78)",
+	];
+	const idx = (letter.charCodeAt(0) ?? 0) % gradients.length;
+	return gradients[idx];
 }
 
 // ── Tabs enum ──────────────────────────────────────────────────
