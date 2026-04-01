@@ -430,6 +430,7 @@ export const watchEvent = pgTable(
 		genreIds: jsonb("genre_ids").$type<number[]>(),
 		watchedAt: timestamp("watched_at").defaultNow().notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
+		reviewReminderAt: timestamp("review_reminder_at"),
 	},
 	(table) => [
 		index("watch_event_user_id_idx").on(table.userId),
@@ -439,6 +440,7 @@ export const watchEvent = pgTable(
 			table.mediaType,
 		),
 		index("watch_event_watched_at_idx").on(table.watchedAt),
+		index("watch_event_reminder_at_idx").on(table.reviewReminderAt),
 	],
 );
 
