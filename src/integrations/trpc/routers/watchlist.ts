@@ -777,7 +777,7 @@ export const watchlistRouter = {
 				await createNotification({
 					recipientId: friendId,
 					actorId: ctx.userId,
-					type: "title_recommendation",
+					type: "recommendation_received",
 					data: {
 						tmdbId: input.tmdbId,
 						mediaType: input.mediaType,

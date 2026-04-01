@@ -50,6 +50,7 @@ export const watchEventRouter = {
 					userId: ctx.userId,
 					tmdbId: input.tmdbId,
 					mediaType: input.mediaType,
+					titleName: input.titleName ?? "",
 					rating: input.rating ?? null,
 					note: input.note ?? null,
 					title: input.titleName ?? null,

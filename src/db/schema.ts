@@ -279,6 +279,10 @@ export const watchEvent = pgTable(
 		rating: integer("rating"),
 		reviewText: text("review_text"),
 		reviewPublic: boolean("review_public").default(true).notNull(),
+		title: text("title"),
+		note: text("note"),
+		posterPath: text("poster_path"),
+		genreIds: jsonb("genre_ids").$type<number[]>(),
 		watchedAt: timestamp("watched_at").notNull(),
 		reviewReminderAt: timestamp("review_reminder_at"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -414,38 +418,6 @@ export const review = pgTable(
 	],
 );
 
-export const watchEvent = pgTable(
-	"watch_event",
-	{
-		id: text("id")
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		userId: text("user_id")
-			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
-		tmdbId: integer("tmdb_id").notNull(),
-		mediaType: text("media_type").notNull(),
-		rating: integer("rating"),
-		note: text("note"),
-		title: text("title"),
-		posterPath: text("poster_path"),
-		genreIds: jsonb("genre_ids").$type<number[]>(),
-		watchedAt: timestamp("watched_at").defaultNow().notNull(),
-		createdAt: timestamp("created_at").defaultNow().notNull(),
-		reviewReminderAt: timestamp("review_reminder_at"),
-	},
-	(table) => [
-		index("watch_event_user_id_idx").on(table.userId),
-		index("watch_event_user_title_idx").on(
-			table.userId,
-			table.tmdbId,
-			table.mediaType,
-		),
-		index("watch_event_watched_at_idx").on(table.watchedAt),
-		index("watch_event_reminder_at_idx").on(table.reviewReminderAt),
-	],
-);
-
 export const watchEventCompanion = pgTable(
 	"watch_event_companion",
 	{
@@ -484,7 +456,6 @@ export const userRelations = relations(user, ({ many }) => ({
 	}),
 	blocksCreated: many(block, { relationName: "blockBlocker" }),
 	blocksReceived: many(block, { relationName: "blockBlocked" }),
-	watchEvents: many(watchEvent),
 	sentRecommendations: many(recommendation, {
 		relationName: "sentRecommendations",
 	}),

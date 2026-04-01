@@ -57,7 +57,8 @@ function TitlePage() {
 	const location = useLocation();
 	const router = useRouter();
 	const fromShuffle =
-		(location.state as Record<string, unknown> | undefined)?.from === "shuffle";
+		(location.state as unknown as Record<string, unknown> | undefined)?.from ===
+		"shuffle";
 	const trpc = useTRPC();
 	const { data } = useQuery(
 		trpc.title.details.queryOptions({ mediaType, tmdbId }),
@@ -148,7 +149,6 @@ function TitlePage() {
 					</SectionBoard>
 				</div>
 			</div>
-
 		</div>
 	);
 }

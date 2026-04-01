@@ -114,7 +114,6 @@ export function CardDetailModal({ item, onClose }: CardDetailModalProps) {
 										mediaType: item.mediaType,
 										tmdbId: item.tmdbId,
 									}}
-									state={{ from: "shuffle" }}
 									className="block w-full rounded-xl bg-neon-pink/15 border border-neon-pink/30 py-3 text-center text-sm font-medium text-neon-pink no-underline transition-colors hover:bg-neon-pink/25 hover:border-neon-pink/50"
 									onClick={onClose}
 								>

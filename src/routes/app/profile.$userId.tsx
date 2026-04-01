@@ -118,7 +118,6 @@ const PROFILE_KEYFRAMES = `
 
 function ProfilePage() {
 	const { userId } = Route.useParams();
-	const _routeContext = Route.useRouteContext();
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 
@@ -708,6 +707,7 @@ function ProfilePage() {
 								genreStats={genreStats ?? []}
 								activeTab={activeTab}
 								setActiveTab={setActiveTab}
+								isSelf={isSelf}
 							/>
 						) : (
 							<NonFriendGatedSections />
@@ -1127,6 +1127,7 @@ function FriendExpandedSections({
 	genreStats,
 	activeTab,
 	setActiveTab,
+	isSelf,
 }: {
 	profile: {
 		id: string;
@@ -1140,6 +1141,7 @@ function FriendExpandedSections({
 	genreStats: Array<{ name: string; count: number }>;
 	activeTab: FriendTab;
 	setActiveTab: (tab: FriendTab) => void;
+	isSelf: boolean;
 }) {
 	const trpc = useTRPC();
 
@@ -1245,10 +1247,7 @@ function FriendExpandedSections({
 							<WatchlistsTab watchlists={profile.publicWatchlists} />
 						)}
 						{activeTab === "diary" && (
-							<DiaryTab
-								userId={profile.id}
-								isOwn={profile.id === _routeContext.user.id}
-							/>
+							<DiaryTab userId={profile.id} isOwn={isSelf} />
 						)}
 						{activeTab === "activity" && <ActivityTab />}
 					</motion.div>

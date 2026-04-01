@@ -43,7 +43,9 @@ export function TitleActions({
 }: TitleActionsProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
-	const navigate = useNavigate();
+	const navigate = useNavigate({
+		from: "/app/title/$mediaType/$tmdbId",
+	});
 
 	const [seasonPickerOpen, setSeasonPickerOpen] = useState(false);
 	const [watchlistOpen, setWatchlistOpen] = useState(false);
@@ -101,7 +103,7 @@ export function TitleActions({
 
 		// Clear the search param
 		navigate({
-			search: { reviewEventId: undefined },
+			search: (prev) => ({ ...prev, reviewEventId: undefined }),
 			replace: true,
 		});
 	}, [reviewEventId, watchEvents, navigate]);

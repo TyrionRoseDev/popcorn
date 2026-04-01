@@ -51,9 +51,8 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
           `}</style>
 				</Head>
 				<Preview>Your Popcorn sign-in link</Preview>
-				{/* @ts-expect-error bgcolor is a valid HTML attribute for email clients */}
 				<Body
-					bgcolor="#0c0c1a"
+					{...({ bgcolor: "#0c0c1a" } as Record<string, string>)}
 					style={{
 						fontFamily: "'Manrope', sans-serif",
 						margin: 0,
@@ -63,10 +62,9 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 				>
 					<Container className="mx-auto max-w-lg py-10 px-4">
 						{/* === HEADER AREA === */}
-						{/* @ts-expect-error bgcolor is a valid HTML attribute for email clients */}
 						<Container
 							className="mx-auto rounded-t-2xl px-10 pt-10 pb-8 text-center"
-							bgcolor="#0f1025"
+							{...({ bgcolor: "#0f1025" } as Record<string, string>)}
 							style={{
 								backgroundColor: "#0f1025",
 								border: "1px solid #1e1e3a",
@@ -116,9 +114,8 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 						</Container>
 
 						{/* === FILM STRIP DIVIDER === */}
-						{/* @ts-expect-error bgcolor is a valid HTML attribute for email clients */}
 						<Container
-							bgcolor="#2a2a3e"
+							{...({ bgcolor: "#2a2a3e" } as Record<string, string>)}
 							style={{ backgroundColor: "#2a2a3e", padding: "6px 12px" }}
 						>
 							<Row>
@@ -143,10 +140,9 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 						</Container>
 
 						{/* === TICKET STUB === */}
-						{/* @ts-expect-error bgcolor is a valid HTML attribute for email clients */}
 						<Container
 							className="mx-auto"
-							bgcolor="#12132a"
+							{...({ bgcolor: "#12132a" } as Record<string, string>)}
 							style={{
 								backgroundColor: "#12132a",
 								border: "1px solid #1e1e3a",
@@ -194,9 +190,8 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 
 							{/* Ticket body */}
 							<Section style={{ padding: "0 24px" }}>
-								{/* @ts-expect-error bgcolor is a valid HTML attribute for email clients */}
 								<Container
-									bgcolor="#171835"
+									{...({ bgcolor: "#171835" } as Record<string, string>)}
 									style={{
 										backgroundColor: "#171835",
 										padding: "28px 24px 32px",
