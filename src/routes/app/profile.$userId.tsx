@@ -19,7 +19,7 @@ import {
 	X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { useTRPC } from "#/integrations/trpc/react";
@@ -847,6 +847,15 @@ function WatchActivityHeatmap({
 }: {
 	data: Array<{ date: string; count: number }>;
 }) {
+	const scrollRef = useRef<HTMLDivElement>(null);
+
+	// Auto-scroll to the right (most recent dates)
+	useEffect(() => {
+		if (scrollRef.current) {
+			scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+		}
+	}, []);
+
 	// Build a map of date -> count for fast lookup
 	const countMap = new Map<string, number>();
 	let maxCount = 0;
@@ -891,7 +900,10 @@ function WatchActivityHeatmap({
 	}
 
 	return (
-		<div className="overflow-x-auto rounded-lg border border-drive-in-border p-3">
+		<div
+			ref={scrollRef}
+			className="overflow-x-auto rounded-lg border border-drive-in-border p-3"
+		>
 			<div className="flex gap-[3px]">
 				{weeks.map((week) => (
 					<div key={week[0]?.date} className="flex flex-col gap-[3px]">
