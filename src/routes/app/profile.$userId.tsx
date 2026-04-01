@@ -77,78 +77,6 @@ const HEATMAP_COLORS = [
 	"bg-neon-pink/80", // 4
 ];
 
-// ── Demo achievements ─────────────────────────────────────────
-const DEMO_ACHIEVEMENTS_EARNED = [
-	{
-		icon: "🎬",
-		label: "First Watch",
-		desc: "Watched your first title",
-		date: "Jan 12, 2025",
-	},
-	{
-		icon: "🔥",
-		label: "Binge Master",
-		desc: "Watched 5 titles in one day",
-		date: "Feb 3, 2025",
-	},
-	{
-		icon: "🌍",
-		label: "Genre Explorer",
-		desc: "Watched titles in 10 genres",
-		date: "Mar 8, 2025",
-	},
-	{
-		icon: "🍿",
-		label: "Watchlist Creator",
-		desc: "Created 3 watchlists",
-		date: "Mar 15, 2025",
-	},
-	{ icon: "⭐", label: "Critic", desc: "Wrote 5 reviews", date: "Apr 1, 2025" },
-	{
-		icon: "👯",
-		label: "Social Butterfly",
-		desc: "Added 5 friends",
-		date: "Apr 20, 2025",
-	},
-	{
-		icon: "🎯",
-		label: "Completionist",
-		desc: "Finished a watchlist",
-		date: "May 5, 2025",
-	},
-	{
-		icon: "🌙",
-		label: "Night Owl",
-		desc: "Watched something after midnight",
-		date: "May 18, 2025",
-	},
-	{
-		icon: "📺",
-		label: "Series Addict",
-		desc: "Finished a TV series",
-		date: "Jun 2, 2025",
-	},
-	{
-		icon: "🏆",
-		label: "Century Club",
-		desc: "Watched 100 titles",
-		date: "Jul 14, 2025",
-	},
-	{
-		icon: "💀",
-		label: "Horror Fanatic",
-		desc: "Watched 25 horror films",
-		date: "Aug 9, 2025",
-	},
-	{
-		icon: "🎭",
-		label: "Drama Queen",
-		desc: "Watched 15 dramas",
-		date: "Sep 22, 2025",
-	},
-];
-const DEMO_ACHIEVEMENTS_TOTAL = 50;
-
 // ── Demo reviews ──────────────────────────────────────────────
 const DEMO_REVIEWS = [
 	{
@@ -861,7 +789,7 @@ function ProfilePage() {
 								setActiveTab={setActiveTab}
 							/>
 						) : (
-							<NonFriendGatedSections status={profile.relationshipStatus} />
+							<NonFriendGatedSections />
 						)}
 					</div>
 				</div>
@@ -874,77 +802,6 @@ function ProfilePage() {
 // Achievements popup (shared by all designs)
 // ════════════════════════════════════════════════════════════════
 
-function AchievementsPopup({
-	open,
-	onClose,
-}: {
-	open: boolean;
-	onClose: () => void;
-}) {
-	const earned = DEMO_ACHIEVEMENTS_EARNED.length;
-	const total = DEMO_ACHIEVEMENTS_TOTAL;
-
-	return (
-		<AnimatePresence>
-			{open && (
-				<motion.div
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					exit={{ opacity: 0 }}
-					className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
-					onClick={onClose}
-				>
-					<motion.div
-						initial={{ opacity: 0, scale: 0.95, y: 10 }}
-						animate={{ opacity: 1, scale: 1, y: 0 }}
-						exit={{ opacity: 0, scale: 0.95, y: 10 }}
-						onClick={(e) => e.stopPropagation()}
-						className="max-h-[70vh] w-full max-w-[420px] overflow-y-auto rounded-xl border border-drive-in-border bg-drive-in-bg p-5"
-					>
-						<div className="mb-4 flex items-center justify-between">
-							<div className="flex items-center gap-2">
-								<Trophy className="h-4 w-4 text-neon-amber" />
-								<span className="font-mono-retro text-xs uppercase tracking-[2px] text-cream/80">
-									Achievements
-								</span>
-								<span className="font-mono-retro text-xs text-cream/35">
-									{earned}/{total}
-								</span>
-							</div>
-							<button
-								type="button"
-								onClick={onClose}
-								className="flex h-7 w-7 items-center justify-center rounded-full border border-cream/10 text-cream/40 transition-colors hover:border-cream/25 hover:text-cream/70"
-							>
-								<X className="h-3.5 w-3.5" />
-							</button>
-						</div>
-						<div className="space-y-2">
-							{DEMO_ACHIEVEMENTS_EARNED.map((a) => (
-								<div
-									key={a.label}
-									className="flex items-center gap-3 rounded-lg border border-neon-amber/10 bg-neon-amber/[0.02] px-3 py-2.5"
-								>
-									<span className="text-xl">{a.icon}</span>
-									<div className="min-w-0 flex-1">
-										<p className="text-sm font-medium text-cream/75">
-											{a.label}
-										</p>
-										<p className="text-xs text-cream/35">{a.desc}</p>
-									</div>
-									<span className="shrink-0 font-mono-retro text-[9px] text-cream/45">
-										{a.date}
-									</span>
-								</div>
-							))}
-						</div>
-					</motion.div>
-				</motion.div>
-			)}
-		</AnimatePresence>
-	);
-}
-
 // ════════════════════════════════════════════════════════════════
 // Design A — Recent badges row with count chip
 // Shows last 3 earned icons in a row + "12/50" badge on the right
@@ -954,70 +811,15 @@ function AchievementsPopup({
 // Achievements — Centered trophy with ring progress
 // ════════════════════════════════════════════════════════════════
 
+// TODO: Replace this placeholder with real achievements display once the achievements system is implemented
 function AchievementsDesignB() {
-	const [open, setOpen] = useState(false);
-	const earned = DEMO_ACHIEVEMENTS_EARNED.length;
-	const total = DEMO_ACHIEVEMENTS_TOTAL;
-	const pct = Math.round((earned / total) * 100);
-	const radius = 34;
-	const circumference = 2 * Math.PI * radius;
-	const strokeDash = circumference * (pct / 100);
-	const size = 80;
-	const center = size / 2;
-
 	return (
-		<div className="mt-6">
-			<button
-				type="button"
-				onClick={() => setOpen(true)}
-				className="group flex w-full flex-col items-center gap-1 py-2 transition-all"
-			>
-				{/* Ring progress */}
-				<div
-					className="relative flex items-center justify-center"
-					style={{ width: size, height: size }}
-				>
-					<svg
-						className="absolute inset-0"
-						viewBox={`0 0 ${size} ${size}`}
-						fill="none"
-						role="img"
-						aria-label="Achievement progress"
-					>
-						<circle
-							cx={center}
-							cy={center}
-							r={radius}
-							stroke="rgba(255,255,240,0.06)"
-							strokeWidth="4"
-						/>
-						<circle
-							cx={center}
-							cy={center}
-							r={radius}
-							stroke="rgba(255,184,0,0.5)"
-							strokeWidth="4"
-							strokeLinecap="round"
-							strokeDasharray={`${strokeDash} ${circumference}`}
-							transform={`rotate(-90 ${center} ${center})`}
-						/>
-					</svg>
-					<Trophy className="trophy-wiggle h-6 w-6 text-neon-amber/70" />
-				</div>
-				<p className="font-mono-retro text-[10px] uppercase tracking-[2px] text-cream/70">
-					Achievements
-				</p>
-				<p className="text-xs text-cream/40">
-					<span
-						className="text-neon-amber"
-						style={{ textShadow: "0 0 6px rgba(255,184,0,0.2)" }}
-					>
-						{earned}
-					</span>
-					<span className="text-cream/25"> / {total}</span>
-				</p>
-			</button>
-			<AchievementsPopup open={open} onClose={() => setOpen(false)} />
+		<div className="mt-6 flex flex-col items-center gap-1 py-2">
+			<Trophy className="h-6 w-6 text-cream/20" />
+			<p className="font-mono-retro text-[10px] uppercase tracking-[2px] text-cream/40">
+				Achievements
+			</p>
+			<p className="text-[10px] text-cream/25">Coming soon</p>
 		</div>
 	);
 }
@@ -1079,7 +881,7 @@ function FavouriteFilmPoster({
 // NonFriendGatedSections (9 + 10)
 // ════════════════════════════════════════════════════════════════
 
-function NonFriendGatedSections({ status }: { status: string }) {
+function NonFriendGatedSections() {
 	return (
 		<>
 			{/* ── 9. Blurred activity teaser ─────────── */}
@@ -1108,16 +910,6 @@ function NonFriendGatedSections({ status }: { status: string }) {
 					</span>
 				</div>
 			</div>
-
-			{/* ── 10. Gated message ──────────────────── */}
-			{status !== "blocked" && (
-				<div className="mt-5 flex flex-col items-center gap-2 py-4 text-center">
-					<Lock className="h-4 w-4 text-cream/15" />
-					<p className="max-w-[280px] text-xs leading-relaxed text-cream/30">
-						Add as a friend to see watchlists, reviews &amp; activity
-					</p>
-				</div>
-			)}
 		</>
 	);
 }
