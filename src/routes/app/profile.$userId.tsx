@@ -480,22 +480,15 @@ function ProfilePage() {
 						{/* ── 2. Avatar ────────────────────────── */}
 						<div className="flex justify-center">
 							<div className="relative">
-								{/* Rotating neon ring */}
+								{/* Soft glow behind avatar */}
 								<div
-									className="absolute -inset-[4px] rounded-full"
-									style={{
-										background: avatarGradient(initial),
-									}}
-								/>
-								{/* Glow behind avatar */}
-								<div
-									className="absolute -inset-3 rounded-full opacity-30 blur-xl"
+									className="absolute -inset-4 rounded-full opacity-20 blur-xl"
 									style={{
 										background: avatarGradient(initial),
 									}}
 								/>
 								{/* Avatar itself */}
-								<div className="relative h-24 w-24 overflow-hidden rounded-full border-[3px] border-drive-in-bg">
+								<div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-neon-amber/25">
 									{profile.avatarUrl ? (
 										<img
 											src={profile.avatarUrl}
