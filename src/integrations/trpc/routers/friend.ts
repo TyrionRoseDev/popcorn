@@ -595,6 +595,7 @@ export const friendRouter = createTRPCRouter({
 				}
 			}
 
+			const isSelf = ctx.userId === input.userId;
 			const isFriend = relationshipStatus === "friends";
 
 			// Base profile (always returned)
@@ -604,6 +605,7 @@ export const friendRouter = createTRPCRouter({
 				relationshipStatus,
 				friendshipId,
 				isFriend,
+				isSelf,
 				publicWatchlists: [] as Array<{
 					id: string;
 					name: string;
@@ -612,8 +614,8 @@ export const friendRouter = createTRPCRouter({
 				}>,
 			};
 
-			// Friends get public watchlists
-			if (isFriend) {
+			// Friends and self get public watchlists
+			if (isFriend || isSelf) {
 				const watchlists = await db
 					.select({
 						id: watchlist.id,

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Ban, EyeOff, LogOut, Settings } from "lucide-react";
+import { Ban, EyeOff, LogOut, Settings, User } from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -46,6 +46,17 @@ export default function BetterAuthHeader() {
 					align="end"
 					className="border-cream/10 bg-drive-in-card"
 				>
+					<DropdownMenuItem asChild>
+						<Link
+							to="/app/profile/$userId"
+							params={{ userId: session.user.id }}
+							className="text-cream/60 no-underline focus:bg-cream/5 focus:text-cream/80"
+						>
+							<User className="mr-2 h-4 w-4" />
+							Profile
+						</Link>
+					</DropdownMenuItem>
+					<DropdownMenuSeparator className="bg-cream/10" />
 					<DropdownMenuItem asChild>
 						<Link
 							to="/app/shuffle/hidden"
