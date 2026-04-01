@@ -1,1 +1,0 @@
-ALTER TABLE "watch_event" ADD COLUMN "genre_ids" jsonb;
