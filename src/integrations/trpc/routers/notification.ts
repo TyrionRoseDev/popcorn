@@ -131,6 +131,20 @@ export const notificationRouter = {
 				);
 		}),
 
+	setActionTaken: protectedProcedure
+		.input(z.object({ id: z.string(), action: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			await db
+				.update(notification)
+				.set({ actionTaken: input.action, read: true })
+				.where(
+					and(
+						eq(notification.id, input.id),
+						eq(notification.recipientId, ctx.userId),
+					),
+				);
+		}),
+
 	deleteAll: protectedProcedure.mutation(async ({ ctx }) => {
 		await db
 			.delete(notification)
