@@ -262,18 +262,29 @@ export function TitleActions({
 					<div className="font-mono-retro text-[10px] tracking-[3px] uppercase text-cream/30 mb-3 text-center">
 						Your Watch History
 					</div>
-					<div className="flex flex-col gap-2">
-						{watchEvents.map((event) => (
-							<WatchEventCard
-								key={event.id}
-								event={event}
-								isOwn={true}
-								onEdit={(e) => {
-									setEditEvent(e);
-									setReviewOpen(true);
-								}}
-							/>
-						))}
+					<div className="relative">
+						<div className="flex flex-col gap-2.5 max-h-[360px] overflow-y-auto scrollbar-amber pr-2">
+							{watchEvents.map((event) => (
+								<WatchEventCard
+									key={event.id}
+									event={event}
+									isOwn={true}
+									onEdit={(e) => {
+										setEditEvent(e);
+										setReviewOpen(true);
+									}}
+								/>
+							))}
+						</div>
+						{/* Bottom fade hint — always present, invisible when not scrollable */}
+						<div
+							aria-hidden="true"
+							className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 rounded-b-[10px]"
+							style={{
+								background:
+									"linear-gradient(to bottom, transparent, rgba(5,5,8,0.9))",
+							}}
+						/>
 					</div>
 				</div>
 			)}
