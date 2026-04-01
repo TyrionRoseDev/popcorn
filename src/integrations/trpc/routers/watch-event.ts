@@ -336,14 +336,13 @@ export const watchEventRouter = {
 				userIds = [ctx.userId, ...friendIds];
 			}
 
-			const events = await db.query.watchEvent.findMany({
+			const cursorDate = input.cursor ? new Date(input.cursor) : undefined;
+
+			// Fetch watch events
+			const watchEvents = await db.query.watchEvent.findMany({
 				where: and(
 					inArray(watchEvent.userId, userIds),
-					...(input.cursor
-						? [
-								sql`${watchEvent.watchedAt} < (SELECT watched_at FROM watch_event WHERE id = ${input.cursor})`,
-							]
-						: []),
+					...(cursorDate ? [sql`${watchEvent.watchedAt} < ${cursorDate}`] : []),
 				),
 				with: {
 					companions: true,
@@ -359,12 +358,63 @@ export const watchEventRouter = {
 				limit: input.limit + 1,
 			});
 
-			const hasMore = events.length > input.limit;
-			const items = hasMore ? events.slice(0, input.limit) : events;
+			// Fetch public watchlist creations
+			const watchlistCreations = await db.query.watchlist.findMany({
+				where: and(
+					inArray(watchlist.ownerId, userIds),
+					eq(watchlist.isPublic, true),
+					...(cursorDate ? [sql`${watchlist.createdAt} < ${cursorDate}`] : []),
+				),
+				with: {
+					owner: {
+						columns: {
+							id: true,
+							username: true,
+							avatarUrl: true,
+						},
+					},
+					items: {
+						columns: { id: true },
+					},
+				},
+				orderBy: (wl, { desc }) => [desc(wl.createdAt)],
+				limit: input.limit + 1,
+			});
+
+			// Merge and sort by timestamp
+			type FeedItem =
+				| {
+						type: "watch_event";
+						timestamp: Date;
+						data: (typeof watchEvents)[number];
+				  }
+				| {
+						type: "watchlist_created";
+						timestamp: Date;
+						data: (typeof watchlistCreations)[number];
+				  };
+
+			const merged: FeedItem[] = [
+				...watchEvents.map((e) => ({
+					type: "watch_event" as const,
+					timestamp: new Date(e.watchedAt),
+					data: e,
+				})),
+				...watchlistCreations.map((wl) => ({
+					type: "watchlist_created" as const,
+					timestamp: new Date(wl.createdAt),
+					data: wl,
+				})),
+			].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+			const hasMore = merged.length > input.limit;
+			const items = hasMore ? merged.slice(0, input.limit) : merged;
 
 			return {
 				items,
-				nextCursor: hasMore ? items[items.length - 1]?.id : undefined,
+				nextCursor: hasMore
+					? items[items.length - 1]?.timestamp.toISOString()
+					: undefined,
 			};
 		}),
 } satisfies TRPCRouterRecord;

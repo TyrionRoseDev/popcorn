@@ -163,7 +163,7 @@ export function WatchedWithModal({
 														+
 													</div>
 													<span className="flex-1 text-sm text-cream/50">
-														Add "{search.trim()}" as text
+														Add "{search.trim()}"
 													</span>
 												</button>
 											)}
