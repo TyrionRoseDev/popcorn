@@ -768,6 +768,7 @@ export const friendRouter = createTRPCRouter({
 				.select({
 					date: sql<string>`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`,
 					count: sql<number>`count(*)::int`,
+					titles: sql<string[]>`array_agg(${watchEvent.title})`,
 				})
 				.from(watchEvent)
 				.where(eq(watchEvent.userId, input.userId))

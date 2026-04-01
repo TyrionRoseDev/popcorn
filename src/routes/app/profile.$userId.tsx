@@ -850,7 +850,7 @@ function fmtDate(d: Date) {
 function WatchActivityHeatmap({
 	data,
 }: {
-	data: Array<{ date: string; count: number }>;
+	data: Array<{ date: string; count: number; titles: string[] }>;
 }) {
 	// Determine which years have data
 	const years = [...new Set(data.map((d) => d.date.slice(0, 4)))].sort();
@@ -859,13 +859,21 @@ function WatchActivityHeatmap({
 	const hasMultipleYears = years.length > 1;
 
 	const [selectedYear, setSelectedYear] = useState(currentYear);
+	const [hover, setHover] = useState<{
+		date: string;
+		count: number;
+		titles: string[];
+		x: number;
+		y: number;
+	} | null>(null);
 
-	// Build date→count lookup
-	const countMap = new Map(data.map((d) => [d.date, d.count]));
+	// Build date→data lookup
+	const dataMap = new Map(
+		data.map((d) => [d.date, { count: d.count, titles: d.titles }]),
+	);
 
-	// Compute grid for selected year: Jan 1 → Dec 31 (or today if current year)
+	// Compute grid for selected year: Jan 1 → Dec 31
 	const yearNum = Number.parseInt(selectedYear, 10);
-	const _isCurrentYear = selectedYear === currentYear;
 	const jan1 = new Date(yearNum, 0, 1);
 	const todayDate = new Date();
 	todayDate.setHours(0, 0, 0, 0);
@@ -874,35 +882,31 @@ function WatchActivityHeatmap({
 	endDate.setHours(0, 0, 0, 0);
 	const endStr = fmtDate(endDate);
 
-	// Build 7-row (Sun–Sat) × N-column grid
-	// First column may have empty cells before Jan 1's day-of-week
-	const startDow = jan1.getDay(); // 0=Sun
+	const startDow = jan1.getDay();
 	const cells: Array<{ date: string; count: number } | null> = [];
 
-	// Pad the first week with nulls
 	for (let i = 0; i < startDow; i++) cells.push(null);
 
-	// Fill in actual days
 	const cursor = new Date(jan1);
 	while (fmtDate(cursor) <= endStr) {
 		const ds = fmtDate(cursor);
-		cells.push({ date: ds, count: countMap.get(ds) ?? 0 });
+		cells.push({ date: ds, count: dataMap.get(ds)?.count ?? 0 });
 		cursor.setDate(cursor.getDate() + 1);
-	}
-
-	// Group into columns of 7 (weeks)
-	const weeks: Array<typeof cells> = [];
-	for (let i = 0; i < cells.length; i += 7) {
-		const week = cells.slice(i, i + 7);
-		// Pad last week if incomplete
-		while (week.length < 7) week.push(null);
-		weeks.push(week);
 	}
 
 	const maxCount = Math.max(...data.map((d) => d.count), 1);
 
+	function formatDisplayDate(dateStr: string) {
+		const d = new Date(`${dateStr}T00:00:00`);
+		return d.toLocaleDateString("en-US", {
+			weekday: "short",
+			month: "short",
+			day: "numeric",
+		});
+	}
+
 	return (
-		<div className="rounded-lg border border-drive-in-border p-3">
+		<div className="relative rounded-lg border border-drive-in-border p-3">
 			{hasMultipleYears && (
 				<div className="mb-2 flex gap-2">
 					{years.map((yr) => (
@@ -921,7 +925,12 @@ function WatchActivityHeatmap({
 					))}
 				</div>
 			)}
-			<div className="overflow-x-auto" style={{ direction: "rtl" }}>
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: tooltip dismiss on mouse leave */}
+			<div
+				className="overflow-x-auto"
+				style={{ direction: "rtl" }}
+				onMouseLeave={() => setHover(null)}
+			>
 				<div
 					style={{
 						direction: "ltr",
@@ -937,13 +946,28 @@ function WatchActivityHeatmap({
 							// biome-ignore lint/suspicious/noArrayIndexKey: null padding cells have no unique id
 							<div key={`empty-${idx}`} />
 						) : (
+							// biome-ignore lint/a11y/noStaticElementInteractions: hover tooltip
 							<div
 								key={cell.date}
-								title={`${cell.date}: ${cell.count} film${cell.count !== 1 ? "s" : ""}`}
+								onMouseEnter={(e) => {
+									const rect = (
+										e.target as HTMLElement
+									).getBoundingClientRect();
+									const entry = dataMap.get(cell.date);
+									setHover({
+										date: cell.date,
+										count: cell.count,
+										titles: entry?.titles ?? [],
+										x: rect.left + rect.width / 2,
+										y: rect.top,
+									});
+								}}
+								onMouseLeave={() => setHover(null)}
 								style={{
 									width: 10,
 									height: 10,
 									borderRadius: 2,
+									cursor: cell.count > 0 ? "pointer" : "default",
 									backgroundColor:
 										cell.date > todayStr
 											? "rgba(255, 255, 240, 0.02)"
@@ -956,6 +980,31 @@ function WatchActivityHeatmap({
 					)}
 				</div>
 			</div>
+			{hover && (
+				<div
+					className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full"
+					style={{ left: hover.x, top: hover.y - 8 }}
+				>
+					<div className="rounded-lg border border-drive-in-border bg-[#0a0a1e] px-3 py-2 shadow-xl">
+						<p className="font-mono-retro text-[10px] tracking-[1px] text-cream/60">
+							{formatDisplayDate(hover.date)}
+						</p>
+						{hover.count > 0 ? (
+							<div className="mt-1 flex flex-col gap-0.5">
+								{[...new Set(hover.titles.filter(Boolean))].map((title) => (
+									<p key={title} className="text-[11px] text-neon-pink">
+										{title}
+									</p>
+								))}
+							</div>
+						) : (
+							<p className="mt-0.5 text-[10px] text-cream/25">
+								No films logged
+							</p>
+						)}
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
