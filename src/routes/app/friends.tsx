@@ -51,8 +51,20 @@ interface Friend {
 }
 
 function TicketStubCard({ friend }: { friend: Friend }) {
+	const trpc = useTRPC();
 	const initial = (friend.username ?? "?").charAt(0).toUpperCase();
 	const gradient = getAvatarGradient(initial);
+
+	const { data: favFilm } = useQuery(
+		trpc.title.details.queryOptions(
+			friend.favouriteFilmTmdbId
+				? {
+						tmdbId: friend.favouriteFilmTmdbId,
+						mediaType: "movie" as const,
+					}
+				: skipToken,
+		),
+	);
 
 	return (
 		<Link
@@ -122,9 +134,11 @@ function TicketStubCard({ friend }: { friend: Friend }) {
 					<div className="flex min-w-0 flex-1 items-center gap-1.5">
 						<Heart className="h-3 w-3 shrink-0 text-neon-pink/75" />
 						<span className="truncate text-xs text-cream/40">
-							{friend.favouriteFilmTmdbId
-								? `${friend.favouriteFilmMediaType === "tv" ? "Show" : "Film"} #${friend.favouriteFilmTmdbId}`
-								: "No fave yet"}
+							{favFilm?.title
+								? favFilm.title
+								: friend.favouriteFilmTmdbId
+									? "Loading…"
+									: "No fave yet"}
 						</span>
 					</div>
 					<div className="flex shrink-0 items-center gap-1">
