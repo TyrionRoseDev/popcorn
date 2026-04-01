@@ -91,6 +91,9 @@ export function WatchEventCard({
 				);
 				queryClient.invalidateQueries(trpc.watchEvent.getFeed.queryFilter());
 				queryClient.invalidateQueries(trpc.watchlist.isWatched.queryFilter());
+				queryClient.invalidateQueries(trpc.friend.genreStats.queryFilter());
+				queryClient.invalidateQueries(trpc.friend.watchActivity.queryFilter());
+				queryClient.invalidateQueries(trpc.friend.profile.queryFilter());
 				toast.success("Watch event deleted");
 			},
 			onError: () => {

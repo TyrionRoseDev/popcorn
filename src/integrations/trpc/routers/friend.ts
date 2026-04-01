@@ -680,7 +680,27 @@ export const friendRouter = createTRPCRouter({
 
 	genreStats: protectedProcedure
 		.input(z.object({ userId: z.string() }))
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
+			// Only self or friends can see genre stats
+			if (ctx.userId !== input.userId) {
+				const existingFriendship = await db.query.friendship.findFirst({
+					where: and(
+						or(
+							and(
+								eq(friendship.requesterId, ctx.userId),
+								eq(friendship.addresseeId, input.userId),
+							),
+							and(
+								eq(friendship.requesterId, input.userId),
+								eq(friendship.addresseeId, ctx.userId),
+							),
+						),
+						eq(friendship.status, "accepted"),
+					),
+				});
+				if (!existingFriendship) return [];
+			}
+
 			const events = await db
 				.select({ genreIds: watchEvent.genreIds })
 				.from(watchEvent)
@@ -723,7 +743,27 @@ export const friendRouter = createTRPCRouter({
 
 	watchActivity: protectedProcedure
 		.input(z.object({ userId: z.string() }))
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
+			// Only self or friends can see watch activity
+			if (ctx.userId !== input.userId) {
+				const existingFriendship = await db.query.friendship.findFirst({
+					where: and(
+						or(
+							and(
+								eq(friendship.requesterId, ctx.userId),
+								eq(friendship.addresseeId, input.userId),
+							),
+							and(
+								eq(friendship.requesterId, input.userId),
+								eq(friendship.addresseeId, ctx.userId),
+							),
+						),
+						eq(friendship.status, "accepted"),
+					),
+				});
+				if (!existingFriendship) return [];
+			}
+
 			const result = await db
 				.select({
 					date: sql<string>`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`,

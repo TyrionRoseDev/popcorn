@@ -147,7 +147,9 @@ function ProfilePage() {
 
 	const { data: genreStats } = useQuery(
 		trpc.friend.genreStats.queryOptions(
-			profile ? { userId: profile.id } : skipToken,
+			profile && (profile.isSelf || profile.isFriend)
+				? { userId: profile.id }
+				: skipToken,
 		),
 	);
 
@@ -869,7 +871,7 @@ function WatchActivityHeatmap({
 	> = [];
 
 	const cursor = new Date(startDate);
-	while (cursor <= today || weeks.length < HEATMAP_WEEKS) {
+	while (weeks.length < HEATMAP_WEEKS) {
 		const week: Array<{
 			date: string;
 			count: number;
@@ -886,7 +888,6 @@ function WatchActivityHeatmap({
 			cursor.setDate(cursor.getDate() + 1);
 		}
 		weeks.push(week);
-		if (weeks.length >= HEATMAP_WEEKS + 1) break;
 	}
 
 	return (
