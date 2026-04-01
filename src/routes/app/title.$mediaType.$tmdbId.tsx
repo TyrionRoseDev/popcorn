@@ -122,6 +122,7 @@ function TitlePage() {
 						runtime={data.runtimeMinutes}
 						year={data.year}
 						reviewEventId={reviewEventId}
+						seasonList={data.seasonList}
 					/>
 				</div>
 

@@ -11,6 +11,7 @@ import {
 } from "#/components/ui/popover";
 import { RecommendModal } from "#/components/watched/recommend-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
+import { SeasonPickerModal } from "#/components/watched/season-picker-modal";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { CreateWatchlistDialog } from "#/components/watchlist/create-watchlist-dialog";
 import { useTRPC } from "#/integrations/trpc/react";
@@ -23,6 +24,11 @@ interface TitleActionsProps {
 	runtime: number | null;
 	year: string;
 	reviewEventId?: string;
+	seasonList?: Array<{
+		seasonNumber: number;
+		episodeCount: number;
+		name: string;
+	}>;
 }
 
 export function TitleActions({
@@ -33,11 +39,13 @@ export function TitleActions({
 	runtime,
 	year,
 	reviewEventId,
+	seasonList,
 }: TitleActionsProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 
+	const [seasonPickerOpen, setSeasonPickerOpen] = useState(false);
 	const [watchlistOpen, setWatchlistOpen] = useState(false);
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [inviteOpen, setInviteOpen] = useState(false);
@@ -172,6 +180,13 @@ export function TitleActions({
 	}
 
 	function handleWatched() {
+		// For TV shows that aren't yet watched, open season picker
+		if (mediaType === "tv" && !isWatched && seasonList) {
+			setSeasonPickerOpen(true);
+			return;
+		}
+
+		// Movies or unwatching: use existing quick toggle
 		quickWatchedMutation.mutate({
 			tmdbId,
 			mediaType,
@@ -179,6 +194,28 @@ export function TitleActions({
 			posterPath,
 			runtime: runtime ?? undefined,
 		});
+	}
+
+	function handleSeasonConfirm(selectedSeasons: number[]) {
+		quickWatchedMutation.mutate(
+			{
+				tmdbId,
+				mediaType,
+				titleName: title,
+				posterPath,
+				runtime: runtime ?? undefined,
+				watchedSeasons: selectedSeasons,
+				seasonEpisodeCounts: seasonList?.map((s) => ({
+					seasonNumber: s.seasonNumber,
+					episodeCount: s.episodeCount,
+				})),
+			},
+			{
+				onSuccess: () => {
+					setSeasonPickerOpen(false);
+				},
+			},
+		);
 	}
 
 	return (
@@ -315,6 +352,17 @@ export function TitleActions({
 				mediaType={mediaType}
 				titleName={title}
 			/>
+
+			{seasonList && (
+				<SeasonPickerModal
+					open={seasonPickerOpen}
+					onOpenChange={setSeasonPickerOpen}
+					titleName={title}
+					seasons={seasonList}
+					onConfirm={handleSeasonConfirm}
+					isPending={quickWatchedMutation.isPending}
+				/>
+			)}
 		</>
 	);
 }
