@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "./init";
 import { episodeTrackerRouter } from "./routers/episode-tracker";
 import { friendRouter } from "./routers/friend";
+import { journalEntryRouter } from "./routers/journal-entry";
 import { notificationRouter } from "./routers/notification";
 import { recommendationRouter } from "./routers/recommendation";
 import { searchRouter } from "./routers/search";
@@ -45,5 +46,6 @@ export const trpcRouter = createTRPCRouter({
 	watchlist: watchlistRouter,
 	user: userRouter,
 	episodeTracker: episodeTrackerRouter,
+	journalEntry: journalEntryRouter,
 });
 export type TRPCRouter = typeof trpcRouter;
