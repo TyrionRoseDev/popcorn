@@ -4,7 +4,7 @@ import {
 	Outlet,
 	redirect,
 } from "@tanstack/react-router";
-import { Bookmark, Rss, Search, Shuffle, Users } from "lucide-react";
+import { Bookmark, Rss, Search, Shuffle, Tv, Users } from "lucide-react";
 import { NotificationBell } from "#/components/notifications/notification-bell";
 import { RetroOverlays } from "#/components/retro-overlays";
 import BetterAuthHeader from "#/integrations/better-auth/header-user";
@@ -91,6 +91,13 @@ function AppLayout() {
 						>
 							<Rss className="h-3.5 w-3.5" />
 							Feed
+						</Link>
+						<Link
+							to="/app/tracker"
+							className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-cream/50 no-underline transition-colors hover:bg-cream/5 hover:text-cream/80 [&.active]:text-neon-cyan [&.active]:bg-neon-cyan/8"
+						>
+							<Tv className="h-3.5 w-3.5" />
+							Tracker
 						</Link>
 					</div>
 

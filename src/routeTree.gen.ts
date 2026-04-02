@@ -19,6 +19,7 @@ import { Route as AppSearchRouteImport } from './routes/app/search'
 import { Route as AppFriendsRouteImport } from './routes/app/friends'
 import { Route as AppFeedRouteImport } from './routes/app/feed'
 import { Route as AppWatchlistsIndexRouteImport } from './routes/app/watchlists/index'
+import { Route as AppTrackerIndexRouteImport } from './routes/app/tracker.index'
 import { Route as AppShuffleIndexRouteImport } from './routes/app/shuffle/index'
 import { Route as AppWatchlistsWatchlistIdRouteImport } from './routes/app/watchlists/$watchlistId'
 import { Route as AppShuffleHiddenRouteImport } from './routes/app/shuffle/hidden'
@@ -78,6 +79,11 @@ const AppFeedRoute = AppFeedRouteImport.update({
 const AppWatchlistsIndexRoute = AppWatchlistsIndexRouteImport.update({
   id: '/watchlists/',
   path: '/watchlists/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppTrackerIndexRoute = AppTrackerIndexRouteImport.update({
+  id: '/tracker/',
+  path: '/tracker/',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppShuffleIndexRoute = AppShuffleIndexRouteImport.update({
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle/': typeof AppShuffleIndexRoute
+  '/app/tracker/': typeof AppTrackerIndexRoute
   '/app/watchlists/': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -172,6 +179,7 @@ export interface FileRoutesByTo {
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle': typeof AppShuffleIndexRoute
+  '/app/tracker': typeof AppTrackerIndexRoute
   '/app/watchlists': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -195,6 +203,7 @@ export interface FileRoutesById {
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle/': typeof AppShuffleIndexRoute
+  '/app/tracker/': typeof AppTrackerIndexRoute
   '/app/watchlists/': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -219,6 +228,7 @@ export interface FileRouteTypes {
     | '/app/shuffle/hidden'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle/'
+    | '/app/tracker/'
     | '/app/watchlists/'
     | '/app/title/$mediaType/$tmdbId'
   fileRoutesByTo: FileRoutesByTo
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/app/shuffle/hidden'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle'
+    | '/app/tracker'
     | '/app/watchlists'
     | '/app/title/$mediaType/$tmdbId'
   id:
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/app/shuffle/hidden'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle/'
+    | '/app/tracker/'
     | '/app/watchlists/'
     | '/app/title/$mediaType/$tmdbId'
   fileRoutesById: FileRoutesById
@@ -347,6 +359,13 @@ declare module '@tanstack/react-router' {
       path: '/watchlists'
       fullPath: '/app/watchlists/'
       preLoaderRoute: typeof AppWatchlistsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/tracker/': {
+      id: '/app/tracker/'
+      path: '/tracker'
+      fullPath: '/app/tracker/'
+      preLoaderRoute: typeof AppTrackerIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/shuffle/': {
@@ -443,6 +462,7 @@ interface AppRouteRouteChildren {
   AppShuffleHiddenRoute: typeof AppShuffleHiddenRoute
   AppWatchlistsWatchlistIdRoute: typeof AppWatchlistsWatchlistIdRoute
   AppShuffleIndexRoute: typeof AppShuffleIndexRoute
+  AppTrackerIndexRoute: typeof AppTrackerIndexRoute
   AppWatchlistsIndexRoute: typeof AppWatchlistsIndexRoute
   AppTitleMediaTypeTmdbIdRoute: typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -456,6 +476,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppShuffleHiddenRoute: AppShuffleHiddenRoute,
   AppWatchlistsWatchlistIdRoute: AppWatchlistsWatchlistIdRoute,
   AppShuffleIndexRoute: AppShuffleIndexRoute,
+  AppTrackerIndexRoute: AppTrackerIndexRoute,
   AppWatchlistsIndexRoute: AppWatchlistsIndexRoute,
   AppTitleMediaTypeTmdbIdRoute: AppTitleMediaTypeTmdbIdRoute,
 }
