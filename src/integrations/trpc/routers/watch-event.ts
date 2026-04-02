@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "#/db";
 import {
 	friendship,
+	journalEntry,
 	watchEvent,
 	watchEventCompanion,
 	watchlist,
@@ -396,6 +397,24 @@ export const watchEventRouter = {
 				limit: input.limit + 1,
 			});
 
+			// Fetch public journal entries from user + friends
+			const journalEntries = await db.query.journalEntry.findMany({
+				where: and(
+					inArray(journalEntry.userId, userIds),
+					eq(journalEntry.isPublic, true),
+					...(cursorDate
+						? [sql`${journalEntry.createdAt} < ${cursorDate}`]
+						: []),
+				),
+				with: {
+					user: {
+						columns: { id: true, username: true, avatarUrl: true },
+					},
+				},
+				orderBy: (e, { desc }) => [desc(e.createdAt)],
+				limit: input.limit + 1,
+			});
+
 			// Merge and sort by timestamp
 			type FeedItem =
 				| {
@@ -407,6 +426,11 @@ export const watchEventRouter = {
 						type: "watchlist_created";
 						timestamp: Date;
 						data: (typeof watchlistCreations)[number];
+				  }
+				| {
+						type: "journal_entry";
+						timestamp: Date;
+						data: (typeof journalEntries)[number];
 				  };
 
 			const merged: FeedItem[] = [
@@ -419,6 +443,11 @@ export const watchEventRouter = {
 					type: "watchlist_created" as const,
 					timestamp: new Date(wl.createdAt),
 					data: wl,
+				})),
+				...journalEntries.map((je) => ({
+					type: "journal_entry" as const,
+					timestamp: new Date(je.createdAt),
+					data: je,
 				})),
 			].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
