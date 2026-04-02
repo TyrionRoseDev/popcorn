@@ -7,11 +7,13 @@ import {
 	CheckCheck,
 	Loader2,
 	Pen,
+	RotateCcw,
 	Trash2,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CompletionCelebration } from "#/components/tracker/completion-celebration";
+import { RewatchConfirmModal } from "#/components/tracker/rewatch-confirm-modal";
 import { SeasonSection } from "#/components/tracker/season-row";
 import { WriteAboutModal } from "#/components/tracker/write-about-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
@@ -29,6 +31,20 @@ function ShowTracker() {
 	const [reviewOpen, setReviewOpen] = useState(false);
 	const [showCelebration, setShowCelebration] = useState(false);
 	const [writeAboutOpen, setWriteAboutOpen] = useState(false);
+	const [rewatchOpen, setRewatchOpen] = useState(false);
+	const [selectedWatchNumber, setSelectedWatchNumber] = useState<number | null>(
+		null,
+	);
+
+	// Fetch current watch number (needed before getForShow)
+	const { data: watchNumberData } = useQuery(
+		trpc.episodeTracker.getWatchNumber.queryOptions({ tmdbId }),
+	);
+	const currentWatchNumber = watchNumberData?.currentWatchNumber ?? 1;
+
+	// Compute active watch number for the switcher
+	const activeWatchNumber = selectedWatchNumber ?? currentWatchNumber;
+	const isViewingOldWatch = activeWatchNumber < currentWatchNumber;
 
 	// Fetch show details
 	const { data: titleData, isLoading: isLoadingTitle } = useQuery(
@@ -37,7 +53,10 @@ function ShowTracker() {
 
 	// Fetch watched episodes
 	const { data: watchedRows, isLoading: isLoadingWatched } = useQuery(
-		trpc.episodeTracker.getForShow.queryOptions({ tmdbId }),
+		trpc.episodeTracker.getForShow.queryOptions({
+			tmdbId,
+			watchNumber: activeWatchNumber,
+		}),
 	);
 
 	// Fetch all season episodes from TMDB
@@ -166,6 +185,30 @@ function ShowTracker() {
 		trpc.watchEvent.create.mutationOptions({
 			onError: () => {
 				toast.error("Failed to set reminder");
+			},
+		}),
+	);
+
+	const startRewatchMut = useMutation(
+		trpc.episodeTracker.startRewatch.mutationOptions({
+			onSuccess: (data) => {
+				queryClient.invalidateQueries(
+					trpc.episodeTracker.getForShow.queryFilter(),
+				);
+				queryClient.invalidateQueries(
+					trpc.episodeTracker.getTrackedShows.queryFilter(),
+				);
+				queryClient.invalidateQueries(
+					trpc.episodeTracker.getWatchNumber.queryFilter(),
+				);
+				setRewatchOpen(false);
+				setSelectedWatchNumber(null);
+				toast.success(
+					`Rewatch started — you're on Watch ${data.currentWatchNumber}`,
+				);
+			},
+			onError: () => {
+				toast.error("Failed to start rewatch");
 			},
 		}),
 	);
@@ -411,29 +454,89 @@ function ShowTracker() {
 					</div>
 
 					{/* Action buttons */}
-					<div className="flex items-center gap-3 mb-10">
-						<button
-							type="button"
-							onClick={() => setWriteAboutOpen(true)}
-							className="flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase text-neon-pink transition-colors hover:bg-neon-pink/10"
-							style={{ border: "1px solid rgba(255,45,120,0.2)" }}
-						>
-							<Pen className="h-3.5 w-3.5" />
-							Write
-						</button>
-						{totalEpisodes > 0 && watchedCount < totalEpisodes && (
+					{!isViewingOldWatch && (
+						<div className="flex items-center gap-3 mb-10">
 							<button
 								type="button"
-								onClick={handleMarkAll}
-								disabled={markEpisodes.isPending}
-								className="flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase text-neon-amber transition-colors hover:bg-neon-amber/10 disabled:opacity-40 disabled:pointer-events-none"
-								style={{ border: "1px solid rgba(255,184,0,0.2)" }}
+								onClick={() => setWriteAboutOpen(true)}
+								className="flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase text-neon-pink transition-colors hover:bg-neon-pink/10"
+								style={{ border: "1px solid rgba(255,45,120,0.2)" }}
 							>
-								<CheckCheck className="h-3.5 w-3.5" />
-								Mark All
+								<Pen className="h-3.5 w-3.5" />
+								Write
 							</button>
-						)}
-					</div>
+							{totalEpisodes > 0 && watchedCount < totalEpisodes && (
+								<button
+									type="button"
+									onClick={handleMarkAll}
+									disabled={markEpisodes.isPending}
+									className="flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase text-neon-amber transition-colors hover:bg-neon-amber/10 disabled:opacity-40 disabled:pointer-events-none"
+									style={{ border: "1px solid rgba(255,184,0,0.2)" }}
+								>
+									<CheckCheck className="h-3.5 w-3.5" />
+									Mark All
+								</button>
+							)}
+							<button
+								type="button"
+								onClick={() => setRewatchOpen(true)}
+								className="flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase text-neon-pink transition-colors hover:bg-neon-pink/10"
+								style={{ border: "1px solid rgba(255,45,120,0.2)" }}
+							>
+								<RotateCcw className="h-3.5 w-3.5" />
+								Rewatch
+							</button>
+						</div>
+					)}
+
+					{/* Watch-through switcher */}
+					{currentWatchNumber > 1 && (
+						<div className="mb-10">
+							<div className="flex items-center gap-2 flex-wrap">
+								{Array.from(
+									{ length: currentWatchNumber },
+									(_, i) => i + 1,
+								).map((num) => {
+									const isActive = num === activeWatchNumber;
+									return (
+										<button
+											key={num}
+											type="button"
+											onClick={() =>
+												setSelectedWatchNumber(
+													num === currentWatchNumber ? null : num,
+												)
+											}
+											className="rounded-full px-3 py-1 text-[10px] font-mono-retro tracking-wider uppercase transition-all duration-200"
+											style={{
+												color: isActive ? "#FF2D78" : "rgba(255,255,240,0.3)",
+												background: isActive
+													? "rgba(255,45,120,0.15)"
+													: "transparent",
+												border: isActive
+													? "1px solid rgba(255,45,120,0.3)"
+													: "1px solid rgba(255,255,240,0.1)",
+												textShadow: isActive
+													? "0 0 8px rgba(255,45,120,0.3)"
+													: "none",
+											}}
+										>
+											{num === 1 ? "Watch 1" : `Rewatch ${num}`}
+										</button>
+									);
+								})}
+							</div>
+							{isViewingOldWatch && (
+								<p className="mt-2 text-[10px] font-mono-retro tracking-wider text-cream/25">
+									Viewing{" "}
+									{activeWatchNumber === 1
+										? "Watch 1"
+										: `Rewatch ${activeWatchNumber}`}{" "}
+									(read-only)
+								</p>
+							)}
+						</div>
+					)}
 
 					{/* ── Episode List by Season ── */}
 					<div className="space-y-10">
@@ -447,6 +550,7 @@ function ShowTracker() {
 								watchedEpisodes={watchedSet}
 								onMark={handleMark}
 								onUnmark={handleUnmark}
+								readOnly={isViewingOldWatch}
 							/>
 						))}
 					</div>
@@ -572,6 +676,21 @@ function ShowTracker() {
 					}))}
 				/>
 			)}
+
+			{/* Rewatch confirmation modal */}
+			<RewatchConfirmModal
+				open={rewatchOpen}
+				onOpenChange={setRewatchOpen}
+				titleName={titleData?.title ?? ""}
+				isComplete={isComplete}
+				watchedCount={watchedCount}
+				totalEpisodes={totalEpisodes}
+				currentWatchNumber={currentWatchNumber}
+				onConfirm={() => {
+					startRewatchMut.mutate({ tmdbId });
+				}}
+				isPending={startRewatchMut.isPending}
+			/>
 		</div>
 	);
 }
@@ -587,6 +706,7 @@ interface NotesAndReviewsSectionProps {
 		note: string;
 		isPublic: boolean;
 		createdAt: Date;
+		watchNumber: number;
 	}>;
 	watchEvents: Array<{
 		id: string;
@@ -597,6 +717,7 @@ interface NotesAndReviewsSectionProps {
 		scopeEpisodeNumber: number | null;
 		watchedAt: Date;
 		createdAt: Date;
+		watchNumber: number;
 	}>;
 }
 
@@ -765,6 +886,11 @@ function NotesAndReviewsSection({
 												entry.episodeNumber,
 											)}
 										</span>
+										<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-pink/[0.06] font-mono-retro text-[9px] tracking-wider text-neon-pink/40">
+											{entry.watchNumber === 1
+												? "Watch 1"
+												: `Rewatch ${entry.watchNumber}`}
+										</span>
 										<span className="font-mono-retro text-[9px] text-cream/20">
 											{formatRelativeDate(entry.createdAt)}
 										</span>
@@ -816,6 +942,11 @@ function NotesAndReviewsSection({
 											event.scopeSeasonNumber,
 											event.scopeEpisodeNumber,
 										)}
+									</span>
+									<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-pink/[0.06] font-mono-retro text-[9px] tracking-wider text-neon-pink/40">
+										{event.watchNumber === 1
+											? "Watch 1"
+											: `Rewatch ${event.watchNumber}`}
 									</span>
 									<span className="font-mono-retro text-[9px] text-cream/20">
 										{formatRelativeDate(event.createdAt)}

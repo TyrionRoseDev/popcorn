@@ -21,6 +21,7 @@ interface SeasonSectionProps {
 		}>,
 	) => void;
 	onUnmark: (episode: { seasonNumber: number; episodeNumber: number }) => void;
+	readOnly?: boolean;
 }
 
 export function SeasonSection({
@@ -30,6 +31,7 @@ export function SeasonSection({
 	watchedEpisodes,
 	onMark,
 	onUnmark,
+	readOnly,
 }: SeasonSectionProps) {
 	const [collapsed, setCollapsed] = useState(false);
 	const [justMarked, setJustMarked] = useState<Set<string>>(new Set());
@@ -83,6 +85,7 @@ export function SeasonSection({
 	}
 
 	function handleEpisodeClick(ep: (typeof episodes)[number]) {
+		if (readOnly) return;
 		const key = `S${seasonNumber}E${ep.episodeNumber}`;
 		if (watchedEpisodes.has(key)) {
 			onUnmark({ seasonNumber, episodeNumber: ep.episodeNumber });
@@ -117,7 +120,7 @@ export function SeasonSection({
 					{allWatched && <Trophy className="h-3.5 w-3.5 text-neon-amber/60" />}
 				</div>
 				<div className="flex items-center gap-2">
-					{!allWatched && (
+					{!allWatched && !readOnly && (
 						<button
 							type="button"
 							onClick={(e) => {
