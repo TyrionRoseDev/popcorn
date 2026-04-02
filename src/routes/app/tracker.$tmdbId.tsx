@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { CompletionCelebration } from "#/components/tracker/completion-celebration";
 import { SeasonSection } from "#/components/tracker/season-row";
 import { WriteAboutModal } from "#/components/tracker/write-about-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
@@ -26,6 +27,7 @@ function ShowTracker() {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	const [reviewOpen, setReviewOpen] = useState(false);
+	const [showCelebration, setShowCelebration] = useState(false);
 	const [writeAboutOpen, setWriteAboutOpen] = useState(false);
 
 	// Fetch show details
@@ -132,7 +134,7 @@ function ShowTracker() {
 						newWatchedSet.has(`S${ep.seasonNumber}E${ep.episodeNumber}`),
 					);
 				if (isNowComplete && !hasShowReview) {
-					setReviewOpen(true);
+					setShowCelebration(true);
 				}
 			},
 			onError: () => {
@@ -504,6 +506,18 @@ function ShowTracker() {
 						)}
 					/>
 				</div>
+			)}
+
+			{/* Completion celebration */}
+			{titleData && (
+				<CompletionCelebration
+					open={showCelebration}
+					onOpenChange={setShowCelebration}
+					titleName={titleData.title}
+					posterPath={titleData.posterPath ?? null}
+					episodeCount={totalEpisodes}
+					onReview={() => setReviewOpen(true)}
+				/>
 			)}
 
 			{/* Completion review prompt */}

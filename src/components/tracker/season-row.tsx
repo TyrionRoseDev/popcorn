@@ -1,5 +1,5 @@
 import { Check, CheckCheck, ChevronDown, Circle, Trophy } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 interface SeasonSectionProps {
 	tmdbId: number;
@@ -32,6 +32,32 @@ export function SeasonSection({
 	onUnmark,
 }: SeasonSectionProps) {
 	const [collapsed, setCollapsed] = useState(false);
+	const [justMarked, setJustMarked] = useState<Set<string>>(new Set());
+	const justMarkedTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+		new Map(),
+	);
+
+	const markWithAnimation = useCallback((keys: string[]) => {
+		setJustMarked((prev) => {
+			const next = new Set(prev);
+			for (const k of keys) next.add(k);
+			return next;
+		});
+		for (const key of keys) {
+			// Clear any existing timer for this key
+			const existing = justMarkedTimers.current.get(key);
+			if (existing) clearTimeout(existing);
+			const timer = setTimeout(() => {
+				setJustMarked((prev) => {
+					const next = new Set(prev);
+					next.delete(key);
+					return next;
+				});
+				justMarkedTimers.current.delete(key);
+			}, 500);
+			justMarkedTimers.current.set(key, timer);
+		}
+	}, []);
 
 	const watchedCount = episodes.filter((ep) =>
 		watchedEpisodes.has(`S${seasonNumber}E${ep.episodeNumber}`),
@@ -44,6 +70,9 @@ export function SeasonSection({
 			(ep) => !watchedEpisodes.has(`S${seasonNumber}E${ep.episodeNumber}`),
 		);
 		if (unwatched.length === 0) return;
+		markWithAnimation(
+			unwatched.map((ep) => `S${seasonNumber}E${ep.episodeNumber}`),
+		);
 		onMark(
 			unwatched.map((ep) => ({
 				seasonNumber: ep.seasonNumber,
@@ -58,6 +87,7 @@ export function SeasonSection({
 		if (watchedEpisodes.has(key)) {
 			onUnmark({ seasonNumber, episodeNumber: ep.episodeNumber });
 		} else {
+			markWithAnimation([key]);
 			onMark([
 				{
 					seasonNumber: ep.seasonNumber,
@@ -113,13 +143,14 @@ export function SeasonSection({
 					{episodes.map((ep) => {
 						const key = `S${seasonNumber}E${ep.episodeNumber}`;
 						const isWatched = watchedEpisodes.has(key);
+						const isJustMarked = justMarked.has(key);
 
 						return (
 							<button
 								key={key}
 								type="button"
 								onClick={() => handleEpisodeClick(ep)}
-								className="flex w-full items-center gap-3 px-2 py-2.5 text-left transition-colors duration-150 hover:bg-cream/[0.03] rounded"
+								className={`flex w-full items-center gap-3 px-2 py-2.5 text-left transition-colors duration-150 hover:bg-cream/[0.03] rounded${isJustMarked ? " episode-row-flash" : ""}`}
 								style={{
 									borderBottom: "1px solid rgba(255,255,240,0.03)",
 									background: isWatched
@@ -130,7 +161,10 @@ export function SeasonSection({
 								{/* Watch indicator */}
 								{isWatched ? (
 									<div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-neon-cyan/15">
-										<Check className="h-3 w-3 text-neon-cyan" strokeWidth={3} />
+										<Check
+											className={`h-3 w-3 text-neon-cyan${isJustMarked ? " episode-check-bounce" : ""}`}
+											strokeWidth={3}
+										/>
 									</div>
 								) : (
 									<Circle className="h-5 w-5 shrink-0 text-cream/15" />
