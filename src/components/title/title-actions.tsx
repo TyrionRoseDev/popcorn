@@ -38,7 +38,6 @@ export function TitleActions({
 	runtime,
 	year,
 	reviewEventId,
-	seasonList,
 }: TitleActionsProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
