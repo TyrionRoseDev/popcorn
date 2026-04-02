@@ -3,11 +3,26 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
-import { episodeWatch, journalEntry } from "#/db/schema";
+import { episodeWatch, journalEntry, userTitle } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
 import { fetchAllSeasons, fetchSeasonDetails } from "#/lib/tmdb-title";
 
 export const episodeTrackerRouter = {
+	/** Add a show to the tracker (creates a userTitle record) */
+	addShow: protectedProcedure
+		.input(z.object({ tmdbId: z.number() }))
+		.mutation(async ({ input, ctx }) => {
+			await db
+				.insert(userTitle)
+				.values({
+					userId: ctx.userId,
+					tmdbId: input.tmdbId,
+					mediaType: "tv",
+				})
+				.onConflictDoNothing();
+			return { success: true };
+		}),
+
 	/** Mark individual episodes as watched */
 	markEpisodes: protectedProcedure
 		.input(
@@ -105,7 +120,18 @@ export const episodeTrackerRouter = {
 			.where(eq(journalEntry.userId, ctx.userId))
 			.groupBy(journalEntry.tmdbId);
 
-		// Merge: episode shows take priority, add journal-only shows with 0 episodes
+		// Shows added to tracker (via "Watched" button on title page)
+		const trackedShows = await db
+			.select({
+				tmdbId: userTitle.tmdbId,
+				lastCreatedAt: sql<string>`${userTitle.createdAt}`,
+			})
+			.from(userTitle)
+			.where(
+				and(eq(userTitle.userId, ctx.userId), eq(userTitle.mediaType, "tv")),
+			);
+
+		// Merge: episode shows take priority, then journal-only, then tracker-only
 		const episodeTmdbIds = new Set(episodeShows.map((s) => s.tmdbId));
 		const journalOnly = journalOnlyShows
 			.filter((s) => !episodeTmdbIds.has(s.tmdbId))
@@ -116,7 +142,20 @@ export const episodeTrackerRouter = {
 				lastWatchedAt: s.lastCreatedAt,
 			}));
 
-		return [...episodeShows, ...journalOnly].sort(
+		const knownTmdbIds = new Set([
+			...episodeTmdbIds,
+			...journalOnly.map((s) => s.tmdbId),
+		]);
+		const trackerOnly = trackedShows
+			.filter((s) => !knownTmdbIds.has(s.tmdbId))
+			.map((s) => ({
+				tmdbId: s.tmdbId,
+				episodeCount: 0,
+				totalRuntime: 0,
+				lastWatchedAt: s.lastCreatedAt,
+			}));
+
+		return [...episodeShows, ...journalOnly, ...trackerOnly].sort(
 			(a, b) =>
 				new Date(b.lastWatchedAt).getTime() -
 				new Date(a.lastWatchedAt).getTime(),
@@ -191,6 +230,15 @@ export const episodeTrackerRouter = {
 					and(
 						eq(journalEntry.userId, ctx.userId),
 						eq(journalEntry.tmdbId, input.tmdbId),
+					),
+				);
+			await db
+				.delete(userTitle)
+				.where(
+					and(
+						eq(userTitle.userId, ctx.userId),
+						eq(userTitle.tmdbId, input.tmdbId),
+						eq(userTitle.mediaType, "tv"),
 					),
 				);
 			return { success: true };

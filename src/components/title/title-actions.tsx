@@ -218,9 +218,20 @@ export function TitleActions({
 		);
 	}
 
+	const addToTracker = useMutation(
+		trpc.episodeTracker.addShow.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					trpc.episodeTracker.getTrackedShows.queryFilter(),
+				);
+			},
+		}),
+	);
+
 	function handleWatched() {
-		// For TV shows, redirect to episode tracker
+		// For TV shows, add to tracker and redirect
 		if (mediaType === "tv") {
+			addToTracker.mutate({ tmdbId });
 			navigate({
 				to: "/app/tracker/$tmdbId",
 				params: { tmdbId: String(tmdbId) },
