@@ -23,6 +23,47 @@ export const episodeTrackerRouter = {
 			return { success: true };
 		}),
 
+	/** Increment currentWatchNumber to start a new rewatch */
+	startRewatch: protectedProcedure
+		.input(z.object({ tmdbId: z.number() }))
+		.mutation(async ({ input, ctx }) => {
+			const [updated] = await db
+				.update(userTitle)
+				.set({
+					currentWatchNumber: sql`${userTitle.currentWatchNumber} + 1`,
+				})
+				.where(
+					and(
+						eq(userTitle.userId, ctx.userId),
+						eq(userTitle.tmdbId, input.tmdbId),
+						eq(userTitle.mediaType, "tv"),
+					),
+				)
+				.returning({ currentWatchNumber: userTitle.currentWatchNumber });
+			if (!updated) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Show not found in tracker",
+				});
+			}
+			return { currentWatchNumber: updated.currentWatchNumber };
+		}),
+
+	/** Get the current watch number for a show */
+	getWatchNumber: protectedProcedure
+		.input(z.object({ tmdbId: z.number() }))
+		.query(async ({ input, ctx }) => {
+			const title = await db.query.userTitle.findFirst({
+				where: and(
+					eq(userTitle.userId, ctx.userId),
+					eq(userTitle.tmdbId, input.tmdbId),
+					eq(userTitle.mediaType, "tv"),
+				),
+				columns: { currentWatchNumber: true },
+			});
+			return { currentWatchNumber: title?.currentWatchNumber ?? 1 };
+		}),
+
 	/** Mark individual episodes as watched */
 	markEpisodes: protectedProcedure
 		.input(
@@ -39,6 +80,16 @@ export const episodeTrackerRouter = {
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			const title = await db.query.userTitle.findFirst({
+				where: and(
+					eq(userTitle.userId, ctx.userId),
+					eq(userTitle.tmdbId, input.tmdbId),
+					eq(userTitle.mediaType, "tv"),
+				),
+				columns: { currentWatchNumber: true },
+			});
+			const watchNum = title?.currentWatchNumber ?? 1;
+
 			const values = input.episodes.map((ep) => ({
 				userId: ctx.userId,
 				tmdbId: input.tmdbId,
@@ -46,6 +97,7 @@ export const episodeTrackerRouter = {
 				episodeNumber: ep.episodeNumber,
 				runtime: ep.runtime,
 				watchEventId: input.watchEventId ?? null,
+				watchNumber: watchNum,
 			}));
 			await db.insert(episodeWatch).values(values).onConflictDoNothing();
 			return { marked: input.episodes.length };
@@ -61,6 +113,16 @@ export const episodeTrackerRouter = {
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			const title = await db.query.userTitle.findFirst({
+				where: and(
+					eq(userTitle.userId, ctx.userId),
+					eq(userTitle.tmdbId, input.tmdbId),
+					eq(userTitle.mediaType, "tv"),
+				),
+				columns: { currentWatchNumber: true },
+			});
+			const watchNum = title?.currentWatchNumber ?? 1;
+
 			const deleted = await db
 				.delete(episodeWatch)
 				.where(
@@ -69,6 +131,7 @@ export const episodeTrackerRouter = {
 						eq(episodeWatch.tmdbId, input.tmdbId),
 						eq(episodeWatch.seasonNumber, input.seasonNumber),
 						eq(episodeWatch.episodeNumber, input.episodeNumber),
+						eq(episodeWatch.watchNumber, watchNum),
 					),
 				)
 				.returning();
@@ -83,32 +146,69 @@ export const episodeTrackerRouter = {
 
 	/** Get all watched episodes for a specific show */
 	getForShow: protectedProcedure
-		.input(z.object({ tmdbId: z.number() }))
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				watchNumber: z.number().optional(),
+			}),
+		)
 		.query(async ({ input, ctx }) => {
-			const episodes = await db.query.episodeWatch.findMany({
+			let targetWatchNumber = input.watchNumber;
+			if (targetWatchNumber == null) {
+				const title = await db.query.userTitle.findFirst({
+					where: and(
+						eq(userTitle.userId, ctx.userId),
+						eq(userTitle.tmdbId, input.tmdbId),
+						eq(userTitle.mediaType, "tv"),
+					),
+					columns: { currentWatchNumber: true },
+				});
+				targetWatchNumber = title?.currentWatchNumber ?? 1;
+			}
+			return db.query.episodeWatch.findMany({
 				where: and(
 					eq(episodeWatch.userId, ctx.userId),
 					eq(episodeWatch.tmdbId, input.tmdbId),
+					eq(episodeWatch.watchNumber, targetWatchNumber),
 				),
 				orderBy: [episodeWatch.seasonNumber, episodeWatch.episodeNumber],
 			});
-			return episodes;
 		}),
 
 	/** Get all tracked shows for the dashboard */
 	getTrackedShows: protectedProcedure.query(async ({ ctx }) => {
-		// Shows with episode watches
-		const episodeShows = await db
+		// Fetch user titles with currentWatchNumber
+		const trackedShows = await db
+			.select({
+				tmdbId: userTitle.tmdbId,
+				currentWatchNumber: userTitle.currentWatchNumber,
+				createdAt: sql<string>`${userTitle.createdAt}`,
+			})
+			.from(userTitle)
+			.where(
+				and(eq(userTitle.userId, ctx.userId), eq(userTitle.mediaType, "tv")),
+			);
+		const watchNumMap = new Map(
+			trackedShows.map((t) => [t.tmdbId, t.currentWatchNumber]),
+		);
+
+		// Episode watches grouped by tmdbId + watchNumber
+		const episodeRows = await db
 			.select({
 				tmdbId: episodeWatch.tmdbId,
+				watchNumber: episodeWatch.watchNumber,
 				episodeCount: sql<number>`count(*)::int`,
 				totalRuntime: sql<number>`coalesce(sum(${episodeWatch.runtime}), 0)::int`,
 				lastWatchedAt: sql<string>`max(${episodeWatch.watchedAt})`,
 			})
 			.from(episodeWatch)
 			.where(eq(episodeWatch.userId, ctx.userId))
-			.groupBy(episodeWatch.tmdbId)
-			.orderBy(sql`max(${episodeWatch.watchedAt}) desc`);
+			.groupBy(episodeWatch.tmdbId, episodeWatch.watchNumber);
+
+		// Keep only rows matching the current watch-through
+		const episodeShows = episodeRows
+			.filter((r) => r.watchNumber === (watchNumMap.get(r.tmdbId) ?? 1))
+			.map(({ watchNumber: _, ...rest }) => rest);
 
 		// Shows with only journal entries (no episode watches)
 		const journalOnlyShows = await db
@@ -120,17 +220,6 @@ export const episodeTrackerRouter = {
 			.where(eq(journalEntry.userId, ctx.userId))
 			.groupBy(journalEntry.tmdbId);
 
-		// Shows added to tracker (via "Watched" button on title page)
-		const trackedShows = await db
-			.select({
-				tmdbId: userTitle.tmdbId,
-				lastCreatedAt: sql<string>`${userTitle.createdAt}`,
-			})
-			.from(userTitle)
-			.where(
-				and(eq(userTitle.userId, ctx.userId), eq(userTitle.mediaType, "tv")),
-			);
-
 		// Merge: episode shows take priority, then journal-only, then tracker-only
 		const episodeTmdbIds = new Set(episodeShows.map((s) => s.tmdbId));
 		const journalOnly = journalOnlyShows
@@ -140,6 +229,7 @@ export const episodeTrackerRouter = {
 				episodeCount: 0,
 				totalRuntime: 0,
 				lastWatchedAt: s.lastCreatedAt,
+				currentWatchNumber: watchNumMap.get(s.tmdbId) ?? 1,
 			}));
 
 		const knownTmdbIds = new Set([
@@ -152,10 +242,16 @@ export const episodeTrackerRouter = {
 				tmdbId: s.tmdbId,
 				episodeCount: 0,
 				totalRuntime: 0,
-				lastWatchedAt: s.lastCreatedAt,
+				lastWatchedAt: s.createdAt,
+				currentWatchNumber: s.currentWatchNumber,
 			}));
 
-		return [...episodeShows, ...journalOnly, ...trackerOnly].sort(
+		const withWatchNum = episodeShows.map((s) => ({
+			...s,
+			currentWatchNumber: watchNumMap.get(s.tmdbId) ?? 1,
+		}));
+
+		return [...withWatchNum, ...journalOnly, ...trackerOnly].sort(
 			(a, b) =>
 				new Date(b.lastWatchedAt).getTime() -
 				new Date(a.lastWatchedAt).getTime(),
