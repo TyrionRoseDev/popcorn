@@ -19,8 +19,10 @@ import { Route as AppSearchRouteImport } from './routes/app/search'
 import { Route as AppFriendsRouteImport } from './routes/app/friends'
 import { Route as AppFeedRouteImport } from './routes/app/feed'
 import { Route as AppWatchlistsIndexRouteImport } from './routes/app/watchlists/index'
+import { Route as AppTrackerIndexRouteImport } from './routes/app/tracker.index'
 import { Route as AppShuffleIndexRouteImport } from './routes/app/shuffle/index'
 import { Route as AppWatchlistsWatchlistIdRouteImport } from './routes/app/watchlists/$watchlistId'
+import { Route as AppTrackerTmdbIdRouteImport } from './routes/app/tracker.$tmdbId'
 import { Route as AppShuffleHiddenRouteImport } from './routes/app/shuffle/hidden'
 import { Route as AppSettingsBlockedRouteImport } from './routes/app/settings/blocked'
 import { Route as AppProfileUserIdRouteImport } from './routes/app/profile.$userId'
@@ -80,6 +82,11 @@ const AppWatchlistsIndexRoute = AppWatchlistsIndexRouteImport.update({
   path: '/watchlists/',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppTrackerIndexRoute = AppTrackerIndexRouteImport.update({
+  id: '/tracker/',
+  path: '/tracker/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppShuffleIndexRoute = AppShuffleIndexRouteImport.update({
   id: '/shuffle/',
   path: '/shuffle/',
@@ -91,6 +98,11 @@ const AppWatchlistsWatchlistIdRoute =
     path: '/watchlists/$watchlistId',
     getParentRoute: () => AppRouteRoute,
   } as any)
+const AppTrackerTmdbIdRoute = AppTrackerTmdbIdRouteImport.update({
+  id: '/tracker/$tmdbId',
+  path: '/tracker/$tmdbId',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppShuffleHiddenRoute = AppShuffleHiddenRouteImport.update({
   id: '/shuffle/hidden',
   path: '/shuffle/hidden',
@@ -149,8 +161,10 @@ export interface FileRoutesByFullPath {
   '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/settings/blocked': typeof AppSettingsBlockedRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
+  '/app/tracker/$tmdbId': typeof AppTrackerTmdbIdRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle/': typeof AppShuffleIndexRoute
+  '/app/tracker/': typeof AppTrackerIndexRoute
   '/app/watchlists/': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -170,8 +184,10 @@ export interface FileRoutesByTo {
   '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/settings/blocked': typeof AppSettingsBlockedRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
+  '/app/tracker/$tmdbId': typeof AppTrackerTmdbIdRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle': typeof AppShuffleIndexRoute
+  '/app/tracker': typeof AppTrackerIndexRoute
   '/app/watchlists': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -193,8 +209,10 @@ export interface FileRoutesById {
   '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/settings/blocked': typeof AppSettingsBlockedRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
+  '/app/tracker/$tmdbId': typeof AppTrackerTmdbIdRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle/': typeof AppShuffleIndexRoute
+  '/app/tracker/': typeof AppTrackerIndexRoute
   '/app/watchlists/': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -217,8 +235,10 @@ export interface FileRouteTypes {
     | '/app/profile/$userId'
     | '/app/settings/blocked'
     | '/app/shuffle/hidden'
+    | '/app/tracker/$tmdbId'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle/'
+    | '/app/tracker/'
     | '/app/watchlists/'
     | '/app/title/$mediaType/$tmdbId'
   fileRoutesByTo: FileRoutesByTo
@@ -238,8 +258,10 @@ export interface FileRouteTypes {
     | '/app/profile/$userId'
     | '/app/settings/blocked'
     | '/app/shuffle/hidden'
+    | '/app/tracker/$tmdbId'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle'
+    | '/app/tracker'
     | '/app/watchlists'
     | '/app/title/$mediaType/$tmdbId'
   id:
@@ -260,8 +282,10 @@ export interface FileRouteTypes {
     | '/app/profile/$userId'
     | '/app/settings/blocked'
     | '/app/shuffle/hidden'
+    | '/app/tracker/$tmdbId'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle/'
+    | '/app/tracker/'
     | '/app/watchlists/'
     | '/app/title/$mediaType/$tmdbId'
   fileRoutesById: FileRoutesById
@@ -349,6 +373,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWatchlistsIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/tracker/': {
+      id: '/app/tracker/'
+      path: '/tracker'
+      fullPath: '/app/tracker/'
+      preLoaderRoute: typeof AppTrackerIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/shuffle/': {
       id: '/app/shuffle/'
       path: '/shuffle'
@@ -361,6 +392,13 @@ declare module '@tanstack/react-router' {
       path: '/watchlists/$watchlistId'
       fullPath: '/app/watchlists/$watchlistId'
       preLoaderRoute: typeof AppWatchlistsWatchlistIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/tracker/$tmdbId': {
+      id: '/app/tracker/$tmdbId'
+      path: '/tracker/$tmdbId'
+      fullPath: '/app/tracker/$tmdbId'
+      preLoaderRoute: typeof AppTrackerTmdbIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/shuffle/hidden': {
@@ -441,8 +479,10 @@ interface AppRouteRouteChildren {
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppProfileUserIdRoute: typeof AppProfileUserIdRoute
   AppShuffleHiddenRoute: typeof AppShuffleHiddenRoute
+  AppTrackerTmdbIdRoute: typeof AppTrackerTmdbIdRoute
   AppWatchlistsWatchlistIdRoute: typeof AppWatchlistsWatchlistIdRoute
   AppShuffleIndexRoute: typeof AppShuffleIndexRoute
+  AppTrackerIndexRoute: typeof AppTrackerIndexRoute
   AppWatchlistsIndexRoute: typeof AppWatchlistsIndexRoute
   AppTitleMediaTypeTmdbIdRoute: typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -454,8 +494,10 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppProfileUserIdRoute: AppProfileUserIdRoute,
   AppShuffleHiddenRoute: AppShuffleHiddenRoute,
+  AppTrackerTmdbIdRoute: AppTrackerTmdbIdRoute,
   AppWatchlistsWatchlistIdRoute: AppWatchlistsWatchlistIdRoute,
   AppShuffleIndexRoute: AppShuffleIndexRoute,
+  AppTrackerIndexRoute: AppTrackerIndexRoute,
   AppWatchlistsIndexRoute: AppWatchlistsIndexRoute,
   AppTitleMediaTypeTmdbIdRoute: AppTitleMediaTypeTmdbIdRoute,
 }

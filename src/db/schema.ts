@@ -120,6 +120,7 @@ export const userTitle = pgTable(
 		tmdbId: integer("tmdb_id").notNull(),
 		mediaType: text("media_type").notNull(), // 'movie' | 'tv'
 		createdAt: timestamp("created_at").defaultNow().notNull(),
+		currentWatchNumber: integer("current_watch_number").default(1).notNull(),
 	},
 	(table) => [
 		uniqueIndex("user_title_unique").on(
@@ -282,6 +283,10 @@ export const watchEvent = pgTable(
 		title: text("title"),
 		note: text("note"),
 		posterPath: text("poster_path"),
+		scope: text("scope"), // 'episode' | 'season' | 'show' | null (null = legacy/film)
+		scopeSeasonNumber: integer("scope_season_number"),
+		scopeEpisodeNumber: integer("scope_episode_number"),
+		watchNumber: integer("watch_number").default(1).notNull(),
 		genreIds: jsonb("genre_ids").$type<number[]>(),
 		watchedAt: timestamp("watched_at").notNull(),
 		reviewReminderAt: timestamp("review_reminder_at"),
@@ -435,6 +440,68 @@ export const watchEventCompanion = pgTable(
 	(table) => [index("watch_event_companion_event_idx").on(table.watchEventId)],
 );
 
+export const episodeWatch = pgTable(
+	"episode_watch",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		tmdbId: integer("tmdb_id").notNull(),
+		seasonNumber: integer("season_number").notNull(),
+		episodeNumber: integer("episode_number").notNull(),
+		runtime: integer("runtime").notNull(),
+		watchedAt: timestamp("watched_at").defaultNow().notNull(),
+		watchEventId: text("watch_event_id").references(() => watchEvent.id, {
+			onDelete: "set null",
+		}),
+		watchNumber: integer("watch_number").default(1).notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("episode_watch_unique").on(
+			table.userId,
+			table.tmdbId,
+			table.seasonNumber,
+			table.episodeNumber,
+			table.watchNumber,
+		),
+		index("episode_watch_userId_idx").on(table.userId),
+		index("episode_watch_tmdbId_idx").on(table.userId, table.tmdbId),
+	],
+);
+
+export const journalEntry = pgTable(
+	"journal_entry",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		tmdbId: integer("tmdb_id").notNull(),
+		titleName: text("title_name").notNull(),
+		scope: text("scope").notNull(), // 'episode' | 'season' | 'show'
+		seasonNumber: integer("season_number"),
+		episodeNumber: integer("episode_number"),
+		note: text("note").notNull(),
+		isPublic: boolean("is_public").default(false).notNull(),
+		watchNumber: integer("watch_number").default(1).notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at")
+			.defaultNow()
+			.notNull()
+			.$onUpdate(() => new Date()),
+	},
+	(table) => [
+		index("journal_entry_userId_idx").on(table.userId),
+		index("journal_entry_tmdbId_idx").on(table.userId, table.tmdbId),
+	],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
@@ -462,6 +529,8 @@ export const userRelations = relations(user, ({ many }) => ({
 	receivedRecommendations: many(recommendation, {
 		relationName: "receivedRecommendations",
 	}),
+	episodeWatches: many(episodeWatch),
+	journalEntries: many(journalEntry),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -585,6 +654,7 @@ export const watchEventRelations = relations(watchEvent, ({ one, many }) => ({
 		references: [user.id],
 	}),
 	companions: many(watchEventCompanion),
+	episodeWatches: many(episodeWatch),
 }));
 
 export const watchEventCompanionRelations = relations(
@@ -611,5 +681,23 @@ export const recommendationRelations = relations(recommendation, ({ one }) => ({
 		fields: [recommendation.recipientId],
 		references: [user.id],
 		relationName: "receivedRecommendations",
+	}),
+}));
+
+export const episodeWatchRelations = relations(episodeWatch, ({ one }) => ({
+	user: one(user, {
+		fields: [episodeWatch.userId],
+		references: [user.id],
+	}),
+	watchEvent: one(watchEvent, {
+		fields: [episodeWatch.watchEventId],
+		references: [watchEvent.id],
+	}),
+}));
+
+export const journalEntryRelations = relations(journalEntry, ({ one }) => ({
+	user: one(user, {
+		fields: [journalEntry.userId],
+		references: [user.id],
 	}),
 }));

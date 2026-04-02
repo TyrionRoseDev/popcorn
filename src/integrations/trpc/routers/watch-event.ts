@@ -5,6 +5,8 @@ import { z } from "zod";
 import { db } from "#/db";
 import {
 	friendship,
+	journalEntry,
+	userTitle,
 	watchEvent,
 	watchEventCompanion,
 	watchlist,
@@ -33,9 +35,26 @@ export const watchEventRouter = {
 				titleName: z.string().optional(),
 				posterPath: z.string().nullish(),
 				remindMe: z.boolean().optional(),
+				scope: z.enum(["episode", "season", "show"]).optional(),
+				scopeSeasonNumber: z.number().optional(),
+				scopeEpisodeNumber: z.number().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			// Get current watch number for TV shows
+			let watchNum = 1;
+			if (input.mediaType === "tv") {
+				const title = await db.query.userTitle.findFirst({
+					where: and(
+						eq(userTitle.userId, ctx.userId),
+						eq(userTitle.tmdbId, input.tmdbId),
+						eq(userTitle.mediaType, "tv"),
+					),
+					columns: { currentWatchNumber: true },
+				});
+				watchNum = title?.currentWatchNumber ?? 1;
+			}
+
 			let genreIds: number[] | null = null;
 			try {
 				const details = await fetchTitleDetails(input.mediaType, input.tmdbId);
@@ -60,6 +79,10 @@ export const watchEventRouter = {
 						? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 						: null,
 					genreIds,
+					scope: input.scope ?? null,
+					scopeSeasonNumber: input.scopeSeasonNumber ?? null,
+					scopeEpisodeNumber: input.scopeEpisodeNumber ?? null,
+					watchNumber: watchNum,
 				})
 				.returning();
 
@@ -138,6 +161,9 @@ export const watchEventRouter = {
 				watchedAt: z.string().datetime().optional(),
 				companions: z.array(companionSchema).optional(),
 				titleName: z.string().optional(),
+				scope: z.enum(["episode", "season", "show"]).optional().nullable(),
+				scopeSeasonNumber: z.number().optional().nullable(),
+				scopeEpisodeNumber: z.number().optional().nullable(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -157,6 +183,13 @@ export const watchEventRouter = {
 					...(input.rating !== undefined ? { rating: input.rating } : {}),
 					...(input.note !== undefined ? { note: input.note } : {}),
 					...(input.watchedAt ? { watchedAt: new Date(input.watchedAt) } : {}),
+					...(input.scope !== undefined ? { scope: input.scope } : {}),
+					...(input.scopeSeasonNumber !== undefined
+						? { scopeSeasonNumber: input.scopeSeasonNumber }
+						: {}),
+					...(input.scopeEpisodeNumber !== undefined
+						? { scopeEpisodeNumber: input.scopeEpisodeNumber }
+						: {}),
 				})
 				.where(eq(watchEvent.id, input.id))
 				.returning();
@@ -396,6 +429,24 @@ export const watchEventRouter = {
 				limit: input.limit + 1,
 			});
 
+			// Fetch public journal entries from user + friends
+			const journalEntries = await db.query.journalEntry.findMany({
+				where: and(
+					inArray(journalEntry.userId, userIds),
+					eq(journalEntry.isPublic, true),
+					...(cursorDate
+						? [sql`${journalEntry.createdAt} < ${cursorDate}`]
+						: []),
+				),
+				with: {
+					user: {
+						columns: { id: true, username: true, avatarUrl: true },
+					},
+				},
+				orderBy: (e, { desc }) => [desc(e.createdAt)],
+				limit: input.limit + 1,
+			});
+
 			// Merge and sort by timestamp
 			type FeedItem =
 				| {
@@ -407,6 +458,11 @@ export const watchEventRouter = {
 						type: "watchlist_created";
 						timestamp: Date;
 						data: (typeof watchlistCreations)[number];
+				  }
+				| {
+						type: "journal_entry";
+						timestamp: Date;
+						data: (typeof journalEntries)[number];
 				  };
 
 			const merged: FeedItem[] = [
@@ -419,6 +475,11 @@ export const watchEventRouter = {
 					type: "watchlist_created" as const,
 					timestamp: new Date(wl.createdAt),
 					data: wl,
+				})),
+				...journalEntries.map((je) => ({
+					type: "journal_entry" as const,
+					timestamp: new Date(je.createdAt),
+					data: je,
 				})),
 			].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 

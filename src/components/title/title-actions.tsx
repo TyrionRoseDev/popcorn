@@ -11,7 +11,6 @@ import {
 } from "#/components/ui/popover";
 import { RecommendModal } from "#/components/watched/recommend-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
-import { SeasonPickerModal } from "#/components/watched/season-picker-modal";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { CreateWatchlistDialog } from "#/components/watchlist/create-watchlist-dialog";
 import { useTRPC } from "#/integrations/trpc/react";
@@ -39,7 +38,6 @@ export function TitleActions({
 	runtime,
 	year,
 	reviewEventId,
-	seasonList,
 }: TitleActionsProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
@@ -47,7 +45,6 @@ export function TitleActions({
 		from: "/app/title/$mediaType/$tmdbId",
 	});
 
-	const [seasonPickerOpen, setSeasonPickerOpen] = useState(false);
 	const [watchlistOpen, setWatchlistOpen] = useState(false);
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [inviteOpen, setInviteOpen] = useState(false);
@@ -221,14 +218,28 @@ export function TitleActions({
 		);
 	}
 
+	const addToTracker = useMutation(
+		trpc.episodeTracker.addShow.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					trpc.episodeTracker.getTrackedShows.queryFilter(),
+				);
+			},
+		}),
+	);
+
 	function handleWatched() {
-		// For TV shows that aren't yet watched, open season picker
-		if (mediaType === "tv" && !isWatched && seasonList) {
-			setSeasonPickerOpen(true);
+		// For TV shows, add to tracker and redirect
+		if (mediaType === "tv") {
+			addToTracker.mutate({ tmdbId });
+			navigate({
+				to: "/app/tracker/$tmdbId",
+				params: { tmdbId: String(tmdbId) },
+			});
 			return;
 		}
 
-		// Movies or unwatching: use existing quick toggle
+		// Movies: use existing quick toggle
 		quickWatchedMutation.mutate({
 			tmdbId,
 			mediaType,
@@ -236,28 +247,6 @@ export function TitleActions({
 			posterPath,
 			runtime: runtime ?? undefined,
 		});
-	}
-
-	function handleSeasonConfirm(selectedSeasons: number[]) {
-		quickWatchedMutation.mutate(
-			{
-				tmdbId,
-				mediaType,
-				titleName: title,
-				posterPath,
-				runtime: runtime ?? undefined,
-				watchedSeasons: selectedSeasons,
-				seasonEpisodeCounts: seasonList?.map((s) => ({
-					seasonNumber: s.seasonNumber,
-					episodeCount: s.episodeCount,
-				})),
-			},
-			{
-				onSuccess: () => {
-					setSeasonPickerOpen(false);
-				},
-			},
-		);
 	}
 
 	return (
@@ -365,15 +354,6 @@ export function TitleActions({
 							}}
 						/>
 					</div>
-					{mediaType === "tv" && isWatched && seasonList && (
-						<button
-							type="button"
-							onClick={() => setSeasonPickerOpen(true)}
-							className="mt-2 w-full font-mono-retro text-[10px] tracking-[2px] uppercase text-neon-cyan/40 hover:text-neon-cyan/70 transition-colors duration-200 py-1.5 text-center"
-						>
-							Edit Seasons Watched
-						</button>
-					)}
 				</div>
 			)}
 
@@ -412,18 +392,6 @@ export function TitleActions({
 				mediaType={mediaType}
 				titleName={title}
 			/>
-
-			{seasonList && (
-				<SeasonPickerModal
-					open={seasonPickerOpen}
-					onOpenChange={setSeasonPickerOpen}
-					titleName={title}
-					seasons={seasonList}
-					initialSelected={isWatched?.watchedSeasons ?? undefined}
-					onConfirm={handleSeasonConfirm}
-					isPending={quickWatchedMutation.isPending}
-				/>
-			)}
 		</>
 	);
 }
