@@ -9,7 +9,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { BookOpen, Clock, Film, Loader2, Search, Tv } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { FilmStrip } from "#/components/film-strip";
 import { JournalEntryCard } from "#/components/tracker/journal-entry-card";
+import { TrackerReelCard } from "#/components/tracker/tracker-reel-card";
 import { TrackerShowCard } from "#/components/tracker/tracker-show-card";
 import { NowShowingHeader } from "#/components/watchlist/now-showing-header";
 import { useTRPC } from "#/integrations/trpc/react";
@@ -23,6 +25,31 @@ function formatRuntime(minutes: number): string {
 	const h = Math.floor(minutes / 60);
 	const m = minutes % 60;
 	return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+/* ── Film-reel sprocket row (matches watchlist/film-strip.tsx pattern) ──────── */
+const SPROCKET_STYLE: React.CSSProperties = {
+	width: 12,
+	height: 8,
+	borderRadius: 2,
+	background: "#050508",
+	border: "1px solid #1a1a2e",
+	margin: "0 8px",
+	flexShrink: 0,
+};
+
+function SprocketRow({ count }: { count: number }) {
+	return (
+		<div
+			className="flex items-center overflow-hidden"
+			style={{ height: 14, background: "#0a0a1e" }}
+		>
+			{Array.from({ length: count }, (_, i) => (
+				// biome-ignore lint/suspicious/noArrayIndexKey: decorative identical elements
+				<div key={i} style={SPROCKET_STYLE} />
+			))}
+		</div>
+	);
 }
 
 function TrackerDashboard() {
@@ -332,11 +359,11 @@ function TrackerDashboard() {
 							</Link>
 						</div>
 					) : (
-						<div className="space-y-10">
+						<div className="space-y-8">
 							{watching.length > 0 && (
 								<section>
 									{/* Section header */}
-									<div className="mb-5 flex items-center gap-3">
+									<div className="mb-4 flex items-center gap-3">
 										<div className="flex items-baseline gap-2.5">
 											<h2
 												className="font-mono-retro"
@@ -372,28 +399,58 @@ function TrackerDashboard() {
 											}}
 										/>
 									</div>
-									<div className="grid gap-3 sm:grid-cols-2">
-										{watching.map((show) => (
-											<TrackerShowCard
-												key={show.tmdbId}
-												tmdbId={show.tmdbId}
-												title={show.details.title}
-												posterPath={show.details.posterPath}
-												backdropPath={show.details.backdropPath}
-												episodeCount={show.episodeCount}
-												totalEpisodes={show.details.episodes ?? 0}
-												totalRuntime={show.totalRuntime}
-												showStatus={show.details.status}
-												rating={null}
-												genres={show.details.genres}
-												year={show.details.year}
-												contentRating={show.details.contentRating}
-												seasonList={show.details.seasonList}
-												onRemove={handleRemoveShow}
-											/>
-										))}
+
+									{/* ── Film-reel horizontal scroll ──────────────── */}
+									<div
+										className="overflow-hidden rounded-lg"
+										style={{
+											border: "1px solid #1a1a2e",
+											background: "#0a0a1e",
+										}}
+									>
+										{/* Top sprocket row */}
+										<SprocketRow count={Math.max(watching.length * 5, 30)} />
+										{/* Strip line */}
+										<div style={{ height: 2, background: "#1a1a2e" }} />
+
+										{/* Scrollable poster row */}
+										<div
+											className="overflow-x-auto"
+											style={{
+												maskImage:
+													"linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%)",
+												WebkitMaskImage:
+													"linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%)",
+												background: "#0a0a1e",
+											}}
+										>
+											<div className="flex w-max">
+												{watching.map((show) => (
+													<TrackerReelCard
+														key={show.tmdbId}
+														tmdbId={show.tmdbId}
+														title={show.details.title}
+														posterPath={show.details.posterPath}
+														episodeCount={show.episodeCount}
+														totalEpisodes={show.details.episodes ?? 0}
+														showStatus={show.details.status}
+														onRemove={handleRemoveShow}
+													/>
+												))}
+											</div>
+										</div>
+
+										{/* Strip line */}
+										<div style={{ height: 2, background: "#1a1a2e" }} />
+										{/* Bottom sprocket row */}
+										<SprocketRow count={Math.max(watching.length * 5, 30)} />
 									</div>
 								</section>
+							)}
+
+							{/* ── Film-strip divider between sections ─────────── */}
+							{watching.length > 0 && completed.length > 0 && (
+								<FilmStrip className="my-2" />
 							)}
 
 							{completed.length > 0 && (
