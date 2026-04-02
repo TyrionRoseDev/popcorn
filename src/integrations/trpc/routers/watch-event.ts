@@ -6,6 +6,7 @@ import { db } from "#/db";
 import {
 	friendship,
 	journalEntry,
+	userTitle,
 	watchEvent,
 	watchEventCompanion,
 	watchlist,
@@ -40,6 +41,20 @@ export const watchEventRouter = {
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			// Get current watch number for TV shows
+			let watchNum = 1;
+			if (input.mediaType === "tv") {
+				const title = await db.query.userTitle.findFirst({
+					where: and(
+						eq(userTitle.userId, ctx.userId),
+						eq(userTitle.tmdbId, input.tmdbId),
+						eq(userTitle.mediaType, "tv"),
+					),
+					columns: { currentWatchNumber: true },
+				});
+				watchNum = title?.currentWatchNumber ?? 1;
+			}
+
 			let genreIds: number[] | null = null;
 			try {
 				const details = await fetchTitleDetails(input.mediaType, input.tmdbId);
@@ -67,6 +82,7 @@ export const watchEventRouter = {
 					scope: input.scope ?? null,
 					scopeSeasonNumber: input.scopeSeasonNumber ?? null,
 					scopeEpisodeNumber: input.scopeEpisodeNumber ?? null,
+					watchNumber: watchNum,
 				})
 				.returning();
 

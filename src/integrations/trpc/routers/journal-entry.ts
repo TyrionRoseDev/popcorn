@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
-import { journalEntry } from "#/db/schema";
+import { journalEntry, userTitle } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
 
 export const journalEntryRouter = {
@@ -20,6 +20,16 @@ export const journalEntryRouter = {
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			const title = await db.query.userTitle.findFirst({
+				where: and(
+					eq(userTitle.userId, ctx.userId),
+					eq(userTitle.tmdbId, input.tmdbId),
+					eq(userTitle.mediaType, "tv"),
+				),
+				columns: { currentWatchNumber: true },
+			});
+			const watchNum = title?.currentWatchNumber ?? 1;
+
 			const [entry] = await db
 				.insert(journalEntry)
 				.values({
@@ -31,6 +41,7 @@ export const journalEntryRouter = {
 					episodeNumber: input.episodeNumber ?? null,
 					note: input.note,
 					isPublic: input.isPublic,
+					watchNumber: watchNum,
 				})
 				.returning();
 			return entry;
