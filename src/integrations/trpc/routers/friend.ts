@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "#/db";
 import {
 	block,
+	episodeWatch,
 	friendship,
 	user,
 	watchEvent,
@@ -606,7 +607,8 @@ export const friendRouter = createTRPCRouter({
 				.from(watchlistMember)
 				.where(eq(watchlistMember.userId, input.userId));
 			const wlIds = userMemberships.map((m) => m.watchlistId);
-			let watchTimeMinutes = 0;
+			// Film watch time (from watchlist items)
+			let filmWatchTimeMinutes = 0;
 			if (wlIds.length > 0) {
 				const [result] = await db
 					.select({
@@ -617,10 +619,22 @@ export const friendRouter = createTRPCRouter({
 						and(
 							inArray(watchlistItem.watchlistId, wlIds),
 							eq(watchlistItem.watched, true),
+							eq(watchlistItem.mediaType, "movie"),
 						),
 					);
-				watchTimeMinutes = result?.total ?? 0;
+				filmWatchTimeMinutes = result?.total ?? 0;
 			}
+
+			// TV watch time (from episode tracker)
+			const [tvResult] = await db
+				.select({
+					total: sql<number>`coalesce(sum(${episodeWatch.runtime}), 0)::int`,
+				})
+				.from(episodeWatch)
+				.where(eq(episodeWatch.userId, input.userId));
+			const tvWatchTimeMinutes = tvResult?.total ?? 0;
+
+			const watchTimeMinutes = filmWatchTimeMinutes + tvWatchTimeMinutes;
 
 			// Base profile (always returned)
 			const profile = {
