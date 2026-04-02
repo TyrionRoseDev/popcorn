@@ -267,7 +267,7 @@ export function JournalEntryCard({
 							borderLeft: "2px solid rgba(0,229,255,0.2)",
 						}}
 					>
-						<p className="text-[13px] leading-[1.7] text-cream/55 italic">
+						<p className="text-[15px] leading-[1.75] text-cream/60">
 							{entry.note}
 						</p>
 					</div>
