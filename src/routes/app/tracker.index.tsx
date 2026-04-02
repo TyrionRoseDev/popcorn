@@ -368,7 +368,7 @@ function TrackerDashboard() {
 											}}
 										/>
 									</div>
-									<div className="flex flex-col gap-3">
+									<div className="grid gap-3 sm:grid-cols-2">
 										{watching.map((show) => (
 											<TrackerShowCard
 												key={show.tmdbId}
@@ -380,6 +380,7 @@ function TrackerDashboard() {
 												totalRuntime={show.totalRuntime}
 												showStatus={show.details.status}
 												rating={null}
+												seasonList={show.details.seasonList}
 												onRemove={handleRemoveShow}
 											/>
 										))}
@@ -425,7 +426,7 @@ function TrackerDashboard() {
 											}}
 										/>
 									</div>
-									<div className="flex flex-col gap-3">
+									<div className="grid gap-3 sm:grid-cols-2">
 										{completed.map((show) => (
 											<TrackerShowCard
 												key={show.tmdbId}
@@ -437,6 +438,7 @@ function TrackerDashboard() {
 												totalRuntime={show.totalRuntime}
 												showStatus={show.details.status}
 												rating={null}
+												seasonList={show.details.seasonList}
 												onRemove={handleRemoveShow}
 											/>
 										))}
