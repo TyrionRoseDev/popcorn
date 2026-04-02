@@ -517,16 +517,92 @@ function TrackerDashboard() {
 							</p>
 						</div>
 					) : (
-						<div className="flex flex-col gap-3">
-							{journalEntries.map((entry) => (
-								<JournalEntryCard
-									key={entry.id}
-									entry={{
-										...entry,
-										createdAt: new Date(entry.createdAt),
+						<div className="relative">
+							{/* ── Vertical film strip rail ── */}
+							<div
+								aria-hidden="true"
+								className="absolute top-0 bottom-0"
+								style={{ left: "14px", width: "20px" }}
+							>
+								{/* Film strip background */}
+								<div
+									className="absolute inset-0"
+									style={{
+										background: "#0a0a1e",
+										border: "1px solid #1a1a2e",
+										borderRadius: "3px",
 									}}
 								/>
-							))}
+								{/* Sprocket holes running down the strip */}
+								<div
+									className="absolute inset-0 overflow-hidden"
+									style={{ padding: "8px 0" }}
+								>
+									<div
+										className="h-full w-full"
+										style={{
+											backgroundImage:
+												"repeating-linear-gradient(180deg, #050508 0px, #050508 6px, transparent 6px, transparent 14px)",
+											backgroundSize: "8px 20px",
+											backgroundPosition: "center",
+											backgroundRepeat: "repeat-y",
+										}}
+									/>
+								</div>
+							</div>
+
+							{/* ── Journal entries branching off the strip ── */}
+							<div className="flex flex-col gap-4">
+								{journalEntries.map((entry) => (
+									<div key={entry.id} className="relative flex items-start">
+										{/* Connector dot on the strip */}
+										<div
+											className="relative shrink-0"
+											style={{
+												width: "28px",
+												marginTop: "18px",
+												zIndex: 10,
+											}}
+										>
+											{/* Glowing dot */}
+											<div
+												style={{
+													width: "10px",
+													height: "10px",
+													borderRadius: "50%",
+													background: "#00E5FF",
+													boxShadow:
+														"0 0 8px rgba(0,229,255,0.5), 0 0 16px rgba(0,229,255,0.2)",
+													margin: "0 auto",
+												}}
+											/>
+										</div>
+
+										{/* Connector line from dot to card */}
+										<div
+											aria-hidden="true"
+											className="shrink-0"
+											style={{
+												width: "12px",
+												height: "1px",
+												background:
+													"linear-gradient(90deg, rgba(0,229,255,0.3), rgba(0,229,255,0.08))",
+												marginTop: "22px",
+											}}
+										/>
+
+										{/* Card */}
+										<div className="flex-1 min-w-0">
+											<JournalEntryCard
+												entry={{
+													...entry,
+													createdAt: new Date(entry.createdAt),
+												}}
+											/>
+										</div>
+									</div>
+								))}
+							</div>
 
 							{hasNextPage && (
 								<div className="pt-4 flex justify-center">
