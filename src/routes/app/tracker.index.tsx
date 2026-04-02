@@ -373,7 +373,9 @@ function TrackerDashboard() {
 										/>
 									</div>
 
-									<div className="grid gap-3 sm:grid-cols-2">
+									<div
+										className={`grid gap-3 ${watching.length === 1 ? "grid-cols-1" : "sm:grid-cols-2"}`}
+									>
 										{watching.map((show) => (
 											<TrackerShowCard
 												key={show.tmdbId}
@@ -435,7 +437,9 @@ function TrackerDashboard() {
 											}}
 										/>
 									</div>
-									<div className="grid gap-3 sm:grid-cols-2">
+									<div
+										className={`grid gap-3 ${completed.length === 1 ? "grid-cols-1" : "sm:grid-cols-2"}`}
+									>
 										{completed.map((show) => (
 											<TrackerShowCard
 												key={show.tmdbId}

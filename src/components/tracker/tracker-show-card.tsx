@@ -84,7 +84,6 @@ export function TrackerShowCard({
 		isEnded && totalEpisodes > 0 && episodeCount >= totalEpisodes;
 	const isCaughtUp =
 		!isEnded && totalEpisodes > 0 && episodeCount >= totalEpisodes;
-	const isInProgress = !isComplete && !isCaughtUp;
 	const progressPct =
 		totalEpisodes > 0
 			? Math.min(100, Math.round((episodeCount / totalEpisodes) * 100))
@@ -405,30 +404,33 @@ export function TrackerShowCard({
 					)}
 				</div>
 
-				{/* ── Progress bar — full width at the very bottom, 4px glowing ── */}
+				{/* ── Progress bar — full width, flush bottom, thick + glowing ── */}
 				<div
-					className="relative mt-1 w-full overflow-hidden"
+					className="relative mt-2 w-full overflow-hidden"
 					style={{
-						height: "4px",
-						background: "rgba(255,255,240,0.04)",
-						/* Flush to card bottom — negative margin to counteract parent padding */
+						height: "8px",
+						background: "rgba(255,255,240,0.06)",
 						marginLeft: "-0.75rem",
 						marginRight: "-0.75rem",
 						width: "calc(100% + 1.5rem)",
 						borderBottomLeftRadius: "0.5rem",
 						borderBottomRightRadius: "0.5rem",
+						boxShadow: "inset 0 1px 3px rgba(0,0,0,0.4)",
 					}}
 				>
 					<div
-						className="h-full transition-all duration-700"
+						className="h-full rounded-r-sm transition-all duration-700"
 						style={{
 							width: `${progressPct}%`,
 							background: progressGradient,
-							boxShadow: progressPct > 0 ? progressShadow : "none",
+							boxShadow:
+								progressPct > 0
+									? `${progressShadow}, inset 0 1px 0 rgba(255,255,255,0.15)`
+									: "none",
 						}}
 					/>
-					{/* Animated shimmer for in-progress shows */}
-					{isInProgress && progressPct > 0 && progressPct < 100 && (
+					{/* Animated shimmer */}
+					{progressPct > 0 && progressPct < 100 && (
 						<div
 							aria-hidden="true"
 							className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -438,11 +440,24 @@ export function TrackerShowCard({
 								style={{
 									width: `${progressPct}%`,
 									background:
-										"linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)",
-									animation: "shimmer-sweep 4s ease-in-out infinite",
+										"linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)",
+									animation: "shimmer-sweep 3s ease-in-out infinite",
 								}}
 							/>
 						</div>
+					)}
+					{/* Glow reflection below the bar */}
+					{progressPct > 0 && (
+						<div
+							aria-hidden="true"
+							className="pointer-events-none absolute left-0 bottom-0"
+							style={{
+								width: `${progressPct}%`,
+								height: "4px",
+								background: `linear-gradient(to bottom, rgba(${accentRgb},0.2), transparent)`,
+								transform: "translateY(100%)",
+							}}
+						/>
 					)}
 				</div>
 			</div>
