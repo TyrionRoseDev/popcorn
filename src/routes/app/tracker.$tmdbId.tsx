@@ -1,9 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, CheckCheck, Loader2 } from "lucide-react";
+import {
+	ArrowLeft,
+	BookOpen,
+	CheckCheck,
+	Loader2,
+	Pen,
+	Star,
+	Trash2,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { SeasonRow } from "#/components/tracker/season-row";
+import { WriteAboutModal } from "#/components/tracker/write-about-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { useTRPC } from "#/integrations/trpc/react";
 
@@ -17,6 +26,7 @@ function ShowTracker() {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	const [reviewOpen, setReviewOpen] = useState(false);
+	const [writeAboutOpen, setWriteAboutOpen] = useState(false);
 
 	// Fetch show details
 	const { data: titleData, isLoading: isLoadingTitle } = useQuery(
@@ -43,6 +53,11 @@ function ShowTracker() {
 	);
 	const hasShowReview = (existingWatchEvents ?? []).some(
 		(e) => e.scope === "show",
+	);
+
+	// Fetch journal entries for this show
+	const { data: journalEntries } = useQuery(
+		trpc.journalEntry.getForShow.queryOptions({ tmdbId }),
 	);
 
 	// Build watched set for quick lookup
@@ -357,22 +372,36 @@ function ShowTracker() {
 							</div>
 						</div>
 
-						{/* Mark all button */}
-						{totalEpisodes > 0 && watchedCount < totalEpisodes && (
+						{/* Action buttons */}
+						<div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
 							<button
 								type="button"
-								onClick={handleMarkAll}
-								disabled={markEpisodes.isPending}
-								className="absolute top-3 right-3 z-10 flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-mono-retro tracking-wider uppercase text-neon-cyan transition-all duration-200 hover:bg-neon-cyan/10 disabled:opacity-40"
+								onClick={() => setWriteAboutOpen(true)}
+								className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-mono-retro tracking-wider uppercase text-neon-cyan transition-all duration-200 hover:bg-neon-cyan/10"
 								style={{
 									border: "1px solid rgba(0,229,255,0.15)",
 									textShadow: "0 0 6px rgba(0,229,255,0.25)",
 								}}
 							>
-								<CheckCheck className="h-3 w-3" />
-								Mark all
+								<Pen className="h-3 w-3" />
+								Write
 							</button>
-						)}
+							{totalEpisodes > 0 && watchedCount < totalEpisodes && (
+								<button
+									type="button"
+									onClick={handleMarkAll}
+									disabled={markEpisodes.isPending}
+									className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-mono-retro tracking-wider uppercase text-neon-cyan transition-all duration-200 hover:bg-neon-cyan/10 disabled:opacity-40"
+									style={{
+										border: "1px solid rgba(0,229,255,0.15)",
+										textShadow: "0 0 6px rgba(0,229,255,0.25)",
+									}}
+								>
+									<CheckCheck className="h-3 w-3" />
+									Mark all
+								</button>
+							)}
+						</div>
 					</div>
 
 					{/* Season rows */}
@@ -397,6 +426,14 @@ function ShowTracker() {
 							No episode data available
 						</div>
 					)}
+
+					{/* Notes & Reviews Section */}
+					<NotesAndReviewsSection
+						journalEntries={journalEntries ?? []}
+						watchEvents={(existingWatchEvents ?? []).filter(
+							(e) => e.rating != null || e.note,
+						)}
+					/>
 				</>
 			)}
 
@@ -412,6 +449,292 @@ function ShowTracker() {
 					onEventCreated={() => setReviewOpen(false)}
 				/>
 			)}
+
+			{/* Write About This modal */}
+			{titleData && (
+				<WriteAboutModal
+					open={writeAboutOpen}
+					onOpenChange={setWriteAboutOpen}
+					tmdbId={tmdbId}
+					titleName={titleData.title}
+					year={titleData.year || ""}
+					mediaType="tv"
+					seasonList={(titleData.seasonList ?? []).map((s) => ({
+						seasonNumber: s.seasonNumber,
+						episodeCount: s.episodeCount,
+						name: s.name,
+					}))}
+					watchedEpisodes={(watchedRows ?? []).map((r) => ({
+						seasonNumber: r.seasonNumber,
+						episodeNumber: r.episodeNumber,
+					}))}
+				/>
+			)}
+		</div>
+	);
+}
+
+/* ─── Notes & Reviews Section ─── */
+
+interface NotesAndReviewsSectionProps {
+	journalEntries: Array<{
+		id: string;
+		scope: string;
+		seasonNumber: number | null;
+		episodeNumber: number | null;
+		note: string;
+		isPublic: boolean;
+		createdAt: Date;
+	}>;
+	watchEvents: Array<{
+		id: string;
+		rating: number | null;
+		note: string | null;
+		scope: string | null;
+		scopeSeasonNumber: number | null;
+		scopeEpisodeNumber: number | null;
+		watchedAt: Date;
+		createdAt: Date;
+	}>;
+}
+
+function formatScopeBadge(
+	scope: string | null,
+	seasonNumber: number | null,
+	episodeNumber: number | null,
+): string {
+	if (scope === "episode" && seasonNumber != null && episodeNumber != null) {
+		return `S${seasonNumber}E${episodeNumber}`;
+	}
+	if (scope === "season" && seasonNumber != null) {
+		return `Season ${seasonNumber}`;
+	}
+	if (scope === "show") {
+		return "Full Show";
+	}
+	return "Show";
+}
+
+function formatRelativeDate(date: Date): string {
+	const now = new Date();
+	const diff = now.getTime() - date.getTime();
+	const minutes = Math.floor(diff / 60000);
+	const hours = Math.floor(diff / 3600000);
+	const days = Math.floor(diff / 86400000);
+
+	if (minutes < 1) return "just now";
+	if (minutes < 60) return `${minutes}m ago`;
+	if (hours < 24) return `${hours}h ago`;
+	if (days < 7) return `${days}d ago`;
+	return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function NotesAndReviewsSection({
+	journalEntries,
+	watchEvents,
+}: NotesAndReviewsSectionProps) {
+	const trpc = useTRPC();
+	const queryClient = useQueryClient();
+
+	const deleteJournalEntry = useMutation(
+		trpc.journalEntry.delete.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					trpc.journalEntry.getForShow.queryFilter(),
+				);
+				toast.success("Note deleted");
+			},
+			onError: () => {
+				toast.error("Failed to delete note");
+			},
+		}),
+	);
+
+	const deleteWatchEvent = useMutation(
+		trpc.watchEvent.delete.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					trpc.watchEvent.getForTitle.queryFilter(),
+				);
+				queryClient.invalidateQueries(
+					trpc.watchEvent.getUserEvents.queryFilter(),
+				);
+				queryClient.invalidateQueries(
+					trpc.watchEvent.getLatestRating.queryFilter(),
+				);
+				toast.success("Review deleted");
+			},
+			onError: () => {
+				toast.error("Failed to delete review");
+			},
+		}),
+	);
+
+	// Merge and sort entries chronologically (newest first)
+	type TimelineItem =
+		| {
+				type: "note";
+				data: NotesAndReviewsSectionProps["journalEntries"][number];
+				timestamp: number;
+		  }
+		| {
+				type: "review";
+				data: NotesAndReviewsSectionProps["watchEvents"][number];
+				timestamp: number;
+		  };
+
+	const timeline = useMemo(() => {
+		const items: TimelineItem[] = [];
+
+		for (const entry of journalEntries) {
+			items.push({
+				type: "note",
+				data: entry,
+				timestamp: entry.createdAt.getTime(),
+			});
+		}
+
+		for (const event of watchEvents) {
+			items.push({
+				type: "review",
+				data: event,
+				timestamp: event.createdAt.getTime(),
+			});
+		}
+
+		return items.sort((a, b) => b.timestamp - a.timestamp);
+	}, [journalEntries, watchEvents]);
+
+	if (timeline.length === 0) return null;
+
+	function handleDeleteNote(id: string) {
+		toast("Delete this note?", {
+			action: {
+				label: "Delete",
+				onClick: () => deleteJournalEntry.mutate({ id }),
+			},
+			duration: 5000,
+		});
+	}
+
+	function handleDeleteReview(id: string) {
+		toast("Delete this review?", {
+			action: {
+				label: "Delete",
+				onClick: () => deleteWatchEvent.mutate({ id }),
+			},
+			duration: 5000,
+		});
+	}
+
+	return (
+		<div className="mt-10">
+			{/* Section header */}
+			<div className="flex items-center gap-3 mb-5">
+				<div className="h-px flex-1 bg-gradient-to-r from-neon-cyan/20 to-transparent" />
+				<h2 className="font-mono-retro text-[11px] tracking-[4px] uppercase text-cream/30">
+					Notes &amp; Reviews
+				</h2>
+				<div className="h-px flex-1 bg-gradient-to-l from-neon-cyan/20 to-transparent" />
+			</div>
+
+			<div className="space-y-3">
+				{timeline.map((item) => {
+					if (item.type === "note") {
+						const entry = item.data;
+						return (
+							<div
+								key={`note-${entry.id}`}
+								className="relative pl-4 py-3 pr-3 rounded-lg border border-cream/[0.06] bg-black/20"
+								style={{
+									borderLeft: "2px solid rgba(0,229,255,0.25)",
+								}}
+							>
+								{/* Top row: icon, scope badge, time, actions */}
+								<div className="flex items-center justify-between mb-2">
+									<div className="flex items-center gap-2">
+										<BookOpen className="w-3 h-3 text-neon-cyan/40" />
+										<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-cyan/[0.06] border border-neon-cyan/10 font-mono-retro text-[9px] tracking-wider text-neon-cyan/50">
+											{formatScopeBadge(
+												entry.scope,
+												entry.seasonNumber,
+												entry.episodeNumber,
+											)}
+										</span>
+										<span className="font-mono-retro text-[9px] text-cream/20">
+											{formatRelativeDate(entry.createdAt)}
+										</span>
+									</div>
+									<button
+										type="button"
+										onClick={() => handleDeleteNote(entry.id)}
+										className="p-1 text-cream/15 hover:text-red-400/60 transition-colors"
+									>
+										<Trash2 className="w-3 h-3" />
+									</button>
+								</div>
+								{/* Note text */}
+								<p className="text-sm text-cream/60 leading-relaxed whitespace-pre-wrap">
+									{entry.note}
+								</p>
+							</div>
+						);
+					}
+
+					const event = item.data;
+					return (
+						<div
+							key={`review-${event.id}`}
+							className="relative pl-4 py-3 pr-3 rounded-lg border border-cream/[0.06] bg-black/20"
+							style={{
+								borderLeft: "2px solid rgba(255,184,0,0.25)",
+							}}
+						>
+							{/* Top row */}
+							<div className="flex items-center justify-between mb-2">
+								<div className="flex items-center gap-2">
+									<Star className="w-3 h-3 text-neon-amber/40" />
+									{event.rating != null && (
+										<span className="flex items-center gap-0.5">
+											{Array.from({ length: 5 }).map((_, i) => (
+												<span
+													key={`star-${event.id}-${i.toString()}`}
+													className={`text-[10px] ${i < event.rating! ? "text-neon-amber" : "text-cream/10"}`}
+												>
+													★
+												</span>
+											))}
+										</span>
+									)}
+									<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-amber/[0.06] border border-neon-amber/10 font-mono-retro text-[9px] tracking-wider text-neon-amber/50">
+										{formatScopeBadge(
+											event.scope,
+											event.scopeSeasonNumber,
+											event.scopeEpisodeNumber,
+										)}
+									</span>
+									<span className="font-mono-retro text-[9px] text-cream/20">
+										{formatRelativeDate(event.createdAt)}
+									</span>
+								</div>
+								<button
+									type="button"
+									onClick={() => handleDeleteReview(event.id)}
+									className="p-1 text-cream/15 hover:text-red-400/60 transition-colors"
+								>
+									<Trash2 className="w-3 h-3" />
+								</button>
+							</div>
+							{/* Review text */}
+							{event.note && (
+								<p className="text-sm text-cream/60 leading-relaxed whitespace-pre-wrap">
+									{event.note}
+								</p>
+							)}
+						</div>
+					);
+				})}
+			</div>
 		</div>
 	);
 }

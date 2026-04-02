@@ -34,6 +34,10 @@ interface WatchEventModalProps {
 	onRemindMe?: () => void;
 	/** Called when a new watch event is successfully created */
 	onEventCreated?: () => void;
+	/** Optional scope for scoped reviews (TV shows) */
+	scope?: "episode" | "season" | "show";
+	scopeSeasonNumber?: number;
+	scopeEpisodeNumber?: number;
 }
 
 function toLocalDatetime(date: Date): string {
@@ -51,6 +55,9 @@ export function ReviewModal({
 	editEvent,
 	onRemindMe,
 	onEventCreated,
+	scope,
+	scopeSeasonNumber,
+	scopeEpisodeNumber,
 }: WatchEventModalProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
@@ -139,6 +146,9 @@ export function ReviewModal({
 				watchedAt: watchedAtISO,
 				companions,
 				titleName,
+				scope,
+				scopeSeasonNumber,
+				scopeEpisodeNumber,
 			});
 		}
 	}
