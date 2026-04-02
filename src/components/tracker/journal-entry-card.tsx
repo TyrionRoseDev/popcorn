@@ -1,6 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Globe, Lock, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {
+	BookOpen,
+	Globe,
+	Lock,
+	MoreHorizontal,
+	Pencil,
+	Trash2,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -140,72 +147,109 @@ export function JournalEntryCard({
 			/>
 
 			<div className="relative z-10 p-4">
-				{/* Top section: Show title hero + scope badge */}
-				<div className="flex items-start justify-between gap-2 mb-1">
-					<div className="min-w-0 flex-1">
-						<Link
-							to="/app/title/$mediaType/$tmdbId"
-							params={{ mediaType: "tv", tmdbId: entry.tmdbId }}
-							className="font-display text-[15px] text-cream/90 hover:text-cream no-underline leading-tight block"
-						>
-							{entry.titleName}
-						</Link>
-					</div>
-
-					{/* Actions menu */}
-					<Popover
-						open={menuOpen}
-						onOpenChange={(o) => {
-							setMenuOpen(o);
-							if (!o) setConfirmDelete(false);
+				{/* Type label — prominent at the top */}
+				<div className="flex items-center justify-between mb-3">
+					<span
+						className="inline-flex items-center gap-1.5 font-mono-retro"
+						style={{
+							fontSize: "9px",
+							letterSpacing: "3px",
+							textTransform: "uppercase",
+							color: "rgba(0,229,255,0.5)",
+							textShadow: "0 0 10px rgba(0,229,255,0.2)",
 						}}
 					>
-						<PopoverTrigger asChild>
-							<button
-								type="button"
-								className="p-1 text-cream/15 hover:text-cream/50 transition-colors opacity-0 group-hover:opacity-100"
-							>
-								<MoreHorizontal className="h-4 w-4" />
-							</button>
-						</PopoverTrigger>
-						<PopoverContent
-							align="end"
-							sideOffset={4}
-							className="bg-drive-in-card border border-drive-in-border rounded-lg shadow-xl p-1 w-40"
+						<BookOpen className="h-3 w-3" />
+						Journal Entry
+					</span>
+
+					<div className="flex items-center gap-2">
+						<span className="flex items-center gap-1 text-[9px] font-mono-retro tracking-[1px] uppercase text-cream/20">
+							{entry.isPublic ? (
+								<>
+									<Globe className="h-2.5 w-2.5" />
+									Public
+								</>
+							) : (
+								<>
+									<Lock className="h-2.5 w-2.5" />
+									Private
+								</>
+							)}
+						</span>
+
+						{/* Actions menu */}
+						<Popover
+							open={menuOpen}
+							onOpenChange={(o) => {
+								setMenuOpen(o);
+								if (!o) setConfirmDelete(false);
+							}}
 						>
-							<button
-								type="button"
-								onClick={handleEdit}
-								className="flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-cream/5 text-sm text-cream/70 hover:text-cream transition-colors"
+							<PopoverTrigger asChild>
+								<button
+									type="button"
+									className="p-1 text-cream/15 hover:text-cream/50 transition-colors opacity-0 group-hover:opacity-100"
+								>
+									<MoreHorizontal className="h-4 w-4" />
+								</button>
+							</PopoverTrigger>
+							<PopoverContent
+								align="end"
+								sideOffset={4}
+								className="bg-drive-in-card border border-drive-in-border rounded-lg shadow-xl p-1 w-40"
 							>
-								<Pencil className="h-3.5 w-3.5" />
-								Edit
-							</button>
-							<button
-								type="button"
-								onClick={handleDelete}
-								disabled={deleteEntry.isPending}
-								className={`flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-red-500/10 text-sm transition-colors ${
-									confirmDelete
-										? "text-red-400 font-medium"
-										: "text-red-400/70 hover:text-red-400"
-								}`}
-							>
-								<Trash2 className="h-3.5 w-3.5" />
-								{confirmDelete ? "Confirm Delete" : "Delete"}
-							</button>
-						</PopoverContent>
-					</Popover>
+								<button
+									type="button"
+									onClick={handleEdit}
+									className="flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-cream/5 text-sm text-cream/70 hover:text-cream transition-colors"
+								>
+									<Pencil className="h-3.5 w-3.5" />
+									Edit
+								</button>
+								<button
+									type="button"
+									onClick={handleDelete}
+									disabled={deleteEntry.isPending}
+									className={`flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-red-500/10 text-sm transition-colors ${
+										confirmDelete
+											? "text-red-400 font-medium"
+											: "text-red-400/70 hover:text-red-400"
+									}`}
+								>
+									<Trash2 className="h-3.5 w-3.5" />
+									{confirmDelete ? "Confirm Delete" : "Delete"}
+								</button>
+							</PopoverContent>
+						</Popover>
+					</div>
 				</div>
 
-				{/* Scope badge + timestamp row */}
-				<div className="flex items-center gap-2 mb-3">
+				{/* Show title — large and prominent */}
+				<Link
+					to="/app/title/$mediaType/$tmdbId"
+					params={{ mediaType: "tv", tmdbId: entry.tmdbId }}
+					className="font-display text-cream/90 hover:text-cream no-underline leading-tight block mb-2"
+					style={{
+						fontSize: "20px",
+						textShadow: "0 0 20px rgba(255,255,240,0.06)",
+					}}
+				>
+					{entry.titleName}
+				</Link>
+
+				{/* Scope badge — prominent with glow */}
+				<div className="flex items-center gap-3 mb-3">
 					<span
-						className="inline-flex items-center rounded-full px-2 py-0.5 font-mono-retro text-[9px] tracking-[1.5px] uppercase leading-none"
+						className="inline-flex items-center rounded-full px-3 py-1 font-mono-retro"
 						style={{
-							background: "rgba(0,229,255,0.08)",
-							border: "1px solid rgba(0,229,255,0.2)",
-							color: "rgba(0,229,255,0.7)",
+							fontSize: "10px",
+							letterSpacing: "2px",
+							background: "rgba(0,229,255,0.1)",
+							border: "1px solid rgba(0,229,255,0.25)",
+							color: "#00E5FF",
+							textShadow: "0 0 8px rgba(0,229,255,0.3)",
+							boxShadow: "0 0 10px rgba(0,229,255,0.06)",
 						}}
 					>
 						{scopeBadge}
@@ -218,43 +262,22 @@ export function JournalEntryCard({
 				{/* Note text — styled as a quote */}
 				{hasNote ? (
 					<div
-						className="mb-3 pl-3"
+						className="pl-3"
 						style={{
-							borderLeft: "2px solid rgba(0,229,255,0.15)",
+							borderLeft: "2px solid rgba(0,229,255,0.2)",
 						}}
 					>
-						<p className="text-[12.5px] leading-[1.7] text-cream/55 italic">
+						<p className="text-[13px] leading-[1.7] text-cream/55 italic">
 							{entry.note}
 						</p>
 					</div>
 				) : (
-					<div className="mb-3 pl-3">
+					<div className="pl-3">
 						<p className="text-[12px] leading-[1.65] text-cream/20 italic">
 							No text added
 						</p>
 					</div>
 				)}
-
-				{/* Footer: label + public/private */}
-				<div className="flex items-center gap-2">
-					<span className="text-[9px] font-mono-retro tracking-[1.5px] uppercase text-neon-cyan/25">
-						Journal Entry
-					</span>
-					<span className="h-0.5 w-0.5 rounded-full bg-cream/10" />
-					<span className="flex items-center gap-1 text-[9px] font-mono-retro tracking-[1px] uppercase text-cream/20">
-						{entry.isPublic ? (
-							<>
-								<Globe className="h-2.5 w-2.5" />
-								Public
-							</>
-						) : (
-							<>
-								<Lock className="h-2.5 w-2.5" />
-								Private
-							</>
-						)}
-					</span>
-				</div>
 			</div>
 		</div>
 	);
