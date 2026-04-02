@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, CheckCheck, Loader2 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { SeasonRow } from "#/components/tracker/season-row";
+import { ReviewModal } from "#/components/watched/review-modal";
 import { useTRPC } from "#/integrations/trpc/react";
 
 export const Route = createFileRoute("/app/tracker/$tmdbId")({
@@ -15,6 +16,7 @@ function ShowTracker() {
 	const tmdbId = Number(tmdbIdRaw);
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
+	const [reviewOpen, setReviewOpen] = useState(false);
 
 	// Fetch show details
 	const { data: titleData, isLoading: isLoadingTitle } = useQuery(
@@ -34,6 +36,14 @@ function ShowTracker() {
 		}),
 		enabled: !!titleData?.seasonList,
 	});
+
+	// Check if a full-show review already exists (scope: "show")
+	const { data: existingWatchEvents } = useQuery(
+		trpc.watchEvent.getForTitle.queryOptions({ tmdbId, mediaType: "tv" }),
+	);
+	const hasShowReview = (existingWatchEvents ?? []).some(
+		(e) => e.scope === "show",
+	);
 
 	// Build watched set for quick lookup
 	const watchedSet = useMemo(() => {
@@ -74,11 +84,15 @@ function ShowTracker() {
 		);
 	}, [allEpisodes, titleData?.seasonList]);
 
+	// Whether the show has ended/been canceled (needed in mutation callbacks)
+	const isEnded =
+		titleData?.status === "Ended" || titleData?.status === "Canceled";
+
 	// Mutations
 	const markEpisodes = useMutation(
 		trpc.episodeTracker.markEpisodes.mutationOptions({
-			onSuccess: (_data, variables) => {
-				queryClient.invalidateQueries(
+			onSuccess: async (_data, variables) => {
+				await queryClient.invalidateQueries(
 					trpc.episodeTracker.getForShow.queryFilter(),
 				);
 				queryClient.invalidateQueries(
@@ -88,6 +102,26 @@ function ShowTracker() {
 				toast.success(
 					`Marked ${count} episode${count > 1 ? "s" : ""} as watched`,
 				);
+
+				// Check for show completion after cache update
+				const updatedWatched = queryClient.getQueryData<
+					Array<{ seasonNumber: number; episodeNumber: number }>
+				>(trpc.episodeTracker.getForShow.queryOptions({ tmdbId }).queryKey);
+				const updatedWatchedSet = new Set(
+					(updatedWatched ?? []).map(
+						(r) => `S${r.seasonNumber}E${r.episodeNumber}`,
+					),
+				);
+				const isNowComplete =
+					isEnded &&
+					allEpisodes != null &&
+					allEpisodes.length > 0 &&
+					allEpisodes.every((ep) =>
+						updatedWatchedSet.has(`S${ep.seasonNumber}E${ep.episodeNumber}`),
+					);
+				if (isNowComplete && !hasShowReview) {
+					setReviewOpen(true);
+				}
 			},
 			onError: () => {
 				toast.error("Failed to mark episodes");
@@ -181,8 +215,6 @@ function ShowTracker() {
 			: 0;
 
 	// Status
-	const isEnded =
-		titleData?.status === "Ended" || titleData?.status === "Canceled";
 	const isComplete =
 		isEnded && totalEpisodes > 0 && watchedCount >= totalEpisodes;
 	const isCaughtUp =
@@ -366,6 +398,19 @@ function ShowTracker() {
 						</div>
 					)}
 				</>
+			)}
+
+			{/* Completion review prompt */}
+			{titleData && (
+				<ReviewModal
+					open={reviewOpen}
+					onOpenChange={setReviewOpen}
+					titleName={titleData.title}
+					year={titleData.year || undefined}
+					tmdbId={tmdbId}
+					mediaType="tv"
+					onEventCreated={() => setReviewOpen(false)}
+				/>
 			)}
 		</div>
 	);
