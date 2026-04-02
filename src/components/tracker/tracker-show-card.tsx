@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Clock, Star, X } from "lucide-react";
+import { Clock, RotateCcw, Star, X } from "lucide-react";
 
 interface TrackerShowCardProps {
 	tmdbId: number;
@@ -20,6 +20,8 @@ interface TrackerShowCardProps {
 		name: string;
 	}>;
 	onRemove?: (tmdbId: number) => void;
+	currentWatchNumber?: number;
+	onRewatch?: (tmdbId: number) => void;
 }
 
 function formatRuntime(minutes: number): string {
@@ -78,6 +80,8 @@ export function TrackerShowCard({
 	contentRating,
 	seasonList,
 	onRemove,
+	currentWatchNumber = 1,
+	onRewatch,
 }: TrackerShowCardProps) {
 	const isEnded = showStatus === "Ended" || showStatus === "Canceled";
 	const isComplete =
@@ -224,6 +228,44 @@ export function TrackerShowCard({
 				</button>
 			)}
 
+			{/* Rewatch button (top-left, appears on hover) */}
+			{onRewatch && (
+				<button
+					type="button"
+					onClick={(e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						onRewatch(tmdbId);
+					}}
+					className="absolute top-2 left-2 z-20 flex items-center gap-1.5 rounded-full px-2.5 py-1 opacity-0 transition-all duration-200 group-hover:opacity-100"
+					style={{
+						background: "rgba(255,45,120,0.15)",
+						border: "1px solid rgba(255,45,120,0.3)",
+						backdropFilter: "blur(4px)",
+						color: "#FF2D78",
+						fontSize: "8px",
+						fontFamily: "var(--font-mono-retro)",
+						letterSpacing: "1.5px",
+						textTransform: "uppercase" as const,
+						textShadow: "0 0 6px rgba(255,45,120,0.3)",
+					}}
+					onMouseEnter={(e) => {
+						const el = e.currentTarget;
+						el.style.background = "rgba(255,45,120,0.25)";
+						el.style.borderColor = "rgba(255,45,120,0.5)";
+					}}
+					onMouseLeave={(e) => {
+						const el = e.currentTarget;
+						el.style.background = "rgba(255,45,120,0.15)";
+						el.style.borderColor = "rgba(255,45,120,0.3)";
+					}}
+					title="Rewatch this show"
+				>
+					<RotateCcw className="h-2.5 w-2.5" />
+					Rewatch
+				</button>
+			)}
+
 			{/* ── Content overlay at bottom of card ────────────────────────── */}
 			<div className="relative z-10 flex h-full min-h-[220px] flex-col justify-end p-3 pb-0">
 				<div className="flex items-end gap-2.5">
@@ -314,6 +356,23 @@ export function TrackerShowCard({
 								/>
 								{statusLabel}
 							</span>
+
+							{currentWatchNumber > 1 && (
+								<span
+									className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono-retro"
+									style={{
+										fontSize: "8px",
+										letterSpacing: "1.5px",
+										textTransform: "uppercase",
+										color: "#FF2D78",
+										background: "rgba(255,45,120,0.12)",
+										textShadow: "0 0 8px rgba(255,45,120,0.35)",
+										boxShadow: "0 0 10px rgba(255,45,120,0.08)",
+									}}
+								>
+									Watch {currentWatchNumber}
+								</span>
+							)}
 
 							{seasonLabel && (
 								<span

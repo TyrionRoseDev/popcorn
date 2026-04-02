@@ -10,6 +10,7 @@ import { BookOpen, Clock, Film, Loader2, Search, Tv } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { JournalEntryCard } from "#/components/tracker/journal-entry-card";
+import { RewatchConfirmModal } from "#/components/tracker/rewatch-confirm-modal";
 import { TrackerShowCard } from "#/components/tracker/tracker-show-card";
 import { NowShowingHeader } from "#/components/watchlist/now-showing-header";
 import { useTRPC } from "#/integrations/trpc/react";
@@ -59,6 +60,7 @@ function TrackerDashboard() {
 		episodeCount: number;
 		totalRuntime: number;
 		lastWatchedAt: string;
+		currentWatchNumber: number;
 		details: {
 			title: string;
 			posterPath: string | null;
@@ -128,6 +130,35 @@ function TrackerDashboard() {
 			},
 		}),
 	);
+
+	const [rewatchTarget, setRewatchTarget] = useState<number | null>(null);
+
+	const startRewatch = useMutation(
+		trpc.episodeTracker.startRewatch.mutationOptions({
+			onSuccess: (data) => {
+				queryClient.invalidateQueries(
+					trpc.episodeTracker.getTrackedShows.queryFilter(),
+				);
+				setRewatchTarget(null);
+				toast.success(
+					`Rewatch started — you're on Watch ${data.currentWatchNumber}`,
+				);
+			},
+			onError: () => {
+				toast.error("Failed to start rewatch");
+			},
+		}),
+	);
+
+	const rewatchShow = rewatchTarget
+		? showsWithDetails.find((s) => s.tmdbId === rewatchTarget)
+		: null;
+	const rewatchIsComplete = rewatchShow
+		? (rewatchShow.details.status === "Ended" ||
+				rewatchShow.details.status === "Canceled") &&
+			(rewatchShow.details.episodes ?? 0) > 0 &&
+			rewatchShow.episodeCount >= (rewatchShow.details.episodes ?? 0)
+		: false;
 
 	function handleRemoveShow(tmdbId: number) {
 		const show = showsWithDetails.find((s) => s.tmdbId === tmdbId);
@@ -393,6 +424,8 @@ function TrackerDashboard() {
 												contentRating={show.details.contentRating}
 												seasonList={show.details.seasonList}
 												onRemove={handleRemoveShow}
+												currentWatchNumber={show.currentWatchNumber}
+												onRewatch={setRewatchTarget}
 											/>
 										))}
 									</div>
@@ -457,6 +490,8 @@ function TrackerDashboard() {
 												contentRating={show.details.contentRating}
 												seasonList={show.details.seasonList}
 												onRemove={handleRemoveShow}
+												currentWatchNumber={show.currentWatchNumber}
+												onRewatch={setRewatchTarget}
 											/>
 										))}
 									</div>
@@ -635,6 +670,25 @@ function TrackerDashboard() {
 						</div>
 					))}
 			</div>
+
+			{/* Rewatch confirmation modal */}
+			<RewatchConfirmModal
+				open={rewatchTarget !== null}
+				onOpenChange={(open) => {
+					if (!open) setRewatchTarget(null);
+				}}
+				titleName={rewatchShow?.details.title ?? ""}
+				isComplete={rewatchIsComplete}
+				watchedCount={rewatchShow?.episodeCount ?? 0}
+				totalEpisodes={rewatchShow?.details.episodes ?? 0}
+				currentWatchNumber={rewatchShow?.currentWatchNumber ?? 1}
+				onConfirm={() => {
+					if (rewatchTarget) {
+						startRewatch.mutate({ tmdbId: rewatchTarget });
+					}
+				}}
+				isPending={startRewatch.isPending}
+			/>
 		</div>
 	);
 }
