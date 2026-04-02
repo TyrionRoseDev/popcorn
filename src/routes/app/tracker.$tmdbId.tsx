@@ -486,7 +486,7 @@ function ShowTracker() {
 								{metaParts.length > 0 && (
 									<p
 										className="mt-1 text-[8px] tracking-[2px] uppercase"
-										style={{ color: "rgba(255,255,240,0.3)" }}
+										style={{ color: "rgba(255,255,240,0.5)" }}
 									>
 										{metaParts.join(" \u00B7 ")}
 									</p>
@@ -524,14 +524,14 @@ function ShowTracker() {
 							<div>
 								<div
 									className="text-[8px] tracking-[3px] uppercase"
-									style={{ color: "rgba(255,184,0,0.4)" }}
+									style={{ color: "rgba(255,184,0,0.65)" }}
 								>
 									Progress
 								</div>
 								<div className="font-display">
 									<span
 										className="text-lg"
-										style={{ color: "rgba(255,255,240,0.7)" }}
+										style={{ color: "rgba(255,255,240,0.85)" }}
 									>
 										{watchedCount}
 									</span>
@@ -543,7 +543,7 @@ function ShowTracker() {
 									</span>
 									<span
 										className="text-sm"
-										style={{ color: "rgba(255,255,240,0.25)" }}
+										style={{ color: "rgba(255,255,240,0.45)" }}
 									>
 										{totalEpisodes}
 									</span>
@@ -620,11 +620,11 @@ function ShowTracker() {
 							>
 								<Pen
 									className="h-4 w-4"
-									style={{ color: "#FF2D78", opacity: 0.7 }}
+									style={{ color: "#FF2D78", opacity: 0.9 }}
 								/>
 								<span
 									className="text-[7px] tracking-[2px] uppercase"
-									style={{ color: "rgba(255,45,120,0.5)" }}
+									style={{ color: "rgba(255,45,120,0.75)" }}
 								>
 									Write
 								</span>
@@ -646,11 +646,11 @@ function ShowTracker() {
 							>
 								<CheckCheck
 									className="h-4 w-4"
-									style={{ color: "#FFB800", opacity: 0.7 }}
+									style={{ color: "#FFB800", opacity: 0.9 }}
 								/>
 								<span
 									className="text-[7px] tracking-[2px] uppercase"
-									style={{ color: "rgba(255,184,0,0.5)" }}
+									style={{ color: "rgba(255,184,0,0.75)" }}
 								>
 									Mark All
 								</span>
@@ -668,11 +668,11 @@ function ShowTracker() {
 							>
 								<RotateCcw
 									className="h-4 w-4"
-									style={{ color: "#00e5ff", opacity: 0.7 }}
+									style={{ color: "#00e5ff", opacity: 0.9 }}
 								/>
 								<span
 									className="text-[7px] tracking-[2px] uppercase"
-									style={{ color: "rgba(0,229,255,0.5)" }}
+									style={{ color: "rgba(0,229,255,0.75)" }}
 								>
 									Rewatch
 								</span>
@@ -767,7 +767,7 @@ function ShowTracker() {
 									<select
 										value={selectedSeason}
 										onChange={(e) => setSelectedSeason(Number(e.target.value))}
-										className="appearance-none rounded-md py-1.5 pl-3 pr-8 font-display text-base text-cream/90 outline-none cursor-pointer"
+										className="appearance-none rounded-md py-1.5 pl-3 pr-8 font-display text-base text-cream outline-none cursor-pointer"
 										style={{
 											background: "rgba(12,12,28,0.6)",
 											border: "1px solid rgba(255,184,0,0.15)",
@@ -790,7 +790,7 @@ function ShowTracker() {
 								</div>
 
 								{/* Watched count for season */}
-								<span className="font-mono-retro text-[9px] tracking-wider text-cream/20">
+								<span className="font-mono-retro text-[9px] tracking-wider text-cream/40">
 									{selectedSeasonWatched}/{selectedSeasonEpisodes.length}
 								</span>
 
@@ -802,7 +802,7 @@ function ShowTracker() {
 											onClick={handleMarkSeason}
 											className="ml-auto text-[7px] tracking-[2px] uppercase rounded px-2.5 py-1 cursor-pointer transition-colors hover:bg-neon-amber/[0.06]"
 											style={{
-												color: "rgba(255,184,0,0.35)",
+												color: "rgba(255,184,0,0.6)",
 												border: "1px solid rgba(255,184,0,0.12)",
 												background: "transparent",
 											}}
@@ -841,11 +841,16 @@ function ShowTracker() {
 											]);
 										}
 									}}
-									className={`group/ep relative flex w-full items-stretch my-[3px] rounded-lg overflow-hidden transition-all duration-250 ease-out ${
+									className={`group/ep relative flex w-full items-stretch my-1.5 rounded-lg overflow-hidden transition-all duration-250 ease-out ${
 										!isViewingOldWatch
 											? "cursor-pointer hover:translate-x-1"
 											: "cursor-default"
 									}`}
+									style={{
+										border: isWatched
+											? "1px solid rgba(0,229,255,0.2)"
+											: "1px solid rgba(255,184,0,0.08)",
+									}}
 								>
 									{/* Left accent strip */}
 									<div
@@ -858,7 +863,7 @@ function ShowTracker() {
 														boxShadow: "0 0 8px rgba(0,229,255,0.3)",
 													}
 												: {
-														background: "rgba(255,255,240,0.04)",
+														background: "rgba(255,184,0,0.08)",
 													}
 										}
 									/>
@@ -869,7 +874,7 @@ function ShowTracker() {
 										style={{
 											background: isWatched
 												? "linear-gradient(90deg, rgba(0,229,255,0.06), rgba(0,229,255,0.015) 40%, transparent)"
-												: "rgba(12,12,28,0.4)",
+												: "linear-gradient(90deg, rgba(255,184,0,0.02), transparent 40%)",
 										}}
 									>
 										{/* Episode number */}
@@ -877,7 +882,7 @@ function ShowTracker() {
 											className="shrink-0 font-display text-[15px] font-bold text-center transition-all duration-200"
 											style={{
 												width: 26,
-												color: isWatched ? "#00e5ff" : "rgba(255,255,240,0.15)",
+												color: isWatched ? "#00e5ff" : "rgba(255,184,0,0.45)",
 												textShadow: isWatched
 													? "0 0 10px rgba(0,229,255,0.5)"
 													: "none",
@@ -893,8 +898,8 @@ function ShowTracker() {
 												width: 3,
 												height: 3,
 												background: isWatched
-													? "rgba(0,229,255,0.3)"
-													: "rgba(255,255,240,0.06)",
+													? "rgba(0,229,255,0.5)"
+													: "rgba(255,184,0,0.2)",
 												boxShadow: isWatched
 													? "0 0 4px rgba(0,229,255,0.3)"
 													: "none",
@@ -907,8 +912,8 @@ function ShowTracker() {
 												className="text-sm truncate transition-colors duration-200"
 												style={{
 													color: isWatched
-														? "rgba(255,255,240,0.75)"
-														: "rgba(255,255,240,0.3)",
+														? "rgba(255,255,240,0.9)"
+														: "rgba(255,255,240,0.65)",
 												}}
 											>
 												{ep.name}
@@ -918,8 +923,8 @@ function ShowTracker() {
 													className="text-[8px] tracking-[1px] mt-0.5"
 													style={{
 														color: isWatched
-															? "rgba(0,229,255,0.2)"
-															: "rgba(255,255,240,0.08)",
+															? "rgba(0,229,255,0.4)"
+															: "rgba(255,255,240,0.25)",
 													}}
 												>
 													{ep.runtime} min
@@ -974,7 +979,7 @@ function ShowTracker() {
 											<div
 												className="h-[18px] w-[18px] rounded-full transition-all duration-200 group-hover/ep:border-[rgba(0,229,255,0.3)] group-hover/ep:bg-[rgba(0,229,255,0.05)]"
 												style={{
-													border: "1.5px solid rgba(255,255,240,0.08)",
+													border: "1.5px solid rgba(255,184,0,0.15)",
 												}}
 											/>
 										)}

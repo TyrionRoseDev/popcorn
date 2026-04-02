@@ -39,9 +39,11 @@ Full visual redesign of the show detail page (`/tracker/:tmdbId`) to match the d
 - **Hover** — row slides right 4px, unwatched accent turns cyan, "watch"/"undo" hint appears, checkbox border glows
 - 3px gap between rows, 8px border-radius
 
-### Season Header
-- Playfair Display serif title, episode count, right-aligned "Mark All" button
-- Amber bottom border
+### Season Selector
+- Dropdown to pick which season to view (only that season's episodes show)
+- Styled as a custom select matching the drive-in aesthetic
+- Shows season name + watched/total count
+- "Mark All" button next to the dropdown for the selected season
 
 ### Fonts
 - **Playfair Display** — titles, episode numbers, percentage
