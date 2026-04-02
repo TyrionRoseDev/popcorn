@@ -120,21 +120,18 @@ function ShowTracker() {
 					`Marked ${count} episode${count > 1 ? "s" : ""} as watched`,
 				);
 
-				// Check for show completion after cache update
-				const updatedWatched = queryClient.getQueryData<
-					Array<{ seasonNumber: number; episodeNumber: number }>
-				>(trpc.episodeTracker.getForShow.queryOptions({ tmdbId }).queryKey);
-				const updatedWatchedSet = new Set(
-					(updatedWatched ?? []).map(
-						(r) => `S${r.seasonNumber}E${r.episodeNumber}`,
-					),
-				);
+				// Check for show completion by combining existing watched set
+				// with the just-marked episodes (avoids stale cache issues)
+				const newWatchedSet = new Set(watchedSet);
+				for (const ep of variables.episodes) {
+					newWatchedSet.add(`S${ep.seasonNumber}E${ep.episodeNumber}`);
+				}
 				const isNowComplete =
 					isEnded &&
 					allEpisodes != null &&
 					allEpisodes.length > 0 &&
 					allEpisodes.every((ep) =>
-						updatedWatchedSet.has(`S${ep.seasonNumber}E${ep.episodeNumber}`),
+						newWatchedSet.has(`S${ep.seasonNumber}E${ep.episodeNumber}`),
 					);
 				if (isNowComplete && !hasShowReview) {
 					setReviewOpen(true);

@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
-import { episodeWatch } from "#/db/schema";
+import { episodeWatch, journalEntry } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
 import { fetchAllSeasons, fetchSeasonDetails } from "#/lib/tmdb-title";
 
@@ -82,7 +82,8 @@ export const episodeTrackerRouter = {
 
 	/** Get all tracked shows for the dashboard */
 	getTrackedShows: protectedProcedure.query(async ({ ctx }) => {
-		const shows = await db
+		// Shows with episode watches
+		const episodeShows = await db
 			.select({
 				tmdbId: episodeWatch.tmdbId,
 				episodeCount: sql<number>`count(*)::int`,
@@ -93,7 +94,33 @@ export const episodeTrackerRouter = {
 			.where(eq(episodeWatch.userId, ctx.userId))
 			.groupBy(episodeWatch.tmdbId)
 			.orderBy(sql`max(${episodeWatch.watchedAt}) desc`);
-		return shows;
+
+		// Shows with only journal entries (no episode watches)
+		const journalOnlyShows = await db
+			.select({
+				tmdbId: journalEntry.tmdbId,
+				lastCreatedAt: sql<string>`max(${journalEntry.createdAt})`,
+			})
+			.from(journalEntry)
+			.where(eq(journalEntry.userId, ctx.userId))
+			.groupBy(journalEntry.tmdbId);
+
+		// Merge: episode shows take priority, add journal-only shows with 0 episodes
+		const episodeTmdbIds = new Set(episodeShows.map((s) => s.tmdbId));
+		const journalOnly = journalOnlyShows
+			.filter((s) => !episodeTmdbIds.has(s.tmdbId))
+			.map((s) => ({
+				tmdbId: s.tmdbId,
+				episodeCount: 0,
+				totalRuntime: 0,
+				lastWatchedAt: s.lastCreatedAt,
+			}));
+
+		return [...episodeShows, ...journalOnly].sort(
+			(a, b) =>
+				new Date(b.lastWatchedAt).getTime() -
+				new Date(a.lastWatchedAt).getTime(),
+		);
 	}),
 
 	/** Get TV watch time for a user (used in profile) */
@@ -144,5 +171,28 @@ export const episodeTrackerRouter = {
 		)
 		.query(async ({ input }) => {
 			return fetchAllSeasons(input.tmdbId, input.seasonList);
+		}),
+
+	/** Remove a show from the tracker (deletes all episode watches and journal entries) */
+	removeShow: protectedProcedure
+		.input(z.object({ tmdbId: z.number() }))
+		.mutation(async ({ input, ctx }) => {
+			await db
+				.delete(episodeWatch)
+				.where(
+					and(
+						eq(episodeWatch.userId, ctx.userId),
+						eq(episodeWatch.tmdbId, input.tmdbId),
+					),
+				);
+			await db
+				.delete(journalEntry)
+				.where(
+					and(
+						eq(journalEntry.userId, ctx.userId),
+						eq(journalEntry.tmdbId, input.tmdbId),
+					),
+				);
+			return { success: true };
 		}),
 } satisfies TRPCRouterRecord;

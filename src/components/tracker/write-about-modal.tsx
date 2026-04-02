@@ -45,6 +45,7 @@ function scopeLabel(
 	scope: Scope,
 	seasonNumber?: number,
 	episodeNumber?: number,
+	entryType?: EntryType | null,
 ): string {
 	if (scope === "episode" && seasonNumber != null && episodeNumber != null) {
 		return `S${seasonNumber}E${episodeNumber}`;
@@ -52,7 +53,7 @@ function scopeLabel(
 	if (scope === "season" && seasonNumber != null) {
 		return `Season ${seasonNumber}`;
 	}
-	return "Full Show";
+	return entryType === "note" ? "General" : "Full Show";
 }
 
 function scopeTitleSuffix(
@@ -472,8 +473,12 @@ export function WriteAboutModal({
 													accentColor="neon-cyan"
 												/>
 												<ScopeOption
-													label="Full Show"
-													sublabel="The whole series"
+													label={entryType === "note" ? "General" : "Full Show"}
+													sublabel={
+														entryType === "note"
+															? "About the show in general"
+															: "The whole series"
+													}
 													onClick={() => handleChooseScope("show")}
 													accentColor="neon-cyan"
 												/>
@@ -571,6 +576,7 @@ export function WriteAboutModal({
 														scope!,
 														selectedSeason ?? undefined,
 														selectedEpisode ?? undefined,
+														entryType,
 													)}
 												</span>
 											</div>
@@ -648,7 +654,7 @@ export function WriteAboutModal({
 																selectedSeason ?? undefined,
 																selectedEpisode ?? undefined,
 															);
-															return `${missing.length} episode${missing.length > 1 ? "s" : ""} in ${scopeLabel(scope!, selectedSeason ?? undefined, selectedEpisode ?? undefined)} haven't been marked as watched yet.`;
+															return `${missing.length} episode${missing.length > 1 ? "s" : ""} in ${scopeLabel(scope!, selectedSeason ?? undefined, selectedEpisode ?? undefined, entryType)} haven't been marked as watched yet.`;
 														})()}
 													</div>
 												</div>

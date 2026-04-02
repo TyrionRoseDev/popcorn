@@ -1,7 +1,14 @@
-import { useInfiniteQuery, useQueries, useQuery } from "@tanstack/react-query";
+import {
+	useInfiniteQuery,
+	useMutation,
+	useQueries,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BookOpen, Loader2, Tv } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { JournalEntryCard } from "#/components/tracker/journal-entry-card";
 import { TrackerShowCard } from "#/components/tracker/tracker-show-card";
 import { useTRPC } from "#/integrations/trpc/react";
@@ -12,6 +19,7 @@ export const Route = createFileRoute("/app/tracker/")({
 
 function TrackerDashboard() {
 	const trpc = useTRPC();
+	const queryClient = useQueryClient();
 	const [activeTab, setActiveTab] = useState<"shows" | "journal">("shows");
 
 	// ── Shows tab data ──────────────────────────────────────────────────────────
@@ -86,6 +94,33 @@ function TrackerDashboard() {
 	);
 
 	const journalEntries = journalData?.pages.flatMap((p) => p.items) ?? [];
+
+	const removeShow = useMutation(
+		trpc.episodeTracker.removeShow.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					trpc.episodeTracker.getTrackedShows.queryFilter(),
+				);
+				queryClient.invalidateQueries(trpc.journalEntry.getAll.queryFilter());
+				toast.success("Show removed from tracker");
+			},
+			onError: () => {
+				toast.error("Failed to remove show");
+			},
+		}),
+	);
+
+	function handleRemoveShow(tmdbId: number) {
+		const show = showsWithDetails.find((s) => s.tmdbId === tmdbId);
+		toast(`Remove ${show?.details.title ?? "this show"} from tracker?`, {
+			description: "All episode progress and notes will be deleted",
+			action: {
+				label: "Remove",
+				onClick: () => removeShow.mutate({ tmdbId }),
+			},
+			duration: 5000,
+		});
+	}
 
 	return (
 		<div className="mx-auto max-w-3xl px-4 py-8">
@@ -202,6 +237,7 @@ function TrackerDashboard() {
 											totalEpisodes={show.details.episodes ?? 0}
 											showStatus={show.details.status}
 											rating={null}
+											onRemove={handleRemoveShow}
 										/>
 									))}
 								</div>
@@ -236,6 +272,7 @@ function TrackerDashboard() {
 											totalEpisodes={show.details.episodes ?? 0}
 											showStatus={show.details.status}
 											rating={null}
+											onRemove={handleRemoveShow}
 										/>
 									))}
 								</div>

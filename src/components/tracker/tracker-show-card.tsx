@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Star } from "lucide-react";
+import { Star, X } from "lucide-react";
 
 interface TrackerShowCardProps {
 	tmdbId: number;
@@ -9,6 +9,7 @@ interface TrackerShowCardProps {
 	totalEpisodes: number;
 	showStatus: string | undefined;
 	rating: number | null;
+	onRemove?: (tmdbId: number) => void;
 }
 
 export function TrackerShowCard({
@@ -19,6 +20,7 @@ export function TrackerShowCard({
 	totalEpisodes,
 	showStatus,
 	rating,
+	onRemove,
 }: TrackerShowCardProps) {
 	const isEnded = showStatus === "Ended" || showStatus === "Canceled";
 	const isComplete =
@@ -67,6 +69,22 @@ export function TrackerShowCard({
 					background: `radial-gradient(ellipse at top left, ${statusGlow.replace("0.35", "0.06")}, transparent 60%)`,
 				}}
 			/>
+
+			{/* Remove button */}
+			{onRemove && (
+				<button
+					type="button"
+					onClick={(e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						onRemove(tmdbId);
+					}}
+					className="absolute top-2 right-2 z-20 p-1 rounded-md text-cream/0 opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:text-cream/25 hover:!text-red-400/70 hover:bg-red-400/10"
+					title="Remove from tracker"
+				>
+					<X className="h-3.5 w-3.5" />
+				</button>
+			)}
 
 			{/* Poster */}
 			<div className="relative h-[108px] w-[72px] shrink-0 overflow-hidden rounded-lg bg-cream/5">
