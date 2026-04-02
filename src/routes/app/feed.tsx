@@ -2,6 +2,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bookmark, Film, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { FeedJournalCard } from "#/components/tracker/feed-journal-card";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import type { Companion } from "#/components/watched/watched-with-modal";
@@ -105,6 +106,12 @@ function FeedPage() {
 									watchlist={wl}
 									isOwn={wl.ownerId === currentUserId}
 								/>
+							);
+						}
+
+						if (item.type === "journal_entry") {
+							return (
+								<FeedJournalCard key={`je-${item.data.id}`} entry={item.data} />
 							);
 						}
 
