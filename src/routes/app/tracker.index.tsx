@@ -11,6 +11,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { JournalEntryCard } from "#/components/tracker/journal-entry-card";
 import { TrackerShowCard } from "#/components/tracker/tracker-show-card";
+import { NowShowingHeader } from "#/components/watchlist/now-showing-header";
 import { useTRPC } from "#/integrations/trpc/react";
 
 export const Route = createFileRoute("/app/tracker/")({
@@ -149,36 +150,50 @@ function TrackerDashboard() {
 				className="pointer-events-none fixed inset-0 z-0"
 				style={{
 					background:
-						"radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,229,255,0.06), transparent 60%), radial-gradient(ellipse 60% 40% at 80% 10%, rgba(255,45,120,0.03), transparent 50%)",
+						"radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,184,0,0.06), transparent 60%), radial-gradient(ellipse 60% 40% at 80% 10%, rgba(255,45,120,0.03), transparent 50%)",
 				}}
 			/>
 
 			<div className="relative z-10">
 				{/* ── Marquee Header ─────────────────────────────────────────────── */}
-				<div className="mb-8">
-					<h1
-						className="font-display text-3xl tracking-wide text-cream"
-						style={{
-							textShadow:
-								"0 0 20px rgba(0,229,255,0.25), 0 0 60px rgba(0,229,255,0.08)",
-							animation: "neon-flicker 4s ease-in-out infinite",
-						}}
-					>
-						Tracker
-					</h1>
+				<div className="mb-6">
+					<NowShowingHeader title="Series Tracker" />
 
 					{/* Stats ribbon */}
 					{!isLoadingShowsTab && totalShows > 0 && (
-						<div className="mt-2.5 flex items-center gap-4">
-							<span className="inline-flex items-center gap-1.5 text-xs font-mono-retro tracking-wide text-cream/30">
-								<Film className="h-3 w-3 text-cream/20" />
+						<div className="mt-4 flex items-center justify-center gap-4">
+							<span
+								className="inline-flex items-center gap-1.5 font-mono-retro tracking-wide"
+								style={{
+									fontSize: "10px",
+									letterSpacing: "2px",
+									color: "rgba(255,184,0,0.5)",
+									textTransform: "uppercase",
+								}}
+							>
+								<Film className="h-3 w-3" style={{ opacity: 0.6 }} />
 								{totalShows} {totalShows === 1 ? "show" : "shows"}
 							</span>
 							{totalWatchtime > 0 && (
 								<>
-									<span className="text-cream/10">|</span>
-									<span className="inline-flex items-center gap-1.5 text-xs font-mono-retro tracking-wide text-cream/30">
-										<Clock className="h-3 w-3 text-cream/20" />
+									<span
+										style={{
+											width: "3px",
+											height: "3px",
+											borderRadius: "50%",
+											background: "rgba(255,184,0,0.2)",
+										}}
+									/>
+									<span
+										className="inline-flex items-center gap-1.5 font-mono-retro tracking-wide"
+										style={{
+											fontSize: "10px",
+											letterSpacing: "2px",
+											color: "rgba(255,184,0,0.5)",
+											textTransform: "uppercase",
+										}}
+									>
+										<Clock className="h-3 w-3" style={{ opacity: 0.6 }} />
 										{formatRuntime(totalWatchtime)} watched
 									</span>
 								</>
@@ -189,11 +204,8 @@ function TrackerDashboard() {
 
 				{/* ── Tab Bar ────────────────────────────────────────────────────── */}
 				<div
-					className="mb-8 flex items-center gap-1 rounded-xl p-1"
-					style={{
-						background: "rgba(255,255,240,0.03)",
-						border: "1px solid rgba(255,255,240,0.05)",
-					}}
+					className="mx-auto mb-8 flex items-center gap-2"
+					style={{ maxWidth: "320px" }}
 				>
 					{tabs.map((tab) => {
 						const isActive = activeTab === tab.id;
@@ -203,23 +215,28 @@ function TrackerDashboard() {
 								key={tab.id}
 								type="button"
 								onClick={() => setActiveTab(tab.id)}
-								className="relative flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-mono-retro tracking-wider transition-all duration-300"
+								className="relative flex flex-1 items-center justify-center gap-2 px-4 py-2.5 font-mono-retro tracking-wider transition-all duration-300"
 								style={{
-									color: isActive
-										? "rgba(0,229,255,1)"
-										: "rgba(255,255,240,0.3)",
-									background: isActive ? "rgba(0,229,255,0.08)" : "transparent",
+									fontSize: "10px",
+									letterSpacing: "3px",
+									textTransform: "uppercase",
+									color: isActive ? "#FFB800" : "rgba(255,255,240,0.25)",
+									background: isActive ? "rgba(255,184,0,0.06)" : "transparent",
+									border: isActive
+										? "1px solid rgba(255,184,0,0.3)"
+										: "1px solid rgba(255,255,240,0.06)",
+									borderRadius: "6px",
 									boxShadow: isActive
-										? "0 0 16px rgba(0,229,255,0.08), inset 0 1px 0 rgba(0,229,255,0.1)"
+										? "0 0 16px rgba(255,184,0,0.06), inset 0 1px 0 rgba(255,184,0,0.08)"
 										: "none",
 									textShadow: isActive
-										? "0 0 12px rgba(0,229,255,0.4)"
+										? "0 0 12px rgba(255,184,0,0.4)"
 										: "none",
 								}}
 							>
 								<Icon
 									className="h-3.5 w-3.5"
-									style={{ opacity: isActive ? 1 : 0.5 }}
+									style={{ opacity: isActive ? 0.9 : 0.4 }}
 								/>
 								{tab.label}
 							</button>
@@ -232,12 +249,21 @@ function TrackerDashboard() {
 					(isLoadingShowsTab ? (
 						<div className="flex flex-col items-center justify-center py-20">
 							<Loader2
-								className="h-5 w-5 animate-spin text-neon-cyan/40"
+								className="h-5 w-5 animate-spin"
 								style={{
-									filter: "drop-shadow(0 0 8px rgba(0,229,255,0.3))",
+									color: "rgba(255,184,0,0.4)",
+									filter: "drop-shadow(0 0 8px rgba(255,184,0,0.3))",
 								}}
 							/>
-							<span className="mt-3 text-xs font-mono-retro text-cream/20 tracking-wider">
+							<span
+								className="mt-3 font-mono-retro tracking-wider"
+								style={{
+									fontSize: "10px",
+									letterSpacing: "3px",
+									color: "rgba(255,184,0,0.25)",
+									textTransform: "uppercase",
+								}}
+							>
 								Loading shows...
 							</span>
 						</div>
@@ -249,16 +275,17 @@ function TrackerDashboard() {
 								className="relative mb-6 flex h-20 w-20 items-center justify-center rounded-2xl"
 								style={{
 									background:
-										"linear-gradient(145deg, rgba(0,229,255,0.06), rgba(0,229,255,0.01))",
-									border: "1px solid rgba(0,229,255,0.1)",
+										"linear-gradient(145deg, rgba(255,184,0,0.06), rgba(255,184,0,0.01))",
+									border: "1px solid rgba(255,184,0,0.15)",
 									boxShadow:
-										"0 0 40px rgba(0,229,255,0.05), inset 0 1px 0 rgba(0,229,255,0.08)",
+										"0 0 40px rgba(255,184,0,0.05), inset 0 1px 0 rgba(255,184,0,0.08)",
 								}}
 							>
 								<Tv
-									className="h-8 w-8 text-neon-cyan/30"
+									className="h-8 w-8"
 									style={{
-										filter: "drop-shadow(0 0 10px rgba(0,229,255,0.3))",
+										color: "rgba(255,184,0,0.35)",
+										filter: "drop-shadow(0 0 10px rgba(255,184,0,0.3))",
 										animation: "neon-flicker 3s ease-in-out infinite",
 									}}
 								/>
@@ -268,7 +295,7 @@ function TrackerDashboard() {
 									className="pointer-events-none absolute inset-0 rounded-2xl opacity-30"
 									style={{
 										backgroundImage:
-											"repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,229,255,0.03) 3px, rgba(0,229,255,0.03) 4px)",
+											"repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,184,0,0.03) 3px, rgba(255,184,0,0.03) 4px)",
 									}}
 								/>
 							</div>
@@ -282,14 +309,18 @@ function TrackerDashboard() {
 							<Link
 								to="/app/search"
 								search={{ q: "", type: "tv", sort: "relevance", page: 1 }}
-								className="mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-mono-retro tracking-wider text-neon-cyan no-underline transition-all duration-300 hover:scale-[1.02]"
+								className="mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 font-mono-retro tracking-wider no-underline transition-all duration-300 hover:scale-[1.02]"
 								style={{
+									fontSize: "10px",
+									letterSpacing: "3px",
+									textTransform: "uppercase",
+									color: "#FFB800",
 									background:
-										"linear-gradient(135deg, rgba(0,229,255,0.12), rgba(0,229,255,0.06))",
-									border: "1px solid rgba(0,229,255,0.2)",
+										"linear-gradient(135deg, rgba(255,184,0,0.12), rgba(255,184,0,0.06))",
+									border: "1px solid rgba(255,184,0,0.25)",
 									boxShadow:
-										"0 0 20px rgba(0,229,255,0.08), inset 0 1px 0 rgba(0,229,255,0.1)",
-									textShadow: "0 0 10px rgba(0,229,255,0.4)",
+										"0 0 20px rgba(255,184,0,0.08), inset 0 1px 0 rgba(255,184,0,0.1)",
+									textShadow: "0 0 10px rgba(255,184,0,0.4)",
 								}}
 							>
 								<Search className="h-3 w-3" />
@@ -301,20 +332,29 @@ function TrackerDashboard() {
 							{watching.length > 0 && (
 								<section>
 									{/* Section header */}
-									<div className="mb-4 flex items-center gap-3">
-										<div className="flex items-baseline gap-2">
+									<div className="mb-5 flex items-center gap-3">
+										<div className="flex items-baseline gap-2.5">
 											<h2
-												className="text-[11px] font-mono-retro tracking-[3px] uppercase text-neon-cyan/60"
+												className="font-mono-retro"
 												style={{
-													textShadow: "0 0 10px rgba(0,229,255,0.2)",
+													fontSize: "11px",
+													letterSpacing: "4px",
+													textTransform: "uppercase",
+													color: "#FFB800",
+													opacity: 0.7,
+													textShadow: "0 0 12px rgba(255,184,0,0.25)",
 												}}
 											>
 												Watching
 											</h2>
 											<span
-												className="rounded-full px-1.5 py-0.5 text-[10px] font-mono-retro text-neon-cyan/50"
+												className="font-mono-retro"
 												style={{
-													background: "rgba(0,229,255,0.08)",
+													fontSize: "10px",
+													color: "rgba(255,184,0,0.4)",
+													background: "rgba(255,184,0,0.08)",
+													borderRadius: "9999px",
+													padding: "2px 7px",
 												}}
 											>
 												{watching.length}
@@ -324,11 +364,11 @@ function TrackerDashboard() {
 											className="h-px flex-1"
 											style={{
 												background:
-													"linear-gradient(90deg, rgba(0,229,255,0.15), rgba(0,229,255,0.04) 40%, transparent 80%)",
+													"linear-gradient(90deg, rgba(255,184,0,0.2), rgba(255,184,0,0.04) 50%, transparent 80%)",
 											}}
 										/>
 									</div>
-									<div className="grid gap-3 sm:grid-cols-2">
+									<div className="flex flex-col gap-3">
 										{watching.map((show) => (
 											<TrackerShowCard
 												key={show.tmdbId}
@@ -349,20 +389,29 @@ function TrackerDashboard() {
 
 							{completed.length > 0 && (
 								<section>
-									<div className="mb-4 flex items-center gap-3">
-										<div className="flex items-baseline gap-2">
+									<div className="mb-5 flex items-center gap-3">
+										<div className="flex items-baseline gap-2.5">
 											<h2
-												className="text-[11px] font-mono-retro tracking-[3px] uppercase text-neon-amber/60"
+												className="font-mono-retro"
 												style={{
-													textShadow: "0 0 10px rgba(255,184,0,0.2)",
+													fontSize: "11px",
+													letterSpacing: "4px",
+													textTransform: "uppercase",
+													color: "#FFB800",
+													opacity: 0.7,
+													textShadow: "0 0 12px rgba(255,184,0,0.25)",
 												}}
 											>
 												Completed
 											</h2>
 											<span
-												className="rounded-full px-1.5 py-0.5 text-[10px] font-mono-retro text-neon-amber/50"
+												className="font-mono-retro"
 												style={{
+													fontSize: "10px",
+													color: "rgba(255,184,0,0.4)",
 													background: "rgba(255,184,0,0.08)",
+													borderRadius: "9999px",
+													padding: "2px 7px",
 												}}
 											>
 												{completed.length}
@@ -372,11 +421,11 @@ function TrackerDashboard() {
 											className="h-px flex-1"
 											style={{
 												background:
-													"linear-gradient(90deg, rgba(255,184,0,0.15), rgba(255,184,0,0.04) 40%, transparent 80%)",
+													"linear-gradient(90deg, rgba(255,184,0,0.2), rgba(255,184,0,0.04) 50%, transparent 80%)",
 											}}
 										/>
 									</div>
-									<div className="grid gap-3 sm:grid-cols-2">
+									<div className="flex flex-col gap-3">
 										{completed.map((show) => (
 											<TrackerShowCard
 												key={show.tmdbId}
@@ -402,12 +451,21 @@ function TrackerDashboard() {
 					(isLoadingJournal ? (
 						<div className="flex flex-col items-center justify-center py-20">
 							<Loader2
-								className="h-5 w-5 animate-spin text-neon-cyan/40"
+								className="h-5 w-5 animate-spin"
 								style={{
-									filter: "drop-shadow(0 0 8px rgba(0,229,255,0.3))",
+									color: "rgba(255,184,0,0.4)",
+									filter: "drop-shadow(0 0 8px rgba(255,184,0,0.3))",
 								}}
 							/>
-							<span className="mt-3 text-xs font-mono-retro text-cream/20 tracking-wider">
+							<span
+								className="mt-3 font-mono-retro tracking-wider"
+								style={{
+									fontSize: "10px",
+									letterSpacing: "3px",
+									color: "rgba(255,184,0,0.25)",
+									textTransform: "uppercase",
+								}}
+							>
 								Loading journal...
 							</span>
 						</div>
@@ -417,16 +475,17 @@ function TrackerDashboard() {
 								className="relative mb-6 flex h-20 w-20 items-center justify-center rounded-2xl"
 								style={{
 									background:
-										"linear-gradient(145deg, rgba(0,229,255,0.06), rgba(0,229,255,0.01))",
-									border: "1px solid rgba(0,229,255,0.1)",
+										"linear-gradient(145deg, rgba(255,184,0,0.06), rgba(255,184,0,0.01))",
+									border: "1px solid rgba(255,184,0,0.15)",
 									boxShadow:
-										"0 0 40px rgba(0,229,255,0.05), inset 0 1px 0 rgba(0,229,255,0.08)",
+										"0 0 40px rgba(255,184,0,0.05), inset 0 1px 0 rgba(255,184,0,0.08)",
 								}}
 							>
 								<BookOpen
-									className="h-8 w-8 text-neon-cyan/30"
+									className="h-8 w-8"
 									style={{
-										filter: "drop-shadow(0 0 10px rgba(0,229,255,0.3))",
+										color: "rgba(255,184,0,0.35)",
+										filter: "drop-shadow(0 0 10px rgba(255,184,0,0.3))",
 									}}
 								/>
 							</div>
@@ -456,11 +515,15 @@ function TrackerDashboard() {
 										type="button"
 										onClick={() => fetchNextPage()}
 										disabled={isFetchingNextPage}
-										className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-mono-retro tracking-wider text-neon-cyan/70 transition-all duration-300 hover:text-neon-cyan disabled:opacity-40"
+										className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 font-mono-retro tracking-wider transition-all duration-300 disabled:opacity-40"
 										style={{
-											background: "rgba(0,229,255,0.06)",
-											border: "1px solid rgba(0,229,255,0.1)",
-											boxShadow: "0 0 12px rgba(0,229,255,0.04)",
+											fontSize: "10px",
+											letterSpacing: "3px",
+											textTransform: "uppercase",
+											color: "rgba(255,184,0,0.6)",
+											background: "rgba(255,184,0,0.06)",
+											border: "1px solid rgba(255,184,0,0.15)",
+											boxShadow: "0 0 12px rgba(255,184,0,0.04)",
 										}}
 									>
 										{isFetchingNextPage ? (
