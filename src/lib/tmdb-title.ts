@@ -36,6 +36,12 @@ interface TmdbTvDetail {
 		episode_count: number;
 		name: string;
 	}>;
+	next_episode_to_air: {
+		air_date: string;
+		name: string;
+		episode_number: number;
+		season_number: number;
+	} | null;
 }
 
 interface TmdbCreditsResponse {
@@ -76,6 +82,22 @@ interface TmdbTvContentRatingsResponse {
 	}>;
 }
 
+export interface TmdbEpisode {
+	episode_number: number;
+	name: string;
+	overview: string;
+	runtime: number | null;
+	air_date: string | null;
+	still_path: string | null;
+	season_number: number;
+}
+
+interface TmdbSeasonDetail {
+	season_number: number;
+	name: string;
+	episodes: TmdbEpisode[];
+}
+
 // --- Return type ---
 
 export interface TitleData {
@@ -109,6 +131,7 @@ export interface TitleData {
 		episodeCount: number;
 		name: string;
 	}>;
+	nextEpisodeAirDate?: string | null;
 }
 
 // --- Helpers ---
@@ -254,5 +277,42 @@ export async function fetchTitleDetails(
 			episodeCount: s.episode_count,
 			name: s.name,
 		})),
+		nextEpisodeAirDate: tv.next_episode_to_air?.air_date ?? null,
 	};
+}
+
+export interface SeasonEpisode {
+	episodeNumber: number;
+	name: string;
+	runtime: number | null;
+	airDate: string | null;
+	seasonNumber: number;
+}
+
+export async function fetchSeasonDetails(
+	tmdbId: number,
+	seasonNumber: number,
+): Promise<SeasonEpisode[]> {
+	const season = await tmdbFetch<TmdbSeasonDetail>(
+		`/tv/${tmdbId}/season/${seasonNumber}`,
+	);
+	return season.episodes.map((ep) => ({
+		episodeNumber: ep.episode_number,
+		name: ep.name,
+		runtime: ep.runtime,
+		airDate: ep.air_date,
+		seasonNumber: ep.season_number,
+	}));
+}
+
+export async function fetchAllSeasons(
+	tmdbId: number,
+	seasonList: Array<{ seasonNumber: number }>,
+): Promise<SeasonEpisode[]> {
+	const seasons = await Promise.all(
+		seasonList
+			.filter((s) => s.seasonNumber > 0) // Exclude specials (Season 0)
+			.map((s) => fetchSeasonDetails(tmdbId, s.seasonNumber).catch(() => [])),
+	);
+	return seasons.flat();
 }
