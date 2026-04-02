@@ -34,6 +34,9 @@ export const watchEventRouter = {
 				titleName: z.string().optional(),
 				posterPath: z.string().nullish(),
 				remindMe: z.boolean().optional(),
+				scope: z.enum(["episode", "season", "show"]).optional(),
+				scopeSeasonNumber: z.number().optional(),
+				scopeEpisodeNumber: z.number().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -61,6 +64,9 @@ export const watchEventRouter = {
 						? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 						: null,
 					genreIds,
+					scope: input.scope ?? null,
+					scopeSeasonNumber: input.scopeSeasonNumber ?? null,
+					scopeEpisodeNumber: input.scopeEpisodeNumber ?? null,
 				})
 				.returning();
 
@@ -139,6 +145,9 @@ export const watchEventRouter = {
 				watchedAt: z.string().datetime().optional(),
 				companions: z.array(companionSchema).optional(),
 				titleName: z.string().optional(),
+				scope: z.enum(["episode", "season", "show"]).optional().nullable(),
+				scopeSeasonNumber: z.number().optional().nullable(),
+				scopeEpisodeNumber: z.number().optional().nullable(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -158,6 +167,13 @@ export const watchEventRouter = {
 					...(input.rating !== undefined ? { rating: input.rating } : {}),
 					...(input.note !== undefined ? { note: input.note } : {}),
 					...(input.watchedAt ? { watchedAt: new Date(input.watchedAt) } : {}),
+					...(input.scope !== undefined ? { scope: input.scope } : {}),
+					...(input.scopeSeasonNumber !== undefined
+						? { scopeSeasonNumber: input.scopeSeasonNumber }
+						: {}),
+					...(input.scopeEpisodeNumber !== undefined
+						? { scopeEpisodeNumber: input.scopeEpisodeNumber }
+						: {}),
 				})
 				.where(eq(watchEvent.id, input.id))
 				.returning();
