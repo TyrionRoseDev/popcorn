@@ -50,8 +50,8 @@ export function TrackerShowCard({
 
 	return (
 		<Link
-			to="/app/title/$mediaType/$tmdbId"
-			params={{ mediaType: "tv", tmdbId: tmdbId }}
+			to="/app/tracker/$tmdbId"
+			params={{ tmdbId: String(tmdbId) }}
 			className="group relative flex gap-4 rounded-xl border border-cream/8 p-3 no-underline transition-all duration-300 hover:border-cream/15 hover:shadow-lg"
 			style={{
 				background:

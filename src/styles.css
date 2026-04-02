@@ -372,6 +372,14 @@ a {
   scrollbar-color: rgba(255, 184, 0, 0.25) transparent;
 }
 
+/* Hide scrollbar while keeping scroll functionality */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+
 /* === Retro / Drive-In Animations === */
 
 @keyframes neon-cycle {
