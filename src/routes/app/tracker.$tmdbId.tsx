@@ -4,7 +4,9 @@ import {
 	ArrowLeft,
 	BookOpen,
 	Calendar,
+	Check,
 	CheckCheck,
+	ChevronDown,
 	Loader2,
 	Pen,
 	RotateCcw,
@@ -14,7 +16,6 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CompletionCelebration } from "#/components/tracker/completion-celebration";
 import { RewatchConfirmModal } from "#/components/tracker/rewatch-confirm-modal";
-import { SeasonSection } from "#/components/tracker/season-row";
 import { WriteAboutModal } from "#/components/tracker/write-about-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { useTRPC } from "#/integrations/trpc/react";
@@ -32,6 +33,7 @@ function ShowTracker() {
 	const [showCelebration, setShowCelebration] = useState(false);
 	const [writeAboutOpen, setWriteAboutOpen] = useState(false);
 	const [rewatchOpen, setRewatchOpen] = useState(false);
+	const [selectedSeason, setSelectedSeason] = useState(1);
 	const [selectedWatchNumber, setSelectedWatchNumber] = useState<number | null>(
 		null,
 	);
@@ -343,6 +345,29 @@ function ShowTracker() {
 
 	const isLoading = isLoadingTitle || isLoadingWatched || isLoadingEpisodes;
 
+	// Selected season data
+	const selectedSeasonGroup = airedSeasonGroups.find(
+		(g) => g.seasonNumber === selectedSeason,
+	);
+	const selectedSeasonEpisodes = selectedSeasonGroup?.episodes ?? [];
+	const selectedSeasonWatched = selectedSeasonEpisodes.filter((ep) =>
+		watchedSet.has(`S${ep.seasonNumber}E${ep.episodeNumber}`),
+	).length;
+
+	function handleMarkSeason() {
+		const unwatched = selectedSeasonEpisodes.filter(
+			(ep) => !watchedSet.has(`S${ep.seasonNumber}E${ep.episodeNumber}`),
+		);
+		if (unwatched.length === 0) return;
+		handleMark(
+			unwatched.map((ep) => ({
+				seasonNumber: ep.seasonNumber,
+				episodeNumber: ep.episodeNumber,
+				runtime: ep.runtime ?? 0,
+			})),
+		);
+	}
+
 	return (
 		<div className="mx-auto max-w-2xl px-4 pb-8">
 			{/* Back link */}
@@ -364,134 +389,324 @@ function ShowTracker() {
 				</div>
 			) : (
 				<div>
-					{/* ── Header ── */}
-					<div className="flex gap-5 mb-8">
-						{/* Poster */}
+					{/* ── Drive-In Screen Header ── */}
+					<div
+						className="relative overflow-hidden rounded-md"
+						style={{
+							aspectRatio: "16/9",
+							background: "#0a0a1e",
+							border: "3px solid #1a1a2e",
+							boxShadow:
+								"0 0 60px rgba(255,184,0,0.06), 0 20px 60px rgba(0,0,0,0.5), inset 0 0 80px rgba(0,0,0,0.4)",
+						}}
+					>
+						{/* Backdrop image */}
+						{titleData.backdropPath ? (
+							<img
+								src={`https://image.tmdb.org/t/p/w780${titleData.backdropPath}`}
+								alt=""
+								className="absolute inset-0 h-full w-full object-cover"
+								loading="eager"
+							/>
+						) : (
+							<div
+								className="absolute inset-0"
+								style={{
+									background:
+										"linear-gradient(135deg, #1a1028, #0f1a2e, #0a0a1e)",
+								}}
+							/>
+						)}
+
+						{/* Scanline overlay */}
 						<div
-							className="shrink-0 h-[135px] w-[90px] overflow-hidden rounded-lg bg-cream/5"
-							style={{ border: "1px solid rgba(255,184,0,0.15)" }}
+							className="pointer-events-none absolute inset-0"
+							style={{
+								background:
+									"repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(255,255,240,0.008) 2px, rgba(255,255,240,0.008) 4px)",
+								zIndex: 3,
+							}}
+						/>
+
+						{/* Dark gradient overlay */}
+						<div
+							className="absolute inset-0"
+							style={{
+								background:
+									"linear-gradient(to bottom, transparent 20%, rgba(5,5,8,0.3) 50%, rgba(5,5,8,0.85) 85%)",
+								zIndex: 1,
+							}}
+						/>
+
+						{/* Poster + title overlaid at bottom */}
+						<div
+							className="absolute bottom-0 left-0 right-0 flex items-end gap-3.5 p-5"
+							style={{ zIndex: 2 }}
 						>
-							{titleData.posterPath ? (
-								<img
-									src={`https://image.tmdb.org/t/p/w185${titleData.posterPath}`}
-									alt=""
-									className="h-full w-full object-cover"
-									loading="eager"
-								/>
-							) : (
-								<div className="flex h-full w-full items-center justify-center text-cream/15 text-xs font-mono-retro">
-									NO
-									<br />
-									IMG
-								</div>
-							)}
-						</div>
+							{/* Poster thumbnail */}
+							<div
+								className="shrink-0 overflow-hidden rounded"
+								style={{
+									width: 65,
+									height: 97,
+									border: "1px solid rgba(255,184,0,0.25)",
+									boxShadow:
+										"0 4px 20px rgba(0,0,0,0.5), 0 0 15px rgba(255,184,0,0.08)",
+								}}
+							>
+								{titleData.posterPath ? (
+									<img
+										src={`https://image.tmdb.org/t/p/w185${titleData.posterPath}`}
+										alt=""
+										className="h-full w-full object-cover"
+										loading="eager"
+									/>
+								) : (
+									<div
+										className="flex h-full w-full items-center justify-center text-[7px] text-cream/15"
+										style={{
+											background: "linear-gradient(145deg, #2a1540, #1a0a30)",
+										}}
+									>
+										NO IMG
+									</div>
+								)}
+							</div>
 
-						{/* Title + meta + progress */}
-						<div className="flex flex-1 min-w-0 flex-col">
-							<h1 className="font-display text-2xl text-cream tracking-wide leading-tight">
-								{titleData.title}
-							</h1>
-
-							{/* Metadata */}
-							{metaParts.length > 0 && (
-								<p className="mt-1.5 font-mono-retro text-[11px] tracking-wider text-cream/30">
-									{metaParts.join(" · ")}
-								</p>
-							)}
-
-							{/* Progress section */}
-							<div className="mt-auto pt-4">
-								{/* Episode count + percentage */}
-								<div className="flex items-baseline justify-between mb-2">
-									<span className="font-mono-retro text-xs text-cream/40">
-										<span className="text-cream/70 font-display text-base">
-											{watchedCount}
-										</span>
-										<span className="text-cream/20 mx-1">/</span>
-										<span className="text-cream/35">{totalEpisodes}</span>
-										<span className="text-cream/20 ml-1.5 text-[10px]">
-											episodes
-										</span>
-									</span>
-									{totalEpisodes > 0 && (
-										<span
-											className="font-display text-lg tracking-wide"
-											style={{
-												color: isComplete
-													? "#FFB800"
-													: isCaughtUp
-														? "#34d399"
-														: "#00E5FF",
-											}}
-										>
-											{progressPct}%
-										</span>
-									)}
-								</div>
-
-								{/* Progress bar - 8px, clean */}
-								<div
-									className="h-2 w-full overflow-hidden rounded-full"
+							{/* Title + meta */}
+							<div className="flex-1 min-w-0">
+								<h1
+									className="font-display text-[22px] font-bold leading-tight text-cream"
 									style={{
-										background: "rgba(255,255,240,0.04)",
+										textShadow: "0 2px 12px rgba(0,0,0,0.8)",
 									}}
 								>
-									<div
-										className="h-full rounded-full transition-all duration-700 ease-out"
-										style={{
-											width: `${progressPct}%`,
-											background: isComplete
-												? "#FFB800"
-												: isCaughtUp
-													? "#34d399"
-													: "#00E5FF",
-										}}
-									/>
-								</div>
+									{titleData.title}
+								</h1>
+								{metaParts.length > 0 && (
+									<p
+										className="mt-1 text-[8px] tracking-[2px] uppercase"
+										style={{ color: "rgba(255,255,240,0.3)" }}
+									>
+										{metaParts.join(" \u00B7 ")}
+									</p>
+								)}
 							</div>
 						</div>
 					</div>
 
-					{/* Action buttons */}
+					{/* Speaker posts */}
+					<div className="flex justify-between px-[30px] -mt-0.5 mb-4">
+						{[0, 1, 2, 3, 4].map((i) => (
+							<div
+								key={i}
+								className="rounded-b-sm"
+								style={{
+									width: 2,
+									height: 18,
+									background:
+										"linear-gradient(180deg, #1a1a2e, rgba(255,184,0,0.15))",
+								}}
+							/>
+						))}
+					</div>
+
+					{/* ── Progress Marquee ── */}
+					<div
+						className="relative overflow-hidden rounded-lg mb-5"
+						style={{
+							background: "rgba(5,5,12,0.8)",
+							border: "1px solid rgba(255,184,0,0.12)",
+							padding: "14px 18px",
+						}}
+					>
+						<div className="flex items-center justify-between mb-2.5">
+							<div>
+								<div
+									className="text-[8px] tracking-[3px] uppercase"
+									style={{ color: "rgba(255,184,0,0.4)" }}
+								>
+									Progress
+								</div>
+								<div className="font-display">
+									<span
+										className="text-lg"
+										style={{ color: "rgba(255,255,240,0.7)" }}
+									>
+										{watchedCount}
+									</span>
+									<span
+										className="text-sm mx-0.5"
+										style={{ color: "rgba(255,255,240,0.15)" }}
+									>
+										/
+									</span>
+									<span
+										className="text-sm"
+										style={{ color: "rgba(255,255,240,0.25)" }}
+									>
+										{totalEpisodes}
+									</span>
+								</div>
+							</div>
+							{totalEpisodes > 0 && (
+								<span
+									className="font-display text-xl"
+									style={{
+										color: isComplete
+											? "#FFB800"
+											: isCaughtUp
+												? "#34d399"
+												: "#00E5FF",
+										textShadow: `0 0 12px ${
+											isComplete
+												? "rgba(255,184,0,0.4)"
+												: isCaughtUp
+													? "rgba(52,211,153,0.4)"
+													: "rgba(0,229,255,0.4)"
+										}`,
+									}}
+								>
+									{progressPct}%
+								</span>
+							)}
+						</div>
+						<div
+							className="overflow-hidden rounded-sm"
+							style={{
+								height: 6,
+								background: "rgba(255,255,240,0.04)",
+							}}
+						>
+							<div
+								className="h-full rounded-sm transition-all duration-700 ease-out"
+								style={{
+									width: `${progressPct}%`,
+									background: isComplete
+										? "#FFB800"
+										: isCaughtUp
+											? "#34d399"
+											: "linear-gradient(90deg, #00e5ff, #40c8e0)",
+									boxShadow: `0 0 8px ${
+										isComplete
+											? "rgba(255,184,0,0.4)"
+											: isCaughtUp
+												? "rgba(52,211,153,0.4)"
+												: "rgba(0,229,255,0.4)"
+									}, 0 0 16px ${
+										isComplete
+											? "rgba(255,184,0,0.15)"
+											: isCaughtUp
+												? "rgba(52,211,153,0.15)"
+												: "rgba(0,229,255,0.15)"
+									}`,
+								}}
+							/>
+						</div>
+					</div>
+
+					{/* ── Action Strip ── */}
 					{!isViewingOldWatch && (
-						<div className="flex items-center gap-3 mb-10">
+						<div className="flex gap-2 mb-7">
+							{/* Write */}
 							<button
 								type="button"
 								onClick={() => setWriteAboutOpen(true)}
-								className="flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase text-neon-pink transition-colors hover:bg-neon-pink/10"
-								style={{ border: "1px solid rgba(255,45,120,0.2)" }}
+								className="flex flex-1 flex-col items-center gap-1 rounded-lg py-2.5 px-3 transition-all duration-200 hover:bg-neon-pink/[0.06]"
+								style={{
+									background: "rgba(12,12,28,0.5)",
+									border: "1px solid rgba(255,45,120,0.1)",
+								}}
 							>
-								<Pen className="h-3.5 w-3.5" />
-								Write
-							</button>
-							{totalEpisodes > 0 && watchedCount < totalEpisodes && (
-								<button
-									type="button"
-									onClick={handleMarkAll}
-									disabled={markEpisodes.isPending}
-									className="flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase text-neon-amber transition-colors hover:bg-neon-amber/10 disabled:opacity-40 disabled:pointer-events-none"
-									style={{ border: "1px solid rgba(255,184,0,0.2)" }}
+								<Pen
+									className="h-4 w-4"
+									style={{ color: "#FF2D78", opacity: 0.7 }}
+								/>
+								<span
+									className="text-[7px] tracking-[2px] uppercase"
+									style={{ color: "rgba(255,45,120,0.5)" }}
 								>
-									<CheckCheck className="h-3.5 w-3.5" />
+									Write
+								</span>
+							</button>
+
+							{/* Mark All */}
+							<button
+								type="button"
+								onClick={handleMarkAll}
+								disabled={
+									markEpisodes.isPending ||
+									(totalEpisodes > 0 && watchedCount >= totalEpisodes)
+								}
+								className="flex flex-1 flex-col items-center gap-1 rounded-lg py-2.5 px-3 transition-all duration-200 hover:bg-neon-amber/[0.06] disabled:opacity-30 disabled:pointer-events-none"
+								style={{
+									background: "rgba(12,12,28,0.5)",
+									border: "1px solid rgba(255,184,0,0.1)",
+								}}
+							>
+								<CheckCheck
+									className="h-4 w-4"
+									style={{ color: "#FFB800", opacity: 0.7 }}
+								/>
+								<span
+									className="text-[7px] tracking-[2px] uppercase"
+									style={{ color: "rgba(255,184,0,0.5)" }}
+								>
 									Mark All
-								</button>
-							)}
+								</span>
+							</button>
+
+							{/* Rewatch */}
 							<button
 								type="button"
 								onClick={() => setRewatchOpen(true)}
-								className="flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase text-neon-pink transition-colors hover:bg-neon-pink/10"
-								style={{ border: "1px solid rgba(255,45,120,0.2)" }}
+								className="flex flex-1 flex-col items-center gap-1 rounded-lg py-2.5 px-3 transition-all duration-200 hover:bg-neon-cyan/[0.06]"
+								style={{
+									background: "rgba(12,12,28,0.5)",
+									border: "1px solid rgba(0,229,255,0.1)",
+								}}
 							>
-								<RotateCcw className="h-3.5 w-3.5" />
-								Rewatch
+								<RotateCcw
+									className="h-4 w-4"
+									style={{ color: "#00e5ff", opacity: 0.7 }}
+								/>
+								<span
+									className="text-[7px] tracking-[2px] uppercase"
+									style={{ color: "rgba(0,229,255,0.5)" }}
+								>
+									Rewatch
+								</span>
 							</button>
 						</div>
 					)}
 
+					{/* ── Film-Strip Divider ── */}
+					<div className="flex items-center my-5 px-1">
+						<span
+							className="block h-[5px] w-[5px] shrink-0 rounded-full"
+							style={{ background: "rgba(255,184,0,0.2)" }}
+						/>
+						<span
+							className="block h-[5px] w-[5px] shrink-0 rounded-full"
+							style={{ background: "rgba(0,229,255,0.12)" }}
+						/>
+						<span
+							className="block h-[5px] w-[5px] shrink-0 rounded-full"
+							style={{ background: "rgba(255,45,120,0.12)" }}
+						/>
+						<div
+							className="flex-1 ml-1.5 mr-1.5"
+							style={{
+								height: 1,
+								background:
+									"linear-gradient(90deg, rgba(255,184,0,0.1), rgba(0,229,255,0.06), rgba(255,45,120,0.06), transparent)",
+							}}
+						/>
+					</div>
+
 					{/* Watch-through switcher */}
 					{currentWatchNumber > 1 && (
-						<div className="mb-10">
+						<div className="mb-6">
 							<div className="flex items-center gap-2 flex-wrap">
 								{Array.from(
 									{ length: currentWatchNumber },
@@ -538,21 +753,235 @@ function ShowTracker() {
 						</div>
 					)}
 
-					{/* ── Episode List by Season ── */}
-					<div className="space-y-10">
-						{airedSeasonGroups.map((group) => (
-							<SeasonSection
-								key={group.seasonNumber}
-								tmdbId={tmdbId}
-								seasonNumber={group.seasonNumber}
-								seasonName={group.seasonName}
-								episodes={group.episodes}
-								watchedEpisodes={watchedSet}
-								onMark={handleMark}
-								onUnmark={handleUnmark}
-								readOnly={isViewingOldWatch}
-							/>
-						))}
+					{/* ── Season Dropdown Selector ── */}
+					{airedSeasonGroups.length > 0 && (
+						<div className="mb-2">
+							<div
+								className="flex items-center gap-3 pb-2.5"
+								style={{
+									borderBottom: "1px solid rgba(255,184,0,0.08)",
+								}}
+							>
+								{/* Season select */}
+								<div className="relative">
+									<select
+										value={selectedSeason}
+										onChange={(e) => setSelectedSeason(Number(e.target.value))}
+										className="appearance-none rounded-md py-1.5 pl-3 pr-8 font-display text-base text-cream/90 outline-none cursor-pointer"
+										style={{
+											background: "rgba(12,12,28,0.6)",
+											border: "1px solid rgba(255,184,0,0.15)",
+										}}
+									>
+										{airedSeasonGroups.map((g) => (
+											<option
+												key={g.seasonNumber}
+												value={g.seasonNumber}
+												style={{
+													background: "#0a0a1e",
+													color: "#fffff0",
+												}}
+											>
+												{g.seasonName}
+											</option>
+										))}
+									</select>
+									<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-cream/25" />
+								</div>
+
+								{/* Watched count for season */}
+								<span className="font-mono-retro text-[9px] tracking-wider text-cream/20">
+									{selectedSeasonWatched}/{selectedSeasonEpisodes.length}
+								</span>
+
+								{/* Mark All for this season */}
+								{!isViewingOldWatch &&
+									selectedSeasonWatched < selectedSeasonEpisodes.length && (
+										<button
+											type="button"
+											onClick={handleMarkSeason}
+											className="ml-auto text-[7px] tracking-[2px] uppercase rounded px-2.5 py-1 cursor-pointer transition-colors hover:bg-neon-amber/[0.06]"
+											style={{
+												color: "rgba(255,184,0,0.35)",
+												border: "1px solid rgba(255,184,0,0.12)",
+												background: "transparent",
+											}}
+										>
+											Mark All
+										</button>
+									)}
+							</div>
+						</div>
+					)}
+
+					{/* ── Episode Rows ── */}
+					<div>
+						{selectedSeasonEpisodes.map((ep) => {
+							const key = `S${ep.seasonNumber}E${ep.episodeNumber}`;
+							const isWatched = watchedSet.has(key);
+
+							return (
+								<button
+									key={key}
+									type="button"
+									onClick={() => {
+										if (isViewingOldWatch) return;
+										if (isWatched) {
+											handleUnmark({
+												seasonNumber: ep.seasonNumber,
+												episodeNumber: ep.episodeNumber,
+											});
+										} else {
+											handleMark([
+												{
+													seasonNumber: ep.seasonNumber,
+													episodeNumber: ep.episodeNumber,
+													runtime: ep.runtime ?? 0,
+												},
+											]);
+										}
+									}}
+									className={`group/ep relative flex w-full items-stretch my-[3px] rounded-lg overflow-hidden transition-all duration-250 ease-out ${
+										!isViewingOldWatch
+											? "cursor-pointer hover:translate-x-1"
+											: "cursor-default"
+									}`}
+								>
+									{/* Left accent strip */}
+									<div
+										className="w-1 shrink-0 transition-all duration-300"
+										style={
+											isWatched
+												? {
+														background:
+															"linear-gradient(180deg, #00e5ff, #FF2D78)",
+														boxShadow: "0 0 8px rgba(0,229,255,0.3)",
+													}
+												: {
+														background: "rgba(255,255,240,0.04)",
+													}
+										}
+									/>
+
+									{/* Main body */}
+									<div
+										className="flex flex-1 items-center gap-3 py-3 px-3.5 transition-colors duration-200"
+										style={{
+											background: isWatched
+												? "linear-gradient(90deg, rgba(0,229,255,0.06), rgba(0,229,255,0.015) 40%, transparent)"
+												: "rgba(12,12,28,0.4)",
+										}}
+									>
+										{/* Episode number */}
+										<span
+											className="shrink-0 font-display text-[15px] font-bold text-center transition-all duration-200"
+											style={{
+												width: 26,
+												color: isWatched ? "#00e5ff" : "rgba(255,255,240,0.15)",
+												textShadow: isWatched
+													? "0 0 10px rgba(0,229,255,0.5)"
+													: "none",
+											}}
+										>
+											{ep.episodeNumber}
+										</span>
+
+										{/* Dot separator */}
+										<span
+											className="block shrink-0 rounded-full"
+											style={{
+												width: 3,
+												height: 3,
+												background: isWatched
+													? "rgba(0,229,255,0.3)"
+													: "rgba(255,255,240,0.06)",
+												boxShadow: isWatched
+													? "0 0 4px rgba(0,229,255,0.3)"
+													: "none",
+											}}
+										/>
+
+										{/* Episode info */}
+										<div className="flex-1 min-w-0">
+											<div
+												className="text-sm truncate transition-colors duration-200"
+												style={{
+													color: isWatched
+														? "rgba(255,255,240,0.75)"
+														: "rgba(255,255,240,0.3)",
+												}}
+											>
+												{ep.name}
+											</div>
+											{ep.runtime != null && ep.runtime > 0 && (
+												<div
+													className="text-[8px] tracking-[1px] mt-0.5"
+													style={{
+														color: isWatched
+															? "rgba(0,229,255,0.2)"
+															: "rgba(255,255,240,0.08)",
+													}}
+												>
+													{ep.runtime} min
+												</div>
+											)}
+										</div>
+
+										{/* Hover hint */}
+										{!isViewingOldWatch && (
+											<span
+												className="text-[7px] tracking-[2px] uppercase opacity-0 group-hover/ep:opacity-100 transition-opacity duration-200"
+												style={{
+													color: isWatched
+														? "rgba(255,255,240,0.2)"
+														: "rgba(0,229,255,0.35)",
+												}}
+											>
+												{isWatched ? "undo" : "watch"}
+											</span>
+										)}
+									</div>
+
+									{/* Right status section */}
+									<div
+										className="flex w-9 shrink-0 items-center justify-center transition-all duration-200"
+										style={{
+											borderLeft: isWatched
+												? "1px solid rgba(0,229,255,0.1)"
+												: "1px solid rgba(255,255,240,0.03)",
+											background: isWatched
+												? "rgba(0,229,255,0.04)"
+												: "transparent",
+										}}
+									>
+										{isWatched ? (
+											<div
+												className="flex h-[18px] w-[18px] items-center justify-center rounded-full"
+												style={{
+													background: "rgba(0,229,255,0.15)",
+													boxShadow: "0 0 8px rgba(0,229,255,0.25)",
+												}}
+											>
+												<Check
+													className="h-2.5 w-2.5 text-neon-cyan"
+													strokeWidth={3}
+													style={{
+														filter: "drop-shadow(0 0 3px rgba(0,229,255,0.6))",
+													}}
+												/>
+											</div>
+										) : (
+											<div
+												className="h-[18px] w-[18px] rounded-full transition-all duration-200 group-hover/ep:border-[rgba(0,229,255,0.3)] group-hover/ep:bg-[rgba(0,229,255,0.05)]"
+												style={{
+													border: "1.5px solid rgba(255,255,240,0.08)",
+												}}
+											/>
+										)}
+									</div>
+								</button>
+							);
+						})}
 					</div>
 
 					{/* Empty state when no episodes fetched */}
