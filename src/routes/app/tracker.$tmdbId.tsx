@@ -4,8 +4,10 @@ import {
 	ArrowLeft,
 	BookOpen,
 	CheckCheck,
+	Clapperboard,
 	Loader2,
 	Pen,
+	Play,
 	Star,
 	Trash2,
 } from "lucide-react";
@@ -252,14 +254,38 @@ function ShowTracker() {
 		statusGlow = "rgba(0,229,255,0.35)";
 	}
 
+	// Find next unwatched episode for ongoing shows
+	const nextEpisode = useMemo(() => {
+		if (!allEpisodes || totalEpisodes === 0 || watchedCount >= totalEpisodes)
+			return null;
+		for (const ep of allEpisodes) {
+			if (!watchedSet.has(`S${ep.seasonNumber}E${ep.episodeNumber}`)) {
+				return ep;
+			}
+		}
+		return null;
+	}, [allEpisodes, watchedSet, totalEpisodes, watchedCount]);
+
 	const isLoading = isLoadingTitle || isLoadingWatched || isLoadingEpisodes;
 
 	return (
-		<div className="mx-auto max-w-3xl px-4 py-6">
+		<div className="relative mx-auto max-w-3xl px-4 py-6">
+			{/* Atmospheric background gradient keyed to status */}
+			<div
+				aria-hidden="true"
+				className="pointer-events-none fixed inset-0 z-0"
+				style={{
+					background: `
+						radial-gradient(ellipse 800px 500px at 30% 10%, ${statusGlow.replace("0.35", "0.04")}, transparent 70%),
+						radial-gradient(ellipse 600px 400px at 80% 60%, rgba(255,45,120,0.015), transparent 60%)
+					`,
+				}}
+			/>
+
 			{/* Back link */}
 			<Link
 				to="/app/tracker"
-				className="mb-5 inline-flex items-center gap-1.5 text-xs font-mono-retro tracking-wider text-cream/30 no-underline transition-colors hover:text-cream/60"
+				className="relative z-10 mb-5 inline-flex items-center gap-1.5 text-xs font-mono-retro tracking-wider text-cream/30 no-underline transition-colors hover:text-cream/60"
 			>
 				<ArrowLeft className="h-3.5 w-3.5" />
 				Tracker
@@ -274,116 +300,192 @@ function ShowTracker() {
 					Show not found
 				</div>
 			) : (
-				<>
-					{/* Show header */}
+				<div className="relative z-10">
+					{/* Show header card */}
 					<div
-						className="relative mb-8 flex gap-5 rounded-xl border border-cream/8 p-4 overflow-hidden"
+						className="relative mb-10 overflow-hidden rounded-xl border border-cream/8"
 						style={{
 							background:
-								"linear-gradient(145deg, rgba(10,10,30,0.95) 0%, rgba(15,15,35,0.8) 100%)",
-							boxShadow: "0 0 20px rgba(0,0,0,0.35)",
+								"linear-gradient(145deg, rgba(10,10,30,0.97) 0%, rgba(15,15,35,0.85) 100%)",
+							boxShadow: `0 4px 30px rgba(0,0,0,0.4), 0 0 40px ${statusGlow.replace("0.35", "0.04")}`,
 						}}
 					>
-						{/* Ambient glow behind poster */}
+						{/* Ambient status glow behind poster */}
 						<div
 							aria-hidden="true"
 							className="pointer-events-none absolute inset-0 rounded-xl"
 							style={{
-								background: `radial-gradient(ellipse at 15% 40%, ${statusGlow.replace("0.35", "0.06")}, transparent 55%)`,
+								background: `
+									radial-gradient(ellipse at 12% 50%, ${statusGlow.replace("0.35", "0.08")}, transparent 50%),
+									radial-gradient(ellipse at 90% 20%, rgba(255,45,120,0.02), transparent 45%)
+								`,
 							}}
 						/>
 
-						{/* Poster */}
-						<div className="relative h-[140px] w-[93px] shrink-0 overflow-hidden rounded-lg bg-cream/5">
-							{titleData.posterPath ? (
-								<img
-									src={`https://image.tmdb.org/t/p/w185${titleData.posterPath}`}
-									alt=""
-									className="h-full w-full object-cover"
-									loading="lazy"
+						{/* VHS scan line overlay */}
+						<div
+							aria-hidden="true"
+							className="pointer-events-none absolute inset-0 rounded-xl overflow-hidden opacity-[0.03]"
+							style={{
+								backgroundImage:
+									"repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,240,0.5) 2px, rgba(255,255,240,0.5) 4px)",
+							}}
+						/>
+
+						<div className="relative z-10 flex gap-5 p-5">
+							{/* Poster with shadow/glow */}
+							<div
+								className="relative h-[150px] w-[100px] shrink-0 overflow-hidden rounded-lg bg-cream/5"
+								style={{
+									boxShadow: `0 4px 20px rgba(0,0,0,0.5), 0 0 20px ${statusGlow.replace("0.35", "0.08")}`,
+								}}
+							>
+								{titleData.posterPath ? (
+									<img
+										src={`https://image.tmdb.org/t/p/w185${titleData.posterPath}`}
+										alt=""
+										className="h-full w-full object-cover"
+										loading="lazy"
+									/>
+								) : (
+									<div className="flex h-full w-full items-center justify-center text-cream/15 text-xs font-mono-retro">
+										NO
+										<br />
+										IMG
+									</div>
+								)}
+								{/* Film-frame overlay on poster edge */}
+								<div
+									aria-hidden="true"
+									className="absolute inset-0 rounded-lg"
+									style={{
+										boxShadow: "inset 0 0 0 1px rgba(255,255,240,0.06)",
+									}}
 								/>
-							) : (
-								<div className="flex h-full w-full items-center justify-center text-cream/15 text-xs font-mono-retro">
-									NO
-									<br />
-									IMG
+							</div>
+
+							{/* Info */}
+							<div className="flex min-w-0 flex-1 flex-col justify-between">
+								<div>
+									<h1 className="font-display text-xl text-cream tracking-wide leading-tight pr-28">
+										{titleData.title}
+									</h1>
+
+									{/* Status badge */}
+									<div className="mt-2.5 flex items-center gap-2.5">
+										<span
+											className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-mono-retro tracking-wider uppercase ${statusColor}`}
+											style={{
+												background: statusGlow.replace("0.35", "0.12"),
+												textShadow: `0 0 10px ${statusGlow}`,
+												boxShadow: `0 0 12px ${statusGlow.replace("0.35", "0.08")}`,
+											}}
+										>
+											<span
+												className="inline-block h-1.5 w-1.5 rounded-full"
+												style={{
+													backgroundColor: "currentColor",
+													boxShadow: "0 0 6px currentColor",
+												}}
+											/>
+											{statusLabel}
+										</span>
+
+										{/* Next episode hint for in-progress shows */}
+										{nextEpisode && (
+											<span className="inline-flex items-center gap-1 text-[10px] font-mono-retro text-cream/25 tracking-wide">
+												<Play
+													className="h-2.5 w-2.5"
+													style={{
+														fill: "currentColor",
+													}}
+												/>
+												Next: S{nextEpisode.seasonNumber}E
+												{nextEpisode.episodeNumber}
+											</span>
+										)}
+									</div>
 								</div>
-							)}
-						</div>
 
-						{/* Info */}
-						<div className="relative z-10 flex min-w-0 flex-1 flex-col justify-between">
-							<div>
-								<h1 className="font-display text-lg text-cream tracking-wide leading-tight">
-									{titleData.title}
-								</h1>
-
-								{/* Status badge */}
-								<div className="mt-2 flex items-center gap-2">
-									<span
-										className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-mono-retro tracking-wider uppercase ${statusColor}`}
+								{/* Progress bar */}
+								<div className="mt-auto pt-3">
+									<div className="flex items-center justify-between mb-2">
+										<span className="text-[11px] font-mono-retro text-cream/40 tracking-wide">
+											{watchedCount}
+											<span className="text-cream/15">/</span>
+											{totalEpisodes} episodes
+										</span>
+										{totalEpisodes > 0 && (
+											<span
+												className="text-[11px] font-mono-retro tracking-wide"
+												style={{
+													color: statusGlow.replace("0.35", "0.7"),
+												}}
+											>
+												{progressPct}%
+											</span>
+										)}
+									</div>
+									<div
+										className="h-2 w-full overflow-hidden rounded-full"
 										style={{
-											background: statusGlow.replace("0.35", "0.1"),
-											textShadow: `0 0 8px ${statusGlow}`,
+											background: "rgba(255,255,240,0.04)",
+											boxShadow: "inset 0 1px 3px rgba(0,0,0,0.4)",
 										}}
 									>
-										<span
-											className="inline-block h-1 w-1 rounded-full"
+										<div
+											className="relative h-full rounded-full transition-all duration-700 ease-out"
 											style={{
-												backgroundColor: "currentColor",
-												boxShadow: "0 0 4px currentColor",
+												width: `${progressPct}%`,
+												background: isComplete
+													? "linear-gradient(90deg, #ffb800, #ffd060, #ffb800)"
+													: isCaughtUp
+														? "linear-gradient(90deg, #34d399, #6ee7b7, #34d399)"
+														: "linear-gradient(90deg, #00e5ff, #40c8e0, #00e5ff)",
+												boxShadow: isComplete
+													? "0 0 12px rgba(255,184,0,0.5)"
+													: isCaughtUp
+														? "0 0 12px rgba(52,211,153,0.5)"
+														: "0 0 12px rgba(0,229,255,0.5)",
 											}}
-										/>
-										{statusLabel}
-									</span>
-								</div>
-							</div>
-
-							{/* Progress bar */}
-							<div className="mt-auto">
-								<div className="flex items-center justify-between mb-1.5">
-									<span className="text-[11px] font-mono-retro text-cream/40 tracking-wide">
-										{watchedCount}/{totalEpisodes} episodes
-									</span>
-									{totalEpisodes > 0 && (
-										<span className="text-[10px] font-mono-retro text-cream/25">
-											{progressPct}%
-										</span>
-									)}
-								</div>
-								<div className="h-1.5 w-full overflow-hidden rounded-full bg-cream/5">
-									<div
-										className="h-full rounded-full transition-all duration-500"
-										style={{
-											width: `${progressPct}%`,
-											background: isComplete
-												? "linear-gradient(90deg, #ffb800, #ffd060)"
-												: isCaughtUp
-													? "linear-gradient(90deg, #34d399, #6ee7b7)"
-													: "linear-gradient(90deg, #00e5ff, #40c8e0)",
-											boxShadow: isComplete
-												? "0 0 8px rgba(255,184,0,0.4)"
-												: isCaughtUp
-													? "0 0 8px rgba(52,211,153,0.4)"
-													: "0 0 8px rgba(0,229,255,0.4)",
-										}}
-									/>
+										>
+											{/* Shimmer on full bar */}
+											{(isComplete || isCaughtUp) && (
+												<div
+													className="absolute inset-0 overflow-hidden rounded-full"
+													aria-hidden="true"
+												>
+													<div
+														className="absolute inset-0"
+														style={{
+															background:
+																"linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%)",
+															animation:
+																"shimmer-sweep 4s ease-in-out infinite",
+														}}
+													/>
+												</div>
+											)}
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
 
-						{/* Action buttons */}
-						<div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+						{/* Action buttons — positioned inside card header with more presence */}
+						<div className="absolute top-4 right-4 z-20 flex items-center gap-2">
 							<button
 								type="button"
 								onClick={() => setWriteAboutOpen(true)}
-								className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-mono-retro tracking-wider uppercase text-neon-cyan transition-all duration-200 hover:bg-neon-cyan/10"
+								className="group/btn flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[10px] font-mono-retro tracking-wider uppercase text-neon-cyan transition-all duration-200 hover:bg-neon-cyan/12 hover:scale-[1.04] active:scale-[0.97]"
 								style={{
-									border: "1px solid rgba(0,229,255,0.15)",
-									textShadow: "0 0 6px rgba(0,229,255,0.25)",
+									border: "1px solid rgba(0,229,255,0.2)",
+									textShadow: "0 0 8px rgba(0,229,255,0.3)",
+									boxShadow:
+										"0 0 10px rgba(0,229,255,0.06), inset 0 1px 0 rgba(0,229,255,0.05)",
 								}}
 							>
-								<Pen className="h-3 w-3" />
+								<Pen className="h-3 w-3 transition-transform duration-200 group-hover/btn:rotate-[-8deg]" />
 								Write
 							</button>
 							{totalEpisodes > 0 && watchedCount < totalEpisodes && (
@@ -391,21 +493,30 @@ function ShowTracker() {
 									type="button"
 									onClick={handleMarkAll}
 									disabled={markEpisodes.isPending}
-									className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-mono-retro tracking-wider uppercase text-neon-cyan transition-all duration-200 hover:bg-neon-cyan/10 disabled:opacity-40"
+									className="group/btn flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[10px] font-mono-retro tracking-wider uppercase text-neon-cyan transition-all duration-200 hover:bg-neon-cyan/12 hover:scale-[1.04] active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none"
 									style={{
-										border: "1px solid rgba(0,229,255,0.15)",
-										textShadow: "0 0 6px rgba(0,229,255,0.25)",
+										border: "1px solid rgba(0,229,255,0.2)",
+										textShadow: "0 0 8px rgba(0,229,255,0.3)",
+										boxShadow:
+											"0 0 10px rgba(0,229,255,0.06), inset 0 1px 0 rgba(0,229,255,0.05)",
 									}}
 								>
-									<CheckCheck className="h-3 w-3" />
+									<CheckCheck className="h-3 w-3 transition-transform duration-200 group-hover/btn:scale-110" />
 									Mark all
 								</button>
 							)}
 						</div>
 					</div>
 
+					{/* Visual separator between header and seasons */}
+					<div className="flex items-center gap-3 mb-8 px-1">
+						<div className="h-px flex-1 bg-gradient-to-r from-transparent via-cream/8 to-transparent" />
+						<Clapperboard className="h-3 w-3 text-cream/15" />
+						<div className="h-px flex-1 bg-gradient-to-r from-transparent via-cream/8 to-transparent" />
+					</div>
+
 					{/* Season rows */}
-					<div className="space-y-8">
+					<div className="space-y-9">
 						{seasonGroups.map((group) => (
 							<SeasonRow
 								key={group.seasonNumber}
@@ -434,7 +545,7 @@ function ShowTracker() {
 							(e) => e.rating != null || e.note,
 						)}
 					/>
-				</>
+				</div>
 			)}
 
 			{/* Completion review prompt */}
@@ -628,14 +739,32 @@ function NotesAndReviewsSection({
 	}
 
 	return (
-		<div className="mt-10">
+		<div className="mt-12">
 			{/* Section header */}
-			<div className="flex items-center gap-3 mb-5">
-				<div className="h-px flex-1 bg-gradient-to-r from-neon-cyan/20 to-transparent" />
-				<h2 className="font-mono-retro text-[11px] tracking-[4px] uppercase text-cream/30">
-					Notes &amp; Reviews
+			<div className="flex items-center gap-3 mb-6">
+				<div
+					className="h-px flex-1"
+					style={{
+						background:
+							"linear-gradient(90deg, transparent, rgba(0,229,255,0.15) 30%, rgba(255,184,0,0.15) 70%, transparent)",
+					}}
+				/>
+				<h2
+					className="font-mono-retro text-[11px] tracking-[4px] uppercase text-cream/35"
+					style={{
+						textShadow:
+							"0 0 12px rgba(0,229,255,0.1), 0 0 20px rgba(255,184,0,0.05)",
+					}}
+				>
+					Notes & Reviews
 				</h2>
-				<div className="h-px flex-1 bg-gradient-to-l from-neon-cyan/20 to-transparent" />
+				<div
+					className="h-px flex-1"
+					style={{
+						background:
+							"linear-gradient(90deg, transparent, rgba(255,184,0,0.15) 30%, rgba(0,229,255,0.15) 70%, transparent)",
+					}}
+				/>
 			</div>
 
 			<div className="space-y-3">
@@ -645,8 +774,10 @@ function NotesAndReviewsSection({
 						return (
 							<div
 								key={`note-${entry.id}`}
-								className="relative pl-4 py-3 pr-3 rounded-lg border border-cream/[0.06] bg-black/20"
+								className="group relative pl-4 py-3 pr-3 rounded-lg border border-cream/[0.06] overflow-hidden transition-colors duration-200 hover:border-neon-cyan/10"
 								style={{
+									background:
+										"linear-gradient(135deg, rgba(0,0,0,0.25) 0%, rgba(0,229,255,0.02) 100%)",
 									borderLeft: "2px solid rgba(0,229,255,0.25)",
 								}}
 							>
@@ -654,7 +785,12 @@ function NotesAndReviewsSection({
 								<div className="flex items-center justify-between mb-2">
 									<div className="flex items-center gap-2">
 										<BookOpen className="w-3 h-3 text-neon-cyan/40" />
-										<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-cyan/[0.06] border border-neon-cyan/10 font-mono-retro text-[9px] tracking-wider text-neon-cyan/50">
+										<span
+											className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-cyan/[0.06] border border-neon-cyan/10 font-mono-retro text-[9px] tracking-wider text-neon-cyan/50"
+											style={{
+												textShadow: "0 0 6px rgba(0,229,255,0.15)",
+											}}
+										>
 											{formatScopeBadge(
 												entry.scope,
 												entry.seasonNumber,
@@ -668,13 +804,13 @@ function NotesAndReviewsSection({
 									<button
 										type="button"
 										onClick={() => handleDeleteNote(entry.id)}
-										className="p-1 text-cream/15 hover:text-red-400/60 transition-colors"
+										className="p-1 text-cream/10 opacity-0 group-hover:opacity-100 hover:text-red-400/60 transition-all duration-200"
 									>
 										<Trash2 className="w-3 h-3" />
 									</button>
 								</div>
 								{/* Note text */}
-								<p className="text-sm text-cream/60 leading-relaxed whitespace-pre-wrap">
+								<p className="text-sm text-cream/55 leading-relaxed whitespace-pre-wrap">
 									{entry.note}
 								</p>
 							</div>
@@ -685,8 +821,10 @@ function NotesAndReviewsSection({
 					return (
 						<div
 							key={`review-${event.id}`}
-							className="relative pl-4 py-3 pr-3 rounded-lg border border-cream/[0.06] bg-black/20"
+							className="group relative pl-4 py-3 pr-3 rounded-lg border border-cream/[0.06] overflow-hidden transition-colors duration-200 hover:border-neon-amber/10"
 							style={{
+								background:
+									"linear-gradient(135deg, rgba(0,0,0,0.25) 0%, rgba(255,184,0,0.02) 100%)",
 								borderLeft: "2px solid rgba(255,184,0,0.25)",
 							}}
 						>
@@ -700,13 +838,25 @@ function NotesAndReviewsSection({
 												<span
 													key={`star-${event.id}-${i.toString()}`}
 													className={`text-[10px] ${i < event.rating! ? "text-neon-amber" : "text-cream/10"}`}
+													style={
+														i < event.rating!
+															? {
+																	textShadow: "0 0 4px rgba(255,184,0,0.4)",
+																}
+															: undefined
+													}
 												>
 													★
 												</span>
 											))}
 										</span>
 									)}
-									<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-amber/[0.06] border border-neon-amber/10 font-mono-retro text-[9px] tracking-wider text-neon-amber/50">
+									<span
+										className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-amber/[0.06] border border-neon-amber/10 font-mono-retro text-[9px] tracking-wider text-neon-amber/50"
+										style={{
+											textShadow: "0 0 6px rgba(255,184,0,0.15)",
+										}}
+									>
 										{formatScopeBadge(
 											event.scope,
 											event.scopeSeasonNumber,
@@ -720,14 +870,14 @@ function NotesAndReviewsSection({
 								<button
 									type="button"
 									onClick={() => handleDeleteReview(event.id)}
-									className="p-1 text-cream/15 hover:text-red-400/60 transition-colors"
+									className="p-1 text-cream/10 opacity-0 group-hover:opacity-100 hover:text-red-400/60 transition-all duration-200"
 								>
 									<Trash2 className="w-3 h-3" />
 								</button>
 							</div>
 							{/* Review text */}
 							{event.note && (
-								<p className="text-sm text-cream/60 leading-relaxed whitespace-pre-wrap">
+								<p className="text-sm text-cream/55 leading-relaxed whitespace-pre-wrap">
 									{event.note}
 								</p>
 							)}
