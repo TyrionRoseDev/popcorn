@@ -3,17 +3,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
 	ArrowLeft,
 	BookOpen,
+	Calendar,
 	CheckCheck,
 	Loader2,
 	Pen,
-	Play,
-	Star,
 	Trash2,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { FilmStrip } from "#/components/film-strip";
-import { SeasonRow } from "#/components/tracker/season-row";
+import { SeasonSection } from "#/components/tracker/season-row";
 import { WriteAboutModal } from "#/components/tracker/write-about-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { useTRPC } from "#/integrations/trpc/react";
@@ -234,115 +232,70 @@ function ShowTracker() {
 	const isCaughtUp =
 		!isEnded && totalEpisodes > 0 && watchedCount >= totalEpisodes;
 
-	let statusLabel: string;
-	let statusColor: string;
-	let statusGlow: string;
-	if (isComplete) {
-		statusLabel = "Completed";
-		statusColor = "text-neon-amber";
-		statusGlow = "rgba(255,184,0,0.35)";
-	} else if (isCaughtUp) {
-		statusLabel = "Caught Up";
-		statusColor = "text-emerald-400";
-		statusGlow = "rgba(52,211,153,0.35)";
-	} else {
-		statusLabel = "In Progress";
-		statusColor = "text-neon-cyan";
-		statusGlow = "rgba(0,229,255,0.35)";
-	}
+	// Upcoming episodes (future air dates for "Returning Series")
+	const upcomingEpisodes = useMemo(() => {
+		if (titleData?.status !== "Returning Series" || !allEpisodes) return [];
+		const today = new Date().toISOString().slice(0, 10);
+		return allEpisodes.filter((ep) => ep.airDate != null && ep.airDate > today);
+	}, [allEpisodes, titleData?.status]);
 
-	// Find next unwatched episode for ongoing shows
-	const nextEpisode = useMemo(() => {
-		if (!allEpisodes || totalEpisodes === 0 || watchedCount >= totalEpisodes)
-			return null;
-		for (const ep of allEpisodes) {
-			if (!watchedSet.has(`S${ep.seasonNumber}E${ep.episodeNumber}`)) {
-				return ep;
+	// Aired episodes only (for progress and season display)
+	const airedEpisodes = useMemo(() => {
+		if (!allEpisodes) return [];
+		if (titleData?.status !== "Returning Series") return allEpisodes;
+		const today = new Date().toISOString().slice(0, 10);
+		return allEpisodes.filter(
+			(ep) => ep.airDate == null || ep.airDate <= today,
+		);
+	}, [allEpisodes, titleData?.status]);
+
+	// Season groups for aired episodes only
+	const airedSeasonGroups = useMemo(() => {
+		if (airedEpisodes.length === 0 || !titleData?.seasonList)
+			return seasonGroups;
+		const map = new Map<
+			number,
+			{
+				seasonNumber: number;
+				seasonName: string;
+				episodes: typeof airedEpisodes;
 			}
+		>();
+		for (const ep of airedEpisodes) {
+			if (!map.has(ep.seasonNumber)) {
+				const info = titleData.seasonList.find(
+					(s) => s.seasonNumber === ep.seasonNumber,
+				);
+				map.set(ep.seasonNumber, {
+					seasonNumber: ep.seasonNumber,
+					seasonName: info?.name ?? `Season ${ep.seasonNumber}`,
+					episodes: [],
+				});
+			}
+			map.get(ep.seasonNumber)?.episodes.push(ep);
 		}
-		return null;
-	}, [allEpisodes, watchedSet, totalEpisodes, watchedCount]);
+		return Array.from(map.values()).sort(
+			(a, b) => a.seasonNumber - b.seasonNumber,
+		);
+	}, [airedEpisodes, titleData?.seasonList, seasonGroups]);
+
+	// Metadata line
+	const metaParts: string[] = [];
+	if (titleData?.year) metaParts.push(titleData.year);
+	if (titleData?.status) metaParts.push(titleData.status);
+	if (titleData?.seasonList)
+		metaParts.push(
+			`${titleData.seasonList.length} season${titleData.seasonList.length !== 1 ? "s" : ""}`,
+		);
 
 	const isLoading = isLoadingTitle || isLoadingWatched || isLoadingEpisodes;
 
 	return (
-		<div className="relative mx-auto max-w-3xl px-4 pb-6">
-			{/* ── Cinematic Backdrop Hero ── */}
-			{titleData?.backdropPath && (
-				<div
-					className="absolute inset-x-0 top-0 h-[340px] z-0 overflow-hidden"
-					aria-hidden="true"
-				>
-					<img
-						src={`https://image.tmdb.org/t/p/w1280${titleData.backdropPath}`}
-						alt=""
-						className="h-full w-full object-cover object-top"
-						loading="eager"
-					/>
-					{/* Dark vignette overlay */}
-					<div
-						className="absolute inset-0"
-						style={{
-							background: `
-								linear-gradient(to bottom, rgba(5,5,8,0.2) 0%, rgba(5,5,8,0.55) 40%, rgba(5,5,8,0.92) 70%, #050508 100%),
-								linear-gradient(to right, rgba(5,5,8,0.5) 0%, transparent 30%, transparent 70%, rgba(5,5,8,0.5) 100%)
-							`,
-						}}
-					/>
-					{/* VHS scan lines over backdrop */}
-					<div
-						className="absolute inset-0 opacity-[0.04]"
-						style={{
-							backgroundImage:
-								"repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,240,0.4) 2px, rgba(255,255,240,0.4) 4px)",
-						}}
-					/>
-					{/* Animated VHS scan bar */}
-					<div
-						className="absolute left-0 right-0 h-[2px] opacity-[0.07] pointer-events-none"
-						style={{
-							background:
-								"linear-gradient(90deg, transparent, rgba(255,255,240,0.6) 50%, transparent)",
-							animation: "vhs-scan 8s linear infinite",
-						}}
-					/>
-					{/* Status-tinted ambient glow */}
-					<div
-						className="absolute inset-0"
-						style={{
-							background: `radial-gradient(ellipse 600px 300px at 50% 80%, ${statusGlow.replace("0.35", "0.12")}, transparent 70%)`,
-						}}
-					/>
-					{/* Pink atmospheric glow — top-right */}
-					<div
-						className="absolute inset-0"
-						style={{
-							background:
-								"radial-gradient(ellipse 500px 350px at 85% 15%, rgba(255,45,120,0.08), transparent 65%)",
-						}}
-					/>
-				</div>
-			)}
-
-			{/* Atmospheric background gradient (fallback if no backdrop) */}
-			{!titleData?.backdropPath && (
-				<div
-					aria-hidden="true"
-					className="pointer-events-none fixed inset-0 z-0"
-					style={{
-						background: `
-							radial-gradient(ellipse 800px 500px at 30% 10%, ${statusGlow.replace("0.35", "0.04")}, transparent 70%),
-							radial-gradient(ellipse 600px 400px at 80% 20%, rgba(255,45,120,0.04), transparent 60%),
-							radial-gradient(ellipse 500px 300px at 70% 70%, rgba(0,229,255,0.02), transparent 55%)
-						`,
-					}}
-				/>
-			)}
-
+		<div className="mx-auto max-w-2xl px-4 pb-8">
 			{/* Back link */}
 			<Link
 				to="/app/tracker"
-				className="relative z-10 mb-5 inline-flex items-center gap-1.5 pt-6 text-xs font-mono-retro tracking-wider text-cream/30 no-underline transition-colors hover:text-cream/60"
+				className="mb-6 inline-flex items-center gap-1.5 pt-6 text-xs font-mono-retro tracking-wider text-cream/30 no-underline transition-colors hover:text-cream/60"
 			>
 				<ArrowLeft className="h-3.5 w-3.5" />
 				Tracker
@@ -357,321 +310,125 @@ function ShowTracker() {
 					Show not found
 				</div>
 			) : (
-				<div className="relative z-10">
-					{/* ── Show Header: Cinematic Hero Card ── */}
-					<div
-						className="relative mb-6 overflow-hidden rounded-xl border border-cream/8"
-						style={{
-							background:
-								"linear-gradient(160deg, rgba(10,10,30,0.92) 0%, rgba(8,8,24,0.88) 40%, rgba(15,15,35,0.85) 100%)",
-							boxShadow: `0 8px 40px rgba(0,0,0,0.5), 0 0 60px ${statusGlow.replace("0.35", "0.06")}`,
-						}}
-					>
-						{/* Ambient status glow */}
+				<div>
+					{/* ── Header ── */}
+					<div className="flex gap-5 mb-8">
+						{/* Poster */}
 						<div
-							aria-hidden="true"
-							className="pointer-events-none absolute inset-0 rounded-xl"
-							style={{
-								background: `
-									radial-gradient(ellipse at 15% 60%, ${statusGlow.replace("0.35", "0.1")}, transparent 55%),
-									radial-gradient(ellipse at 90% 25%, rgba(255,45,120,0.07), transparent 50%),
-									radial-gradient(ellipse at 50% 100%, rgba(255,45,120,0.03), transparent 40%)
-								`,
-							}}
-						/>
-
-						{/* VHS scan line overlay */}
-						<div
-							aria-hidden="true"
-							className="pointer-events-none absolute inset-0 rounded-xl overflow-hidden opacity-[0.03]"
-							style={{
-								backgroundImage:
-									"repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,240,0.5) 2px, rgba(255,255,240,0.5) 4px)",
-							}}
-						/>
-
-						<div className="relative z-10 flex gap-6 p-6">
-							{/* Poster — larger, with glowing neon frame */}
-							<div className="relative shrink-0">
-								{/* Outer neon glow frame */}
-								<div
-									aria-hidden="true"
-									className="absolute -inset-[3px] rounded-xl pointer-events-none"
-									style={{
-										background:
-											"linear-gradient(135deg, rgba(0,229,255,0.25), rgba(255,45,120,0.2) 50%, rgba(255,184,0,0.2))",
-										filter: "blur(4px)",
-										opacity: 0.6,
-									}}
+							className="shrink-0 h-[135px] w-[90px] overflow-hidden rounded-lg bg-cream/5"
+							style={{ border: "1px solid rgba(255,184,0,0.15)" }}
+						>
+							{titleData.posterPath ? (
+								<img
+									src={`https://image.tmdb.org/t/p/w185${titleData.posterPath}`}
+									alt=""
+									className="h-full w-full object-cover"
+									loading="eager"
 								/>
+							) : (
+								<div className="flex h-full w-full items-center justify-center text-cream/15 text-xs font-mono-retro">
+									NO
+									<br />
+									IMG
+								</div>
+							)}
+						</div>
+
+						{/* Title + meta + progress */}
+						<div className="flex flex-1 min-w-0 flex-col">
+							<h1 className="font-display text-2xl text-cream tracking-wide leading-tight">
+								{titleData.title}
+							</h1>
+
+							{/* Metadata */}
+							{metaParts.length > 0 && (
+								<p className="mt-1.5 font-mono-retro text-[11px] tracking-wider text-cream/30">
+									{metaParts.join(" · ")}
+								</p>
+							)}
+
+							{/* Progress section */}
+							<div className="mt-auto pt-4">
+								{/* Episode count + percentage */}
+								<div className="flex items-baseline justify-between mb-2">
+									<span className="font-mono-retro text-xs text-cream/40">
+										<span className="text-cream/70 font-display text-base">
+											{watchedCount}
+										</span>
+										<span className="text-cream/20 mx-1">/</span>
+										<span className="text-cream/35">{totalEpisodes}</span>
+										<span className="text-cream/20 ml-1.5 text-[10px]">
+											episodes
+										</span>
+									</span>
+									{totalEpisodes > 0 && (
+										<span
+											className="font-display text-lg tracking-wide"
+											style={{
+												color: isComplete
+													? "#FFB800"
+													: isCaughtUp
+														? "#34d399"
+														: "#00E5FF",
+											}}
+										>
+											{progressPct}%
+										</span>
+									)}
+								</div>
+
+								{/* Progress bar - 8px, clean */}
 								<div
-									className="relative h-[180px] w-[120px] overflow-hidden rounded-lg bg-cream/5"
+									className="h-2 w-full overflow-hidden rounded-full"
 									style={{
-										boxShadow: `0 6px 30px rgba(0,0,0,0.6), 0 0 30px ${statusGlow.replace("0.35", "0.15")}, 0 0 50px rgba(255,45,120,0.06)`,
-										border: "1px solid rgba(255,255,240,0.1)",
+										background: "rgba(255,255,240,0.04)",
 									}}
 								>
-									{titleData.posterPath ? (
-										<img
-											src={`https://image.tmdb.org/t/p/w185${titleData.posterPath}`}
-											alt=""
-											className="h-full w-full object-cover"
-											loading="lazy"
-										/>
-									) : (
-										<div className="flex h-full w-full items-center justify-center text-cream/15 text-xs font-mono-retro">
-											NO
-											<br />
-											IMG
-										</div>
-									)}
-									{/* Inner film-frame glow */}
 									<div
-										aria-hidden="true"
-										className="absolute inset-0 rounded-lg"
+										className="h-full rounded-full transition-all duration-700 ease-out"
 										style={{
-											boxShadow:
-												"inset 0 0 0 1px rgba(255,255,240,0.12), inset 0 0 20px rgba(0,0,0,0.3), inset 0 -20px 30px rgba(255,45,120,0.06)",
+											width: `${progressPct}%`,
+											background: isComplete
+												? "#FFB800"
+												: isCaughtUp
+													? "#34d399"
+													: "#00E5FF",
 										}}
 									/>
 								</div>
-								{/* Film sprocket dots along poster sides */}
-								<div
-									aria-hidden="true"
-									className="absolute -left-1.5 top-2 bottom-2 flex flex-col justify-evenly"
-								>
-									{Array.from({ length: 6 }).map((_, i) => (
-										<span
-											key={`l-${i.toString()}`}
-											className="block h-1.5 w-1.5 rounded-full"
-											style={{
-												backgroundColor:
-													i % 3 === 0
-														? "rgba(255,45,120,0.12)"
-														: "rgba(255,255,240,0.07)",
-												boxShadow:
-													i % 3 === 0
-														? "0 0 4px rgba(255,45,120,0.15)"
-														: "none",
-											}}
-										/>
-									))}
-								</div>
-								<div
-									aria-hidden="true"
-									className="absolute -right-1.5 top-2 bottom-2 flex flex-col justify-evenly"
-								>
-									{Array.from({ length: 6 }).map((_, i) => (
-										<span
-											key={`r-${i.toString()}`}
-											className="block h-1.5 w-1.5 rounded-full"
-											style={{
-												backgroundColor:
-													i % 3 === 1
-														? "rgba(255,45,120,0.12)"
-														: "rgba(255,255,240,0.07)",
-												boxShadow:
-													i % 3 === 1
-														? "0 0 4px rgba(255,45,120,0.15)"
-														: "none",
-											}}
-										/>
-									))}
-								</div>
-							</div>
-
-							{/* Info column */}
-							<div className="flex min-w-0 flex-1 flex-col justify-between">
-								<div>
-									{/* NOW SHOWING label */}
-									<p
-										className="font-mono-retro text-[9px] tracking-[3px] uppercase mb-1.5"
-										style={{
-											color: "#FFB800",
-											opacity: 0.5,
-											textShadow: "0 0 8px rgba(255,184,0,0.3)",
-										}}
-									>
-										Now Showing
-									</p>
-
-									{/* Title */}
-									<h1
-										className="font-display text-2xl text-cream tracking-wide leading-tight pr-2"
-										style={{
-											textShadow:
-												"0 0 30px rgba(255,255,240,0.15), 0 0 60px rgba(255,255,240,0.05)",
-										}}
-									>
-										{titleData.title}
-									</h1>
-
-									{/* Status badge + next episode */}
-									<div className="mt-3 flex items-center gap-3 flex-wrap">
-										<span
-											className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-mono-retro tracking-wider uppercase ${statusColor}`}
-											style={{
-												background: statusGlow.replace("0.35", "0.14"),
-												textShadow: `0 0 12px ${statusGlow}`,
-												boxShadow: `0 0 16px ${statusGlow.replace("0.35", "0.1")}, inset 0 0 8px ${statusGlow.replace("0.35", "0.05")}`,
-											}}
-										>
-											<span
-												className="inline-block h-1.5 w-1.5 rounded-full"
-												style={{
-													backgroundColor: "currentColor",
-													boxShadow: "0 0 6px currentColor",
-												}}
-											/>
-											{statusLabel}
-										</span>
-
-										{nextEpisode && (
-											<span className="inline-flex items-center gap-1 text-[10px] font-mono-retro text-cream/30 tracking-wide">
-												<Play
-													className="h-2.5 w-2.5"
-													style={{
-														fill: "currentColor",
-													}}
-												/>
-												Next: S{nextEpisode.seasonNumber}E
-												{nextEpisode.episodeNumber}
-											</span>
-										)}
-									</div>
-								</div>
-
-								{/* ── Hero Progress Bar ── */}
-								<div className="mt-auto pt-4">
-									<div className="flex items-baseline justify-between mb-2.5">
-										<span className="text-xs font-mono-retro text-cream/50 tracking-wide">
-											<span
-												className="text-base font-display"
-												style={{
-													color: statusGlow.replace("0.35", "0.85"),
-													textShadow: `0 0 10px ${statusGlow.replace("0.35", "0.4")}`,
-												}}
-											>
-												{watchedCount}
-											</span>
-											<span className="text-cream/20 mx-1">/</span>
-											<span className="text-cream/35">{totalEpisodes}</span>
-											<span className="text-cream/20 ml-1.5 text-[10px]">
-												episodes
-											</span>
-										</span>
-										{totalEpisodes > 0 && (
-											<span
-												className="text-lg font-display tracking-wide"
-												style={{
-													color: statusGlow.replace("0.35", "0.9"),
-													textShadow: `0 0 14px ${statusGlow.replace("0.35", "0.5")}, 0 0 40px ${statusGlow.replace("0.35", "0.2")}`,
-													animation: isComplete
-														? "neon-flicker 4s ease-in-out infinite"
-														: undefined,
-												}}
-											>
-												{progressPct}%
-											</span>
-										)}
-									</div>
-									{/* Chunky 10px progress bar with glow */}
-									<div
-										className="h-2.5 w-full overflow-hidden rounded-full"
-										style={{
-											background: "rgba(255,255,240,0.04)",
-											boxShadow:
-												"inset 0 2px 4px rgba(0,0,0,0.5), 0 0 1px rgba(255,255,240,0.05)",
-										}}
-									>
-										<div
-											className="relative h-full rounded-full transition-all duration-700 ease-out"
-											style={{
-												width: `${progressPct}%`,
-												background: isComplete
-													? "linear-gradient(90deg, #ffb800, #ffd060, #ffb800)"
-													: isCaughtUp
-														? "linear-gradient(90deg, #34d399, #6ee7b7, #34d399)"
-														: "linear-gradient(90deg, #00e5ff, #40c8e0, #00e5ff)",
-												boxShadow: isComplete
-													? "0 0 16px rgba(255,184,0,0.6), 0 0 4px rgba(255,184,0,0.3)"
-													: isCaughtUp
-														? "0 0 16px rgba(52,211,153,0.6), 0 0 4px rgba(52,211,153,0.3)"
-														: "0 0 16px rgba(0,229,255,0.6), 0 0 4px rgba(0,229,255,0.3)",
-											}}
-										>
-											{/* Shimmer on the progress bar */}
-											{progressPct > 0 && (
-												<div
-													className="absolute inset-0 overflow-hidden rounded-full"
-													aria-hidden="true"
-												>
-													<div
-														className="absolute inset-0"
-														style={{
-															background:
-																isComplete || isCaughtUp
-																	? "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%)"
-																	: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)",
-															animation:
-																isComplete || isCaughtUp
-																	? "shimmer-sweep 4s ease-in-out infinite"
-																	: "shimmer-sweep 6s ease-in-out infinite",
-														}}
-													/>
-												</div>
-											)}
-										</div>
-									</div>
-								</div>
 							</div>
 						</div>
+					</div>
 
-						{/* ── Action Buttons — pill buttons with neon glow ── */}
-						<div className="relative z-20 flex items-center justify-end gap-3 px-6 pb-5 -mt-1">
+					{/* Action buttons */}
+					<div className="flex items-center gap-3 mb-10">
+						<button
+							type="button"
+							onClick={() => setWriteAboutOpen(true)}
+							className="flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase text-neon-pink transition-colors hover:bg-neon-pink/10"
+							style={{ border: "1px solid rgba(255,45,120,0.2)" }}
+						>
+							<Pen className="h-3.5 w-3.5" />
+							Write
+						</button>
+						{totalEpisodes > 0 && watchedCount < totalEpisodes && (
 							<button
 								type="button"
-								onClick={() => setWriteAboutOpen(true)}
-								className="group/btn flex items-center gap-2 rounded-full px-5 py-2 text-[11px] font-mono-retro tracking-wider uppercase text-neon-pink transition-all duration-200 hover:bg-neon-pink/12 hover:scale-[1.04] active:scale-[0.97]"
-								style={{
-									border: "1px solid rgba(255,45,120,0.25)",
-									textShadow: "0 0 10px rgba(255,45,120,0.35)",
-									boxShadow:
-										"0 0 14px rgba(255,45,120,0.08), inset 0 1px 0 rgba(255,45,120,0.06)",
-								}}
+								onClick={handleMarkAll}
+								disabled={markEpisodes.isPending}
+								className="flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase text-neon-amber transition-colors hover:bg-neon-amber/10 disabled:opacity-40 disabled:pointer-events-none"
+								style={{ border: "1px solid rgba(255,184,0,0.2)" }}
 							>
-								<Pen className="h-3.5 w-3.5 transition-transform duration-200 group-hover/btn:rotate-[-8deg]" />
-								Write
+								<CheckCheck className="h-3.5 w-3.5" />
+								Mark All
 							</button>
-							{totalEpisodes > 0 && watchedCount < totalEpisodes && (
-								<button
-									type="button"
-									onClick={handleMarkAll}
-									disabled={markEpisodes.isPending}
-									className="group/btn flex items-center gap-2 rounded-full px-5 py-2 text-[11px] font-mono-retro tracking-wider uppercase text-neon-amber transition-all duration-200 hover:bg-neon-amber/12 hover:scale-[1.04] active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none"
-									style={{
-										border: "1px solid rgba(255,184,0,0.25)",
-										textShadow: "0 0 10px rgba(255,184,0,0.35)",
-										boxShadow:
-											"0 0 14px rgba(255,184,0,0.08), inset 0 1px 0 rgba(255,184,0,0.06)",
-									}}
-								>
-									<CheckCheck className="h-3.5 w-3.5 transition-transform duration-200 group-hover/btn:scale-110" />
-									Mark All
-								</button>
-							)}
-						</div>
+						)}
 					</div>
 
-					{/* ── Film Strip Divider ── */}
-					<div className="mb-10">
-						<FilmStrip />
-					</div>
-
-					{/* Season rows */}
-					<div className="space-y-12">
-						{seasonGroups.map((group) => (
-							<SeasonRow
+					{/* ── Episode List by Season ── */}
+					<div className="space-y-10">
+						{airedSeasonGroups.map((group) => (
+							<SeasonSection
 								key={group.seasonNumber}
 								tmdbId={tmdbId}
 								seasonNumber={group.seasonNumber}
@@ -688,6 +445,54 @@ function ShowTracker() {
 					{seasonGroups.length === 0 && !isLoading && (
 						<div className="py-16 text-center text-sm text-cream/25 font-mono-retro">
 							No episode data available
+						</div>
+					)}
+
+					{/* ── Coming Soon ── */}
+					{upcomingEpisodes.length > 0 && (
+						<div className="mt-12">
+							<div
+								className="flex items-center gap-3 mb-4 pb-2"
+								style={{
+									borderBottom: "1px solid rgba(255,184,0,0.12)",
+								}}
+							>
+								<Calendar className="h-4 w-4 text-neon-amber/50" />
+								<h2 className="font-display text-base tracking-wide text-neon-amber/70">
+									Coming Soon
+								</h2>
+							</div>
+
+							<div>
+								{upcomingEpisodes.map((ep) => (
+									<div
+										key={`upcoming-S${ep.seasonNumber}E${ep.episodeNumber}`}
+										className="flex items-center gap-3 px-2 py-2.5"
+										style={{
+											borderBottom: "1px solid rgba(255,255,240,0.03)",
+										}}
+									>
+										<span className="shrink-0 font-mono-retro text-[11px] tracking-wider text-neon-amber/40">
+											S{ep.seasonNumber}E{ep.episodeNumber}
+										</span>
+										<span className="text-cream/15 shrink-0">·</span>
+										<span className="flex-1 truncate text-sm text-cream/30">
+											{ep.name}
+										</span>
+										{ep.airDate && (
+											<span className="shrink-0 font-mono-retro text-[10px] text-neon-amber/35">
+												{new Date(`${ep.airDate}T00:00:00`).toLocaleDateString(
+													"en-US",
+													{
+														month: "short",
+														day: "numeric",
+													},
+												)}
+											</span>
+										)}
+									</div>
+								))}
+							</div>
 						</div>
 					)}
 
@@ -894,30 +699,14 @@ function NotesAndReviewsSection({
 	return (
 		<div className="mt-12">
 			{/* Section header */}
-			<div className="flex items-center gap-3 mb-6">
-				<div
-					className="h-px flex-1"
-					style={{
-						background:
-							"linear-gradient(90deg, transparent, rgba(255,45,120,0.15) 20%, rgba(0,229,255,0.15) 50%, rgba(255,184,0,0.15) 80%, transparent)",
-					}}
-				/>
-				<h2
-					className="font-mono-retro text-[11px] tracking-[4px] uppercase text-cream/35"
-					style={{
-						textShadow:
-							"0 0 12px rgba(255,45,120,0.1), 0 0 20px rgba(0,229,255,0.08), 0 0 30px rgba(255,184,0,0.05)",
-					}}
-				>
+			<div
+				className="flex items-center gap-3 mb-4 pb-2"
+				style={{ borderBottom: "1px solid rgba(255,184,0,0.12)" }}
+			>
+				<BookOpen className="h-4 w-4 text-cream/30" />
+				<h2 className="font-display text-base tracking-wide text-cream/50">
 					Notes & Reviews
 				</h2>
-				<div
-					className="h-px flex-1"
-					style={{
-						background:
-							"linear-gradient(90deg, transparent, rgba(255,184,0,0.15) 20%, rgba(0,229,255,0.15) 50%, rgba(255,45,120,0.15) 80%, transparent)",
-					}}
-				/>
 			</div>
 
 			<div className="space-y-3">
@@ -927,23 +716,16 @@ function NotesAndReviewsSection({
 						return (
 							<div
 								key={`note-${entry.id}`}
-								className="group relative pl-4 py-3 pr-3 rounded-lg border border-cream/[0.06] overflow-hidden transition-colors duration-200 hover:border-neon-cyan/10"
+								className="group relative pl-4 py-3 pr-3 rounded-lg transition-colors duration-200"
 								style={{
-									background:
-										"linear-gradient(135deg, rgba(0,0,0,0.25) 0%, rgba(0,229,255,0.02) 100%)",
-									borderLeft: "2px solid rgba(0,229,255,0.25)",
+									background: "rgba(0,229,255,0.02)",
+									borderLeft: "2px solid rgba(0,229,255,0.2)",
 								}}
 							>
-								{/* Top row: icon, scope badge, time, actions */}
+								{/* Top row: scope badge, time, actions */}
 								<div className="flex items-center justify-between mb-2">
 									<div className="flex items-center gap-2">
-										<BookOpen className="w-3 h-3 text-neon-cyan/40" />
-										<span
-											className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-cyan/[0.06] border border-neon-cyan/10 font-mono-retro text-[9px] tracking-wider text-neon-cyan/50"
-											style={{
-												textShadow: "0 0 6px rgba(0,229,255,0.15)",
-											}}
-										>
+										<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-cyan/[0.06] font-mono-retro text-[9px] tracking-wider text-neon-cyan/50">
 											{formatScopeBadge(
 												entry.scope,
 												entry.seasonNumber,
@@ -974,42 +756,28 @@ function NotesAndReviewsSection({
 					return (
 						<div
 							key={`review-${event.id}`}
-							className="group relative pl-4 py-3 pr-3 rounded-lg border border-cream/[0.06] overflow-hidden transition-colors duration-200 hover:border-neon-amber/10"
+							className="group relative pl-4 py-3 pr-3 rounded-lg transition-colors duration-200"
 							style={{
-								background:
-									"linear-gradient(135deg, rgba(0,0,0,0.25) 0%, rgba(255,184,0,0.02) 100%)",
-								borderLeft: "2px solid rgba(255,184,0,0.25)",
+								background: "rgba(255,184,0,0.02)",
+								borderLeft: "2px solid rgba(255,184,0,0.2)",
 							}}
 						>
 							{/* Top row */}
 							<div className="flex items-center justify-between mb-2">
 								<div className="flex items-center gap-2">
-									<Star className="w-3 h-3 text-neon-amber/40" />
 									{event.rating != null && (
 										<span className="flex items-center gap-0.5">
 											{Array.from({ length: 5 }).map((_, i) => (
 												<span
 													key={`star-${event.id}-${i.toString()}`}
-													className={`text-[10px] ${i < event.rating! ? "text-neon-amber" : "text-cream/10"}`}
-													style={
-														i < event.rating!
-															? {
-																	textShadow: "0 0 4px rgba(255,184,0,0.4)",
-																}
-															: undefined
-													}
+													className={`text-[10px] ${event.rating != null && i < event.rating ? "text-neon-amber" : "text-cream/10"}`}
 												>
 													★
 												</span>
 											))}
 										</span>
 									)}
-									<span
-										className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-amber/[0.06] border border-neon-amber/10 font-mono-retro text-[9px] tracking-wider text-neon-amber/50"
-										style={{
-											textShadow: "0 0 6px rgba(255,184,0,0.15)",
-										}}
-									>
+									<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-amber/[0.06] font-mono-retro text-[9px] tracking-wider text-neon-amber/50">
 										{formatScopeBadge(
 											event.scope,
 											event.scopeSeasonNumber,
