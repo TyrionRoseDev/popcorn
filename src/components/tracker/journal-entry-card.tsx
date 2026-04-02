@@ -37,7 +37,7 @@ function formatScopeBadge(
 	if (scope === "season" && seasonNumber != null) {
 		return `Season ${seasonNumber}`;
 	}
-	return "Full Show";
+	return "General";
 }
 
 function formatTimeAgo(date: Date): string {
@@ -106,15 +106,17 @@ export function JournalEntryCard({
 		entry.episodeNumber,
 	);
 
+	const hasNote = entry.note && entry.note.trim().length > 0;
+
 	return (
 		<div
-			className="relative rounded-[10px] border border-neon-cyan/15 p-4 transition-colors hover:border-neon-cyan/25"
+			className="group relative rounded-[10px] border border-neon-cyan/15 transition-all hover:border-neon-cyan/25"
 			style={{
 				background:
-					"linear-gradient(145deg, rgba(10,10,30,0.95) 0%, rgba(15,15,35,0.8) 100%)",
+					"linear-gradient(145deg, rgba(10,10,30,0.95) 0%, rgba(12,12,28,0.9) 50%, rgba(15,15,35,0.8) 100%)",
 				boxShadow:
 					"0 0 12px rgba(0,229,255,0.04), inset 0 1px 0 rgba(255,255,240,0.03)",
-				borderLeft: "2px solid rgba(0,229,255,0.35)",
+				borderLeft: "3px solid rgba(0,229,255,0.35)",
 			}}
 		>
 			{/* Cyan radial light overlay */}
@@ -127,104 +129,119 @@ export function JournalEntryCard({
 				}}
 			/>
 
-			<div className="relative z-10">
-				{/* Top row: title + timestamp */}
-				<div className="flex items-start justify-between gap-2 mb-2">
+			{/* Subtle background texture */}
+			<div
+				aria-hidden="true"
+				className="pointer-events-none absolute inset-0 rounded-[10px] opacity-[0.03]"
+				style={{
+					backgroundImage:
+						"radial-gradient(circle at 20% 80%, rgba(0,229,255,0.3), transparent 40%), radial-gradient(circle at 80% 20%, rgba(255,255,240,0.15), transparent 40%)",
+				}}
+			/>
+
+			<div className="relative z-10 p-4">
+				{/* Top section: Show title hero + scope badge */}
+				<div className="flex items-start justify-between gap-2 mb-1">
 					<div className="min-w-0 flex-1">
-						<div className="flex items-center gap-2 flex-wrap">
-							<Link
-								to="/app/title/$mediaType/$tmdbId"
-								params={{ mediaType: "tv", tmdbId: entry.tmdbId }}
-								className="text-sm font-semibold text-cream/90 hover:text-cream no-underline leading-tight"
-							>
-								{entry.titleName}
-							</Link>
-							{/* Scope badge */}
-							<span
-								className="inline-flex items-center rounded px-1.5 py-0.5 font-mono-retro text-[9px] tracking-[1.5px] uppercase leading-none shrink-0"
-								style={{
-									background: "rgba(0,229,255,0.08)",
-									border: "1px solid rgba(0,229,255,0.2)",
-									color: "rgba(0,229,255,0.7)",
-								}}
-							>
-								{scopeBadge}
-							</span>
-						</div>
-					</div>
-
-					<div className="flex items-center gap-2 shrink-0">
-						<span className="text-[10px] text-cream/25 font-mono-retro">
-							{formatTimeAgo(new Date(entry.createdAt))}
-						</span>
-
-						<Popover
-							open={menuOpen}
-							onOpenChange={(o) => {
-								setMenuOpen(o);
-								if (!o) setConfirmDelete(false);
-							}}
+						<Link
+							to="/app/title/$mediaType/$tmdbId"
+							params={{ mediaType: "tv", tmdbId: entry.tmdbId }}
+							className="font-display text-[15px] text-cream/90 hover:text-cream no-underline leading-tight block"
 						>
-							<PopoverTrigger asChild>
-								<button
-									type="button"
-									className="p-1 text-cream/20 hover:text-cream/50 transition-colors"
-								>
-									<MoreHorizontal className="h-4 w-4" />
-								</button>
-							</PopoverTrigger>
-							<PopoverContent
-								align="end"
-								sideOffset={4}
-								className="bg-drive-in-card border border-drive-in-border rounded-lg shadow-xl p-1 w-40"
-							>
-								<button
-									type="button"
-									onClick={handleEdit}
-									className="flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-cream/5 text-sm text-cream/70 hover:text-cream transition-colors"
-								>
-									<Pencil className="h-3.5 w-3.5" />
-									Edit
-								</button>
-								<button
-									type="button"
-									onClick={handleDelete}
-									disabled={deleteEntry.isPending}
-									className={`flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-red-500/10 text-sm transition-colors ${
-										confirmDelete
-											? "text-red-400 font-medium"
-											: "text-red-400/70 hover:text-red-400"
-									}`}
-								>
-									<Trash2 className="h-3.5 w-3.5" />
-									{confirmDelete ? "Confirm Delete" : "Delete"}
-								</button>
-							</PopoverContent>
-						</Popover>
+							{entry.titleName}
+						</Link>
 					</div>
+
+					{/* Actions menu */}
+					<Popover
+						open={menuOpen}
+						onOpenChange={(o) => {
+							setMenuOpen(o);
+							if (!o) setConfirmDelete(false);
+						}}
+					>
+						<PopoverTrigger asChild>
+							<button
+								type="button"
+								className="p-1 text-cream/15 hover:text-cream/50 transition-colors opacity-0 group-hover:opacity-100"
+							>
+								<MoreHorizontal className="h-4 w-4" />
+							</button>
+						</PopoverTrigger>
+						<PopoverContent
+							align="end"
+							sideOffset={4}
+							className="bg-drive-in-card border border-drive-in-border rounded-lg shadow-xl p-1 w-40"
+						>
+							<button
+								type="button"
+								onClick={handleEdit}
+								className="flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-cream/5 text-sm text-cream/70 hover:text-cream transition-colors"
+							>
+								<Pencil className="h-3.5 w-3.5" />
+								Edit
+							</button>
+							<button
+								type="button"
+								onClick={handleDelete}
+								disabled={deleteEntry.isPending}
+								className={`flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-red-500/10 text-sm transition-colors ${
+									confirmDelete
+										? "text-red-400 font-medium"
+										: "text-red-400/70 hover:text-red-400"
+								}`}
+							>
+								<Trash2 className="h-3.5 w-3.5" />
+								{confirmDelete ? "Confirm Delete" : "Delete"}
+							</button>
+						</PopoverContent>
+					</Popover>
 				</div>
 
-				{/* Divider */}
-				<div
-					className="h-px mb-2.5"
-					style={{
-						background:
-							"linear-gradient(90deg, rgba(0,229,255,0.15), transparent 80%)",
-					}}
-				/>
+				{/* Scope badge + timestamp row */}
+				<div className="flex items-center gap-2 mb-3">
+					<span
+						className="inline-flex items-center rounded-full px-2 py-0.5 font-mono-retro text-[9px] tracking-[1.5px] uppercase leading-none"
+						style={{
+							background: "rgba(0,229,255,0.08)",
+							border: "1px solid rgba(0,229,255,0.2)",
+							color: "rgba(0,229,255,0.7)",
+						}}
+					>
+						{scopeBadge}
+					</span>
+					<span className="text-[10px] text-cream/25 font-mono-retro">
+						{formatTimeAgo(new Date(entry.createdAt))}
+					</span>
+				</div>
 
-				{/* Note text */}
-				<p className="text-[12.5px] leading-[1.65] text-cream/60">
-					{entry.note}
-				</p>
+				{/* Note text — styled as a quote */}
+				{hasNote ? (
+					<div
+						className="mb-3 pl-3"
+						style={{
+							borderLeft: "2px solid rgba(0,229,255,0.15)",
+						}}
+					>
+						<p className="text-[12.5px] leading-[1.7] text-cream/55 italic">
+							{entry.note}
+						</p>
+					</div>
+				) : (
+					<div className="mb-3 pl-3">
+						<p className="text-[12px] leading-[1.65] text-cream/20 italic">
+							No text added
+						</p>
+					</div>
+				)}
 
-				{/* Footer: label + public indicator */}
-				<div className="flex items-center gap-2 mt-3">
-					<span className="text-[9px] font-mono-retro tracking-[1.5px] uppercase text-neon-cyan/30">
+				{/* Footer: label + public/private */}
+				<div className="flex items-center gap-2">
+					<span className="text-[9px] font-mono-retro tracking-[1.5px] uppercase text-neon-cyan/25">
 						Journal Entry
 					</span>
-					<span className="h-0.5 w-0.5 rounded-full bg-cream/15" />
-					<span className="flex items-center gap-1 text-[9px] font-mono-retro tracking-[1px] uppercase text-cream/25">
+					<span className="h-0.5 w-0.5 rounded-full bg-cream/10" />
+					<span className="flex items-center gap-1 text-[9px] font-mono-retro tracking-[1px] uppercase text-cream/20">
 						{entry.isPublic ? (
 							<>
 								<Globe className="h-2.5 w-2.5" />

@@ -618,9 +618,9 @@ function formatScopeBadge(
 		return `Season ${seasonNumber}`;
 	}
 	if (scope === "show") {
-		return "Full Show";
+		return "General";
 	}
-	return "Show";
+	return "General";
 }
 
 function formatRelativeDate(date: Date): string {
