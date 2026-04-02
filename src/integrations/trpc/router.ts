@@ -1,6 +1,7 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "./init";
+import { episodeTrackerRouter } from "./routers/episode-tracker";
 import { friendRouter } from "./routers/friend";
 import { notificationRouter } from "./routers/notification";
 import { recommendationRouter } from "./routers/recommendation";
@@ -43,5 +44,6 @@ export const trpcRouter = createTRPCRouter({
 	watchEvent: watchEventRouter,
 	watchlist: watchlistRouter,
 	user: userRouter,
+	episodeTracker: episodeTrackerRouter,
 });
 export type TRPCRouter = typeof trpcRouter;
