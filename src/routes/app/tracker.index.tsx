@@ -336,17 +336,15 @@ function TrackerDashboard() {
 							{watching.length > 0 && (
 								<section>
 									{/* Section header */}
-									<div className="mb-4 flex items-center gap-3">
-										<div className="flex items-baseline gap-2.5">
+									<div className="mb-5 flex items-center gap-4">
+										<div className="flex items-center gap-3">
 											<h2
-												className="font-mono-retro"
+												className="font-display"
 												style={{
-													fontSize: "11px",
-													letterSpacing: "4px",
-													textTransform: "uppercase",
-													color: "#FFB800",
-													opacity: 0.7,
-													textShadow: "0 0 12px rgba(255,184,0,0.25)",
+													fontSize: "18px",
+													color: "#fffff0",
+													textShadow:
+														"0 0 20px rgba(0,229,255,0.2), 0 0 40px rgba(0,229,255,0.06)",
 												}}
 											>
 												Watching
@@ -355,10 +353,12 @@ function TrackerDashboard() {
 												className="font-mono-retro"
 												style={{
 													fontSize: "10px",
-													color: "rgba(255,184,0,0.4)",
-													background: "rgba(255,184,0,0.08)",
+													color: "rgba(0,229,255,0.6)",
+													background: "rgba(0,229,255,0.08)",
+													border: "1px solid rgba(0,229,255,0.12)",
 													borderRadius: "9999px",
-													padding: "2px 7px",
+													padding: "2px 8px",
+													letterSpacing: "1px",
 												}}
 											>
 												{watching.length}
@@ -368,7 +368,7 @@ function TrackerDashboard() {
 											className="h-px flex-1"
 											style={{
 												background:
-													"linear-gradient(90deg, rgba(255,184,0,0.2), rgba(255,184,0,0.04) 50%, transparent 80%)",
+													"linear-gradient(90deg, rgba(0,229,255,0.15), transparent 70%)",
 											}}
 										/>
 									</div>
@@ -401,17 +401,15 @@ function TrackerDashboard() {
 
 							{completed.length > 0 && (
 								<section>
-									<div className="mb-5 flex items-center gap-3">
-										<div className="flex items-baseline gap-2.5">
+									<div className="mb-5 flex items-center gap-4">
+										<div className="flex items-center gap-3">
 											<h2
-												className="font-mono-retro"
+												className="font-display"
 												style={{
-													fontSize: "11px",
-													letterSpacing: "4px",
-													textTransform: "uppercase",
-													color: "#FFB800",
-													opacity: 0.7,
-													textShadow: "0 0 12px rgba(255,184,0,0.25)",
+													fontSize: "18px",
+													color: "#fffff0",
+													textShadow:
+														"0 0 20px rgba(255,184,0,0.2), 0 0 40px rgba(255,184,0,0.06)",
 												}}
 											>
 												Completed
@@ -420,10 +418,12 @@ function TrackerDashboard() {
 												className="font-mono-retro"
 												style={{
 													fontSize: "10px",
-													color: "rgba(255,184,0,0.4)",
+													color: "rgba(255,184,0,0.6)",
 													background: "rgba(255,184,0,0.08)",
+													border: "1px solid rgba(255,184,0,0.12)",
 													borderRadius: "9999px",
-													padding: "2px 7px",
+													padding: "2px 8px",
+													letterSpacing: "1px",
 												}}
 											>
 												{completed.length}
@@ -433,7 +433,7 @@ function TrackerDashboard() {
 											className="h-px flex-1"
 											style={{
 												background:
-													"linear-gradient(90deg, rgba(255,184,0,0.2), rgba(255,184,0,0.04) 50%, transparent 80%)",
+													"linear-gradient(90deg, rgba(255,184,0,0.15), transparent 70%)",
 											}}
 										/>
 									</div>
