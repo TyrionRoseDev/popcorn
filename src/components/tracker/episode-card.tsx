@@ -36,19 +36,19 @@ export function EpisodeCard({
 		<button
 			type="button"
 			onClick={handleClick}
-			className={`group/card relative flex w-[126px] shrink-0 flex-col justify-between overflow-hidden rounded-lg text-left transition-all duration-300 ${
+			className={`group/card relative flex w-[136px] shrink-0 flex-col overflow-hidden rounded-lg text-left transition-all duration-300 ${
 				isWatched
-					? "border border-neon-cyan/30 hover:border-neon-cyan/50 hover:scale-[1.03]"
-					: "border border-cream/8 hover:border-cream/20 hover:scale-[1.04]"
+					? "border border-neon-cyan/35 hover:border-neon-cyan/55 hover:scale-[1.03]"
+					: "border border-cream/[0.07] hover:border-cream/20 hover:scale-[1.04]"
 			}`}
 			style={{
-				height: 106,
+				height: 116,
 				background: isWatched
-					? "linear-gradient(160deg, rgba(0,229,255,0.13) 0%, rgba(0,229,255,0.04) 60%, rgba(0,229,255,0.08) 100%)"
-					: "linear-gradient(160deg, rgba(10,10,30,0.95) 0%, rgba(12,12,28,0.85) 100%)",
+					? "linear-gradient(160deg, rgba(0,229,255,0.14) 0%, rgba(0,229,255,0.04) 50%, rgba(0,229,255,0.09) 100%)"
+					: "linear-gradient(160deg, rgba(12,12,32,0.95) 0%, rgba(10,10,28,0.9) 60%, rgba(15,15,40,0.85) 100%)",
 				boxShadow: isWatched
-					? "0 0 18px rgba(0,229,255,0.12), 0 0 4px rgba(0,229,255,0.06), inset 0 1px 0 rgba(0,229,255,0.08)"
-					: "0 2px 10px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,240,0.03)",
+					? "0 0 22px rgba(0,229,255,0.14), 0 0 6px rgba(0,229,255,0.08), inset 0 1px 0 rgba(0,229,255,0.1)"
+					: "0 2px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,240,0.04)",
 			}}
 		>
 			{/* Film-frame perforations for watched cards */}
@@ -61,7 +61,7 @@ export function EpisodeCard({
 						{[0, 1, 2, 3].map((i) => (
 							<span
 								key={i}
-								className="block h-[3px] w-[3px] rounded-full bg-neon-cyan/15"
+								className="block h-[3px] w-[3px] rounded-full bg-neon-cyan/20"
 							/>
 						))}
 					</div>
@@ -72,7 +72,7 @@ export function EpisodeCard({
 						{[0, 1, 2, 3].map((i) => (
 							<span
 								key={i}
-								className="block h-[3px] w-[3px] rounded-full bg-neon-cyan/15"
+								className="block h-[3px] w-[3px] rounded-full bg-neon-cyan/20"
 							/>
 						))}
 					</div>
@@ -93,93 +93,106 @@ export function EpisodeCard({
 				/>
 			)}
 
-			{/* Content area with padding that accounts for film perforations */}
+			{/* Content area */}
 			<div
-				className={`relative z-10 flex flex-col justify-between h-full ${isWatched ? "px-3 py-2.5" : "p-2.5"}`}
+				className={`relative z-10 flex flex-col justify-between h-full ${isWatched ? "px-3.5 py-3" : "px-3 py-2.5"}`}
 			>
-				{/* Top row: episode badge + runtime */}
+				{/* Top row: episode badge + check/runtime */}
 				<div className="flex items-center justify-between gap-1">
-					{/* Episode number as a stamp/badge */}
+					{/* Episode number badge */}
 					<span
 						className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-mono-retro font-bold tracking-widest ${
 							isWatched
-								? "bg-neon-cyan/15 text-neon-cyan"
-								: "bg-cream/5 text-cream/45 group-hover/card:bg-cream/8 group-hover/card:text-cream/60"
+								? "bg-neon-cyan/18 text-neon-cyan"
+								: "bg-cream/[0.06] text-cream/50 group-hover/card:bg-cream/[0.1] group-hover/card:text-cream/65"
 						}`}
 						style={
 							isWatched
 								? {
 										textShadow: "0 0 8px rgba(0,229,255,0.5)",
 										boxShadow:
-											"0 0 6px rgba(0,229,255,0.1), inset 0 0 4px rgba(0,229,255,0.05)",
+											"0 0 8px rgba(0,229,255,0.12), inset 0 0 4px rgba(0,229,255,0.06)",
 									}
 								: undefined
 						}
 					>
 						E{episodeNumber}
 					</span>
+
+					{/* Watched: glowing check circle */}
 					{isWatched && (
 						<div
-							className="flex items-center justify-center h-4 w-4 rounded-full bg-neon-cyan/15"
+							className="flex items-center justify-center h-5 w-5 rounded-full bg-neon-cyan/18"
 							style={{
-								boxShadow: "0 0 8px rgba(0,229,255,0.3)",
+								boxShadow:
+									"0 0 10px rgba(0,229,255,0.35), 0 0 3px rgba(0,229,255,0.2)",
 							}}
 						>
 							<Check
-								className="h-2.5 w-2.5 text-neon-cyan"
+								className="h-3 w-3 text-neon-cyan"
 								strokeWidth={3}
 								style={{
-									filter: "drop-shadow(0 0 3px rgba(0,229,255,0.6))",
+									filter: "drop-shadow(0 0 4px rgba(0,229,255,0.7))",
 								}}
 							/>
 						</div>
 					)}
+
+					{/* Unwatched: runtime */}
 					{!isWatched && runtime != null && runtime > 0 && (
-						<span className="flex items-center gap-0.5 text-cream/20 group-hover/card:text-cream/35 transition-colors">
+						<span className="flex items-center gap-0.5 text-cream/25 group-hover/card:text-cream/40 transition-colors">
 							<Clock className="h-2.5 w-2.5 shrink-0" />
 							<span className="text-[9px] font-mono-retro">{runtime}m</span>
 						</span>
 					)}
 				</div>
 
-				{/* Episode name */}
+				{/* Episode name — more readable */}
 				<p
-					className={`mt-1 flex-1 text-[10.5px] leading-[1.35] line-clamp-3 transition-colors duration-200 ${
+					className={`mt-1.5 flex-1 text-[11px] leading-[1.4] line-clamp-3 transition-colors duration-200 ${
 						isWatched
-							? "text-cream/65"
-							: "text-cream/35 group-hover/card:text-cream/55"
+							? "text-cream/70 font-medium"
+							: "text-cream/40 group-hover/card:text-cream/60"
 					}`}
 				>
 					{name}
 				</p>
 
-				{/* Watched runtime badge or hover hint */}
+				{/* Bottom: runtime badge or hover hint */}
 				{isWatched && runtime != null && runtime > 0 ? (
-					<span className="mt-auto pt-0.5 text-[9px] font-mono-retro text-neon-cyan/30 tracking-wide">
+					<span
+						className="mt-auto pt-1 text-[9px] font-mono-retro text-neon-cyan/35 tracking-wide"
+						style={{ textShadow: "0 0 6px rgba(0,229,255,0.1)" }}
+					>
 						{runtime}m
 					</span>
 				) : (
 					<span
-						className={`mt-auto pt-0.5 text-[9px] font-mono-retro tracking-wider uppercase opacity-0 transition-all duration-200 group-hover/card:opacity-100 ${
-							isWatched ? "text-cream/25" : "text-neon-cyan/40"
+						className={`mt-auto pt-1 text-[9px] font-mono-retro tracking-wider uppercase opacity-0 transition-all duration-200 group-hover/card:opacity-100 ${
+							isWatched ? "text-cream/30" : "text-neon-cyan/45"
 						}`}
+						style={
+							!isWatched
+								? { textShadow: "0 0 6px rgba(0,229,255,0.2)" }
+								: undefined
+						}
 					>
 						{isWatched ? "undo" : "watch"}
 					</span>
 				)}
 			</div>
 
-			{/* Bottom accent bar: gradient bleeds upward */}
+			{/* Bottom accent bar */}
 			<div
 				className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ${
-					isWatched ? "h-[4px]" : "h-0 group-hover/card:h-[2px]"
+					isWatched ? "h-[4px]" : "h-0 group-hover/card:h-[3px]"
 				}`}
 				style={{
 					background: isWatched
 						? "linear-gradient(90deg, #00e5ff, #40c8e0, #00e5ff)"
 						: "linear-gradient(90deg, rgba(0,229,255,0.3), rgba(0,229,255,0.5), rgba(0,229,255,0.3))",
 					boxShadow: isWatched
-						? "0 0 10px rgba(0,229,255,0.4), 0 -6px 16px rgba(0,229,255,0.08)"
+						? "0 0 12px rgba(0,229,255,0.5), 0 -8px 20px rgba(0,229,255,0.1)"
 						: "0 0 6px rgba(0,229,255,0.2)",
 				}}
 			/>
@@ -188,10 +201,10 @@ export function EpisodeCard({
 			{isWatched && (
 				<div
 					aria-hidden="true"
-					className="pointer-events-none absolute bottom-0 left-0 right-0 h-8"
+					className="pointer-events-none absolute bottom-0 left-0 right-0 h-10"
 					style={{
 						background:
-							"linear-gradient(to top, rgba(0,229,255,0.06), transparent)",
+							"linear-gradient(to top, rgba(0,229,255,0.07), transparent)",
 					}}
 				/>
 			)}

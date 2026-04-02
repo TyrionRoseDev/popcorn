@@ -4,7 +4,6 @@ import {
 	ArrowLeft,
 	BookOpen,
 	CheckCheck,
-	Clapperboard,
 	Loader2,
 	Pen,
 	Play,
@@ -13,6 +12,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { FilmStrip } from "#/components/film-strip";
 import { SeasonRow } from "#/components/tracker/season-row";
 import { WriteAboutModal } from "#/components/tracker/write-about-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
@@ -266,23 +266,65 @@ function ShowTracker() {
 	const isLoading = isLoadingTitle || isLoadingWatched || isLoadingEpisodes;
 
 	return (
-		<div className="relative mx-auto max-w-3xl px-4 py-6">
-			{/* Atmospheric background gradient keyed to status */}
-			<div
-				aria-hidden="true"
-				className="pointer-events-none fixed inset-0 z-0"
-				style={{
-					background: `
-						radial-gradient(ellipse 800px 500px at 30% 10%, ${statusGlow.replace("0.35", "0.04")}, transparent 70%),
-						radial-gradient(ellipse 600px 400px at 80% 60%, rgba(255,45,120,0.015), transparent 60%)
-					`,
-				}}
-			/>
+		<div className="relative mx-auto max-w-3xl px-4 pb-6">
+			{/* ── Cinematic Backdrop Hero ── */}
+			{titleData?.backdropPath && (
+				<div
+					className="absolute inset-x-0 top-0 h-[340px] z-0 overflow-hidden"
+					aria-hidden="true"
+				>
+					<img
+						src={`https://image.tmdb.org/t/p/w1280${titleData.backdropPath}`}
+						alt=""
+						className="h-full w-full object-cover object-top"
+						loading="eager"
+					/>
+					{/* Dark vignette overlay */}
+					<div
+						className="absolute inset-0"
+						style={{
+							background: `
+								linear-gradient(to bottom, rgba(5,5,8,0.2) 0%, rgba(5,5,8,0.55) 40%, rgba(5,5,8,0.92) 70%, #050508 100%),
+								linear-gradient(to right, rgba(5,5,8,0.5) 0%, transparent 30%, transparent 70%, rgba(5,5,8,0.5) 100%)
+							`,
+						}}
+					/>
+					{/* VHS scan lines over backdrop */}
+					<div
+						className="absolute inset-0 opacity-[0.04]"
+						style={{
+							backgroundImage:
+								"repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,240,0.4) 2px, rgba(255,255,240,0.4) 4px)",
+						}}
+					/>
+					{/* Status-tinted ambient glow */}
+					<div
+						className="absolute inset-0"
+						style={{
+							background: `radial-gradient(ellipse 600px 300px at 50% 80%, ${statusGlow.replace("0.35", "0.12")}, transparent 70%)`,
+						}}
+					/>
+				</div>
+			)}
+
+			{/* Atmospheric background gradient (fallback if no backdrop) */}
+			{!titleData?.backdropPath && (
+				<div
+					aria-hidden="true"
+					className="pointer-events-none fixed inset-0 z-0"
+					style={{
+						background: `
+							radial-gradient(ellipse 800px 500px at 30% 10%, ${statusGlow.replace("0.35", "0.04")}, transparent 70%),
+							radial-gradient(ellipse 600px 400px at 80% 60%, rgba(255,45,120,0.015), transparent 60%)
+						`,
+					}}
+				/>
+			)}
 
 			{/* Back link */}
 			<Link
 				to="/app/tracker"
-				className="relative z-10 mb-5 inline-flex items-center gap-1.5 text-xs font-mono-retro tracking-wider text-cream/30 no-underline transition-colors hover:text-cream/60"
+				className="relative z-10 mb-5 inline-flex items-center gap-1.5 pt-6 text-xs font-mono-retro tracking-wider text-cream/30 no-underline transition-colors hover:text-cream/60"
 			>
 				<ArrowLeft className="h-3.5 w-3.5" />
 				Tracker
@@ -298,23 +340,23 @@ function ShowTracker() {
 				</div>
 			) : (
 				<div className="relative z-10">
-					{/* Show header card */}
+					{/* ── Show Header: Cinematic Hero Card ── */}
 					<div
-						className="relative mb-10 overflow-hidden rounded-xl border border-cream/8"
+						className="relative mb-6 overflow-hidden rounded-xl border border-cream/8"
 						style={{
 							background:
-								"linear-gradient(145deg, rgba(10,10,30,0.97) 0%, rgba(15,15,35,0.85) 100%)",
-							boxShadow: `0 4px 30px rgba(0,0,0,0.4), 0 0 40px ${statusGlow.replace("0.35", "0.04")}`,
+								"linear-gradient(160deg, rgba(10,10,30,0.92) 0%, rgba(8,8,24,0.88) 40%, rgba(15,15,35,0.85) 100%)",
+							boxShadow: `0 8px 40px rgba(0,0,0,0.5), 0 0 60px ${statusGlow.replace("0.35", "0.06")}`,
 						}}
 					>
-						{/* Ambient status glow behind poster */}
+						{/* Ambient status glow */}
 						<div
 							aria-hidden="true"
 							className="pointer-events-none absolute inset-0 rounded-xl"
 							style={{
 								background: `
-									radial-gradient(ellipse at 12% 50%, ${statusGlow.replace("0.35", "0.08")}, transparent 50%),
-									radial-gradient(ellipse at 90% 20%, rgba(255,45,120,0.02), transparent 45%)
+									radial-gradient(ellipse at 15% 60%, ${statusGlow.replace("0.35", "0.1")}, transparent 55%),
+									radial-gradient(ellipse at 85% 30%, rgba(255,45,120,0.025), transparent 50%)
 								`,
 							}}
 						/>
@@ -329,53 +371,98 @@ function ShowTracker() {
 							}}
 						/>
 
-						<div className="relative z-10 flex gap-5 p-5">
-							{/* Poster with shadow/glow */}
-							<div
-								className="relative h-[150px] w-[100px] shrink-0 overflow-hidden rounded-lg bg-cream/5"
-								style={{
-									boxShadow: `0 4px 20px rgba(0,0,0,0.5), 0 0 20px ${statusGlow.replace("0.35", "0.08")}`,
-								}}
-							>
-								{titleData.posterPath ? (
-									<img
-										src={`https://image.tmdb.org/t/p/w185${titleData.posterPath}`}
-										alt=""
-										className="h-full w-full object-cover"
-										loading="lazy"
+						<div className="relative z-10 flex gap-6 p-6">
+							{/* Poster — larger, with film-frame border */}
+							<div className="relative shrink-0">
+								<div
+									className="relative h-[180px] w-[120px] overflow-hidden rounded-lg bg-cream/5"
+									style={{
+										boxShadow: `0 6px 30px rgba(0,0,0,0.6), 0 0 30px ${statusGlow.replace("0.35", "0.1")}`,
+									}}
+								>
+									{titleData.posterPath ? (
+										<img
+											src={`https://image.tmdb.org/t/p/w185${titleData.posterPath}`}
+											alt=""
+											className="h-full w-full object-cover"
+											loading="lazy"
+										/>
+									) : (
+										<div className="flex h-full w-full items-center justify-center text-cream/15 text-xs font-mono-retro">
+											NO
+											<br />
+											IMG
+										</div>
+									)}
+									{/* Inner film-frame glow */}
+									<div
+										aria-hidden="true"
+										className="absolute inset-0 rounded-lg"
+										style={{
+											boxShadow:
+												"inset 0 0 0 1px rgba(255,255,240,0.08), inset 0 0 20px rgba(0,0,0,0.3)",
+										}}
 									/>
-								) : (
-									<div className="flex h-full w-full items-center justify-center text-cream/15 text-xs font-mono-retro">
-										NO
-										<br />
-										IMG
-									</div>
-								)}
-								{/* Film-frame overlay on poster edge */}
+								</div>
+								{/* Film sprocket dots along poster sides */}
 								<div
 									aria-hidden="true"
-									className="absolute inset-0 rounded-lg"
-									style={{
-										boxShadow: "inset 0 0 0 1px rgba(255,255,240,0.06)",
-									}}
-								/>
+									className="absolute -left-1.5 top-2 bottom-2 flex flex-col justify-evenly"
+								>
+									{Array.from({ length: 6 }).map((_, i) => (
+										<span
+											key={`l-${i.toString()}`}
+											className="block h-1.5 w-1.5 rounded-full bg-cream/[0.07]"
+										/>
+									))}
+								</div>
+								<div
+									aria-hidden="true"
+									className="absolute -right-1.5 top-2 bottom-2 flex flex-col justify-evenly"
+								>
+									{Array.from({ length: 6 }).map((_, i) => (
+										<span
+											key={`r-${i.toString()}`}
+											className="block h-1.5 w-1.5 rounded-full bg-cream/[0.07]"
+										/>
+									))}
+								</div>
 							</div>
 
-							{/* Info */}
+							{/* Info column */}
 							<div className="flex min-w-0 flex-1 flex-col justify-between">
 								<div>
-									<h1 className="font-display text-xl text-cream tracking-wide leading-tight pr-28">
+									{/* NOW SHOWING label */}
+									<p
+										className="font-mono-retro text-[9px] tracking-[3px] uppercase mb-1.5"
+										style={{
+											color: "#FFB800",
+											opacity: 0.5,
+											textShadow: "0 0 8px rgba(255,184,0,0.3)",
+										}}
+									>
+										Now Showing
+									</p>
+
+									{/* Title */}
+									<h1
+										className="font-display text-2xl text-cream tracking-wide leading-tight pr-2"
+										style={{
+											textShadow:
+												"0 0 30px rgba(255,255,240,0.15), 0 0 60px rgba(255,255,240,0.05)",
+										}}
+									>
 										{titleData.title}
 									</h1>
 
-									{/* Status badge */}
-									<div className="mt-2.5 flex items-center gap-2.5">
+									{/* Status badge + next episode */}
+									<div className="mt-3 flex items-center gap-3 flex-wrap">
 										<span
-											className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-mono-retro tracking-wider uppercase ${statusColor}`}
+											className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-mono-retro tracking-wider uppercase ${statusColor}`}
 											style={{
-												background: statusGlow.replace("0.35", "0.12"),
-												textShadow: `0 0 10px ${statusGlow}`,
-												boxShadow: `0 0 12px ${statusGlow.replace("0.35", "0.08")}`,
+												background: statusGlow.replace("0.35", "0.14"),
+												textShadow: `0 0 12px ${statusGlow}`,
+												boxShadow: `0 0 16px ${statusGlow.replace("0.35", "0.1")}, inset 0 0 8px ${statusGlow.replace("0.35", "0.05")}`,
 											}}
 										>
 											<span
@@ -388,9 +475,8 @@ function ShowTracker() {
 											{statusLabel}
 										</span>
 
-										{/* Next episode hint for in-progress shows */}
 										{nextEpisode && (
-											<span className="inline-flex items-center gap-1 text-[10px] font-mono-retro text-cream/25 tracking-wide">
+											<span className="inline-flex items-center gap-1 text-[10px] font-mono-retro text-cream/30 tracking-wide">
 												<Play
 													className="h-2.5 w-2.5"
 													style={{
@@ -404,30 +490,44 @@ function ShowTracker() {
 									</div>
 								</div>
 
-								{/* Progress bar */}
-								<div className="mt-auto pt-3">
-									<div className="flex items-center justify-between mb-2">
-										<span className="text-[11px] font-mono-retro text-cream/40 tracking-wide">
-											{watchedCount}
-											<span className="text-cream/15">/</span>
-											{totalEpisodes} episodes
+								{/* ── Hero Progress Bar ── */}
+								<div className="mt-auto pt-4">
+									<div className="flex items-baseline justify-between mb-2.5">
+										<span className="text-xs font-mono-retro text-cream/50 tracking-wide">
+											<span
+												className="text-base font-display"
+												style={{
+													color: statusGlow.replace("0.35", "0.85"),
+													textShadow: `0 0 10px ${statusGlow.replace("0.35", "0.4")}`,
+												}}
+											>
+												{watchedCount}
+											</span>
+											<span className="text-cream/20 mx-1">/</span>
+											<span className="text-cream/35">{totalEpisodes}</span>
+											<span className="text-cream/20 ml-1.5 text-[10px]">
+												episodes
+											</span>
 										</span>
 										{totalEpisodes > 0 && (
 											<span
-												className="text-[11px] font-mono-retro tracking-wide"
+												className="text-sm font-display tracking-wide"
 												style={{
-													color: statusGlow.replace("0.35", "0.7"),
+													color: statusGlow.replace("0.35", "0.8"),
+													textShadow: `0 0 10px ${statusGlow.replace("0.35", "0.3")}`,
 												}}
 											>
 												{progressPct}%
 											</span>
 										)}
 									</div>
+									{/* Chunky 10px progress bar with glow */}
 									<div
-										className="h-2 w-full overflow-hidden rounded-full"
+										className="h-2.5 w-full overflow-hidden rounded-full"
 										style={{
 											background: "rgba(255,255,240,0.04)",
-											boxShadow: "inset 0 1px 3px rgba(0,0,0,0.4)",
+											boxShadow:
+												"inset 0 2px 4px rgba(0,0,0,0.5), 0 0 1px rgba(255,255,240,0.05)",
 										}}
 									>
 										<div
@@ -440,10 +540,10 @@ function ShowTracker() {
 														? "linear-gradient(90deg, #34d399, #6ee7b7, #34d399)"
 														: "linear-gradient(90deg, #00e5ff, #40c8e0, #00e5ff)",
 												boxShadow: isComplete
-													? "0 0 12px rgba(255,184,0,0.5)"
+													? "0 0 16px rgba(255,184,0,0.6), 0 0 4px rgba(255,184,0,0.3)"
 													: isCaughtUp
-														? "0 0 12px rgba(52,211,153,0.5)"
-														: "0 0 12px rgba(0,229,255,0.5)",
+														? "0 0 16px rgba(52,211,153,0.6), 0 0 4px rgba(52,211,153,0.3)"
+														: "0 0 16px rgba(0,229,255,0.6), 0 0 4px rgba(0,229,255,0.3)",
 											}}
 										>
 											{/* Shimmer on full bar */}
@@ -456,7 +556,7 @@ function ShowTracker() {
 														className="absolute inset-0"
 														style={{
 															background:
-																"linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%)",
+																"linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%)",
 															animation:
 																"shimmer-sweep 4s ease-in-out infinite",
 														}}
@@ -469,20 +569,20 @@ function ShowTracker() {
 							</div>
 						</div>
 
-						{/* Action buttons — positioned inside card header with more presence */}
-						<div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+						{/* ── Action Buttons — pill buttons with neon glow ── */}
+						<div className="relative z-20 flex items-center justify-end gap-3 px-6 pb-5 -mt-1">
 							<button
 								type="button"
 								onClick={() => setWriteAboutOpen(true)}
-								className="group/btn flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[10px] font-mono-retro tracking-wider uppercase text-neon-cyan transition-all duration-200 hover:bg-neon-cyan/12 hover:scale-[1.04] active:scale-[0.97]"
+								className="group/btn flex items-center gap-2 rounded-full px-5 py-2 text-[11px] font-mono-retro tracking-wider uppercase text-neon-cyan transition-all duration-200 hover:bg-neon-cyan/12 hover:scale-[1.04] active:scale-[0.97]"
 								style={{
-									border: "1px solid rgba(0,229,255,0.2)",
-									textShadow: "0 0 8px rgba(0,229,255,0.3)",
+									border: "1px solid rgba(0,229,255,0.25)",
+									textShadow: "0 0 10px rgba(0,229,255,0.35)",
 									boxShadow:
-										"0 0 10px rgba(0,229,255,0.06), inset 0 1px 0 rgba(0,229,255,0.05)",
+										"0 0 14px rgba(0,229,255,0.08), inset 0 1px 0 rgba(0,229,255,0.06)",
 								}}
 							>
-								<Pen className="h-3 w-3 transition-transform duration-200 group-hover/btn:rotate-[-8deg]" />
+								<Pen className="h-3.5 w-3.5 transition-transform duration-200 group-hover/btn:rotate-[-8deg]" />
 								Write
 							</button>
 							{totalEpisodes > 0 && watchedCount < totalEpisodes && (
@@ -490,30 +590,28 @@ function ShowTracker() {
 									type="button"
 									onClick={handleMarkAll}
 									disabled={markEpisodes.isPending}
-									className="group/btn flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[10px] font-mono-retro tracking-wider uppercase text-neon-cyan transition-all duration-200 hover:bg-neon-cyan/12 hover:scale-[1.04] active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none"
+									className="group/btn flex items-center gap-2 rounded-full px-5 py-2 text-[11px] font-mono-retro tracking-wider uppercase text-neon-amber transition-all duration-200 hover:bg-neon-amber/12 hover:scale-[1.04] active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none"
 									style={{
-										border: "1px solid rgba(0,229,255,0.2)",
-										textShadow: "0 0 8px rgba(0,229,255,0.3)",
+										border: "1px solid rgba(255,184,0,0.25)",
+										textShadow: "0 0 10px rgba(255,184,0,0.35)",
 										boxShadow:
-											"0 0 10px rgba(0,229,255,0.06), inset 0 1px 0 rgba(0,229,255,0.05)",
+											"0 0 14px rgba(255,184,0,0.08), inset 0 1px 0 rgba(255,184,0,0.06)",
 									}}
 								>
-									<CheckCheck className="h-3 w-3 transition-transform duration-200 group-hover/btn:scale-110" />
-									Mark all
+									<CheckCheck className="h-3.5 w-3.5 transition-transform duration-200 group-hover/btn:scale-110" />
+									Mark All
 								</button>
 							)}
 						</div>
 					</div>
 
-					{/* Visual separator between header and seasons */}
-					<div className="flex items-center gap-3 mb-8 px-1">
-						<div className="h-px flex-1 bg-gradient-to-r from-transparent via-cream/8 to-transparent" />
-						<Clapperboard className="h-3 w-3 text-cream/15" />
-						<div className="h-px flex-1 bg-gradient-to-r from-transparent via-cream/8 to-transparent" />
+					{/* ── Film Strip Divider ── */}
+					<div className="mb-10">
+						<FilmStrip />
 					</div>
 
 					{/* Season rows */}
-					<div className="space-y-9">
+					<div className="space-y-12">
 						{seasonGroups.map((group) => (
 							<SeasonRow
 								key={group.seasonNumber}

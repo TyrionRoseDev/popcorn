@@ -1,4 +1,4 @@
-import { CheckCheck, Sparkles } from "lucide-react";
+import { CheckCheck, Trophy } from "lucide-react";
 import { EpisodeCard } from "#/components/tracker/episode-card";
 
 interface SeasonRowProps {
@@ -55,134 +55,179 @@ export function SeasonRow({
 	}
 
 	return (
-		<section className="space-y-3">
-			{/* Season header — neon marquee style */}
-			<div className="flex items-center justify-between gap-3 px-1">
-				<div className="flex items-center gap-3 min-w-0">
-					{/* Neon season name */}
-					<h3
-						className="text-sm font-display tracking-wide text-cream/90 shrink-0"
-						style={{
-							textShadow: allWatched
-								? "0 0 10px rgba(255,184,0,0.4), 0 0 25px rgba(255,184,0,0.15)"
-								: "0 0 8px rgba(0,229,255,0.2), 0 0 20px rgba(0,229,255,0.08)",
-						}}
-					>
-						{seasonName}
-					</h3>
-					{/* Progress fraction */}
-					<span className="text-[10px] font-mono-retro text-cream/25 tracking-wider">
-						{watchedCount}
-						<span className="text-cream/12">/</span>
-						{totalCount}
-					</span>
-				</div>
-				{!allWatched && (
-					<button
-						type="button"
-						onClick={handleMarkSeason}
-						className="group/mark flex items-center gap-1.5 shrink-0 rounded-md px-3 py-1.5 text-[10px] font-mono-retro tracking-wider uppercase text-neon-cyan transition-all duration-250 hover:bg-neon-cyan/12 hover:scale-[1.03] active:scale-[0.97]"
-						style={{
-							border: "1px solid rgba(0,229,255,0.2)",
-							textShadow: "0 0 8px rgba(0,229,255,0.3)",
-							boxShadow:
-								"0 0 8px rgba(0,229,255,0.06), inset 0 1px 0 rgba(0,229,255,0.04)",
-						}}
-					>
-						<CheckCheck className="h-3.5 w-3.5 transition-transform duration-200 group-hover/mark:scale-110" />
-						Mark season
-					</button>
-				)}
+		<section className="space-y-4">
+			{/* ── Season Header — Marquee Style ── */}
+			<div
+				className="relative mx-1 rounded-lg overflow-hidden px-4 py-3"
+				style={{
+					background: allWatched
+						? "linear-gradient(135deg, rgba(255,184,0,0.06) 0%, rgba(255,184,0,0.02) 100%)"
+						: "linear-gradient(135deg, rgba(10,10,30,0.6) 0%, rgba(15,15,35,0.4) 100%)",
+					border: allWatched
+						? "1px solid rgba(255,184,0,0.2)"
+						: "1px solid rgba(255,255,240,0.05)",
+					boxShadow: allWatched
+						? "0 0 20px rgba(255,184,0,0.06), inset 0 1px 0 rgba(255,184,0,0.05)"
+						: "0 2px 8px rgba(0,0,0,0.2)",
+				}}
+			>
+				{/* Subtle amber border glow for completed seasons */}
 				{allWatched && (
-					<span
-						className="flex items-center gap-1.5 text-[10px] font-mono-retro tracking-wider text-neon-amber uppercase"
-						style={{
-							textShadow:
-								"0 0 8px rgba(255,184,0,0.35), 0 0 20px rgba(255,184,0,0.12)",
-							animation: "neon-flicker 4s ease-in-out infinite",
-						}}
-					>
-						<Sparkles
-							className="h-3 w-3"
-							style={{
-								filter: "drop-shadow(0 0 4px rgba(255,184,0,0.5))",
-							}}
-						/>
-						Complete
-					</span>
-				)}
-			</div>
-
-			{/* Season progress bar — thicker with glow */}
-			<div className="relative mx-1">
-				<div
-					className="h-[4px] w-full overflow-hidden rounded-full"
-					style={{
-						background: "rgba(255,255,240,0.04)",
-						boxShadow: "inset 0 1px 2px rgba(0,0,0,0.3)",
-					}}
-				>
 					<div
-						className="h-full rounded-full transition-all duration-700 ease-out relative"
+						aria-hidden="true"
+						className="pointer-events-none absolute inset-0 rounded-lg"
 						style={{
-							width: `${progressPct}%`,
-							background: allWatched
-								? "linear-gradient(90deg, #ffb800, #ffd060, #ffb800)"
-								: "linear-gradient(90deg, #00e5ff, #40c8e0, #00e5ff)",
-							boxShadow: allWatched
-								? "0 0 10px rgba(255,184,0,0.5), 0 0 3px rgba(255,184,0,0.3)"
-								: "0 0 10px rgba(0,229,255,0.4), 0 0 3px rgba(0,229,255,0.2)",
+							boxShadow: "inset 0 0 30px rgba(255,184,0,0.04)",
+						}}
+					/>
+				)}
+
+				<div className="relative z-10 flex items-center justify-between gap-3">
+					<div className="flex items-center gap-3 min-w-0">
+						{/* Season name — large font-display */}
+						<h3
+							className="text-[17px] font-display tracking-wide text-cream/90 shrink-0"
+							style={{
+								textShadow: allWatched
+									? "0 0 12px rgba(255,184,0,0.4), 0 0 30px rgba(255,184,0,0.15)"
+									: "0 0 10px rgba(0,229,255,0.15), 0 0 25px rgba(0,229,255,0.06)",
+							}}
+						>
+							{seasonName}
+						</h3>
+
+						{/* Episode count badge */}
+						<span
+							className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-mono-retro tracking-wider"
+							style={{
+								background: allWatched
+									? "rgba(255,184,0,0.1)"
+									: "rgba(255,255,240,0.04)",
+								color: allWatched
+									? "rgba(255,184,0,0.7)"
+									: "rgba(255,255,240,0.3)",
+								border: allWatched
+									? "1px solid rgba(255,184,0,0.15)"
+									: "1px solid rgba(255,255,240,0.06)",
+							}}
+						>
+							{watchedCount}
+							<span style={{ opacity: 0.4 }}>/</span>
+							{totalCount}
+						</span>
+					</div>
+
+					{/* Mark season button or complete badge */}
+					{!allWatched && (
+						<button
+							type="button"
+							onClick={handleMarkSeason}
+							className="group/mark flex items-center gap-2 shrink-0 rounded-full px-4 py-1.5 text-[10px] font-mono-retro tracking-wider uppercase text-neon-cyan transition-all duration-250 hover:bg-neon-cyan/12 hover:scale-[1.03] active:scale-[0.97]"
+							style={{
+								border: "1px solid rgba(0,229,255,0.2)",
+								textShadow: "0 0 8px rgba(0,229,255,0.3)",
+								boxShadow:
+									"0 0 10px rgba(0,229,255,0.06), inset 0 1px 0 rgba(0,229,255,0.04)",
+							}}
+						>
+							<CheckCheck className="h-3.5 w-3.5 transition-transform duration-200 group-hover/mark:scale-110" />
+							Mark Season
+						</button>
+					)}
+					{allWatched && (
+						<span
+							className="flex items-center gap-2 text-[11px] font-mono-retro tracking-wider text-neon-amber uppercase"
+							style={{
+								textShadow:
+									"0 0 10px rgba(255,184,0,0.4), 0 0 25px rgba(255,184,0,0.15)",
+								animation: "neon-flicker 4s ease-in-out infinite",
+							}}
+						>
+							<Trophy
+								className="h-3.5 w-3.5"
+								style={{
+									filter: "drop-shadow(0 0 5px rgba(255,184,0,0.6))",
+								}}
+							/>
+							Complete
+						</span>
+					)}
+				</div>
+
+				{/* ── Season progress bar — 5px with glow ── */}
+				<div className="relative mt-3">
+					<div
+						className="h-[5px] w-full overflow-hidden rounded-full"
+						style={{
+							background: "rgba(255,255,240,0.04)",
+							boxShadow: "inset 0 1px 2px rgba(0,0,0,0.3)",
 						}}
 					>
-						{/* Shimmer sweep on the progress bar when complete */}
-						{allWatched && (
-							<div
-								className="absolute inset-0 overflow-hidden rounded-full"
-								aria-hidden="true"
-							>
+						<div
+							className="h-full rounded-full transition-all duration-700 ease-out relative"
+							style={{
+								width: `${progressPct}%`,
+								background: allWatched
+									? "linear-gradient(90deg, #ffb800, #ffd060, #ffb800)"
+									: "linear-gradient(90deg, #00e5ff, #40c8e0, #00e5ff)",
+								boxShadow: allWatched
+									? "0 0 12px rgba(255,184,0,0.5), 0 0 4px rgba(255,184,0,0.3)"
+									: "0 0 12px rgba(0,229,255,0.4), 0 0 4px rgba(0,229,255,0.2)",
+							}}
+						>
+							{/* Shimmer sweep on the progress bar when complete */}
+							{allWatched && (
 								<div
-									className="absolute inset-0"
-									style={{
-										background:
-											"linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%)",
-										animation: "shimmer-sweep 4s ease-in-out infinite",
-									}}
-								/>
-							</div>
-						)}
+									className="absolute inset-0 overflow-hidden rounded-full"
+									aria-hidden="true"
+								>
+									<div
+										className="absolute inset-0"
+										style={{
+											background:
+												"linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%)",
+											animation: "shimmer-sweep 4s ease-in-out infinite",
+										}}
+									/>
+								</div>
+							)}
+						</div>
 					</div>
+					{/* Percentage label */}
+					{progressPct > 0 && progressPct < 100 && (
+						<span
+							className="absolute right-0 -top-4 text-[9px] font-mono-retro tracking-wide"
+							style={{ color: "rgba(0,229,255,0.35)" }}
+						>
+							{progressPct}%
+						</span>
+					)}
 				</div>
-				{/* Percentage label at end of bar */}
-				{progressPct > 0 && progressPct < 100 && (
-					<span className="absolute right-0 -top-4 text-[8px] font-mono-retro text-cream/20">
-						{progressPct}%
-					</span>
-				)}
 			</div>
 
-			{/* Horizontally scrollable episode cards with fade edges */}
+			{/* ── Horizontally scrollable episode cards with fade edges ── */}
 			<div className="relative">
 				{/* Left fade hint */}
 				<div
 					aria-hidden="true"
-					className="pointer-events-none absolute left-0 top-0 bottom-0 w-3 z-10"
+					className="pointer-events-none absolute left-0 top-0 bottom-0 w-4 z-10"
 					style={{
 						background:
-							"linear-gradient(to right, rgba(5,5,8,0.7), transparent)",
+							"linear-gradient(to right, rgba(5,5,8,0.8), transparent)",
 					}}
 				/>
-				{/* Right fade hint — signals more content */}
+				{/* Right fade hint */}
 				<div
 					aria-hidden="true"
-					className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 z-10"
+					className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 z-10"
 					style={{
 						background:
-							"linear-gradient(to left, rgba(5,5,8,0.9), rgba(5,5,8,0.4) 40%, transparent)",
+							"linear-gradient(to left, rgba(5,5,8,0.95), rgba(5,5,8,0.5) 40%, transparent)",
 					}}
 				/>
 
 				<div className="overflow-x-auto scrollbar-hide -mx-1 px-1">
-					<div className="flex gap-2.5 pb-2 pr-6">
+					<div className="flex gap-3 pb-2 pr-8">
 						{episodes.map((ep) => (
 							<EpisodeCard
 								key={`S${seasonNumber}E${ep.episodeNumber}`}
