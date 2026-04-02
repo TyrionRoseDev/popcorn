@@ -44,14 +44,14 @@ export function EpisodeCard({
 			style={{
 				height: 116,
 				background: isWatched
-					? "linear-gradient(160deg, rgba(0,229,255,0.14) 0%, rgba(0,229,255,0.04) 50%, rgba(0,229,255,0.09) 100%)"
+					? "linear-gradient(160deg, rgba(0,229,255,0.14) 0%, rgba(0,229,255,0.04) 40%, rgba(255,45,120,0.04) 80%, rgba(0,229,255,0.09) 100%)"
 					: "linear-gradient(160deg, rgba(12,12,32,0.95) 0%, rgba(10,10,28,0.9) 60%, rgba(15,15,40,0.85) 100%)",
 				boxShadow: isWatched
-					? "0 0 22px rgba(0,229,255,0.14), 0 0 6px rgba(0,229,255,0.08), inset 0 1px 0 rgba(0,229,255,0.1)"
+					? "0 0 22px rgba(0,229,255,0.14), 0 0 8px rgba(255,45,120,0.06), inset 0 1px 0 rgba(0,229,255,0.1)"
 					: "0 2px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,240,0.04)",
 			}}
 		>
-			{/* Film-frame perforations for watched cards */}
+			{/* Film-frame perforations for watched cards — alternating cyan/pink */}
 			{isWatched && (
 				<>
 					<div
@@ -61,7 +61,17 @@ export function EpisodeCard({
 						{[0, 1, 2, 3].map((i) => (
 							<span
 								key={i}
-								className="block h-[3px] w-[3px] rounded-full bg-neon-cyan/20"
+								className="block h-[3px] w-[3px] rounded-full"
+								style={{
+									backgroundColor:
+										i % 2 === 0
+											? "rgba(0,229,255,0.2)"
+											: "rgba(255,45,120,0.2)",
+									boxShadow:
+										i % 2 === 0
+											? "0 0 3px rgba(0,229,255,0.15)"
+											: "0 0 3px rgba(255,45,120,0.15)",
+								}}
 							/>
 						))}
 					</div>
@@ -72,7 +82,17 @@ export function EpisodeCard({
 						{[0, 1, 2, 3].map((i) => (
 							<span
 								key={i}
-								className="block h-[3px] w-[3px] rounded-full bg-neon-cyan/20"
+								className="block h-[3px] w-[3px] rounded-full"
+								style={{
+									backgroundColor:
+										i % 2 === 1
+											? "rgba(0,229,255,0.2)"
+											: "rgba(255,45,120,0.2)",
+									boxShadow:
+										i % 2 === 1
+											? "0 0 3px rgba(0,229,255,0.15)"
+											: "0 0 3px rgba(255,45,120,0.15)",
+								}}
 							/>
 						))}
 					</div>
@@ -86,7 +106,7 @@ export function EpisodeCard({
 					className="pointer-events-none absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"
 					style={{
 						background:
-							"linear-gradient(105deg, transparent 40%, rgba(0,229,255,0.04) 45%, rgba(0,229,255,0.08) 50%, rgba(0,229,255,0.04) 55%, transparent 60%)",
+							"linear-gradient(105deg, transparent 38%, rgba(255,45,120,0.03) 42%, rgba(0,229,255,0.08) 50%, rgba(255,45,120,0.03) 58%, transparent 62%)",
 						backgroundSize: "200% 100%",
 						animation: "shimmer-sweep 3s ease-in-out infinite",
 					}}
@@ -182,17 +202,17 @@ export function EpisodeCard({
 				)}
 			</div>
 
-			{/* Bottom accent bar */}
+			{/* Bottom accent bar — cyan-to-pink gradient on watched */}
 			<div
 				className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ${
 					isWatched ? "h-[4px]" : "h-0 group-hover/card:h-[3px]"
 				}`}
 				style={{
 					background: isWatched
-						? "linear-gradient(90deg, #00e5ff, #40c8e0, #00e5ff)"
-						: "linear-gradient(90deg, rgba(0,229,255,0.3), rgba(0,229,255,0.5), rgba(0,229,255,0.3))",
+						? "linear-gradient(90deg, #00e5ff, #40c8e0 40%, #FF2D78)"
+						: "linear-gradient(90deg, rgba(0,229,255,0.3), rgba(0,229,255,0.5), rgba(255,45,120,0.3))",
 					boxShadow: isWatched
-						? "0 0 12px rgba(0,229,255,0.5), 0 -8px 20px rgba(0,229,255,0.1)"
+						? "0 0 12px rgba(0,229,255,0.4), 0 0 12px rgba(255,45,120,0.2), 0 -8px 20px rgba(0,229,255,0.08)"
 						: "0 0 6px rgba(0,229,255,0.2)",
 				}}
 			/>
@@ -201,10 +221,10 @@ export function EpisodeCard({
 			{isWatched && (
 				<div
 					aria-hidden="true"
-					className="pointer-events-none absolute bottom-0 left-0 right-0 h-10"
+					className="pointer-events-none absolute bottom-0 left-0 right-0 h-12"
 					style={{
 						background:
-							"linear-gradient(to top, rgba(0,229,255,0.07), transparent)",
+							"linear-gradient(to top, rgba(0,229,255,0.06) 0%, rgba(255,45,120,0.03) 40%, transparent 100%)",
 					}}
 				/>
 			)}

@@ -71,16 +71,27 @@ export function SeasonRow({
 						: "0 2px 8px rgba(0,0,0,0.2)",
 				}}
 			>
-				{/* Subtle amber border glow for completed seasons */}
+				{/* Subtle amber + pink border glow for completed seasons */}
 				{allWatched && (
 					<div
 						aria-hidden="true"
 						className="pointer-events-none absolute inset-0 rounded-lg"
 						style={{
-							boxShadow: "inset 0 0 30px rgba(255,184,0,0.04)",
+							boxShadow:
+								"inset 0 0 30px rgba(255,184,0,0.04), inset 0 0 60px rgba(255,45,120,0.02)",
 						}}
 					/>
 				)}
+				{/* Pink accent line at top of header */}
+				<div
+					aria-hidden="true"
+					className="pointer-events-none absolute top-0 left-4 right-4 h-px"
+					style={{
+						background: allWatched
+							? "linear-gradient(90deg, transparent, rgba(255,184,0,0.2) 30%, rgba(255,45,120,0.15) 70%, transparent)"
+							: "linear-gradient(90deg, transparent, rgba(255,45,120,0.08) 50%, transparent)",
+					}}
+				/>
 
 				<div className="relative z-10 flex items-center justify-between gap-3">
 					<div className="flex items-center gap-3 min-w-0">
@@ -168,15 +179,15 @@ export function SeasonRow({
 							style={{
 								width: `${progressPct}%`,
 								background: allWatched
-									? "linear-gradient(90deg, #ffb800, #ffd060, #ffb800)"
+									? "linear-gradient(90deg, #ffb800, #ffd060, #FF2D78)"
 									: "linear-gradient(90deg, #00e5ff, #40c8e0, #00e5ff)",
 								boxShadow: allWatched
-									? "0 0 12px rgba(255,184,0,0.5), 0 0 4px rgba(255,184,0,0.3)"
+									? "0 0 12px rgba(255,184,0,0.5), 0 0 4px rgba(255,45,120,0.3)"
 									: "0 0 12px rgba(0,229,255,0.4), 0 0 4px rgba(0,229,255,0.2)",
 							}}
 						>
-							{/* Shimmer sweep on the progress bar when complete */}
-							{allWatched && (
+							{/* Shimmer sweep on the progress bar */}
+							{progressPct > 0 && (
 								<div
 									className="absolute inset-0 overflow-hidden rounded-full"
 									aria-hidden="true"
@@ -184,9 +195,12 @@ export function SeasonRow({
 									<div
 										className="absolute inset-0"
 										style={{
-											background:
-												"linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%)",
-											animation: "shimmer-sweep 4s ease-in-out infinite",
+											background: allWatched
+												? "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%)"
+												: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%)",
+											animation: allWatched
+												? "shimmer-sweep 4s ease-in-out infinite"
+												: "shimmer-sweep 6s ease-in-out infinite",
 										}}
 									/>
 								</div>

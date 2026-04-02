@@ -297,11 +297,28 @@ function ShowTracker() {
 								"repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,240,0.4) 2px, rgba(255,255,240,0.4) 4px)",
 						}}
 					/>
+					{/* Animated VHS scan bar */}
+					<div
+						className="absolute left-0 right-0 h-[2px] opacity-[0.07] pointer-events-none"
+						style={{
+							background:
+								"linear-gradient(90deg, transparent, rgba(255,255,240,0.6) 50%, transparent)",
+							animation: "vhs-scan 8s linear infinite",
+						}}
+					/>
 					{/* Status-tinted ambient glow */}
 					<div
 						className="absolute inset-0"
 						style={{
 							background: `radial-gradient(ellipse 600px 300px at 50% 80%, ${statusGlow.replace("0.35", "0.12")}, transparent 70%)`,
+						}}
+					/>
+					{/* Pink atmospheric glow — top-right */}
+					<div
+						className="absolute inset-0"
+						style={{
+							background:
+								"radial-gradient(ellipse 500px 350px at 85% 15%, rgba(255,45,120,0.08), transparent 65%)",
 						}}
 					/>
 				</div>
@@ -315,7 +332,8 @@ function ShowTracker() {
 					style={{
 						background: `
 							radial-gradient(ellipse 800px 500px at 30% 10%, ${statusGlow.replace("0.35", "0.04")}, transparent 70%),
-							radial-gradient(ellipse 600px 400px at 80% 60%, rgba(255,45,120,0.015), transparent 60%)
+							radial-gradient(ellipse 600px 400px at 80% 20%, rgba(255,45,120,0.04), transparent 60%),
+							radial-gradient(ellipse 500px 300px at 70% 70%, rgba(0,229,255,0.02), transparent 55%)
 						`,
 					}}
 				/>
@@ -356,7 +374,8 @@ function ShowTracker() {
 							style={{
 								background: `
 									radial-gradient(ellipse at 15% 60%, ${statusGlow.replace("0.35", "0.1")}, transparent 55%),
-									radial-gradient(ellipse at 85% 30%, rgba(255,45,120,0.025), transparent 50%)
+									radial-gradient(ellipse at 90% 25%, rgba(255,45,120,0.07), transparent 50%),
+									radial-gradient(ellipse at 50% 100%, rgba(255,45,120,0.03), transparent 40%)
 								`,
 							}}
 						/>
@@ -372,12 +391,24 @@ function ShowTracker() {
 						/>
 
 						<div className="relative z-10 flex gap-6 p-6">
-							{/* Poster — larger, with film-frame border */}
+							{/* Poster — larger, with glowing neon frame */}
 							<div className="relative shrink-0">
+								{/* Outer neon glow frame */}
+								<div
+									aria-hidden="true"
+									className="absolute -inset-[3px] rounded-xl pointer-events-none"
+									style={{
+										background:
+											"linear-gradient(135deg, rgba(0,229,255,0.25), rgba(255,45,120,0.2) 50%, rgba(255,184,0,0.2))",
+										filter: "blur(4px)",
+										opacity: 0.6,
+									}}
+								/>
 								<div
 									className="relative h-[180px] w-[120px] overflow-hidden rounded-lg bg-cream/5"
 									style={{
-										boxShadow: `0 6px 30px rgba(0,0,0,0.6), 0 0 30px ${statusGlow.replace("0.35", "0.1")}`,
+										boxShadow: `0 6px 30px rgba(0,0,0,0.6), 0 0 30px ${statusGlow.replace("0.35", "0.15")}, 0 0 50px rgba(255,45,120,0.06)`,
+										border: "1px solid rgba(255,255,240,0.1)",
 									}}
 								>
 									{titleData.posterPath ? (
@@ -400,7 +431,7 @@ function ShowTracker() {
 										className="absolute inset-0 rounded-lg"
 										style={{
 											boxShadow:
-												"inset 0 0 0 1px rgba(255,255,240,0.08), inset 0 0 20px rgba(0,0,0,0.3)",
+												"inset 0 0 0 1px rgba(255,255,240,0.12), inset 0 0 20px rgba(0,0,0,0.3), inset 0 -20px 30px rgba(255,45,120,0.06)",
 										}}
 									/>
 								</div>
@@ -412,7 +443,17 @@ function ShowTracker() {
 									{Array.from({ length: 6 }).map((_, i) => (
 										<span
 											key={`l-${i.toString()}`}
-											className="block h-1.5 w-1.5 rounded-full bg-cream/[0.07]"
+											className="block h-1.5 w-1.5 rounded-full"
+											style={{
+												backgroundColor:
+													i % 3 === 0
+														? "rgba(255,45,120,0.12)"
+														: "rgba(255,255,240,0.07)",
+												boxShadow:
+													i % 3 === 0
+														? "0 0 4px rgba(255,45,120,0.15)"
+														: "none",
+											}}
 										/>
 									))}
 								</div>
@@ -423,7 +464,17 @@ function ShowTracker() {
 									{Array.from({ length: 6 }).map((_, i) => (
 										<span
 											key={`r-${i.toString()}`}
-											className="block h-1.5 w-1.5 rounded-full bg-cream/[0.07]"
+											className="block h-1.5 w-1.5 rounded-full"
+											style={{
+												backgroundColor:
+													i % 3 === 1
+														? "rgba(255,45,120,0.12)"
+														: "rgba(255,255,240,0.07)",
+												boxShadow:
+													i % 3 === 1
+														? "0 0 4px rgba(255,45,120,0.15)"
+														: "none",
+											}}
 										/>
 									))}
 								</div>
@@ -511,10 +562,13 @@ function ShowTracker() {
 										</span>
 										{totalEpisodes > 0 && (
 											<span
-												className="text-sm font-display tracking-wide"
+												className="text-lg font-display tracking-wide"
 												style={{
-													color: statusGlow.replace("0.35", "0.8"),
-													textShadow: `0 0 10px ${statusGlow.replace("0.35", "0.3")}`,
+													color: statusGlow.replace("0.35", "0.9"),
+													textShadow: `0 0 14px ${statusGlow.replace("0.35", "0.5")}, 0 0 40px ${statusGlow.replace("0.35", "0.2")}`,
+													animation: isComplete
+														? "neon-flicker 4s ease-in-out infinite"
+														: undefined,
 												}}
 											>
 												{progressPct}%
@@ -546,8 +600,8 @@ function ShowTracker() {
 														: "0 0 16px rgba(0,229,255,0.6), 0 0 4px rgba(0,229,255,0.3)",
 											}}
 										>
-											{/* Shimmer on full bar */}
-											{(isComplete || isCaughtUp) && (
+											{/* Shimmer on the progress bar */}
+											{progressPct > 0 && (
 												<div
 													className="absolute inset-0 overflow-hidden rounded-full"
 													aria-hidden="true"
@@ -556,9 +610,13 @@ function ShowTracker() {
 														className="absolute inset-0"
 														style={{
 															background:
-																"linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%)",
+																isComplete || isCaughtUp
+																	? "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%)"
+																	: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)",
 															animation:
-																"shimmer-sweep 4s ease-in-out infinite",
+																isComplete || isCaughtUp
+																	? "shimmer-sweep 4s ease-in-out infinite"
+																	: "shimmer-sweep 6s ease-in-out infinite",
 														}}
 													/>
 												</div>
@@ -574,12 +632,12 @@ function ShowTracker() {
 							<button
 								type="button"
 								onClick={() => setWriteAboutOpen(true)}
-								className="group/btn flex items-center gap-2 rounded-full px-5 py-2 text-[11px] font-mono-retro tracking-wider uppercase text-neon-cyan transition-all duration-200 hover:bg-neon-cyan/12 hover:scale-[1.04] active:scale-[0.97]"
+								className="group/btn flex items-center gap-2 rounded-full px-5 py-2 text-[11px] font-mono-retro tracking-wider uppercase text-neon-pink transition-all duration-200 hover:bg-neon-pink/12 hover:scale-[1.04] active:scale-[0.97]"
 								style={{
-									border: "1px solid rgba(0,229,255,0.25)",
-									textShadow: "0 0 10px rgba(0,229,255,0.35)",
+									border: "1px solid rgba(255,45,120,0.25)",
+									textShadow: "0 0 10px rgba(255,45,120,0.35)",
 									boxShadow:
-										"0 0 14px rgba(0,229,255,0.08), inset 0 1px 0 rgba(0,229,255,0.06)",
+										"0 0 14px rgba(255,45,120,0.08), inset 0 1px 0 rgba(255,45,120,0.06)",
 								}}
 							>
 								<Pen className="h-3.5 w-3.5 transition-transform duration-200 group-hover/btn:rotate-[-8deg]" />
@@ -841,14 +899,14 @@ function NotesAndReviewsSection({
 					className="h-px flex-1"
 					style={{
 						background:
-							"linear-gradient(90deg, transparent, rgba(0,229,255,0.15) 30%, rgba(255,184,0,0.15) 70%, transparent)",
+							"linear-gradient(90deg, transparent, rgba(255,45,120,0.15) 20%, rgba(0,229,255,0.15) 50%, rgba(255,184,0,0.15) 80%, transparent)",
 					}}
 				/>
 				<h2
 					className="font-mono-retro text-[11px] tracking-[4px] uppercase text-cream/35"
 					style={{
 						textShadow:
-							"0 0 12px rgba(0,229,255,0.1), 0 0 20px rgba(255,184,0,0.05)",
+							"0 0 12px rgba(255,45,120,0.1), 0 0 20px rgba(0,229,255,0.08), 0 0 30px rgba(255,184,0,0.05)",
 					}}
 				>
 					Notes & Reviews
@@ -857,7 +915,7 @@ function NotesAndReviewsSection({
 					className="h-px flex-1"
 					style={{
 						background:
-							"linear-gradient(90deg, transparent, rgba(255,184,0,0.15) 30%, rgba(0,229,255,0.15) 70%, transparent)",
+							"linear-gradient(90deg, transparent, rgba(255,184,0,0.15) 20%, rgba(0,229,255,0.15) 50%, rgba(255,45,120,0.15) 80%, transparent)",
 					}}
 				/>
 			</div>
