@@ -11,6 +11,7 @@ interface CompletionCelebrationProps {
 	posterPath: string | null;
 	episodeCount: number;
 	onReview: () => void;
+	onRemindLater: () => void;
 }
 
 function fireConfetti() {
@@ -48,6 +49,7 @@ export function CompletionCelebration({
 	posterPath,
 	episodeCount,
 	onReview,
+	onRemindLater,
 }: CompletionCelebrationProps) {
 	useEffect(() => {
 		if (open) {
@@ -175,13 +177,16 @@ export function CompletionCelebration({
 
 							<button
 								type="button"
-								onClick={() => onOpenChange(false)}
+								onClick={() => {
+									onOpenChange(false);
+									onRemindLater();
+								}}
 								className="w-full rounded-full px-6 py-2 font-mono-retro text-[10px] tracking-wider uppercase text-cream/30 transition-colors duration-200 hover:text-cream/50"
 								style={{
 									border: "1px solid rgba(255,255,240,0.08)",
 								}}
 							>
-								Maybe Later
+								Remind Me Later
 							</button>
 						</div>
 					</div>

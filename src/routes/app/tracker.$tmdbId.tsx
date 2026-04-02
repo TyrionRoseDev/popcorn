@@ -162,6 +162,14 @@ function ShowTracker() {
 		}),
 	);
 
+	const createReminder = useMutation(
+		trpc.watchEvent.create.mutationOptions({
+			onError: () => {
+				toast.error("Failed to set reminder");
+			},
+		}),
+	);
+
 	function handleMark(
 		episodes: Array<{
 			seasonNumber: number;
@@ -517,6 +525,17 @@ function ShowTracker() {
 					posterPath={titleData.posterPath ?? null}
 					episodeCount={totalEpisodes}
 					onReview={() => setReviewOpen(true)}
+					onRemindLater={() => {
+						createReminder.mutate({
+							tmdbId,
+							mediaType: "tv",
+							titleName: titleData.title,
+							posterPath: titleData.posterPath,
+							remindMe: true,
+							scope: "show",
+						});
+						toast.success("We'll remind you to review in 7 days");
+					}}
 				/>
 			)}
 
