@@ -62,8 +62,12 @@ function TrackerDashboard() {
 		details: {
 			title: string;
 			posterPath: string | null;
+			backdropPath: string | null;
 			status?: string;
 			episodes?: number;
+			genres: string[];
+			year: string;
+			contentRating: string;
 			seasonList?: Array<{
 				seasonNumber: number;
 				episodeCount: number;
@@ -375,11 +379,15 @@ function TrackerDashboard() {
 												tmdbId={show.tmdbId}
 												title={show.details.title}
 												posterPath={show.details.posterPath}
+												backdropPath={show.details.backdropPath}
 												episodeCount={show.episodeCount}
 												totalEpisodes={show.details.episodes ?? 0}
 												totalRuntime={show.totalRuntime}
 												showStatus={show.details.status}
 												rating={null}
+												genres={show.details.genres}
+												year={show.details.year}
+												contentRating={show.details.contentRating}
 												seasonList={show.details.seasonList}
 												onRemove={handleRemoveShow}
 											/>
@@ -433,11 +441,15 @@ function TrackerDashboard() {
 												tmdbId={show.tmdbId}
 												title={show.details.title}
 												posterPath={show.details.posterPath}
+												backdropPath={show.details.backdropPath}
 												episodeCount={show.episodeCount}
 												totalEpisodes={show.details.episodes ?? 0}
 												totalRuntime={show.totalRuntime}
 												showStatus={show.details.status}
 												rating={null}
+												genres={show.details.genres}
+												year={show.details.year}
+												contentRating={show.details.contentRating}
 												seasonList={show.details.seasonList}
 												onRemove={handleRemoveShow}
 											/>
