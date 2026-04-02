@@ -120,6 +120,7 @@ export const userTitle = pgTable(
 		tmdbId: integer("tmdb_id").notNull(),
 		mediaType: text("media_type").notNull(), // 'movie' | 'tv'
 		createdAt: timestamp("created_at").defaultNow().notNull(),
+		currentWatchNumber: integer("current_watch_number").default(1).notNull(),
 	},
 	(table) => [
 		uniqueIndex("user_title_unique").on(
@@ -285,6 +286,7 @@ export const watchEvent = pgTable(
 		scope: text("scope"), // 'episode' | 'season' | 'show' | null (null = legacy/film)
 		scopeSeasonNumber: integer("scope_season_number"),
 		scopeEpisodeNumber: integer("scope_episode_number"),
+		watchNumber: integer("watch_number").default(1).notNull(),
 		genreIds: jsonb("genre_ids").$type<number[]>(),
 		watchedAt: timestamp("watched_at").notNull(),
 		reviewReminderAt: timestamp("review_reminder_at"),
@@ -455,6 +457,7 @@ export const episodeWatch = pgTable(
 		watchEventId: text("watch_event_id").references(() => watchEvent.id, {
 			onDelete: "set null",
 		}),
+		watchNumber: integer("watch_number").default(1).notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},
 	(table) => [
@@ -463,6 +466,7 @@ export const episodeWatch = pgTable(
 			table.tmdbId,
 			table.seasonNumber,
 			table.episodeNumber,
+			table.watchNumber,
 		),
 		index("episode_watch_userId_idx").on(table.userId),
 		index("episode_watch_tmdbId_idx").on(table.userId, table.tmdbId),
@@ -485,6 +489,7 @@ export const journalEntry = pgTable(
 		episodeNumber: integer("episode_number"),
 		note: text("note").notNull(),
 		isPublic: boolean("is_public").default(false).notNull(),
+		watchNumber: integer("watch_number").default(1).notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
 			.defaultNow()
