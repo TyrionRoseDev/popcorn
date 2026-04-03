@@ -31,7 +31,13 @@ export const watchEventRouter = {
 				mediaType: z.enum(["movie", "tv"]),
 				rating: z.number().min(1).max(5).optional(),
 				note: z.string().max(1000).optional(),
-				watchedAt: z.string().datetime().optional(),
+				watchedAt: z
+					.string()
+					.datetime()
+					.refine((d) => new Date(d) <= new Date(), {
+						message: "Watch date cannot be in the future",
+					})
+					.optional(),
 				companions: z.array(companionSchema).optional(),
 				visibility: z
 					.enum(["public", "companion", "private"])
@@ -164,7 +170,14 @@ export const watchEventRouter = {
 				id: z.string(),
 				rating: z.number().min(1).max(5).optional().nullable(),
 				note: z.string().max(1000).optional().nullable(),
-				watchedAt: z.string().datetime().optional().nullable(),
+				watchedAt: z
+					.string()
+					.datetime()
+					.refine((d) => new Date(d) <= new Date(), {
+						message: "Watch date cannot be in the future",
+					})
+					.optional()
+					.nullable(),
 				companions: z.array(companionSchema).optional(),
 				visibility: z.enum(["public", "companion", "private"]).optional(),
 				titleName: z.string().optional(),

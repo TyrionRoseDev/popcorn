@@ -304,6 +304,8 @@ export function ReviewModal({
 												>
 													<Calendar
 														mode="single"
+														disabled={{ after: new Date() }}
+														toDate={new Date()}
 														selected={
 															watchedAt ? new Date(watchedAt) : undefined
 														}
