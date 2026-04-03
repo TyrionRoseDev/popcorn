@@ -526,14 +526,40 @@ export const watchEventRouter = {
 		)
 		.query(async ({ input, ctx }) => {
 			const targetUserId = input.userId ?? ctx.userId;
+			const isOwnProfile = targetUserId === ctx.userId;
+
 			const events = await db.query.watchEvent.findMany({
 				where: and(
 					eq(watchEvent.userId, targetUserId),
 					eq(watchEvent.tmdbId, input.tmdbId),
 					eq(watchEvent.mediaType, input.mediaType),
+					...(!isOwnProfile
+						? [
+								or(
+									eq(watchEvent.visibility, "public"),
+									sql`(${watchEvent.visibility} = 'companion' AND EXISTS (
+								SELECT 1 FROM watch_event_companion
+								WHERE watch_event_companion.watch_event_id = ${watchEvent.id}
+								AND watch_event_companion.friend_id = ${ctx.userId}
+							))`,
+								),
+							]
+						: []),
 				),
 				with: {
 					companions: true,
+					originEvent: {
+						with: {
+							user: { columns: { id: true, username: true, avatarUrl: true } },
+						},
+						columns: {
+							id: true,
+							rating: true,
+							note: true,
+							visibility: true,
+							userId: true,
+						},
+					},
 				},
 				orderBy: (e, { desc }) => [
 					desc(sql`COALESCE(${e.watchedAt}, ${e.createdAt})`),
@@ -551,6 +577,8 @@ export const watchEventRouter = {
 			}),
 		)
 		.query(async ({ input, ctx }) => {
+			const isOwnProfile = input.userId === ctx.userId;
+
 			const events = await db.query.watchEvent.findMany({
 				where: and(
 					eq(watchEvent.userId, input.userId),
@@ -559,9 +587,33 @@ export const watchEventRouter = {
 								sql`COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}) < (SELECT COALESCE(watched_at, created_at) FROM watch_event WHERE id = ${input.cursor})`,
 							]
 						: []),
+					...(!isOwnProfile
+						? [
+								or(
+									eq(watchEvent.visibility, "public"),
+									sql`(${watchEvent.visibility} = 'companion' AND EXISTS (
+								SELECT 1 FROM watch_event_companion
+								WHERE watch_event_companion.watch_event_id = ${watchEvent.id}
+								AND watch_event_companion.friend_id = ${ctx.userId}
+							))`,
+								),
+							]
+						: []),
 				),
 				with: {
 					companions: true,
+					originEvent: {
+						with: {
+							user: { columns: { id: true, username: true, avatarUrl: true } },
+						},
+						columns: {
+							id: true,
+							rating: true,
+							note: true,
+							visibility: true,
+							userId: true,
+						},
+					},
 				},
 				orderBy: (e, { desc }) => [
 					desc(sql`COALESCE(${e.watchedAt}, ${e.createdAt})`),
@@ -651,6 +703,15 @@ export const watchEventRouter = {
 				where: and(
 					inArray(watchEvent.userId, userIds),
 					...(cursorDate ? [sql`${watchEvent.createdAt} < ${cursorDate}`] : []),
+					or(
+						eq(watchEvent.userId, ctx.userId),
+						eq(watchEvent.visibility, "public"),
+						sql`(${watchEvent.visibility} = 'companion' AND EXISTS (
+							SELECT 1 FROM watch_event_companion
+							WHERE watch_event_companion.watch_event_id = ${watchEvent.id}
+							AND watch_event_companion.friend_id = ${ctx.userId}
+						))`,
+					),
 				),
 				with: {
 					companions: true,
@@ -659,6 +720,18 @@ export const watchEventRouter = {
 							id: true,
 							username: true,
 							avatarUrl: true,
+						},
+					},
+					originEvent: {
+						with: {
+							user: { columns: { id: true, username: true, avatarUrl: true } },
+						},
+						columns: {
+							id: true,
+							rating: true,
+							note: true,
+							visibility: true,
+							userId: true,
 						},
 					},
 				},

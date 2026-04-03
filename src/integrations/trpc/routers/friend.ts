@@ -965,7 +965,7 @@ export const friendRouter = createTRPCRouter({
 					and(
 						eq(watchEvent.userId, input.userId),
 						eq(watchEvent.rating, input.star),
-						eq(watchEvent.reviewPublic, true),
+						eq(watchEvent.visibility, "public"),
 					),
 				)
 				.orderBy(sql`${watchEvent.watchedAt} desc`);
