@@ -128,10 +128,9 @@ export function TrackerShowCard({
 		: null;
 
 	return (
-		<Link
-			to="/app/tracker/$tmdbId"
-			params={{ tmdbId: String(tmdbId) }}
-			className="group relative block overflow-hidden rounded-lg no-underline transition-all duration-300"
+		// biome-ignore lint/a11y/noStaticElementInteractions: mouse handlers are for visual hover effects; Link overlay handles interaction
+		<div
+			className="group relative block overflow-hidden rounded-lg transition-all duration-300"
 			style={{
 				border: "1px solid #1a1a2e",
 				boxShadow: "0 2px 20px rgba(0,0,0,0.3)",
@@ -158,6 +157,13 @@ export function TrackerShowCard({
 				if (img) img.style.filter = "brightness(1)";
 			}}
 		>
+			{/* Clickable overlay link */}
+			<Link
+				to="/app/tracker/$tmdbId"
+				params={{ tmdbId: String(tmdbId) }}
+				className="absolute inset-0 z-10"
+				aria-label={title}
+			/>
 			{/* ── Backdrop image fills the entire card ────────────────────────── */}
 			{backdropPath ? (
 				<div
@@ -520,6 +526,6 @@ export function TrackerShowCard({
 					)}
 				</div>
 			</div>
-		</Link>
+		</div>
 	);
 }

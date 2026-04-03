@@ -168,7 +168,64 @@ export const friendRouter = createTRPCRouter({
 				),
 			);
 
-		return friends;
+		if (friends.length === 0) return [];
+
+		const friendIds = friends.map((f) => f.id);
+
+		// Batch watch stats
+		const watchStats = await db
+			.select({
+				userId: watchEvent.userId,
+				watchCount: sql<number>`count(*)::int`,
+				avgRating: sql<
+					number | null
+				>`round(avg(${watchEvent.rating})::numeric, 1)::float`,
+			})
+			.from(watchEvent)
+			.where(inArray(watchEvent.userId, friendIds))
+			.groupBy(watchEvent.userId);
+
+		// Batch list counts (owned + member)
+		const ownedCounts = await db
+			.select({
+				userId: watchlist.ownerId,
+				count: sql<number>`count(*)::int`,
+			})
+			.from(watchlist)
+			.where(
+				and(
+					inArray(watchlist.ownerId, friendIds),
+					eq(watchlist.isPublic, true),
+				),
+			)
+			.groupBy(watchlist.ownerId);
+
+		const memberCounts = await db
+			.select({
+				userId: watchlistMember.userId,
+				count: sql<number>`count(*)::int`,
+			})
+			.from(watchlistMember)
+			.innerJoin(watchlist, eq(watchlist.id, watchlistMember.watchlistId))
+			.where(
+				and(
+					inArray(watchlistMember.userId, friendIds),
+					eq(watchlist.isPublic, true),
+					sql`${watchlistMember.userId} <> ${watchlist.ownerId}`,
+				),
+			)
+			.groupBy(watchlistMember.userId);
+
+		const watchMap = new Map(watchStats.map((s) => [s.userId, s]));
+		const ownedMap = new Map(ownedCounts.map((s) => [s.userId, s.count]));
+		const memberMap = new Map(memberCounts.map((s) => [s.userId, s.count]));
+
+		return friends.map((f) => ({
+			...f,
+			watchCount: watchMap.get(f.id)?.watchCount ?? 0,
+			avgRating: watchMap.get(f.id)?.avgRating ?? null,
+			listCount: (ownedMap.get(f.id) ?? 0) + (memberMap.get(f.id) ?? 0),
+		}));
 	}),
 
 	pendingRequests: protectedProcedure.query(async ({ ctx }) => {

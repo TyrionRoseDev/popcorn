@@ -133,31 +133,22 @@ export function WatchEventCard({
 
 	return (
 		<div
-			className="relative rounded-[10px] border border-neon-amber/20 p-4 transition-colors hover:border-neon-amber/30"
+			className="relative rounded-[10px] border border-neon-amber/20 p-4 transition-all hover:border-neon-amber/30 hover:-translate-y-px"
 			style={{
 				background:
 					"linear-gradient(145deg, rgba(10,10,30,0.95) 0%, rgba(15,15,35,0.8) 100%)",
-				boxShadow:
-					"0 0 12px rgba(255,184,0,0.05), inset 0 1px 0 rgba(255,255,240,0.03)",
+				boxShadow: "0 0 12px rgba(255,184,0,0.04), 0 4px 16px rgba(0,0,0,0.3)",
 			}}
 		>
-			{/* Warm radial light overlay */}
-			<div
-				aria-hidden="true"
-				className="pointer-events-none absolute inset-0 rounded-[10px]"
-				style={{
-					background:
-						"radial-gradient(ellipse at top left, rgba(255,184,0,0.06), transparent 50%)",
-				}}
-			/>
+			{/* Header row: avatar + action + timestamp */}
 			{actor && (
-				<div className="relative z-10 flex items-center gap-2 mb-2">
+				<div className="flex items-center gap-2 mb-2.5">
 					<Link
 						to="/app/profile/$userId"
 						params={{ userId: actor.id }}
 						className="flex items-center gap-2 no-underline"
 					>
-						<div className="w-7 h-7 rounded-full bg-cream/10 flex items-center justify-center text-xs font-medium text-cream/60 shrink-0">
+						<div className="w-7 h-7 rounded-full bg-neon-amber/15 border border-neon-amber/20 flex items-center justify-center text-[11px] font-medium text-neon-amber shrink-0">
 							{actor.avatarUrl ? (
 								<img
 									src={actor.avatarUrl}
@@ -168,18 +159,19 @@ export function WatchEventCard({
 								(actor.username?.charAt(0) ?? "?").toUpperCase()
 							)}
 						</div>
-						<span className="text-xs font-semibold text-cream/80">
+						<span className="text-[13px] font-semibold text-cream/75">
 							{isOwn ? "You" : (actor.username ?? "Someone")}
 						</span>
 					</Link>
 					<span className="text-xs text-cream/30">watched</span>
-					<span className="text-[10px] text-cream/25 ml-auto">
+					<span className="text-[10px] text-cream/20 ml-auto font-mono-retro">
 						{formatTimeAgo(event.watchedAt)}
 					</span>
 				</div>
 			)}
 
-			<div className="relative z-10 flex items-start justify-between gap-2">
+			{/* Main row: title + episode on left, stars on right */}
+			<div className="flex items-start justify-between gap-4">
 				<div className="min-w-0 flex-1">
 					{showTitle && (
 						<Link
@@ -188,15 +180,30 @@ export function WatchEventCard({
 								mediaType: event.mediaType as "movie" | "tv",
 								tmdbId: event.tmdbId,
 							}}
-							className="text-sm font-semibold text-cream/90 hover:text-cream no-underline"
+							className="text-[15px] font-bold text-neon-cyan no-underline hover:text-neon-cyan/90"
+							style={{ textShadow: "0 0 8px rgba(0,229,255,0.15)" }}
 						>
 							{showTitle.name}
 						</Link>
 					)}
 
-					{/* Stars — larger with amber glow */}
+					{!actor && (
+						<div className="font-mono-retro text-[10px] tracking-[1px] text-[rgba(255,184,0,0.45)] mt-1">
+							{formatDate(event.watchedAt)}
+						</div>
+					)}
+
+					{companionText && (
+						<div className="flex items-center gap-1.5 text-[11px] text-cream/30 mt-1">
+							<span className="inline-block h-1 w-1 rounded-full bg-neon-cyan/50 shrink-0" />
+							{companionText}
+						</div>
+					)}
+				</div>
+
+				<div className="flex items-center gap-2 shrink-0">
 					{event.rating && (
-						<div className="flex items-center gap-1 mt-1">
+						<div className="flex items-center gap-1">
 							{[1, 2, 3, 4, 5].map((s) => (
 								<Star
 									key={s}
@@ -210,86 +217,68 @@ export function WatchEventCard({
 						</div>
 					)}
 
-					{/* Date — amber-tinted Space Mono */}
-					{!actor && (
-						<div className="font-mono-retro text-[10px] tracking-[1px] text-[rgba(255,184,0,0.45)] mt-1.5">
-							{formatDate(event.watchedAt)}
-						</div>
-					)}
-
-					{/* Divider — amber gradient line (only show if there are companions or a note) */}
-					{(companionText || event.note) && (
-						<div
-							className="h-px mt-2.5 mb-2"
-							style={{
-								background:
-									"linear-gradient(90deg, rgba(255,184,0,0.2), transparent 80%)",
+					{isOwn && (
+						<Popover
+							open={menuOpen}
+							onOpenChange={(o) => {
+								setMenuOpen(o);
+								if (!o) setConfirmDelete(false);
 							}}
-						/>
-					)}
-
-					{/* Companions — cyan dot prefix */}
-					{companionText && (
-						<div className="flex items-center gap-1.5 text-[11px] text-cream/30">
-							<span className="inline-block h-1 w-1 rounded-full bg-neon-cyan/50 shrink-0" />
-							{companionText}
-						</div>
-					)}
-
-					{/* Note — cyan quote bar */}
-					{event.note && (
-						<p className="relative text-[12.5px] leading-[1.6] text-cream/55 mt-1.5 pl-3 line-clamp-2 before:absolute before:left-0 before:top-0.5 before:bottom-0.5 before:w-0.5 before:rounded-full before:bg-[rgba(0,229,255,0.2)]">
-							{event.note}
-						</p>
+						>
+							<PopoverTrigger asChild>
+								<button
+									type="button"
+									className="p-1 text-cream/20 hover:text-cream/50 transition-colors"
+								>
+									<MoreHorizontal className="h-4 w-4" />
+								</button>
+							</PopoverTrigger>
+							<PopoverContent
+								align="end"
+								sideOffset={4}
+								className="bg-drive-in-card border border-drive-in-border rounded-lg shadow-xl p-1 w-40"
+							>
+								<button
+									type="button"
+									onClick={handleEdit}
+									className="flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-cream/5 text-sm text-cream/70 hover:text-cream transition-colors"
+								>
+									<Pencil className="h-3.5 w-3.5" />
+									Edit
+								</button>
+								<button
+									type="button"
+									onClick={handleDelete}
+									disabled={deleteEvent.isPending}
+									className={`flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-red-500/10 text-sm transition-colors ${
+										confirmDelete
+											? "text-red-400 font-medium"
+											: "text-red-400/70 hover:text-red-400"
+									}`}
+								>
+									<Trash2 className="h-3.5 w-3.5" />
+									{confirmDelete ? "Confirm Delete" : "Delete"}
+								</button>
+							</PopoverContent>
+						</Popover>
 					)}
 				</div>
-
-				{isOwn && (
-					<Popover
-						open={menuOpen}
-						onOpenChange={(o) => {
-							setMenuOpen(o);
-							if (!o) setConfirmDelete(false);
-						}}
-					>
-						<PopoverTrigger asChild>
-							<button
-								type="button"
-								className="p-1 text-cream/20 hover:text-cream/50 transition-colors shrink-0"
-							>
-								<MoreHorizontal className="h-4 w-4" />
-							</button>
-						</PopoverTrigger>
-						<PopoverContent
-							align="end"
-							sideOffset={4}
-							className="bg-drive-in-card border border-drive-in-border rounded-lg shadow-xl p-1 w-40"
-						>
-							<button
-								type="button"
-								onClick={handleEdit}
-								className="flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-cream/5 text-sm text-cream/70 hover:text-cream transition-colors"
-							>
-								<Pencil className="h-3.5 w-3.5" />
-								Edit
-							</button>
-							<button
-								type="button"
-								onClick={handleDelete}
-								disabled={deleteEvent.isPending}
-								className={`flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-red-500/10 text-sm transition-colors ${
-									confirmDelete
-										? "text-red-400 font-medium"
-										: "text-red-400/70 hover:text-red-400"
-								}`}
-							>
-								<Trash2 className="h-3.5 w-3.5" />
-								{confirmDelete ? "Confirm Delete" : "Delete"}
-							</button>
-						</PopoverContent>
-					</Popover>
-				)}
 			</div>
+
+			{/* Note row */}
+			{event.note && (
+				<div
+					className="mt-2.5 py-1.5 px-3 rounded-r-md"
+					style={{
+						background: "rgba(0,229,255,0.03)",
+						borderLeft: "2px solid rgba(0,229,255,0.25)",
+					}}
+				>
+					<p className="text-[12px] text-cream/50 italic line-clamp-2">
+						{event.note}
+					</p>
+				</div>
+			)}
 		</div>
 	);
 }

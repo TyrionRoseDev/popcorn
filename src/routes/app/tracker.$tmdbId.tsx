@@ -75,7 +75,7 @@ function ShowTracker() {
 		trpc.watchEvent.getForTitle.queryOptions({ tmdbId, mediaType: "tv" }),
 	);
 	const hasShowReview = (existingWatchEvents ?? []).some(
-		(e) => e.scope === "show",
+		(e) => e.scope === "show" && e.watchNumber === currentWatchNumber,
 	);
 
 	// Fetch journal entries for this show
@@ -254,39 +254,6 @@ function ShowTracker() {
 		});
 	}
 
-	function handleMarkAll() {
-		if (!allEpisodes) return;
-		const unwatched = allEpisodes.filter(
-			(ep) => !watchedSet.has(`S${ep.seasonNumber}E${ep.episodeNumber}`),
-		);
-		if (unwatched.length === 0) {
-			toast.info("All episodes already marked!");
-			return;
-		}
-		markEpisodes.mutate({
-			tmdbId,
-			episodes: unwatched.map((ep) => ({
-				seasonNumber: ep.seasonNumber,
-				episodeNumber: ep.episodeNumber,
-				runtime: ep.runtime ?? 0,
-			})),
-		});
-	}
-
-	// Progress stats
-	const totalEpisodes = allEpisodes?.length ?? 0;
-	const watchedCount = watchedSet.size;
-	const progressPct =
-		totalEpisodes > 0
-			? Math.min(100, Math.round((watchedCount / totalEpisodes) * 100))
-			: 0;
-
-	// Status
-	const isComplete =
-		isEnded && totalEpisodes > 0 && watchedCount >= totalEpisodes;
-	const isCaughtUp =
-		!isEnded && totalEpisodes > 0 && watchedCount >= totalEpisodes;
-
 	// Upcoming episodes (future air dates for "Returning Series")
 	const upcomingEpisodes = useMemo(() => {
 		if (titleData?.status !== "Returning Series" || !allEpisodes) return [];
@@ -303,6 +270,39 @@ function ShowTracker() {
 			(ep) => ep.airDate == null || ep.airDate <= today,
 		);
 	}, [allEpisodes, titleData?.status]);
+
+	function handleMarkAll() {
+		if (!airedEpisodes.length) return;
+		const unwatched = airedEpisodes.filter(
+			(ep) => !watchedSet.has(`S${ep.seasonNumber}E${ep.episodeNumber}`),
+		);
+		if (unwatched.length === 0) {
+			toast.info("All episodes already marked!");
+			return;
+		}
+		markEpisodes.mutate({
+			tmdbId,
+			episodes: unwatched.map((ep) => ({
+				seasonNumber: ep.seasonNumber,
+				episodeNumber: ep.episodeNumber,
+				runtime: ep.runtime ?? 0,
+			})),
+		});
+	}
+
+	// Progress stats (based on aired episodes only)
+	const totalEpisodes = airedEpisodes.length;
+	const watchedCount = watchedSet.size;
+	const progressPct =
+		totalEpisodes > 0
+			? Math.min(100, Math.round((watchedCount / totalEpisodes) * 100))
+			: 0;
+
+	// Status
+	const isComplete =
+		isEnded && totalEpisodes > 0 && watchedCount >= totalEpisodes;
+	const isCaughtUp =
+		!isEnded && totalEpisodes > 0 && watchedCount >= totalEpisodes;
 
 	// Season groups for aired episodes only
 	const airedSeasonGroups = useMemo(() => {

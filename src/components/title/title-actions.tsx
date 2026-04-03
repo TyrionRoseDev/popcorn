@@ -231,11 +231,20 @@ export function TitleActions({
 	function handleWatched() {
 		// For TV shows, add to tracker and redirect
 		if (mediaType === "tv") {
-			addToTracker.mutate({ tmdbId });
-			navigate({
-				to: "/app/tracker/$tmdbId",
-				params: { tmdbId: String(tmdbId) },
-			});
+			addToTracker.mutate(
+				{ tmdbId },
+				{
+					onSuccess: () => {
+						navigate({
+							to: "/app/tracker/$tmdbId",
+							params: { tmdbId: String(tmdbId) },
+						});
+					},
+					onError: () => {
+						toast.error("Failed to add show to tracker");
+					},
+				},
+			);
 			return;
 		}
 

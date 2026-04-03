@@ -25,7 +25,7 @@ function WatchlistsPage() {
 		<>
 			<WatchlistAtmosphere />
 
-			<div className="relative" style={{ zIndex: 2, paddingTop: "40px" }}>
+			<div className="relative z-[2] pt-8">
 				<NowShowingHeader title="My Watchlists" />
 
 				<NewWatchlistButton onClick={() => setDialogOpen(true)} />

@@ -9,15 +9,39 @@ import { protectedProcedure } from "#/integrations/trpc/init";
 export const journalEntryRouter = {
 	create: protectedProcedure
 		.input(
-			z.object({
-				tmdbId: z.number(),
-				titleName: z.string(),
-				scope: z.enum(["episode", "season", "show"]),
-				seasonNumber: z.number().optional(),
-				episodeNumber: z.number().optional(),
-				note: z.string().min(1).max(2000),
-				isPublic: z.boolean().default(false),
-			}),
+			z
+				.object({
+					tmdbId: z.number(),
+					titleName: z.string(),
+					scope: z.enum(["episode", "season", "show"]),
+					seasonNumber: z.number().optional(),
+					episodeNumber: z.number().optional(),
+					note: z.string().min(1).max(2000),
+					isPublic: z.boolean().default(false),
+				})
+				.superRefine((data, ctx) => {
+					if (data.scope === "episode") {
+						if (data.seasonNumber == null)
+							ctx.addIssue({
+								code: z.ZodIssueCode.custom,
+								path: ["seasonNumber"],
+								message: "seasonNumber is required for episode scope",
+							});
+						if (data.episodeNumber == null)
+							ctx.addIssue({
+								code: z.ZodIssueCode.custom,
+								path: ["episodeNumber"],
+								message: "episodeNumber is required for episode scope",
+							});
+					} else if (data.scope === "season") {
+						if (data.seasonNumber == null)
+							ctx.addIssue({
+								code: z.ZodIssueCode.custom,
+								path: ["seasonNumber"],
+								message: "seasonNumber is required for season scope",
+							});
+					}
+				}),
 		)
 		.mutation(async ({ input, ctx }) => {
 			const title = await db.query.userTitle.findFirst({
@@ -49,11 +73,18 @@ export const journalEntryRouter = {
 
 	update: protectedProcedure
 		.input(
-			z.object({
-				id: z.string(),
-				note: z.string().min(1).max(2000).optional(),
-				isPublic: z.boolean().optional(),
-			}),
+			z
+				.object({
+					id: z.string(),
+					note: z.string().min(1).max(2000).optional(),
+					isPublic: z.boolean().optional(),
+				})
+				.refine(
+					(data) => data.note !== undefined || data.isPublic !== undefined,
+					{
+						message: "At least one of 'note' or 'isPublic' must be provided",
+					},
+				),
 		)
 		.mutation(async ({ input, ctx }) => {
 			const existing = await db.query.journalEntry.findFirst({

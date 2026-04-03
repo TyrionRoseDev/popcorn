@@ -104,13 +104,15 @@ export function SeasonSection({
 	return (
 		<section>
 			{/* Season header */}
-			<button
-				type="button"
-				onClick={() => setCollapsed((c) => !c)}
+			<div
 				className="flex w-full items-center justify-between gap-3 pb-3"
 				style={{ borderBottom: "1px solid rgba(255,184,0,0.12)" }}
 			>
-				<div className="flex items-center gap-3 min-w-0">
+				<button
+					type="button"
+					onClick={() => setCollapsed((c) => !c)}
+					className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
+				>
 					<h3 className="text-base font-display tracking-wide text-cream/90">
 						{seasonName}
 					</h3>
@@ -118,15 +120,12 @@ export function SeasonSection({
 						{watchedCount}/{totalCount}
 					</span>
 					{allWatched && <Trophy className="h-3.5 w-3.5 text-neon-amber/60" />}
-				</div>
+				</button>
 				<div className="flex items-center gap-2">
 					{!allWatched && !readOnly && (
 						<button
 							type="button"
-							onClick={(e) => {
-								e.stopPropagation();
-								handleMarkSeason();
-							}}
+							onClick={handleMarkSeason}
 							className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-mono-retro tracking-wider uppercase text-neon-amber/70 hover:text-neon-amber hover:bg-neon-amber/8 transition-colors"
 							style={{ border: "1px solid rgba(255,184,0,0.15)" }}
 						>
@@ -134,11 +133,18 @@ export function SeasonSection({
 							Mark All
 						</button>
 					)}
-					<ChevronDown
-						className={`h-4 w-4 text-cream/25 transition-transform duration-200 ${collapsed ? "-rotate-90" : ""}`}
-					/>
+					<button
+						type="button"
+						onClick={() => setCollapsed((c) => !c)}
+						className="cursor-pointer"
+						aria-label={collapsed ? "Expand season" : "Collapse season"}
+					>
+						<ChevronDown
+							className={`h-4 w-4 text-cream/25 transition-transform duration-200 ${collapsed ? "-rotate-90" : ""}`}
+						/>
+					</button>
 				</div>
-			</button>
+			</div>
 
 			{/* Episode list */}
 			{!collapsed && (
