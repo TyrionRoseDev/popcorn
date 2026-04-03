@@ -20,13 +20,13 @@ import {
 	X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AchievementGrid } from "#/components/achievements/achievement-grid";
-import { authClient } from "#/lib/auth-client";
 import { useTRPC } from "#/integrations/trpc/react";
+import { ACHIEVEMENTS } from "#/lib/achievements";
+import { authClient } from "#/lib/auth-client";
 import { getUnifiedGenreById } from "#/lib/genre-map";
 import { getTmdbImageUrl } from "#/lib/tmdb";
-import { ACHIEVEMENTS } from "#/lib/achievements";
 
 export const Route = createFileRoute("/app/profile/$userId")({
 	component: ProfilePage,
@@ -210,6 +210,7 @@ function ProfilePage() {
 	const { userId } = Route.useParams();
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
+	const { data: session } = authClient.useSession();
 
 	// ── Queries ────────────────────────────────────────────────
 	const {
@@ -333,7 +334,6 @@ function ProfilePage() {
 	}
 
 	const isFriend = profile.isFriend;
-	const { data: session } = authClient.useSession();
 	const isOwnProfile = !!session?.user?.id && session.user.id === userId;
 	const initial = (profile.username ?? "?").charAt(0).toUpperCase();
 	const genreName = profile.favouriteGenreId
@@ -798,9 +798,33 @@ function ProfileAchievements({
 	friendName?: string;
 }) {
 	const trpc = useTRPC();
+	const queryClient = useQueryClient();
 	const [showGrid, setShowGrid] = useState(false);
+	const syncedRef = useRef(false);
 
 	useQuery(trpc.achievement.myAchievements.queryOptions());
+
+	const syncMutation = useMutation(
+		trpc.achievement.sync.mutationOptions({
+			onSuccess: (data) => {
+				if (data.newAchievements.length > 0) {
+					queryClient.invalidateQueries({
+						queryKey: trpc.achievement.myAchievements.queryKey(),
+					});
+					queryClient.invalidateQueries({
+						queryKey: trpc.achievement.userAchievements.queryKey({ userId }),
+					});
+				}
+			},
+		}),
+	);
+
+	useEffect(() => {
+		if (isOwnProfile && !syncedRef.current) {
+			syncedRef.current = true;
+			syncMutation.mutate();
+		}
+	}, [isOwnProfile, syncMutation.mutate]);
 
 	const { data: comparison } = useQuery({
 		...trpc.achievement.compare.queryOptions({ friendId: userId }),
@@ -832,9 +856,33 @@ function ProfileAchievements({
 				className="group flex flex-col items-center gap-2"
 			>
 				<div className="relative flex h-24 w-24 items-center justify-center">
-					<svg className="absolute inset-0 -rotate-90" viewBox="0 0 96 96">
-						<circle cx="48" cy="48" r={radius} fill="none" stroke="currentColor" strokeWidth="3" className="text-cream/10" />
-						<circle cx="48" cy="48" r={radius} fill="none" stroke="url(#achievement-gradient)" strokeWidth="3" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference - progress} className="transition-all duration-700" />
+					<svg
+						className="absolute inset-0 -rotate-90"
+						viewBox="0 0 96 96"
+						role="img"
+						aria-label="Achievement progress"
+					>
+						<circle
+							cx="48"
+							cy="48"
+							r={radius}
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="3"
+							className="text-cream/10"
+						/>
+						<circle
+							cx="48"
+							cy="48"
+							r={radius}
+							fill="none"
+							stroke="url(#achievement-gradient)"
+							strokeWidth="3"
+							strokeLinecap="round"
+							strokeDasharray={circumference}
+							strokeDashoffset={circumference - progress}
+							className="transition-all duration-700"
+						/>
 						<defs>
 							<linearGradient id="achievement-gradient">
 								<stop offset="0%" stopColor="#FF2D78" />
@@ -853,7 +901,10 @@ function ProfileAchievements({
 
 			{showGrid && isOwnProfile && theirAchievements && (
 				<AchievementGrid
-					myEarned={theirAchievements.earned.map((e) => ({ id: e.id, earnedAt: e.earnedAt }))}
+					myEarned={theirAchievements.earned.map((e) => ({
+						id: e.id,
+						earnedAt: e.earnedAt,
+					}))}
 					onClose={() => setShowGrid(false)}
 				/>
 			)}
@@ -861,11 +912,17 @@ function ProfileAchievements({
 			{showGrid && isFriend && !isOwnProfile && comparison && (
 				<AchievementGrid
 					myEarned={comparison.achievements
-						.filter((a) => a.myEarnedAt)
-						.map((a) => ({ id: a.id, earnedAt: a.myEarnedAt! }))}
+						.filter(
+							(a): a is typeof a & { myEarnedAt: Date } =>
+								a.myEarnedAt !== null,
+						)
+						.map((a) => ({ id: a.id, earnedAt: a.myEarnedAt }))}
 					theirEarned={comparison.achievements
-						.filter((a) => a.theirEarnedAt)
-						.map((a) => ({ id: a.id, earnedAt: a.theirEarnedAt! }))}
+						.filter(
+							(a): a is typeof a & { theirEarnedAt: Date } =>
+								a.theirEarnedAt !== null,
+						)
+						.map((a) => ({ id: a.id, earnedAt: a.theirEarnedAt }))}
 					theirName={friendName}
 					onClose={() => setShowGrid(false)}
 				/>

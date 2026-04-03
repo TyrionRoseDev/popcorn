@@ -11,6 +11,7 @@ import {
 	watchlistMember,
 } from "#/db/schema";
 import { protectedProcedure, publicProcedure } from "#/integrations/trpc/init";
+import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import {
 	deduplicateFeed,
 	type FeedCursor,
@@ -326,6 +327,8 @@ export const tasteProfileRouter = {
 					.where(eq(user.id, userId));
 			});
 
+			await evaluateAchievements(userId, "onboarding");
+
 			return { success: true };
 		}),
 
@@ -347,6 +350,8 @@ export const tasteProfileRouter = {
 					onboardingCompleted: true,
 				})
 				.where(eq(user.id, ctx.userId));
+
+			await evaluateAchievements(ctx.userId, "onboarding");
 
 			return { success: true };
 		}),

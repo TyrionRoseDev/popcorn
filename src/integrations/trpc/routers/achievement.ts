@@ -5,6 +5,7 @@ import { db } from "#/db";
 import { earnedAchievement } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
 import { ACHIEVEMENTS, ACHIEVEMENTS_BY_ID } from "#/lib/achievements";
+import { syncAchievements } from "#/lib/evaluate-achievements";
 
 export const achievementRouter = {
 	myAchievements: protectedProcedure.query(async ({ ctx }) => {
@@ -35,6 +36,11 @@ export const achievementRouter = {
 			};
 		}),
 
+	sync: protectedProcedure.mutation(async ({ ctx }) => {
+		const newAchievements = await syncAchievements(ctx.userId);
+		return { newAchievements };
+	}),
+
 	compare: protectedProcedure
 		.input(z.object({ friendId: z.string() }))
 		.query(async ({ ctx, input }) => {
@@ -47,7 +53,9 @@ export const achievementRouter = {
 				}),
 			]);
 			const myIds = new Map(myEarned.map((e) => [e.achievementId, e.earnedAt]));
-			const theirIds = new Map(theirEarned.map((e) => [e.achievementId, e.earnedAt]));
+			const theirIds = new Map(
+				theirEarned.map((e) => [e.achievementId, e.earnedAt]),
+			);
 			return {
 				achievements: ACHIEVEMENTS.map((a) => ({
 					...a,
@@ -56,7 +64,9 @@ export const achievementRouter = {
 				})),
 				myTotal: myEarned.length,
 				theirTotal: theirEarned.length,
-				sharedCount: ACHIEVEMENTS.filter((a) => myIds.has(a.id) && theirIds.has(a.id)).length,
+				sharedCount: ACHIEVEMENTS.filter(
+					(a) => myIds.has(a.id) && theirIds.has(a.id),
+				).length,
 			};
 		}),
 } satisfies TRPCRouterRecord;

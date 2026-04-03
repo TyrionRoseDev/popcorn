@@ -14,9 +14,9 @@ import {
 import {
 	ACHIEVEMENTS,
 	ACTION_CONTEXT_MAP,
-	type ActionContext,
 	type AchievementCondition,
 	type AchievementDefinition,
+	type ActionContext,
 	TOTAL_ACHIEVEMENTS,
 } from "./achievements";
 
@@ -42,20 +42,14 @@ export async function evaluateAchievements(
 	const contextConditionTypes = ACTION_CONTEXT_MAP[context];
 	const candidates = ACHIEVEMENTS.filter(
 		(a) =>
-			!earnedIds.has(a.id) &&
-			contextConditionTypes.includes(a.condition.type),
+			!earnedIds.has(a.id) && contextConditionTypes.includes(a.condition.type),
 	);
 
 	// 3. Evaluate each candidate
 	const newlyEarned: string[] = [];
 
 	for (const achievement of candidates) {
-		const met = await checkCondition(
-			achievement,
-			userId,
-			earnedIds,
-			extra,
-		);
+		const met = await checkCondition(achievement, userId, earnedIds, extra);
 
 		if (met) {
 			// 4. Insert into earnedAchievement table
@@ -73,6 +67,32 @@ export async function evaluateAchievements(
 	}
 
 	// 5. Return newly-earned IDs
+	return newlyEarned;
+}
+
+/** Evaluate ALL un-earned achievements regardless of action context (for backfill/sync). */
+export async function syncAchievements(userId: string): Promise<string[]> {
+	const earned = await db
+		.select({ achievementId: earnedAchievement.achievementId })
+		.from(earnedAchievement)
+		.where(eq(earnedAchievement.userId, userId));
+
+	const earnedIds = new Set(earned.map((e) => e.achievementId));
+	const candidates = ACHIEVEMENTS.filter((a) => !earnedIds.has(a.id));
+	const newlyEarned: string[] = [];
+
+	for (const achievement of candidates) {
+		const met = await checkCondition(achievement, userId, earnedIds);
+		if (met) {
+			await db
+				.insert(earnedAchievement)
+				.values({ userId, achievementId: achievement.id })
+				.onConflictDoNothing();
+			earnedIds.add(achievement.id);
+			newlyEarned.push(achievement.id);
+		}
+	}
+
 	return newlyEarned;
 }
 
@@ -193,7 +213,10 @@ async function checkCondition(
 					and(
 						eq(watchlistItem.tmdbId, extra.tmdbId),
 						eq(watchlistItem.watched, true),
-						sql`${watchlistItem.addedBy} = ANY(ARRAY[${sql.join(friendIds.map((id) => sql`${id}`), sql`, `)}]::text[])`,
+						sql`${watchlistItem.addedBy} = ANY(ARRAY[${sql.join(
+							friendIds.map((id) => sql`${id}`),
+							sql`, `,
+						)}]::text[])`,
 						sql`DATE(${watchlistItem.watchedAt}) = ${watchedDay}`,
 					),
 				);
@@ -213,10 +236,7 @@ async function checkCondition(
 				.select({ value: count() })
 				.from(shuffleSwipe)
 				.where(
-					and(
-						eq(shuffleSwipe.userId, userId),
-						eq(shuffleSwipe.action, "yes"),
-					),
+					and(eq(shuffleSwipe.userId, userId), eq(shuffleSwipe.action, "yes")),
 				);
 			return (result[0]?.value ?? 0) >= 1;
 		}
