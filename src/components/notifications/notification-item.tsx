@@ -112,6 +112,13 @@ function getNotificationMessage(
 					? `/app/title/${data.mediaType}/${data.tmdbId}`
 					: undefined,
 			};
+		case "companion_reviewed":
+			return {
+				text: `shared their thoughts on ${data.titleName || "a title"} that you watched together`,
+				link: data.tmdbId
+					? `/app/title/${data.mediaType}/${data.tmdbId}`
+					: undefined,
+			};
 		case "watched_with":
 			return {
 				text: `watched ${data.titleName || "a title"} with you`,
@@ -194,6 +201,23 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 				queryClient.invalidateQueries(
 					trpc.notification.getUnreadCount.queryFilter(),
 				);
+			},
+		}),
+	);
+
+	const markInTracker = useMutation(
+		trpc.episodeTracker.markFromNotification.mutationOptions({
+			onSuccess: () => {
+				toast.success("Marked in your tracker");
+				queryClient.invalidateQueries(
+					trpc.episodeTracker.getForShow.queryFilter(),
+				);
+				queryClient.invalidateQueries(
+					trpc.episodeTracker.getTrackedShows.queryFilter(),
+				);
+			},
+			onError: () => {
+				toast.error("Failed to mark in tracker");
 			},
 		}),
 	);
@@ -341,6 +365,60 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 							Dismiss
 						</button>
 					</div>
+				)}
+				{/* Companion reviewed actions */}
+				{n.type === "companion_reviewed" && !n.actionTaken && (
+					<div className="flex gap-2 mt-1.5 flex-wrap">
+						<button
+							type="button"
+							onClick={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								setActionTaken.mutate({ id: n.id, action: "review" });
+								navigate({
+									to: "/app/title/$mediaType/$tmdbId",
+									params: {
+										mediaType: data.mediaType as "movie" | "tv",
+										tmdbId: Number(data.tmdbId),
+									},
+								});
+							}}
+							className="px-2.5 py-1 rounded text-[11px] font-semibold bg-neon-cyan/10 border border-neon-cyan/25 text-neon-cyan/80 hover:bg-neon-cyan/20 hover:border-neon-cyan/40 transition-all"
+						>
+							Add yours
+						</button>
+						{data.mediaType === "tv" && (
+							<button
+								type="button"
+								onClick={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									setActionTaken.mutate({ id: n.id, action: "tracked" });
+									markInTracker.mutate({
+										tmdbId: Number(data.tmdbId),
+										scope: (data.scope as string) ?? null,
+										scopeSeasonNumber:
+											(data.scopeSeasonNumber as number) ?? null,
+										scopeEpisodeNumber:
+											(data.scopeEpisodeNumber as number) ?? null,
+									});
+								}}
+								className="px-2.5 py-1 rounded text-[11px] font-semibold bg-neon-amber/10 border border-neon-amber/25 text-neon-amber/80 hover:bg-neon-amber/20 hover:border-neon-amber/40 transition-all"
+							>
+								Mark in tracker
+							</button>
+						)}
+					</div>
+				)}
+				{n.type === "companion_reviewed" && n.actionTaken === "review" && (
+					<span className="mt-1 inline-block text-[10px] text-neon-cyan/60">
+						Reviewed
+					</span>
+				)}
+				{n.type === "companion_reviewed" && n.actionTaken === "tracked" && (
+					<span className="mt-1 inline-block text-[10px] text-neon-amber/60">
+						Marked in tracker
+					</span>
 				)}
 			</div>
 
