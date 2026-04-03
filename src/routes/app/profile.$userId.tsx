@@ -31,6 +31,7 @@ import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { useTRPC } from "#/integrations/trpc/react";
 import { ACHIEVEMENTS } from "#/lib/achievements";
 import { authClient } from "#/lib/auth-client";
+import { getUnifiedGenreById } from "#/lib/genre-map";
 import { getTmdbImageUrl } from "#/lib/tmdb";
 
 export const Route = createFileRoute("/app/profile/$userId")({
@@ -263,7 +264,9 @@ function ProfilePage() {
 	const isFriend = profile.isFriend;
 	const isOwnProfile = !!session?.user?.id && session.user.id === userId;
 	const initial = (profile.username ?? "?").charAt(0).toUpperCase();
-	const genreName = genreStats?.[0]?.name ?? null;
+	const genreName = profile.favouriteGenreId
+		? (getUnifiedGenreById(profile.favouriteGenreId)?.name ?? null)
+		: null;
 
 	return (
 		<>

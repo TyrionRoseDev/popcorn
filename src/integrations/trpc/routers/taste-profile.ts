@@ -307,6 +307,16 @@ export const tasteProfileRouter = {
 			return { success: true };
 		}),
 
+	updateFavouriteGenre: protectedProcedure
+		.input(z.object({ genreId: z.number().nullable() }))
+		.mutation(async ({ input, ctx }) => {
+			await db
+				.update(user)
+				.set({ favouriteGenreId: input.genreId })
+				.where(eq(user.id, ctx.userId));
+			return { success: true };
+		}),
+
 	updateBio: protectedProcedure
 		.input(z.object({ bio: z.string().max(100).nullable() }))
 		.mutation(async ({ input, ctx }) => {
