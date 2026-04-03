@@ -1335,7 +1335,7 @@ function FriendExpandedSections({
 
 	return (
 		<div className="mt-8 grid gap-8 lg:grid-cols-2">
-			{/* ══ Left column: achievements, favourite, genres, heatmap ══ */}
+			{/* ══ Left column: achievements, favourite, genres ══ */}
 			<div className="flex flex-col gap-6">
 				{/* ── Achievements ── */}
 				<div>
@@ -1465,27 +1465,9 @@ function FriendExpandedSections({
 						</div>
 					)}
 				</div>
-
-				{/* ── Watch Activity heatmap ── */}
-				<div>
-					<div className="mb-3 flex items-center gap-2">
-						<CalendarDays className="h-4 w-4 text-neon-pink/50" />
-						<span className="font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/70">
-							Watch Activity
-						</span>
-					</div>
-					{watchActivity && watchActivity.length > 0 ? (
-						<WatchActivityHeatmap data={watchActivity} />
-					) : (
-						<div className="flex flex-col items-center rounded-lg border border-drive-in-border py-8 text-center">
-							<CalendarDays className="mb-2 h-6 w-6 text-cream/15" />
-							<p className="text-[11px] text-cream/25">No watch activity yet</p>
-						</div>
-					)}
-				</div>
 			</div>
 
-			{/* ══ Right column: tabbed activity (stretches to match left) ══ */}
+			{/* ══ Right column: tabbed activity + heatmap ══ */}
 			<div className="flex flex-col">
 				{/* Tab bar */}
 				<div className="flex border-b border-drive-in-border">
@@ -1549,6 +1531,24 @@ function FriendExpandedSections({
 						</div>
 					</motion.div>
 				</AnimatePresence>
+
+				{/* ── Watch Activity heatmap ── */}
+				<div className="mt-6">
+					<div className="mb-3 flex items-center gap-2">
+						<CalendarDays className="h-4 w-4 text-neon-pink/50" />
+						<span className="font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/70">
+							Watch Activity
+						</span>
+					</div>
+					{watchActivity && watchActivity.length > 0 ? (
+						<WatchActivityHeatmap data={watchActivity} />
+					) : (
+						<div className="flex flex-col items-center rounded-lg border border-drive-in-border py-8 text-center">
+							<CalendarDays className="mb-2 h-6 w-6 text-cream/15" />
+							<p className="text-[11px] text-cream/25">No watch activity yet</p>
+						</div>
+					)}
+				</div>
 			</div>
 		</div>
 	);
