@@ -26,7 +26,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { AchievementGrid } from "#/components/achievements/achievement-grid";
 import { FeedJournalCard } from "#/components/tracker/feed-journal-card";
-import { ReviewModal } from "#/components/watched/review-modal";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { useTRPC } from "#/integrations/trpc/react";
 import { ACHIEVEMENTS } from "#/lib/achievements";
@@ -1384,15 +1383,39 @@ function FriendExpandedSections({
 						transition={{ duration: 0.2 }}
 						className="pt-4"
 					>
-						{activeTab === "activity" && (
-							<ActivityTab userId={profile.id} isOwn={isSelf} />
-						)}
-						{activeTab === "journal" && (
-							<DiaryTab userId={profile.id} isOwn={isSelf} />
-						)}
-						{activeTab === "watchlists" && (
-							<WatchlistsTab watchlists={profile.publicWatchlists} />
-						)}
+						{/* Height-capped container */}
+						<div className="relative">
+							<div className="max-h-[420px] overflow-hidden">
+								{activeTab === "activity" && (
+									<ActivityTab userId={profile.id} isOwn={isSelf} />
+								)}
+								{activeTab === "journal" && (
+									<DiaryTab userId={profile.id} isOwn={isSelf} />
+								)}
+								{activeTab === "watchlists" && (
+									<WatchlistsTab watchlists={profile.publicWatchlists} />
+								)}
+							</div>
+							{/* Fade overlay */}
+							<div
+								className="pointer-events-none absolute bottom-0 left-0 right-0 h-20"
+								style={{
+									background:
+										"linear-gradient(to top, rgb(10,10,30) 0%, transparent 100%)",
+								}}
+							/>
+						</div>
+						{/* See more link */}
+						<div className="flex justify-center pt-2 pb-1">
+							<Link
+								to="/app/feed"
+								search={{ userId: profile.id }}
+								className="font-mono-retro text-[10px] uppercase tracking-[2px] text-cream/40 hover:text-cream/70 transition-colors no-underline"
+								style={{ textShadow: "0 0 6px rgba(255,255,240,0.08)" }}
+							>
+								See more &rarr;
+							</Link>
+						</div>
 					</motion.div>
 				</AnimatePresence>
 			</div>
@@ -1555,7 +1578,7 @@ function ActivityTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
 		useInfiniteQuery(
 			trpc.watchEvent.getFeed.infiniteQueryOptions(
-				{ userId, limit: 15 },
+				{ userId, limit: 10 },
 				{ getNextPageParam: (lastPage) => lastPage.nextCursor },
 			),
 		);
@@ -1595,100 +1618,60 @@ function ActivityTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 	}
 
 	return (
-		<>
-			<div className="flex flex-col gap-3">
-				{items.map((item) => {
-					if (item.type === "watch_event") {
-						const event = item.data;
-						return (
-							<WatchEventCard
-								key={`we-${event.id}`}
-								event={event}
-								showTitle={{
-									name: event.title ?? `Title #${event.tmdbId}`,
-								}}
-								isOwn={isOwn}
-								onEdit={(e) =>
-									setEditModal({
-										open: true,
-										tmdbId: event.tmdbId,
-										mediaType: event.mediaType as "movie" | "tv",
-										titleName: event.title ?? `Title #${event.tmdbId}`,
-										event: e,
-									})
-								}
-							/>
-						);
-					}
+		<div className="flex flex-col gap-3">
+			{items.map((item) => {
+				if (item.type === "watch_event") {
+					const event = item.data;
+					return (
+						<WatchEventCard
+							key={`we-${event.id}`}
+							event={event}
+							showTitle={{
+								name: event.title ?? `Title #${event.tmdbId}`,
+							}}
+							isOwn={isOwn}
+						/>
+					);
+				}
 
-					if (item.type === "watchlist_created") {
-						const wl = item.data;
-						return (
-							<Link
-								key={`wl-${wl.id}`}
-								to="/app/watchlists/$watchlistId"
-								params={{ watchlistId: wl.id }}
-								search={{ sort: "date-added", type: "all" }}
-								className="group flex items-center gap-3 rounded-lg border border-neon-pink/15 px-3 py-2.5 no-underline transition-all hover:border-neon-pink/25 hover:bg-neon-pink/[0.03]"
-							>
-								<List className="h-4 w-4 shrink-0 text-neon-pink/40" />
-								<div className="min-w-0 flex-1">
-									<p className="truncate text-sm text-cream/70 transition-colors group-hover:text-cream/90">
-										Created{" "}
-										<span className="font-semibold text-neon-pink/80">
-											{wl.name}
-										</span>
-									</p>
-									<p className="mt-0.5 font-mono-retro text-[9px] text-cream/25">
-										{wl.items.length}{" "}
-										{wl.items.length === 1 ? "title" : "titles"}
-									</p>
-								</div>
-								<span className="font-mono-retro text-[9px] text-cream/20">
-									{formatActivityTime(wl.createdAt)}
-								</span>
-							</Link>
-						);
-					}
+				if (item.type === "watchlist_created") {
+					const wl = item.data;
+					return (
+						<Link
+							key={`wl-${wl.id}`}
+							to="/app/watchlists/$watchlistId"
+							params={{ watchlistId: wl.id }}
+							search={{ sort: "date-added", type: "all" }}
+							className="group flex items-center gap-3 rounded-lg border border-neon-pink/15 px-3 py-2.5 no-underline transition-all hover:border-neon-pink/25 hover:bg-neon-pink/[0.03]"
+						>
+							<List className="h-4 w-4 shrink-0 text-neon-pink/40" />
+							<div className="min-w-0 flex-1">
+								<p className="truncate text-sm text-cream/70 transition-colors group-hover:text-cream/90">
+									Created{" "}
+									<span className="font-semibold text-neon-pink/80">
+										{wl.name}
+									</span>
+								</p>
+								<p className="mt-0.5 font-mono-retro text-[9px] text-cream/25">
+									{wl.items.length} {wl.items.length === 1 ? "title" : "titles"}
+								</p>
+							</div>
+							<span className="font-mono-retro text-[9px] text-cream/20">
+								{formatActivityTime(wl.createdAt)}
+							</span>
+						</Link>
+					);
+				}
 
-					if (item.type === "journal_entry") {
-						return (
-							<FeedJournalCard key={`je-${item.data.id}`} entry={item.data} />
-						);
-					}
+				if (item.type === "journal_entry") {
+					return (
+						<FeedJournalCard key={`je-${item.data.id}`} entry={item.data} />
+					);
+				}
 
-					return null;
-				})}
-			</div>
-
-			{hasNextPage && (
-				<button
-					type="button"
-					onClick={() => fetchNextPage()}
-					disabled={isFetchingNextPage}
-					className="mx-auto mt-4 block py-2 px-6 font-mono-retro text-[10px] tracking-wider text-cream/30 hover:text-cream/60 transition-colors"
-				>
-					{isFetchingNextPage ? (
-						<Loader2 className="h-3 w-3 animate-spin" />
-					) : (
-						"Load more"
-					)}
-				</button>
-			)}
-
-			{editModal && (
-				<ReviewModal
-					open={editModal.open}
-					onOpenChange={(open) => {
-						if (!open) setEditModal(null);
-					}}
-					tmdbId={editModal.tmdbId}
-					mediaType={editModal.mediaType}
-					titleName={editModal.titleName}
-					editEvent={editModal.event}
-				/>
-			)}
-		</>
+				return null;
+			})}
+		</div>
 	);
 }
 
