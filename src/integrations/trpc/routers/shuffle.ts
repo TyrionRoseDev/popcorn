@@ -45,23 +45,40 @@ async function assertMember(watchlistId: string, userId: string) {
 
 export const shuffleRouter = {
 	getOrCreateShuffleWatchlist: protectedProcedure.query(async ({ ctx }) => {
-		// Find existing shuffle watchlist
+		// Use the default "My Picks" watchlist for solo shuffle
 		const existing = await db.query.watchlist.findFirst({
 			where: and(
 				eq(watchlist.ownerId, ctx.userId),
-				eq(watchlist.type, "shuffle"),
+				eq(watchlist.type, "default"),
 			),
 		});
 		if (existing) return existing;
 
-		// Create a new shuffle watchlist
+		// Create default watchlist if it doesn't exist yet
 		return db.transaction(async (tx) => {
+			const check = await tx.query.watchlist.findFirst({
+				where: and(
+					eq(watchlist.ownerId, ctx.userId),
+					eq(watchlist.type, "default"),
+				),
+				columns: {
+					id: true,
+					name: true,
+					type: true,
+					ownerId: true,
+					isPublic: true,
+					createdAt: true,
+					updatedAt: true,
+				},
+			});
+			if (check) return check;
+
 			const [wl] = await tx
 				.insert(watchlist)
 				.values({
-					name: "Shuffle Picks",
+					name: "My Picks",
 					ownerId: ctx.userId,
-					type: "shuffle",
+					type: "default",
 				})
 				.returning();
 
@@ -276,7 +293,7 @@ export const shuffleRouter = {
 			});
 			if (!wl) throw new TRPCError({ code: "NOT_FOUND" });
 
-			const isSolo = wl.type === "shuffle";
+			const isSolo = wl.type === "default" || wl.type === "shuffle";
 
 			if (input.action === "yes") {
 				// Group mode: check member count for match logic
@@ -405,7 +422,11 @@ export const shuffleRouter = {
 					columns: { userId: true },
 				});
 
-				if (wl.type === "shuffle" || memberRows.length <= 1) {
+				if (
+					wl.type === "default" ||
+					wl.type === "shuffle" ||
+					memberRows.length <= 1
+				) {
 					await db
 						.delete(watchlistItem)
 						.where(
@@ -430,7 +451,11 @@ export const shuffleRouter = {
 			where: (wl, { inArray: inArr }) =>
 				and(
 					inArr(wl.id, watchlistIds),
-					or(eq(wl.type, "shuffle"), eq(wl.type, "custom")),
+					or(
+						eq(wl.type, "default"),
+						eq(wl.type, "shuffle"),
+						eq(wl.type, "custom"),
+					),
 				),
 			columns: { id: true, name: true, type: true },
 			with: {
@@ -439,7 +464,7 @@ export const shuffleRouter = {
 				},
 			},
 			orderBy: (wl, { desc }) => [
-				sql`CASE ${wl.type} WHEN 'shuffle' THEN 1 WHEN 'custom' THEN 2 ELSE 99 END`,
+				sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'shuffle' THEN 1 WHEN 'custom' THEN 2 ELSE 99 END`,
 				desc(wl.updatedAt),
 			],
 		});
