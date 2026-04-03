@@ -26,9 +26,38 @@ interface TrackerShowCardProps {
 
 function formatRuntime(minutes: number): string {
 	if (minutes < 60) return `${minutes}m`;
-	const h = Math.floor(minutes / 60);
-	const m = minutes % 60;
-	return m > 0 ? `${h}h ${m}m` : `${h}h`;
+
+	let remaining = minutes;
+
+	const years = Math.floor(remaining / (365 * 24 * 60));
+	remaining %= 365 * 24 * 60;
+
+	const months = Math.floor(remaining / (30 * 24 * 60));
+	remaining %= 30 * 24 * 60;
+
+	// Only use weeks when below month level
+	const useWeeks = years === 0 && months === 0;
+	const weeks = useWeeks ? Math.floor(remaining / (7 * 24 * 60)) : 0;
+	if (weeks > 0) remaining %= 7 * 24 * 60;
+
+	const days = Math.floor(remaining / (24 * 60));
+	remaining %= 24 * 60;
+
+	const hours = Math.floor(remaining / 60);
+	const mins = remaining % 60;
+
+	const parts: string[] = [];
+	if (years > 0) parts.push(`${years} ${years === 1 ? "year" : "years"}`);
+	if (months > 0) parts.push(`${months} ${months === 1 ? "month" : "months"}`);
+	if (weeks > 0) parts.push(`${weeks} ${weeks === 1 ? "week" : "weeks"}`);
+	if (days > 0) parts.push(`${days} ${days === 1 ? "day" : "days"}`);
+
+	const timeParts: string[] = [];
+	if (hours > 0) timeParts.push(`${hours}h`);
+	if (mins > 0) timeParts.push(`${mins}m`);
+	if (timeParts.length > 0) parts.push(timeParts.join(" "));
+
+	return parts.join(", ");
 }
 
 /**
