@@ -12,7 +12,7 @@ import {
 	RotateCcw,
 	Trash2,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CompletionCelebration } from "#/components/tracker/completion-celebration";
 import { RewatchConfirmModal } from "#/components/tracker/rewatch-confirm-modal";
@@ -47,6 +47,11 @@ function ShowTracker() {
 			watchlistType: string;
 		}>
 	>([]);
+	const [reviewPromptEpisode, setReviewPromptEpisode] = useState<{
+		seasonNumber: number;
+		episodeNumber: number;
+	} | null>(null);
+	const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
 	// Fetch current watch number (needed before getForShow)
 	const { data: watchNumberData } = useQuery(
@@ -166,6 +171,21 @@ function ShowTracker() {
 					);
 				if (isNowComplete && !hasShowReview) {
 					setShowCelebration(true);
+				}
+
+				// Prompt for episode review (last episode in batch)
+				if (variables.episodes.length === 1) {
+					const ep = variables.episodes[0];
+					setReviewPromptEpisode({
+						seasonNumber: ep.seasonNumber,
+						episodeNumber: ep.episodeNumber,
+					});
+				} else if (variables.episodes.length > 1) {
+					const lastEp = variables.episodes[variables.episodes.length - 1];
+					setReviewPromptEpisode({
+						seasonNumber: lastEp.seasonNumber,
+						episodeNumber: lastEp.episodeNumber,
+					});
 				}
 			},
 			onError: () => {
@@ -304,6 +324,13 @@ function ShowTracker() {
 			duration: 5000,
 		});
 	}
+
+	useEffect(() => {
+		if (reviewPromptEpisode && !reviewModalOpen) {
+			const timer = setTimeout(() => setReviewPromptEpisode(null), 8000);
+			return () => clearTimeout(timer);
+		}
+	}, [reviewPromptEpisode, reviewModalOpen]);
 
 	// Upcoming episodes (future air dates for "Returning Series")
 	const upcomingEpisodes = useMemo(() => {
@@ -1197,6 +1224,58 @@ function ShowTracker() {
 				}}
 				isPending={startRewatchMut.isPending}
 			/>
+
+			{/* Episode review prompt */}
+			{reviewPromptEpisode && !reviewModalOpen && (
+				<div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[rgba(15,15,40,0.98)] border border-neon-amber/25 rounded-xl px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.5),0_0_16px_rgba(255,184,0,0.08)] text-center animate-in slide-in-from-bottom-4 duration-300">
+					<div className="text-[13px] text-cream/70 mb-3">
+						Add thoughts on{" "}
+						<span className="text-neon-cyan font-semibold">
+							S{reviewPromptEpisode.seasonNumber}E
+							{reviewPromptEpisode.episodeNumber}
+						</span>
+						?
+					</div>
+					<div className="flex gap-2 justify-center">
+						<button
+							type="button"
+							onClick={() => {
+								setReviewModalOpen(true);
+							}}
+							className="px-4 py-1.5 bg-neon-amber/15 border border-neon-amber/30 rounded-md text-[12px] font-semibold text-neon-amber hover:bg-neon-amber/25 transition-colors"
+						>
+							Yes
+						</button>
+						<button
+							type="button"
+							onClick={() => setReviewPromptEpisode(null)}
+							className="px-4 py-1.5 bg-transparent border border-cream/10 rounded-md text-[12px] text-cream/40 hover:text-cream/60 transition-colors"
+						>
+							Dismiss
+						</button>
+					</div>
+				</div>
+			)}
+
+			{reviewModalOpen && reviewPromptEpisode && (
+				<ReviewModal
+					open={reviewModalOpen}
+					onOpenChange={(open) => {
+						setReviewModalOpen(open);
+						if (!open) setReviewPromptEpisode(null);
+					}}
+					titleName={titleData?.title ?? ""}
+					tmdbId={tmdbId}
+					mediaType="tv"
+					scope="episode"
+					scopeSeasonNumber={reviewPromptEpisode.seasonNumber}
+					scopeEpisodeNumber={reviewPromptEpisode.episodeNumber}
+					onEventCreated={() => {
+						setReviewPromptEpisode(null);
+						setReviewModalOpen(false);
+					}}
+				/>
+			)}
 		</div>
 	);
 }
