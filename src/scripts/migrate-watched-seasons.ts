@@ -1,6 +1,6 @@
 import { and, eq, isNotNull } from "drizzle-orm";
 import { db } from "#/db";
-import { episodeWatch, watchlistItem } from "#/db/schema";
+import { episodeWatch, userTitle, watchlistItem } from "#/db/schema";
 import { fetchSeasonDetails } from "#/lib/tmdb-title";
 
 async function migrateWatchedSeasons() {
@@ -31,6 +31,7 @@ async function migrateWatchedSeasons() {
 			`Migrating tmdbId=${item.tmdbId} for user=${userId}, seasons=${seasons.join(",")}`,
 		);
 
+		const failedSeasons: number[] = [];
 		for (const seasonNum of seasons) {
 			try {
 				const episodes = await fetchSeasonDetails(item.tmdbId, seasonNum);
@@ -47,11 +48,30 @@ async function migrateWatchedSeasons() {
 					await db.insert(episodeWatch).values(values).onConflictDoNothing();
 				}
 			} catch (error) {
+				failedSeasons.push(seasonNum);
 				console.error(
 					`Failed to fetch season ${seasonNum} for tmdbId=${item.tmdbId}:`,
 					error,
 				);
 			}
+		}
+
+		// Ensure a userTitle row exists so the show appears on the tracker dashboard
+		await db
+			.insert(userTitle)
+			.values({
+				userId,
+				tmdbId: item.tmdbId,
+				mediaType: "tv",
+				currentWatchNumber: 1,
+			})
+			.onConflictDoNothing();
+
+		if (failedSeasons.length > 0) {
+			console.warn(
+				`Skipping cleanup for tmdbId=${item.tmdbId} (user=${userId}): seasons ${failedSeasons.join(",")} failed`,
+			);
+			continue;
 		}
 
 		// Clear old watchedSeasons and TV runtime from watchlist item

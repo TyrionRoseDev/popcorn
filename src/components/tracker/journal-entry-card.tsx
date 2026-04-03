@@ -189,7 +189,8 @@ export function JournalEntryCard({
 							<PopoverTrigger asChild>
 								<button
 									type="button"
-									className="p-1 text-cream/15 hover:text-cream/50 transition-colors opacity-0 group-hover:opacity-100"
+									aria-label="More actions"
+									className="p-1 text-cream/15 hover:text-cream/50 transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
 								>
 									<MoreHorizontal className="h-4 w-4" />
 								</button>
