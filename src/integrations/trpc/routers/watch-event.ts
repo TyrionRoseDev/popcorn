@@ -461,6 +461,9 @@ export const watchEventRouter = {
 							mediaType: existing.mediaType,
 							titleName: input.titleName ?? existing.titleName,
 							watchEventId: input.id,
+							scope: existing.scope ?? null,
+							scopeSeasonNumber: existing.scopeSeasonNumber ?? null,
+							scopeEpisodeNumber: existing.scopeEpisodeNumber ?? null,
 						},
 					});
 				}
