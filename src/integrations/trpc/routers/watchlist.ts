@@ -890,6 +890,7 @@ export const watchlistRouter = {
 						inArray(watchlistItem.watchlistId, wlIds),
 						eq(watchlistItem.tmdbId, input.tmdbId),
 						eq(watchlistItem.mediaType, input.mediaType),
+						eq(watchlistItem.watched, false),
 					),
 				);
 
