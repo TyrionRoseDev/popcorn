@@ -1,6 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { MoreHorizontal, Pencil, Star, Trash2 } from "lucide-react";
+import {
+	Lock,
+	MoreHorizontal,
+	Pencil,
+	Star,
+	Trash2,
+	Users,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -22,6 +29,19 @@ interface WatchEventCardProps {
 		createdAt?: Date | string;
 		companions: Array<{ friendId: string | null; name: string }>;
 		visibility?: "public" | "companion" | "private";
+		originEventId?: string | null;
+		originEvent?: {
+			id: string;
+			rating: number | null;
+			note: string | null;
+			visibility: string;
+			userId: string;
+			user: {
+				id: string;
+				username: string | null;
+				avatarUrl: string | null;
+			};
+		} | null;
 	};
 	showTitle?: { name: string };
 	actor?: {
@@ -94,6 +114,9 @@ export function WatchEventCard({
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [confirmDelete, setConfirmDelete] = useState(false);
 
+	const isPrivate = event.visibility === "private";
+	const isCompanionOnly = event.visibility === "companion";
+
 	const deleteEvent = useMutation(
 		trpc.watchEvent.delete.mutationOptions({
 			onSuccess: () => {
@@ -151,13 +174,41 @@ export function WatchEventCard({
 
 	return (
 		<div
-			className="relative rounded-[10px] border border-neon-amber/20 p-4 transition-all hover:border-neon-amber/30 hover:-translate-y-px"
+			className={`relative rounded-[10px] border p-4 transition-all hover:-translate-y-px ${
+				isPrivate
+					? "border-cream/[0.08] hover:border-cream/15"
+					: isCompanionOnly
+						? "border-neon-cyan/15 hover:border-neon-cyan/25"
+						: "border-neon-amber/20 hover:border-neon-amber/30"
+			}`}
 			style={{
 				background:
 					"linear-gradient(145deg, rgba(10,10,30,0.95) 0%, rgba(15,15,35,0.8) 100%)",
 				boxShadow: "0 0 12px rgba(255,184,0,0.04), 0 4px 16px rgba(0,0,0,0.3)",
 			}}
 		>
+			{/* Privacy badge */}
+			{isOwn && (isPrivate || isCompanionOnly) && (
+				<div
+					className={`absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded ${
+						isPrivate ? "bg-cream/[0.05]" : "bg-neon-cyan/[0.06]"
+					}`}
+				>
+					{isPrivate ? (
+						<Lock className="h-2.5 w-2.5 text-cream/35" />
+					) : (
+						<Users className="h-2.5 w-2.5 text-neon-cyan/50" />
+					)}
+					<span
+						className={`text-[9px] font-mono-retro uppercase tracking-wider ${
+							isPrivate ? "text-cream/35" : "text-neon-cyan/50"
+						}`}
+					>
+						{isPrivate ? "Private" : "Shared"}
+					</span>
+				</div>
+			)}
+
 			{/* Header row: avatar + action + timestamp */}
 			{actor && (
 				<div className="flex items-center gap-2 mb-2.5">
@@ -310,6 +361,55 @@ export function WatchEventCard({
 					</p>
 				</div>
 			)}
+
+			{/* Reciprocal attribution — original reviewer's review */}
+			{event.originEvent &&
+				event.originEvent.rating != null &&
+				(() => {
+					const orig = event.originEvent;
+					const canSeeReview =
+						orig.visibility === "public" ||
+						(orig.visibility === "companion" && isOwn);
+					if (!canSeeReview) return null;
+
+					return (
+						<div
+							className="mt-2.5 py-2 px-3 rounded-r-md"
+							style={{
+								background: "rgba(255,184,0,0.03)",
+								borderLeft: "2px solid rgba(255,184,0,0.3)",
+							}}
+						>
+							<div className="flex items-center gap-1.5 mb-1">
+								<div className="w-4 h-4 rounded-full bg-neon-amber/15 flex items-center justify-center text-[7px] font-semibold text-neon-amber shrink-0">
+									{(orig.user?.username?.charAt(0) ?? "?").toUpperCase()}
+								</div>
+								<span className="text-[10px] font-semibold text-neon-amber/60">
+									{orig.user?.username ?? "Someone"}&apos;s review
+								</span>
+								{orig.rating && (
+									<div className="flex items-center gap-0.5 ml-auto">
+										{[1, 2, 3, 4, 5].map((s) => (
+											<Star
+												key={s}
+												className={`h-[11px] w-[11px] ${
+													s <= (orig.rating ?? 0)
+														? "text-neon-amber fill-neon-amber"
+														: "text-cream/8"
+												}`}
+											/>
+										))}
+									</div>
+								)}
+							</div>
+							{orig.note && (
+								<p className="text-[12px] text-cream/45 italic line-clamp-2">
+									{orig.note}
+								</p>
+							)}
+						</div>
+					);
+				})()}
 		</div>
 	);
 }
