@@ -25,6 +25,7 @@ function WatchlistDetailPage() {
 	const { watchlistId } = Route.useParams();
 	const { sort, type } = Route.useSearch();
 	const navigate = useNavigate({ from: Route.fullPath });
+	const [inviteOpen, setInviteOpen] = useState(false);
 
 	const [inviteOpen, setInviteOpen] = useState(false);
 
@@ -199,7 +200,7 @@ function WatchlistDetailPage() {
 				<InviteMemberModal
 					open={inviteOpen}
 					onOpenChange={setInviteOpen}
-					watchlistId={watchlist.id}
+					watchlistId={watchlistId}
 					watchlistName={watchlist.name}
 				/>
 			)}
