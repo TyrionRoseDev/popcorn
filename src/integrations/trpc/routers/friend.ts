@@ -629,6 +629,7 @@ export const friendRouter = createTRPCRouter({
 					favouriteFilmTmdbId: user.favouriteFilmTmdbId,
 					favouriteFilmMediaType: user.favouriteFilmMediaType,
 					favouriteGenreId: user.favouriteGenreId,
+					createdAt: user.createdAt,
 				})
 				.from(user)
 				.where(eq(user.id, input.userId));
@@ -737,11 +738,41 @@ export const friendRouter = createTRPCRouter({
 
 			const watchTimeMinutes = filmWatchTimeMinutes + tvWatchTimeMinutes;
 
+			// Total titles watched (distinct watch events)
+			const [watchedCount] = await db
+				.select({
+					count: sql<number>`count(distinct ${watchEvent.tmdbId})::int`,
+				})
+				.from(watchEvent)
+				.where(eq(watchEvent.userId, input.userId));
+
+			// Rating distribution (1-5 stars)
+			const ratingRows = await db
+				.select({
+					rating: watchEvent.rating,
+					count: sql<number>`count(*)::int`,
+				})
+				.from(watchEvent)
+				.where(
+					and(
+						eq(watchEvent.userId, input.userId),
+						sql`${watchEvent.rating} IS NOT NULL`,
+					),
+				)
+				.groupBy(watchEvent.rating);
+
+			const ratingDistribution = [1, 2, 3, 4, 5].map((star) => ({
+				star,
+				count: ratingRows.find((r) => r.rating === star)?.count ?? 0,
+			}));
+
 			// Base profile (always returned)
 			const profile = {
 				...targetUser,
 				friendCount: friendCount?.count ?? 0,
 				watchTimeMinutes,
+				totalWatched: watchedCount?.count ?? 0,
+				ratingDistribution,
 				relationshipStatus,
 				friendshipId,
 				isFriend,
