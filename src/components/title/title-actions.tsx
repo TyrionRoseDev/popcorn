@@ -82,6 +82,10 @@ export function TitleActions({
 		trpc.watchlist.isWatched.queryOptions({ tmdbId, mediaType }),
 	);
 
+	const { data: isBookmarked } = useQuery(
+		trpc.watchlist.isBookmarked.queryOptions({ tmdbId, mediaType }),
+	);
+
 	const { data: latestRating } = useQuery(
 		trpc.watchEvent.getLatestRating.queryOptions({ tmdbId, mediaType }),
 	);
@@ -291,7 +295,12 @@ export function TitleActions({
 				<Popover open={watchlistOpen} onOpenChange={setWatchlistOpen}>
 					<PopoverTrigger asChild>
 						<div>
-							<ArcadeButton icon={Plus} label="Watchlist" color="pink" />
+							<ArcadeButton
+								icon={Plus}
+								label="Watchlist"
+								color="pink"
+								active={!!isBookmarked}
+							/>
 						</div>
 					</PopoverTrigger>
 					<PopoverContent
