@@ -1291,8 +1291,8 @@ function NotesAndReviewsSection({
 				className="flex items-center gap-3 mb-4 pb-2"
 				style={{ borderBottom: "1px solid rgba(255,184,0,0.12)" }}
 			>
-				<BookOpen className="h-4 w-4 text-cream/30" />
-				<h2 className="font-display text-base tracking-wide text-cream/50">
+				<BookOpen className="h-4 w-4 text-cream/50" />
+				<h2 className="font-display text-base tracking-wide text-cream/70">
 					Notes & Reviews
 				</h2>
 			</div>
@@ -1306,26 +1306,26 @@ function NotesAndReviewsSection({
 								key={`note-${entry.id}`}
 								className="group relative pl-4 py-3 pr-3 rounded-lg transition-colors duration-200"
 								style={{
-									background: "rgba(0,229,255,0.02)",
-									borderLeft: "2px solid rgba(0,229,255,0.2)",
+									background: "rgba(0,229,255,0.04)",
+									borderLeft: "2px solid rgba(0,229,255,0.35)",
 								}}
 							>
 								{/* Top row: scope badge, time, actions */}
 								<div className="flex items-center justify-between mb-2">
 									<div className="flex items-center gap-2">
-										<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-cyan/[0.06] font-mono-retro text-[9px] tracking-wider text-neon-cyan/50">
+										<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-cyan/[0.12] font-mono-retro text-[9px] tracking-wider text-neon-cyan/70">
 											{formatScopeBadge(
 												entry.scope,
 												entry.seasonNumber,
 												entry.episodeNumber,
 											)}
 										</span>
-										<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-pink/[0.06] font-mono-retro text-[9px] tracking-wider text-neon-pink/40">
+										<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-pink/[0.12] font-mono-retro text-[9px] tracking-wider text-neon-pink/60">
 											{entry.watchNumber === 1
 												? "Watch 1"
 												: `Rewatch ${entry.watchNumber}`}
 										</span>
-										<span className="font-mono-retro text-[9px] text-cream/20">
+										<span className="font-mono-retro text-[9px] text-cream/35">
 											{formatRelativeDate(entry.createdAt)}
 										</span>
 									</div>
@@ -1338,7 +1338,7 @@ function NotesAndReviewsSection({
 									</button>
 								</div>
 								{/* Note text */}
-								<p className="text-sm text-cream/55 leading-relaxed whitespace-pre-wrap">
+								<p className="text-sm text-cream/75 leading-relaxed whitespace-pre-wrap">
 									{entry.note}
 								</p>
 							</div>
@@ -1351,8 +1351,8 @@ function NotesAndReviewsSection({
 							key={`review-${event.id}`}
 							className="group relative pl-4 py-3 pr-3 rounded-lg transition-colors duration-200"
 							style={{
-								background: "rgba(255,184,0,0.02)",
-								borderLeft: "2px solid rgba(255,184,0,0.2)",
+								background: "rgba(255,184,0,0.04)",
+								borderLeft: "2px solid rgba(255,184,0,0.35)",
 							}}
 						>
 							{/* Top row */}
@@ -1363,26 +1363,26 @@ function NotesAndReviewsSection({
 											{Array.from({ length: 5 }).map((_, i) => (
 												<span
 													key={`star-${event.id}-${i.toString()}`}
-													className={`text-[10px] ${event.rating != null && i < event.rating ? "text-neon-amber" : "text-cream/10"}`}
+													className={`text-[10px] ${event.rating != null && i < event.rating ? "text-neon-amber" : "text-cream/15"}`}
 												>
 													★
 												</span>
 											))}
 										</span>
 									)}
-									<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-amber/[0.06] font-mono-retro text-[9px] tracking-wider text-neon-amber/50">
+									<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-amber/[0.12] font-mono-retro text-[9px] tracking-wider text-neon-amber/70">
 										{formatScopeBadge(
 											event.scope,
 											event.scopeSeasonNumber,
 											event.scopeEpisodeNumber,
 										)}
 									</span>
-									<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-pink/[0.06] font-mono-retro text-[9px] tracking-wider text-neon-pink/40">
+									<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-pink/[0.12] font-mono-retro text-[9px] tracking-wider text-neon-pink/60">
 										{event.watchNumber === 1
 											? "Watch 1"
 											: `Rewatch ${event.watchNumber}`}
 									</span>
-									<span className="font-mono-retro text-[9px] text-cream/20">
+									<span className="font-mono-retro text-[9px] text-cream/35">
 										{formatRelativeDate(event.createdAt)}
 									</span>
 								</div>
@@ -1396,7 +1396,7 @@ function NotesAndReviewsSection({
 							</div>
 							{/* Review text */}
 							{event.note && (
-								<p className="text-sm text-cream/55 leading-relaxed whitespace-pre-wrap">
+								<p className="text-sm text-cream/75 leading-relaxed whitespace-pre-wrap">
 									{event.note}
 								</p>
 							)}

@@ -273,7 +273,7 @@ export function TrackerShowCard({
 			)}
 
 			{/* ── Content overlay at bottom of card ────────────────────────── */}
-			<div className="relative z-10 flex h-full min-h-[220px] flex-col justify-end p-3 pb-0">
+			<div className="pointer-events-none relative z-10 flex h-full min-h-[220px] flex-col justify-end p-3 pb-0">
 				<div className="flex items-end gap-2.5">
 					{/* Mini poster thumbnail */}
 					<div
