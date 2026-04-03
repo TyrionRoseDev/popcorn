@@ -444,7 +444,7 @@ function WatchlistCreatedCard({
 function formatTimeAgo(date: Date | string): string {
 	const now = new Date();
 	const d = new Date(date);
-	const diffMs = now.getTime() - d.getTime();
+	const diffMs = Math.max(0, now.getTime() - d.getTime());
 	const diffMin = Math.floor(diffMs / 60000);
 	const diffHr = Math.floor(diffMs / 3600000);
 	const diffDay = Math.floor(diffMs / 86400000);
@@ -474,7 +474,10 @@ function groupByDate(
 	for (const item of items) {
 		const date = new Date(item.timestamp);
 		const now = new Date();
-		const diffDays = Math.floor((now.getTime() - date.getTime()) / 86400000);
+		const diffDays = Math.max(
+			0,
+			Math.floor((now.getTime() - date.getTime()) / 86400000),
+		);
 
 		let label: string;
 		if (diffDays === 0) label = "Today";

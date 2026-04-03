@@ -435,11 +435,7 @@ export const watchEventRouter = {
 			const watchEvents = await db.query.watchEvent.findMany({
 				where: and(
 					inArray(watchEvent.userId, userIds),
-					...(cursorDate
-						? [
-								sql`COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}) < ${cursorDate}`,
-							]
-						: []),
+					...(cursorDate ? [sql`${watchEvent.createdAt} < ${cursorDate}`] : []),
 				),
 				with: {
 					companions: true,
@@ -451,9 +447,7 @@ export const watchEventRouter = {
 						},
 					},
 				},
-				orderBy: (e, { desc }) => [
-					desc(sql`COALESCE(${e.watchedAt}, ${e.createdAt})`),
-				],
+				orderBy: (e, { desc }) => [desc(e.createdAt)],
 				limit: input.limit + 1,
 			});
 
@@ -554,7 +548,7 @@ export const watchEventRouter = {
 			const merged: FeedItem[] = [
 				...filteredWatchEvents.map((e) => ({
 					type: "watch_event" as const,
-					timestamp: new Date(e.watchedAt ?? e.createdAt),
+					timestamp: new Date(e.createdAt),
 					data: e,
 				})),
 				...watchlistCreations.map((wl) => ({

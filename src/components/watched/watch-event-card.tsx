@@ -40,17 +40,21 @@ interface WatchEventCardProps {
 	}) => void;
 }
 
-function formatTimeAgo(date: Date | string): string {
+function formatPostedTime(date: Date | string): string {
 	const now = new Date();
 	const d = new Date(date);
-	const diffMs = now.getTime() - d.getTime();
+	const diffMs = Math.max(0, now.getTime() - d.getTime());
 	const diffMin = Math.floor(diffMs / 60000);
-	const diffHr = Math.floor(diffMs / 3600000);
 	const diffDay = Math.floor(diffMs / 86400000);
 
 	if (diffMin < 1) return "Just now";
 	if (diffMin < 60) return `${diffMin}m ago`;
-	if (diffHr < 24) return `${diffHr}h ago`;
+	if (diffDay === 0) {
+		return d.toLocaleTimeString("en-US", {
+			hour: "numeric",
+			minute: "2-digit",
+		});
+	}
 	if (diffDay === 1) return "Yesterday";
 	if (diffDay < 30) return `${diffDay}d ago`;
 	return d.toLocaleDateString("en-US", {
@@ -66,6 +70,16 @@ function formatDate(date: Date | string): string {
 		day: "numeric",
 		year: "numeric",
 	});
+}
+
+function isSameDay(a: Date | string, b: Date | string): boolean {
+	const da = new Date(a);
+	const db = new Date(b);
+	return (
+		da.getFullYear() === db.getFullYear() &&
+		da.getMonth() === db.getMonth() &&
+		da.getDate() === db.getDate()
+	);
 }
 
 export function WatchEventCard({
@@ -171,7 +185,7 @@ export function WatchEventCard({
 						{event.watchedAt ? "watched" : "logged"}
 					</span>
 					<span className="text-[10px] text-cream/20 ml-auto font-mono-retro">
-						{formatTimeAgo(event.watchedAt ?? event.createdAt ?? new Date())}
+						{formatPostedTime(event.createdAt ?? event.watchedAt ?? new Date())}
 					</span>
 				</div>
 			)}
@@ -192,6 +206,13 @@ export function WatchEventCard({
 							{showTitle.name}
 						</Link>
 					)}
+
+					{actor &&
+						!isSameDay(event.watchedAt, event.createdAt ?? event.watchedAt) && (
+							<div className="font-mono-retro text-[10px] tracking-[1px] text-cream/25 mt-1">
+								watched on {formatDate(event.watchedAt)}
+							</div>
+						)}
 
 					{!actor && (
 						<div className="font-mono-retro text-[10px] tracking-[1px] text-[rgba(255,184,0,0.45)] mt-1">
