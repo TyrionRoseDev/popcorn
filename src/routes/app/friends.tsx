@@ -421,72 +421,78 @@ function DiscoverResultCard({
 		<motion.div
 			initial={{ opacity: 0, y: 12 }}
 			animate={{ opacity: 1, y: 0 }}
-			className="group flex items-center gap-4 rounded-lg border border-neon-cyan/10 px-4 py-3 transition-colors hover:border-neon-cyan/30 hover:bg-neon-cyan/[0.02]"
+			className="group flex overflow-hidden rounded-lg transition-all hover:-translate-y-px"
 			style={{
-				background:
-					"linear-gradient(180deg, rgba(10,10,30,0.92) 0%, rgba(10,10,30,0.82) 100%)",
-				boxShadow:
-					"0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.02)",
+				border: "1px solid rgba(0,229,255,0.1)",
+				background: "rgba(8,6,18,0.95)",
+				boxShadow: "0 2px 16px rgba(0,0,0,0.4)",
 			}}
 		>
-			<div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-neon-cyan/0 transition-colors duration-200 group-hover:bg-neon-cyan/25" />
+			{/* Left sprockets */}
+			<VerticalSprockets color="#00E5FF" side="left" />
 
-			<Link
-				to="/app/profile/$userId"
-				params={{ userId: user.id }}
-				className="shrink-0 no-underline"
-			>
-				{user.avatarUrl ? (
-					<img
-						src={user.avatarUrl}
-						alt=""
-						className="h-11 w-11 rounded-full border border-neon-cyan/20 object-cover transition-colors group-hover:border-neon-cyan/40"
-					/>
-				) : (
-					<div
-						className="flex h-11 w-11 items-center justify-center rounded-full border border-neon-cyan/20 transition-colors group-hover:border-neon-cyan/40"
-						style={{ background: gradient }}
-					>
-						<span className="text-[15px] font-bold text-cream/90">
-							{initial}
-						</span>
-					</div>
-				)}
-			</Link>
-
-			<div className="min-w-0 flex-1">
+			{/* Content */}
+			<div className="flex flex-1 items-center gap-3 px-4 py-3">
 				<Link
 					to="/app/profile/$userId"
 					params={{ userId: user.id }}
-					className="block truncate font-mono-retro text-sm text-cream/85 no-underline transition-colors hover:text-neon-cyan"
+					className="shrink-0 no-underline"
 				>
-					@{user.username ?? "unknown"}
+					{user.avatarUrl ? (
+						<img
+							src={user.avatarUrl}
+							alt=""
+							className="h-11 w-11 rounded-full border border-neon-cyan/20 object-cover transition-colors group-hover:border-neon-cyan/40"
+						/>
+					) : (
+						<div
+							className="flex h-11 w-11 items-center justify-center rounded-full border border-neon-cyan/20 transition-colors group-hover:border-neon-cyan/40"
+							style={{ background: gradient }}
+						>
+							<span className="text-[15px] font-bold text-cream/90">
+								{initial}
+							</span>
+						</div>
+					)}
 				</Link>
+
+				<div className="min-w-0 flex-1">
+					<Link
+						to="/app/profile/$userId"
+						params={{ userId: user.id }}
+						className="block truncate font-mono-retro text-sm text-cream/85 no-underline transition-colors hover:text-neon-cyan"
+					>
+						@{user.username ?? "unknown"}
+					</Link>
+				</div>
+
+				<div className="shrink-0">
+					{isFriend ? (
+						<span className="flex items-center gap-1.5 rounded-full border border-green-500/20 bg-green-500/8 px-3 py-1.5 font-mono-retro text-xs text-green-400/70">
+							<Check className="h-3 w-3" />
+							Friends
+						</span>
+					) : requestSent ? (
+						<span className="flex items-center gap-1.5 rounded-full border border-cream/10 bg-cream/[0.04] px-3 py-1.5 font-mono-retro text-xs text-cream/35">
+							<Clock className="h-3 w-3" />
+							Request Sent
+						</span>
+					) : (
+						<button
+							type="button"
+							disabled={sendRequestMutation.isPending}
+							onClick={() => sendRequestMutation.mutate({ userId: user.id })}
+							className="flex cursor-pointer items-center gap-1.5 rounded-full border border-neon-pink/30 bg-neon-pink/10 px-3 py-1.5 font-mono-retro text-xs text-neon-pink transition-all hover:border-neon-pink/50 hover:bg-neon-pink/20 hover:shadow-[0_0_12px_rgba(255,45,120,0.15)] disabled:opacity-50"
+						>
+							<UserPlus className="h-3 w-3" />
+							{sendRequestMutation.isPending ? "Sending..." : "Add Friend"}
+						</button>
+					)}
+				</div>
 			</div>
 
-			<div className="shrink-0">
-				{isFriend ? (
-					<span className="flex items-center gap-1.5 rounded-full border border-green-500/20 bg-green-500/8 px-3 py-1.5 font-mono-retro text-xs text-green-400/70">
-						<Check className="h-3 w-3" />
-						Friends
-					</span>
-				) : requestSent ? (
-					<span className="flex items-center gap-1.5 rounded-full border border-cream/10 bg-cream/[0.04] px-3 py-1.5 font-mono-retro text-xs text-cream/35">
-						<Clock className="h-3 w-3" />
-						Request Sent
-					</span>
-				) : (
-					<button
-						type="button"
-						disabled={sendRequestMutation.isPending}
-						onClick={() => sendRequestMutation.mutate({ userId: user.id })}
-						className="flex cursor-pointer items-center gap-1.5 rounded-full border border-neon-amber/30 bg-neon-amber/10 px-3 py-1.5 font-mono-retro text-xs text-neon-amber transition-all hover:border-neon-amber/50 hover:bg-neon-amber/20 hover:shadow-[0_0_12px_rgba(255,184,0,0.15)] disabled:opacity-50"
-					>
-						<UserPlus className="h-3 w-3" />
-						{sendRequestMutation.isPending ? "Sending..." : "Add Friend"}
-					</button>
-				)}
-			</div>
+			{/* Right sprockets */}
+			<VerticalSprockets color="#00E5FF" side="right" />
 		</motion.div>
 	);
 }
