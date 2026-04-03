@@ -137,7 +137,13 @@ function TrackerDashboard() {
 		trpc.episodeTracker.startRewatch.mutationOptions({
 			onSuccess: (data) => {
 				queryClient.invalidateQueries(
+					trpc.episodeTracker.getForShow.queryFilter(),
+				);
+				queryClient.invalidateQueries(
 					trpc.episodeTracker.getTrackedShows.queryFilter(),
+				);
+				queryClient.invalidateQueries(
+					trpc.episodeTracker.getWatchNumber.queryFilter(),
 				);
 				setRewatchTarget(null);
 				toast.success(

@@ -98,7 +98,9 @@ function FilmStripCard({ friend }: { friend: Friend }) {
 			friend.favouriteFilmTmdbId
 				? {
 						tmdbId: friend.favouriteFilmTmdbId,
-						mediaType: "movie" as const,
+						mediaType: (friend.favouriteFilmMediaType === "tv"
+							? "tv"
+							: "movie") as const,
 					}
 				: skipToken,
 		),
@@ -339,6 +341,7 @@ function PendingRequestCard({
 				<div className="flex shrink-0 items-center gap-2">
 					<button
 						type="button"
+						aria-label="Accept friend request"
 						disabled={isPending}
 						onClick={() =>
 							acceptMutation.mutate({
@@ -351,6 +354,7 @@ function PendingRequestCard({
 					</button>
 					<button
 						type="button"
+						aria-label="Decline friend request"
 						disabled={isPending}
 						onClick={() =>
 							declineMutation.mutate({
@@ -551,6 +555,7 @@ function FriendsPage() {
 					<Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neon-pink/50" />
 					<input
 						type="text"
+						aria-label="Search friends or find new people"
 						placeholder="Search friends or find new people..."
 						value={searchInput}
 						onChange={(e) => setSearchInput(e.target.value)}
