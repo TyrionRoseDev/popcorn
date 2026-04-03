@@ -196,9 +196,7 @@ export const watchEventRouter = {
 								note: null,
 								title: input.titleName ?? null,
 								posterPath: input.posterPath ?? null,
-								watchedAt: input.watchedAt
-									? new Date(input.watchedAt)
-									: new Date(),
+								watchedAt: input.watchedAt ? new Date(input.watchedAt) : null,
 								genreIds,
 								scope: input.scope ?? null,
 								scopeSeasonNumber: input.scopeSeasonNumber ?? null,

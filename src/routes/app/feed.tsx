@@ -45,7 +45,7 @@ function FeedPage() {
 			id: string;
 			rating: number | null;
 			note: string | null;
-			watchedAt: string;
+			watchedAt: string | null;
 			companions: Companion[];
 			visibility: "public" | "companion" | "private";
 		};

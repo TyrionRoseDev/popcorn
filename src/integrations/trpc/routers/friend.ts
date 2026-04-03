@@ -968,7 +968,9 @@ export const friendRouter = createTRPCRouter({
 						eq(watchEvent.visibility, "public"),
 					),
 				)
-				.orderBy(sql`${watchEvent.watchedAt} desc`);
+				.orderBy(
+					sql`COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}) desc`,
+				);
 
 			// Deduplicate by tmdbId+mediaType (keep first / most recent)
 			const seen = new Set<string>();

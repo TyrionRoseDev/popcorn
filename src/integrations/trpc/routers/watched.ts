@@ -49,7 +49,8 @@ export const watchedRouter = createTRPCRouter({
 					.refine((d) => new Date(d) <= new Date(), {
 						message: "Watch date cannot be in the future",
 					})
-					.optional(),
+					.optional()
+					.nullable(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -73,7 +74,9 @@ export const watchedRouter = createTRPCRouter({
 					rating: input.rating,
 					reviewText: input.reviewText,
 					reviewReminderAt: null,
-					...(input.watchedAt && { watchedAt: new Date(input.watchedAt) }),
+					...(input.watchedAt !== undefined
+						? { watchedAt: input.watchedAt ? new Date(input.watchedAt) : null }
+						: {}),
 					updatedAt: new Date(),
 				})
 				.where(

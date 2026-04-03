@@ -65,7 +65,7 @@ export function TitleActions({
 				id: string;
 				rating: number | null;
 				note: string | null;
-				watchedAt: string;
+				watchedAt: string | null;
 				companions: Array<{ friendId?: string; name: string }>;
 				visibility: "public" | "companion" | "private";
 		  }
@@ -104,7 +104,9 @@ export function TitleActions({
 			id: event.id,
 			rating: event.rating,
 			note: event.note,
-			watchedAt: event.watchedAt ? new Date(event.watchedAt).toISOString() : "",
+			watchedAt: event.watchedAt
+				? new Date(event.watchedAt).toISOString()
+				: null,
 			companions: event.companions.map((c) => ({
 				friendId: c.friendId ?? undefined,
 				name: c.name,

@@ -54,7 +54,7 @@ interface WatchEventCardProps {
 		id: string;
 		rating: number | null;
 		note: string | null;
-		watchedAt: string;
+		watchedAt: string | null;
 		companions: Companion[];
 		visibility: "public" | "companion" | "private";
 	}) => void;
@@ -148,7 +148,9 @@ export function WatchEventCard({
 			id: event.id,
 			rating: event.rating,
 			note: event.note,
-			watchedAt: event.watchedAt ? new Date(event.watchedAt).toISOString() : "",
+			watchedAt: event.watchedAt
+				? new Date(event.watchedAt).toISOString()
+				: null,
 			companions: event.companions.map((c) => ({
 				friendId: c.friendId ?? undefined,
 				name: c.name,
@@ -259,19 +261,26 @@ export function WatchEventCard({
 					)}
 
 					{actor &&
+						event.watchedAt &&
 						!isSameDay(event.watchedAt, event.createdAt ?? event.watchedAt) && (
 							<div className="font-mono-retro text-[10px] tracking-[1px] text-cream/25 mt-1">
 								watched on {formatDate(event.watchedAt)}
 							</div>
 						)}
 
+					{actor && !event.watchedAt && event.createdAt && (
+						<div className="font-mono-retro text-[10px] tracking-[1px] text-cream/25 mt-1">
+							logged on {formatDate(event.createdAt)}
+						</div>
+					)}
+
 					{!actor && (
 						<div className="font-mono-retro text-[10px] tracking-[1px] text-[rgba(255,184,0,0.45)] mt-1">
 							{event.watchedAt
 								? formatDate(event.watchedAt)
 								: event.createdAt
-									? `Logged ${formatDate(event.createdAt)}`
-									: "Date unknown"}
+									? `logged ${formatDate(event.createdAt)}`
+									: ""}
 						</div>
 					)}
 
