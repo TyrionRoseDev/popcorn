@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { BookOpen } from "lucide-react";
 
 interface FeedJournalCardProps {
 	entry: {
@@ -65,32 +64,21 @@ export function FeedJournalCard({ entry }: FeedJournalCardProps) {
 
 	return (
 		<div
-			className="relative rounded-[10px] border border-neon-amber/20 p-4 transition-colors hover:border-neon-amber/30"
+			className="relative rounded-[10px] border border-neon-cyan/15 p-4 transition-all hover:border-neon-cyan/25 hover:-translate-y-px"
 			style={{
 				background:
 					"linear-gradient(145deg, rgba(10,10,30,0.95) 0%, rgba(15,15,35,0.8) 100%)",
-				boxShadow:
-					"0 0 12px rgba(255,184,0,0.05), inset 0 1px 0 rgba(255,255,240,0.03)",
+				boxShadow: "0 0 12px rgba(0,229,255,0.04), 0 4px 16px rgba(0,0,0,0.3)",
 			}}
 		>
-			{/* Warm radial light overlay */}
-			<div
-				aria-hidden="true"
-				className="pointer-events-none absolute inset-0 rounded-[10px]"
-				style={{
-					background:
-						"radial-gradient(ellipse at top left, rgba(255,184,0,0.06), transparent 50%)",
-				}}
-			/>
-
 			{/* Header row */}
-			<div className="relative z-10 flex items-center gap-2 mb-2">
+			<div className="flex items-center gap-2 mb-2.5">
 				<Link
 					to="/app/profile/$userId"
 					params={{ userId: actor.id }}
 					className="flex items-center gap-2 no-underline"
 				>
-					<div className="w-7 h-7 rounded-full bg-cream/10 flex items-center justify-center text-xs font-medium text-cream/60 shrink-0">
+					<div className="w-7 h-7 rounded-full bg-neon-cyan/15 border border-neon-cyan/20 flex items-center justify-center text-[11px] font-medium text-neon-cyan shrink-0">
 						{actor.avatarUrl ? (
 							<img
 								src={actor.avatarUrl}
@@ -101,41 +89,46 @@ export function FeedJournalCard({ entry }: FeedJournalCardProps) {
 							(actor.username?.charAt(0) ?? "?").toUpperCase()
 						)}
 					</div>
-					<span className="text-xs font-semibold text-cream/80">
+					<span className="text-[13px] font-semibold text-cream/75">
 						{actor.username ?? "Someone"}
 					</span>
 				</Link>
 				<span className="text-xs text-cream/30">wrote about</span>
-				<Link
-					to="/app/title/$mediaType/$tmdbId"
-					params={{ mediaType: "tv", tmdbId: entry.tmdbId }}
-					className="text-xs font-semibold text-cream/70 hover:text-cream no-underline transition-colors truncate"
-				>
-					{entry.titleName}
-				</Link>
-				{badge && (
-					<span className="text-xs text-cream/30 shrink-0">· {badge}</span>
-				)}
-				<span className="text-[10px] text-cream/25 ml-auto shrink-0">
+				<span className="text-[10px] text-cream/20 ml-auto font-mono-retro">
 					{formatTimeAgo(entry.createdAt)}
 				</span>
 			</div>
 
-			{/* Note body */}
-			<div className="relative z-10 ml-9">
-				<div
-					className="h-px mb-2"
-					style={{
-						background:
-							"linear-gradient(90deg, rgba(255,184,0,0.2), transparent 80%)",
-					}}
-				/>
-				<div className="flex items-start gap-2">
-					<BookOpen className="h-3 w-3 text-neon-cyan/30 mt-0.5 shrink-0" />
-					<p className="relative text-[12.5px] leading-[1.6] text-cream/55 pl-3 line-clamp-3 before:absolute before:left-0 before:top-0.5 before:bottom-0.5 before:w-0.5 before:rounded-full before:bg-[rgba(0,229,255,0.2)]">
-						{entry.note}
-					</p>
+			{/* Main row: title + scope on left */}
+			<div className="flex items-start justify-between gap-4">
+				<div className="min-w-0 flex-1">
+					<Link
+						to="/app/title/$mediaType/$tmdbId"
+						params={{ mediaType: "tv", tmdbId: entry.tmdbId }}
+						className="text-[15px] font-bold text-neon-cyan no-underline hover:text-neon-cyan/90"
+						style={{ textShadow: "0 0 8px rgba(0,229,255,0.15)" }}
+					>
+						{entry.titleName}
+					</Link>
+					{badge && (
+						<span className="ml-2 text-[11px] font-mono-retro text-cream/35">
+							{badge}
+						</span>
+					)}
 				</div>
+			</div>
+
+			{/* Note row */}
+			<div
+				className="mt-2.5 py-1.5 px-3 rounded-r-md"
+				style={{
+					background: "rgba(0,229,255,0.03)",
+					borderLeft: "2px solid rgba(0,229,255,0.25)",
+				}}
+			>
+				<p className="text-[12px] text-cream/50 italic line-clamp-3">
+					{entry.note}
+				</p>
 			</div>
 		</div>
 	);
