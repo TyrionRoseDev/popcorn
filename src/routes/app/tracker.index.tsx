@@ -178,7 +178,7 @@ function TrackerDashboard() {
 	] as const;
 
 	return (
-		<div className="relative mx-auto max-w-3xl px-4 pt-10 pb-16">
+		<div className="relative mx-auto max-w-3xl px-4 pt-8 pb-16">
 			{/* Atmospheric background glow */}
 			<div
 				aria-hidden="true"
@@ -191,9 +191,9 @@ function TrackerDashboard() {
 
 			<div className="relative z-10">
 				{/* ── Marquee Header ─────────────────────────────────────────────── */}
-				<div className="mb-6">
-					<NowShowingHeader title="Series Tracker" />
+				<NowShowingHeader title="Series Tracker" />
 
+				<div className="mb-6">
 					{/* Stats ribbon */}
 					{!isLoadingShowsTab && totalShows > 0 && (
 						<div className="mt-4 flex items-center justify-center gap-4">
