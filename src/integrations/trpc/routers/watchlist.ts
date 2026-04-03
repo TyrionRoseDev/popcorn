@@ -854,6 +854,83 @@ export const watchlistRouter = {
 			}
 		}),
 
+	getWatchlistsForTitle: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+			}),
+		)
+		.query(async ({ input, ctx }) => {
+			const ownedWatchlists = await db
+				.select({
+					watchlistId: watchlistMember.watchlistId,
+				})
+				.from(watchlistMember)
+				.where(
+					and(
+						eq(watchlistMember.userId, ctx.userId),
+						eq(watchlistMember.role, "owner"),
+					),
+				);
+
+			const wlIds = ownedWatchlists.map((m) => m.watchlistId);
+			if (wlIds.length === 0) return [];
+
+			const items = await db
+				.select({
+					watchlistId: watchlistItem.watchlistId,
+					watchlistName: watchlist.name,
+					watchlistType: watchlist.type,
+				})
+				.from(watchlistItem)
+				.innerJoin(watchlist, eq(watchlist.id, watchlistItem.watchlistId))
+				.where(
+					and(
+						inArray(watchlistItem.watchlistId, wlIds),
+						eq(watchlistItem.tmdbId, input.tmdbId),
+						eq(watchlistItem.mediaType, input.mediaType),
+					),
+				);
+
+			return items;
+		}),
+
+	removeFromMultipleWatchlists: protectedProcedure
+		.input(
+			z.object({
+				watchlistIds: z.array(z.string()).min(1),
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			// Verify user owns all specified watchlists
+			const ownedWatchlists = await db
+				.select({ watchlistId: watchlistMember.watchlistId })
+				.from(watchlistMember)
+				.where(
+					and(
+						eq(watchlistMember.userId, ctx.userId),
+						eq(watchlistMember.role, "owner"),
+						inArray(watchlistMember.watchlistId, input.watchlistIds),
+					),
+				);
+
+			const ownedIds = ownedWatchlists.map((m) => m.watchlistId);
+			if (ownedIds.length === 0) return;
+
+			await db
+				.delete(watchlistItem)
+				.where(
+					and(
+						inArray(watchlistItem.watchlistId, ownedIds),
+						eq(watchlistItem.tmdbId, input.tmdbId),
+						eq(watchlistItem.mediaType, input.mediaType),
+					),
+				);
+		}),
+
 	removeMember: protectedProcedure
 		.input(
 			z.object({

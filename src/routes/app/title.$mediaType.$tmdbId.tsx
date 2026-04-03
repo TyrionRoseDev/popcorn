@@ -128,6 +128,7 @@ function TitlePage() {
 						year={data.year}
 						reviewEventId={reviewEventId}
 						seasonList={data.seasonList}
+						status={data.status}
 					/>
 				</div>
 

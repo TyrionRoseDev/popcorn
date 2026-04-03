@@ -18,6 +18,7 @@ import { CompletionCelebration } from "#/components/tracker/completion-celebrati
 import { RewatchConfirmModal } from "#/components/tracker/rewatch-confirm-modal";
 import { WriteAboutModal } from "#/components/tracker/write-about-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
+import { WatchlistRemovalDialog } from "#/components/watchlist/watchlist-removal-dialog";
 import { useTRPC } from "#/integrations/trpc/react";
 
 export const Route = createFileRoute("/app/tracker/$tmdbId")({
@@ -30,6 +31,7 @@ function ShowTracker() {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	const [reviewOpen, setReviewOpen] = useState(false);
+	const [pendingRemoval, setPendingRemoval] = useState(false);
 	const [showCelebration, setShowCelebration] = useState(false);
 	const [writeAboutOpen, setWriteAboutOpen] = useState(false);
 	const [rewatchOpen, setRewatchOpen] = useState(false);
@@ -37,6 +39,14 @@ function ShowTracker() {
 	const [selectedWatchNumber, setSelectedWatchNumber] = useState<number | null>(
 		null,
 	);
+	const [removalDialogOpen, setRemovalDialogOpen] = useState(false);
+	const [removalWatchlists, setRemovalWatchlists] = useState<
+		Array<{
+			watchlistId: string;
+			watchlistName: string;
+			watchlistType: string;
+		}>
+	>([]);
 
 	// Fetch current watch number (needed before getForShow)
 	const { data: watchNumberData } = useQuery(
@@ -190,6 +200,47 @@ function ShowTracker() {
 			},
 		}),
 	);
+
+	const removeItemMutation = useMutation(
+		trpc.watchlist.removeItem.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(trpc.watchlist.list.queryFilter());
+				queryClient.invalidateQueries(trpc.watchlist.get.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.watchlist.isBookmarked.queryFilter(),
+				);
+			},
+		}),
+	);
+
+	function triggerWatchlistRemoval() {
+		queryClient
+			.fetchQuery(
+				trpc.watchlist.getWatchlistsForTitle.queryOptions({
+					tmdbId,
+					mediaType: "tv",
+				}),
+			)
+			.then((wls) => {
+				if (wls.length === 0) return;
+				if (wls.length === 1) {
+					removeItemMutation.mutate(
+						{
+							watchlistId: wls[0].watchlistId,
+							tmdbId,
+							mediaType: "tv",
+						},
+						{
+							onSuccess: () =>
+								toast.success(`Removed from ${wls[0].watchlistName}`),
+						},
+					);
+				} else {
+					setRemovalWatchlists(wls);
+					setRemovalDialogOpen(true);
+				}
+			});
+	}
 
 	const startRewatchMut = useMutation(
 		trpc.episodeTracker.startRewatch.mutationOptions({
@@ -1062,7 +1113,10 @@ function ShowTracker() {
 					titleName={titleData.title}
 					posterPath={titleData.posterPath ?? null}
 					episodeCount={totalEpisodes}
-					onReview={() => setReviewOpen(true)}
+					onReview={() => {
+						setPendingRemoval(true);
+						setReviewOpen(true);
+					}}
 					onRemindLater={() => {
 						createReminder.mutate({
 							tmdbId,
@@ -1073,6 +1127,7 @@ function ShowTracker() {
 							scope: "show",
 						});
 						toast.success("We'll remind you to review in 7 days");
+						triggerWatchlistRemoval();
 					}}
 				/>
 			)}
@@ -1081,12 +1136,29 @@ function ShowTracker() {
 			{titleData && (
 				<ReviewModal
 					open={reviewOpen}
-					onOpenChange={setReviewOpen}
+					onOpenChange={(open) => {
+						setReviewOpen(open);
+						if (!open && pendingRemoval) {
+							setPendingRemoval(false);
+							triggerWatchlistRemoval();
+						}
+					}}
 					titleName={titleData.title}
 					year={titleData.year || undefined}
 					tmdbId={tmdbId}
 					mediaType="tv"
-					onEventCreated={() => setReviewOpen(false)}
+				/>
+			)}
+
+			{/* Watchlist removal dialog (after show completion) */}
+			{titleData && (
+				<WatchlistRemovalDialog
+					open={removalDialogOpen}
+					onOpenChange={setRemovalDialogOpen}
+					tmdbId={tmdbId}
+					mediaType="tv"
+					titleName={titleData.title}
+					watchlists={removalWatchlists}
 				/>
 			)}
 
