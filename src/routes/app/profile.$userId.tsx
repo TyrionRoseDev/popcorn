@@ -330,9 +330,9 @@ function ProfilePage() {
 						))}
 					</div>
 
-					<div className="relative z-10 px-6 pb-7 pt-5 md:px-8">
+					<div className="relative z-10 px-6 pb-7 pt-4 md:px-8">
 						{/* ── Hero section (centered) ── */}
-						<div className="flex flex-col items-center gap-4">
+						<div className="flex flex-col items-center gap-2">
 							{/* ── Avatar ── */}
 							<div className="relative">
 								{/* Rotating neon ring */}
@@ -606,40 +606,38 @@ function ProfilePage() {
 								</div>
 							)}
 
-							{/* ── Watched hours + total count ── */}
-							<div className="mt-2 flex items-center justify-center gap-5">
+							{/* ── Watched hours ── */}
+							<div className="mt-1 flex flex-col items-center">
+								<span
+									className="font-display text-3xl text-neon-amber"
+									style={{
+										textShadow: "0 0 18px rgba(255,184,0,0.35)",
+									}}
+								>
+									{Math.floor((profile.watchTimeMinutes ?? 0) / 60)}h{" "}
+									{(profile.watchTimeMinutes ?? 0) % 60}m
+								</span>
+								<span className="mt-1 font-mono-retro text-[9px] uppercase tracking-[3px] text-cream/45">
+									Watched
+								</span>
+							</div>
+
+							{/* ── Titles + Friends + Genre + Mutual row ── */}
+							<div className="mt-1 flex items-center justify-center gap-6">
 								<div className="flex flex-col items-center">
 									<span
-										className="font-display text-3xl text-neon-amber"
+										className="font-display text-lg text-neon-cyan"
 										style={{
-											textShadow: "0 0 18px rgba(255,184,0,0.35)",
-										}}
-									>
-										{Math.floor((profile.watchTimeMinutes ?? 0) / 60)}h{" "}
-										{(profile.watchTimeMinutes ?? 0) % 60}m
-									</span>
-									<span className="mt-1 font-mono-retro text-[9px] uppercase tracking-[3px] text-cream/45">
-										Watched
-									</span>
-								</div>
-								<div className="h-8 w-px bg-cream/10" />
-								<div className="flex flex-col items-center">
-									<span
-										className="font-display text-3xl text-neon-cyan"
-										style={{
-											textShadow: "0 0 18px rgba(0,229,255,0.35)",
+											textShadow: "0 0 10px rgba(0,229,255,0.3)",
 										}}
 									>
 										{profile.totalWatched}
 									</span>
-									<span className="mt-1 font-mono-retro text-[9px] uppercase tracking-[3px] text-cream/45">
+									<span className="mt-0.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/45">
 										Titles
 									</span>
 								</div>
-							</div>
-
-							{/* ── Friends + Genre + Mutual row ── */}
-							<div className="mt-4 flex items-center justify-center gap-6">
+								<div className="h-6 w-px bg-cream/10" />
 								<div className="flex flex-col items-center">
 									<span
 										className="font-display text-lg text-neon-cyan"
@@ -690,7 +688,7 @@ function ProfilePage() {
 							{/* ── Bio ── */}
 							{profile.bio && (
 								<div
-									className="mt-5 w-full max-w-lg rounded-lg border border-neon-amber/20 px-4 py-3"
+									className="mt-3 w-full max-w-lg rounded-lg border border-neon-amber/20 px-4 py-3"
 									style={{
 										background:
 											"linear-gradient(135deg, rgba(255,184,0,0.03), rgba(255,184,0,0.01))",
