@@ -53,7 +53,9 @@ function FeedPage() {
 			<div className="relative z-[2] mx-auto max-w-2xl 2xl:max-w-3xl px-4 py-8">
 				{/* Car silhouettes + Marquee header */}
 				<CarSilhouettes />
-				<NowShowingHeader title="Feed" />
+				<div className="mt-4">
+					<NowShowingHeader title="Feed" />
+				</div>
 
 				{/* Filter */}
 				<div className="flex justify-end mt-7 mb-6">
