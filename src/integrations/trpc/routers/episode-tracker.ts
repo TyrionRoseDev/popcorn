@@ -374,4 +374,89 @@ export const episodeTrackerRouter = {
 				);
 			return { success: true };
 		}),
+	/** Mark episodes from a companion notification — adds show to tracker and marks relevant episodes */
+	markFromNotification: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				scope: z.string().nullable(),
+				scopeSeasonNumber: z.number().nullable(),
+				scopeEpisodeNumber: z.number().nullable(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			// Add show to tracker if not already tracked
+			await db
+				.insert(userTitle)
+				.values({
+					userId: ctx.userId,
+					tmdbId: input.tmdbId,
+					mediaType: "tv",
+				})
+				.onConflictDoNothing();
+
+			const title = await db.query.userTitle.findFirst({
+				where: and(
+					eq(userTitle.userId, ctx.userId),
+					eq(userTitle.tmdbId, input.tmdbId),
+					eq(userTitle.mediaType, "tv"),
+				),
+				columns: { currentWatchNumber: true },
+			});
+			const watchNum = title?.currentWatchNumber ?? 1;
+
+			// Mark specific episode if scoped
+			if (
+				input.scope === "episode" &&
+				input.scopeSeasonNumber != null &&
+				input.scopeEpisodeNumber != null
+			) {
+				const seasonData = await fetchSeasonDetails(
+					input.tmdbId,
+					input.scopeSeasonNumber,
+				);
+				const episode = seasonData.find(
+					(ep: { episodeNumber: number }) =>
+						ep.episodeNumber === input.scopeEpisodeNumber,
+				);
+				if (episode) {
+					await db
+						.insert(episodeWatch)
+						.values({
+							userId: ctx.userId,
+							tmdbId: input.tmdbId,
+							seasonNumber: input.scopeSeasonNumber,
+							episodeNumber: input.scopeEpisodeNumber,
+							runtime: episode.runtime ?? 0,
+							watchNumber: watchNum,
+						})
+						.onConflictDoNothing();
+				}
+			} else if (input.scope === "season" && input.scopeSeasonNumber != null) {
+				// Mark entire season
+				const episodes = await fetchSeasonDetails(
+					input.tmdbId,
+					input.scopeSeasonNumber,
+				);
+				if (episodes.length > 0) {
+					await db
+						.insert(episodeWatch)
+						.values(
+							episodes.map(
+								(ep: { episodeNumber: number; runtime: number | null }) => ({
+									userId: ctx.userId,
+									tmdbId: input.tmdbId,
+									seasonNumber: input.scopeSeasonNumber as number,
+									episodeNumber: ep.episodeNumber,
+									runtime: ep.runtime ?? 0,
+									watchNumber: watchNum,
+								}),
+							),
+						)
+						.onConflictDoNothing();
+				}
+			}
+
+			return { success: true };
+		}),
 } satisfies TRPCRouterRecord;
