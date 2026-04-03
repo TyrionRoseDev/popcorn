@@ -5,18 +5,11 @@ import {
 	useQueryClient,
 } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-	Check,
-	Clock,
-	Heart,
-	Search,
-	UserPlus,
-	UserSearch,
-	X,
-} from "lucide-react";
+import { Check, Clock, Search, UserPlus, UserSearch, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { FriendsAtmosphere } from "#/components/friends/friends-atmosphere";
 import { NowShowingHeader } from "#/components/watchlist/now-showing-header";
 import { useTRPC } from "#/integrations/trpc/react";
 
@@ -48,12 +41,57 @@ interface Friend {
 	favouriteFilmMediaType: string | null;
 	favouriteGenreId: number | null;
 	bio: string | null;
+	watchCount: number;
+	avgRating: number | null;
+	listCount: number;
 }
 
-function TicketStubCard({ friend }: { friend: Friend }) {
+function SprocketRow({ color }: { color: string }) {
+	return (
+		<div
+			className="flex justify-center gap-[10px] py-1.5"
+			style={{
+				background: `${color}04`,
+				borderBottom: `1px solid ${color}12`,
+			}}
+		>
+			{[0, 1, 2, 3, 4, 5].map((i) => (
+				<div
+					key={i}
+					className="h-[5px] w-2 rounded-sm transition-colors"
+					style={{ background: `${color}26` }}
+				/>
+			))}
+		</div>
+	);
+}
+
+function SprocketRowBottom({ color }: { color: string }) {
+	return (
+		<div
+			className="flex justify-center gap-[10px] py-1.5"
+			style={{
+				background: `${color}04`,
+				borderTop: `1px solid ${color}12`,
+			}}
+		>
+			{[0, 1, 2, 3, 4, 5].map((i) => (
+				<div
+					key={i}
+					className="h-[5px] w-2 rounded-sm transition-colors"
+					style={{ background: `${color}26` }}
+				/>
+			))}
+		</div>
+	);
+}
+
+function FilmStripCard({ friend }: { friend: Friend }) {
 	const trpc = useTRPC();
 	const initial = (friend.username ?? "?").charAt(0).toUpperCase();
 	const gradient = getAvatarGradient(initial);
+	// Extract the first color from the gradient for sprocket/border accents
+	const accentColor = gradient.match(/#[A-Fa-f0-9]{6}/)?.[0] ?? "#FF2D78";
 
 	const { data: favFilm } = useQuery(
 		trpc.title.details.queryOptions(
@@ -73,79 +111,98 @@ function TicketStubCard({ friend }: { friend: Friend }) {
 			className="group block no-underline"
 		>
 			<div
-				className="relative overflow-hidden rounded-lg border border-neon-amber/12 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-neon-amber/45 group-hover:shadow-[0_4px_20px_rgba(255,184,0,0.12),0_2px_12px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.03)]"
+				className="relative overflow-hidden rounded-[10px] transition-all duration-200 group-hover:-translate-y-0.5"
 				style={{
-					background:
-						"linear-gradient(180deg, rgba(10,10,30,0.95) 0%, rgba(10,10,30,0.85) 100%)",
-					boxShadow:
-						"0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)",
+					border: `1px solid ${accentColor}1a`,
+					background: "rgba(8,6,18,0.95)",
+					boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
 				}}
 			>
-				{/* Neon top-border glow on hover */}
-				<div className="absolute inset-x-0 top-0 h-px bg-neon-amber/0 transition-colors duration-200 group-hover:bg-neon-amber/40" />
-				<div
-					className="absolute inset-x-0 top-0 h-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-					style={{
-						height: "3px",
-						background:
-							"linear-gradient(180deg, rgba(255,184,0,0.25) 0%, transparent 100%)",
-					}}
-				/>
+				{/* Top sprockets */}
+				<SprocketRow color={accentColor} />
 
-				{/* ADMIT ONE label rotated on right edge */}
-				<div className="pointer-events-none absolute right-0 top-0 z-10 flex h-full w-5 items-center justify-center">
-					<span className="whitespace-nowrap font-mono-retro text-[7px] uppercase tracking-[2px] text-cream/8 rotate-90">
-						ADMIT ONE
-					</span>
-				</div>
-
-				{/* Top section: avatar + username */}
-				<div className="flex items-center gap-3 px-4 py-3 pr-6">
-					{friend.avatarUrl ? (
-						<img
-							src={friend.avatarUrl}
-							alt=""
-							className="h-10 w-10 shrink-0 rounded-full border border-neon-amber/20 object-cover"
-						/>
-					) : (
-						<div
-							className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neon-amber/20"
-							style={{ background: gradient }}
-						>
-							<span className="text-[15px] font-bold text-cream/90">
-								{initial}
-							</span>
+				{/* Interior */}
+				<div className="p-4">
+					{/* Avatar + name row */}
+					<div className="flex items-center gap-3">
+						{friend.avatarUrl ? (
+							<img
+								src={friend.avatarUrl}
+								alt=""
+								className="h-[50px] w-[50px] shrink-0 rounded-full object-cover"
+								style={{
+									border: `2px solid ${accentColor}4d`,
+									boxShadow: `0 0 20px ${accentColor}26`,
+								}}
+							/>
+						) : (
+							<div
+								className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full"
+								style={{
+									background: gradient,
+									boxShadow: `0 0 20px ${accentColor}26`,
+								}}
+							>
+								<span className="text-xl font-bold text-cream/90">
+									{initial}
+								</span>
+							</div>
+						)}
+						<div className="min-w-0">
+							<div className="truncate font-mono-retro text-sm font-bold text-cream/92">
+								@{friend.username ?? "unknown"}
+							</div>
+							<div className="mt-0.5 truncate text-[10px] text-cream/30">
+								♥{" "}
+								{favFilm?.title
+									? favFilm.title
+									: friend.favouriteFilmTmdbId
+										? "Loading…"
+										: "No fave yet"}
+							</div>
 						</div>
-					)}
-					<span className="truncate font-mono-retro text-sm text-cream/85">
-						@{friend.username ?? "unknown"}
-					</span>
+					</div>
+
+					{/* Stats bar */}
+					<div className="mt-3.5 flex gap-px overflow-hidden rounded-md">
+						<div
+							className="flex-1 py-2 text-center"
+							style={{ background: "rgba(255,45,120,0.06)" }}
+						>
+							<div className="font-mono-retro text-base font-bold text-neon-pink">
+								{friend.watchCount}
+							</div>
+							<div className="mt-0.5 text-[7px] uppercase tracking-[1.5px] text-cream/25">
+								Watched
+							</div>
+						</div>
+						<div
+							className="flex-1 py-2 text-center"
+							style={{ background: "rgba(255,184,0,0.06)" }}
+						>
+							<div className="font-mono-retro text-base font-bold text-neon-amber">
+								{friend.avgRating != null ? friend.avgRating.toFixed(1) : "—"}
+							</div>
+							<div className="mt-0.5 text-[7px] uppercase tracking-[1.5px] text-cream/25">
+								Avg ★
+							</div>
+						</div>
+						<div
+							className="flex-1 py-2 text-center"
+							style={{ background: "rgba(0,229,255,0.06)" }}
+						>
+							<div className="font-mono-retro text-base font-bold text-neon-cyan">
+								{friend.listCount}
+							</div>
+							<div className="mt-0.5 text-[7px] uppercase tracking-[1.5px] text-cream/25">
+								Lists
+							</div>
+						</div>
+					</div>
 				</div>
 
-				{/* Dashed tear line with punch holes */}
-				<div className="relative flex h-px items-center">
-					<div className="absolute -left-2.5 z-10 h-5 w-5 rounded-full bg-drive-in-bg" />
-					<div className="absolute -right-2.5 z-10 h-5 w-5 rounded-full bg-drive-in-bg" />
-					<div className="mx-3 w-full border-t border-dashed border-neon-amber/18" />
-				</div>
-
-				{/* Bottom section: favourite film + minutes watched */}
-				<div className="flex items-center gap-3 px-4 py-2.5 pr-6">
-					<div className="flex min-w-0 flex-1 items-center gap-1.5">
-						<Heart className="h-3 w-3 shrink-0 text-neon-pink/75" />
-						<span className="truncate text-xs text-cream/40">
-							{favFilm?.title
-								? favFilm.title
-								: friend.favouriteFilmTmdbId
-									? "Loading…"
-									: "No fave yet"}
-						</span>
-					</div>
-					<div className="flex shrink-0 items-center gap-1">
-						<Clock className="h-3 w-3 text-neon-amber/50" />
-						<span className="text-xs text-cream/30">&mdash;</span>
-					</div>
-				</div>
+				{/* Bottom sprockets */}
+				<SprocketRowBottom color={accentColor} />
 			</div>
 		</Link>
 	);
@@ -436,181 +493,184 @@ function FriendsPage() {
 	const otherUsers = (searchResults ?? []).filter((u) => !friendIds.has(u.id));
 
 	return (
-		<div className="relative mx-auto max-w-4xl px-4 pb-16 pt-10">
-			<NowShowingHeader title="Friends" />
+		<>
+			<FriendsAtmosphere />
+			<div className="relative z-[2] mx-auto max-w-2xl px-4 pt-8 pb-16">
+				<NowShowingHeader title="Friends" />
 
-			{/* Search bar */}
-			<div className="relative mx-auto mt-8 max-w-xl">
-				<Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neon-amber/50" />
-				<input
-					type="text"
-					placeholder="Search friends or find new people..."
-					value={searchInput}
-					onChange={(e) => setSearchInput(e.target.value)}
-					className="w-full rounded-lg border border-neon-amber/25 bg-neon-amber/[0.05] py-3 pl-10 pr-4 text-sm text-cream/85 outline-none transition-all placeholder:text-cream/25 focus:border-neon-amber/50 focus:shadow-[0_0_20px_rgba(255,184,0,0.08)]"
-				/>
-				{(searchLoading || isTyping) && hasApiQuery && (
-					<div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-						<div className="h-4 w-4 animate-spin rounded-full border-2 border-neon-amber/20 border-t-neon-amber/60" />
-					</div>
-				)}
-			</div>
-
-			<div className="mt-8">
-				{/* Pending requests section — only when not searching and requests exist */}
-				{!isSearching && pendingRequests && pendingRequests.length > 0 && (
-					<motion.div
-						initial={{ opacity: 0, y: 8 }}
-						animate={{ opacity: 1, y: 0 }}
-						className="mb-8"
-					>
-						<p className="mb-3 font-mono-retro text-[11px] uppercase tracking-[2px] text-neon-amber/50">
-							Friend Requests
-						</p>
-						<div className="flex flex-col gap-2">
-							<AnimatePresence mode="popLayout">
-								{pendingRequests.map((request) => (
-									<PendingRequestCard
-										key={request.friendshipId}
-										request={request}
-									/>
-								))}
-							</AnimatePresence>
+				{/* Search bar */}
+				<div className="relative mx-auto mt-8 max-w-xl">
+					<Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neon-pink/50" />
+					<input
+						type="text"
+						placeholder="Search friends or find new people..."
+						value={searchInput}
+						onChange={(e) => setSearchInput(e.target.value)}
+						className="w-full rounded-lg border border-neon-pink/25 bg-neon-pink/[0.05] py-3 pl-10 pr-4 text-sm text-cream/85 outline-none transition-all placeholder:text-cream/25 focus:border-neon-pink/50 focus:shadow-[0_0_20px_rgba(255,45,120,0.08)]"
+					/>
+					{(searchLoading || isTyping) && hasApiQuery && (
+						<div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+							<div className="h-4 w-4 animate-spin rounded-full border-2 border-neon-pink/20 border-t-neon-pink/60" />
 						</div>
-						<div className="mt-8 border-t border-neon-amber/10" />
-					</motion.div>
-				)}
+					)}
+				</div>
 
-				{/* Main content */}
-				<AnimatePresence mode="wait">
-					{isSearching ? (
+				<div className="mt-8">
+					{/* Pending requests section — only when not searching and requests exist */}
+					{!isSearching && pendingRequests && pendingRequests.length > 0 && (
 						<motion.div
-							key="search-results"
 							initial={{ opacity: 0, y: 8 }}
 							animate={{ opacity: 1, y: 0 }}
-							exit={{ opacity: 0, y: -8 }}
-							transition={{ duration: 0.2 }}
+							className="mb-8"
 						>
-							{/* Filtered friends */}
-							{filteredFriends.length > 0 && (
-								<div className="mb-8">
-									<p className="mb-3 font-mono-retro text-[11px] uppercase tracking-[2px] text-neon-amber/50">
-										Your Friends
-									</p>
-									<div className="grid grid-cols-2 gap-3">
-										{filteredFriends.map((friend) => (
-											<TicketStubCard key={friend.id} friend={friend} />
-										))}
-									</div>
-								</div>
-							)}
-
-							{/* Other users from search */}
-							{hasApiQuery && (
-								<div>
-									<p className="mb-3 font-mono-retro text-[11px] uppercase tracking-[2px] text-neon-cyan/50">
-										Other Users
-									</p>
-									{searchLoading || isTyping ? (
-										<div className="flex flex-col gap-2">
-											{SKELETON_KEYS.map((key) => (
-												<div
-													key={key}
-													className="h-[60px] animate-pulse rounded-lg bg-cream/[0.03]"
-												/>
-											))}
-										</div>
-									) : otherUsers.length > 0 ? (
-										<div className="flex flex-col gap-2">
-											{otherUsers.map((user, index) => (
-												<motion.div
-													key={user.id}
-													initial={{ opacity: 0, y: 12 }}
-													animate={{ opacity: 1, y: 0 }}
-													transition={{
-														duration: 0.25,
-														delay: index * 0.06,
-													}}
-												>
-													<DiscoverResultCard
-														user={user}
-														isFriend={friendIds.has(user.id)}
-													/>
-												</motion.div>
-											))}
-										</div>
-									) : (
-										<div className="flex flex-col items-center py-12 text-center">
-											<Search className="mb-3 h-8 w-8 text-neon-amber/15" />
-											<p className="text-sm text-cream/40">
-												No other users found matching &ldquo;{debouncedQuery}
-												&rdquo;
-											</p>
-										</div>
-									)}
-								</div>
-							)}
-
-							{/* No matches at all */}
-							{filteredFriends.length === 0 && !hasApiQuery && (
-								<div className="flex flex-col items-center py-16 text-center">
-									<Search className="mb-3 h-8 w-8 text-neon-amber/15" />
-									<p className="text-sm text-cream/35">
-										No friends match &ldquo;{searchInput}&rdquo;
-									</p>
-									<p className="mt-1 text-xs text-cream/20">
-										Type at least 2 characters to search all users
-									</p>
-								</div>
-							)}
-						</motion.div>
-					) : (
-						<motion.div
-							key="friends-grid"
-							initial={{ opacity: 0, y: 8 }}
-							animate={{ opacity: 1, y: 0 }}
-							exit={{ opacity: 0, y: -8 }}
-							transition={{ duration: 0.2 }}
-						>
-							{friendsLoading ? (
-								<div className="grid grid-cols-2 gap-3">
-									{SKELETON_KEYS.map((key) => (
-										<div
-											key={key}
-											className="h-24 animate-pulse rounded-lg bg-cream/[0.04]"
+							<p className="mb-3 font-mono-retro text-[11px] uppercase tracking-[2px] text-neon-pink/50">
+								Friend Requests
+							</p>
+							<div className="flex flex-col gap-2">
+								<AnimatePresence mode="popLayout">
+									{pendingRequests.map((request) => (
+										<PendingRequestCard
+											key={request.friendshipId}
+											request={request}
 										/>
 									))}
-								</div>
-							) : friends && friends.length > 0 ? (
-								<div className="grid grid-cols-2 gap-3">
-									{friends.map((friend) => (
-										<TicketStubCard key={friend.id} friend={friend} />
-									))}
-								</div>
-							) : (
-								<div className="flex flex-col items-center py-20 text-center">
-									<div
-										className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-neon-amber/15"
-										style={{
-											background:
-												"radial-gradient(circle, rgba(255,184,0,0.06) 0%, transparent 70%)",
-										}}
-									>
-										<UserSearch className="h-8 w-8 text-neon-amber/25" />
-									</div>
-									<p className="font-display text-lg text-cream/45">
-										No friends yet
-									</p>
-									<p className="mt-1.5 max-w-xs text-sm text-cream/25">
-										Search by username above to find people and send friend
-										requests
-									</p>
-								</div>
-							)}
+								</AnimatePresence>
+							</div>
+							<div className="mt-8 border-t border-neon-pink/10" />
 						</motion.div>
 					)}
-				</AnimatePresence>
+
+					{/* Main content */}
+					<AnimatePresence mode="wait">
+						{isSearching ? (
+							<motion.div
+								key="search-results"
+								initial={{ opacity: 0, y: 8 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -8 }}
+								transition={{ duration: 0.2 }}
+							>
+								{/* Filtered friends */}
+								{filteredFriends.length > 0 && (
+									<div className="mb-8">
+										<p className="mb-3 font-mono-retro text-[11px] uppercase tracking-[2px] text-neon-pink/50">
+											Your Friends
+										</p>
+										<div className="grid grid-cols-2 gap-3">
+											{filteredFriends.map((friend) => (
+												<FilmStripCard key={friend.id} friend={friend} />
+											))}
+										</div>
+									</div>
+								)}
+
+								{/* Other users from search */}
+								{hasApiQuery && (
+									<div>
+										<p className="mb-3 font-mono-retro text-[11px] uppercase tracking-[2px] text-neon-cyan/50">
+											Other Users
+										</p>
+										{searchLoading || isTyping ? (
+											<div className="flex flex-col gap-2">
+												{SKELETON_KEYS.map((key) => (
+													<div
+														key={key}
+														className="h-[60px] animate-pulse rounded-lg bg-cream/[0.03]"
+													/>
+												))}
+											</div>
+										) : otherUsers.length > 0 ? (
+											<div className="flex flex-col gap-2">
+												{otherUsers.map((user, index) => (
+													<motion.div
+														key={user.id}
+														initial={{ opacity: 0, y: 12 }}
+														animate={{ opacity: 1, y: 0 }}
+														transition={{
+															duration: 0.25,
+															delay: index * 0.06,
+														}}
+													>
+														<DiscoverResultCard
+															user={user}
+															isFriend={friendIds.has(user.id)}
+														/>
+													</motion.div>
+												))}
+											</div>
+										) : (
+											<div className="flex flex-col items-center py-12 text-center">
+												<Search className="mb-3 h-8 w-8 text-neon-pink/15" />
+												<p className="text-sm text-cream/40">
+													No other users found matching &ldquo;{debouncedQuery}
+													&rdquo;
+												</p>
+											</div>
+										)}
+									</div>
+								)}
+
+								{/* No matches at all */}
+								{filteredFriends.length === 0 && !hasApiQuery && (
+									<div className="flex flex-col items-center py-16 text-center">
+										<Search className="mb-3 h-8 w-8 text-neon-pink/15" />
+										<p className="text-sm text-cream/35">
+											No friends match &ldquo;{searchInput}&rdquo;
+										</p>
+										<p className="mt-1 text-xs text-cream/20">
+											Type at least 2 characters to search all users
+										</p>
+									</div>
+								)}
+							</motion.div>
+						) : (
+							<motion.div
+								key="friends-grid"
+								initial={{ opacity: 0, y: 8 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -8 }}
+								transition={{ duration: 0.2 }}
+							>
+								{friendsLoading ? (
+									<div className="grid grid-cols-2 gap-3">
+										{SKELETON_KEYS.map((key) => (
+											<div
+												key={key}
+												className="h-[180px] animate-pulse rounded-lg bg-cream/[0.04]"
+											/>
+										))}
+									</div>
+								) : friends && friends.length > 0 ? (
+									<div className="grid grid-cols-2 gap-3">
+										{friends.map((friend) => (
+											<FilmStripCard key={friend.id} friend={friend} />
+										))}
+									</div>
+								) : (
+									<div className="flex flex-col items-center py-20 text-center">
+										<div
+											className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-neon-pink/15"
+											style={{
+												background:
+													"radial-gradient(circle, rgba(255,45,120,0.06) 0%, transparent 70%)",
+											}}
+										>
+											<UserSearch className="h-8 w-8 text-neon-pink/25" />
+										</div>
+										<p className="font-display text-lg text-cream/45">
+											No friends yet
+										</p>
+										<p className="mt-1.5 max-w-xs text-sm text-cream/25">
+											Search by username above to find people and send friend
+											requests
+										</p>
+									</div>
+								)}
+							</motion.div>
+						)}
+					</AnimatePresence>
+				</div>
 			</div>
-		</div>
+		</>
 	);
 }
