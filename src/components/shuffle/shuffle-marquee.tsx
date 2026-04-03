@@ -1,123 +1,92 @@
-const BULB_COUNT = 15;
-
-const TOP_BULBS = Array.from({ length: BULB_COUNT }, (_, i) => ({
-	id: `top-${i}`,
-	even: i % 2 === 0,
-}));
-
-const BOTTOM_BULBS = Array.from({ length: BULB_COUNT }, (_, i) => ({
-	id: `bot-${i}`,
-	even: i % 2 === 0,
-}));
-
-const SIDE_BULB_COUNT = 5;
-const SIDE_BULBS = Array.from({ length: SIDE_BULB_COUNT }, (_, i) => ({
-	id: `side-${i}`,
+const BULBS = Array.from({ length: 20 }, (_, i) => ({
+	id: `bulb-${i}`,
 	even: i % 2 === 0,
 }));
 
 export function ShuffleMarquee() {
 	return (
-		<div className="relative w-full max-w-[340px]">
+		<div className="w-[700px] max-w-full h-[130px] mx-auto relative flex flex-col items-center justify-center px-10">
+			{/* Amber border */}
 			<div
-				className="relative rounded-xl border-[3px] border-neon-amber/40 px-5 py-3 text-center"
+				aria-hidden="true"
 				style={{
-					background: "rgba(8,8,24,0.92)",
-					boxShadow:
-						"0 0 30px rgba(255,184,0,0.1), 0 0 60px rgba(255,184,0,0.05), inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.3)",
+					position: "absolute",
+					inset: 0,
+					border: "2px solid rgba(255,184,0,0.3)",
+					borderRadius: "8px",
+					boxShadow: "0 0 20px rgba(255,184,0,0.08)",
+					pointerEvents: "none",
+				}}
+			/>
+
+			{/* Top chasing bulbs */}
+			<div
+				aria-hidden="true"
+				className="flex gap-3 justify-center"
+				style={{
+					position: "absolute",
+					top: "-4px",
+					left: "20px",
+					right: "20px",
 				}}
 			>
-				{/* Top bulbs */}
-				<div
-					aria-hidden="true"
-					className="absolute left-2 right-2 top-[-4px] flex justify-between"
-				>
-					{TOP_BULBS.map((b) => (
-						<Bulb key={b.id} even={b.even} />
-					))}
-				</div>
-
-				{/* Bottom bulbs */}
-				<div
-					aria-hidden="true"
-					className="absolute bottom-[-4px] left-2 right-2 flex justify-between"
-				>
-					{BOTTOM_BULBS.map((b) => (
-						<Bulb key={b.id} even={!b.even} />
-					))}
-				</div>
-
-				{/* Left bulbs */}
-				<div
-					aria-hidden="true"
-					className="absolute bottom-2 left-[-4px] top-2 flex flex-col justify-between"
-				>
-					{SIDE_BULBS.map((b) => (
-						<Bulb key={b.id} even={b.even} />
-					))}
-				</div>
-
-				{/* Right bulbs */}
-				<div
-					aria-hidden="true"
-					className="absolute bottom-2 right-[-4px] top-2 flex flex-col justify-between"
-				>
-					{SIDE_BULBS.map((b) => (
-						<Bulb key={b.id} even={!b.even} />
-					))}
-				</div>
-
-				{/* Content */}
-				<p className="font-mono-retro text-[10px] tracking-[6px] text-neon-amber/40">
-					✦ ✦ ✦
-				</p>
-				<p className="mt-0.5 font-mono-retro text-[8px] uppercase tracking-[4px] text-neon-amber/50">
-					Now Shuffling
-				</p>
-				<h1
-					className="font-display text-xl font-bold uppercase tracking-[4px] text-neon-amber/95"
-					style={{
-						textShadow:
-							"0 0 10px rgba(255,184,0,0.6), 0 0 30px rgba(255,184,0,0.3), 0 0 60px rgba(255,184,0,0.15)",
-						animationName: "neon-flicker",
-						animationDuration: "4s",
-						animationTimingFunction: "ease-in-out",
-						animationIterationCount: "infinite",
-					}}
-				>
-					Showtime
-					<br />
-					Shuffle
-				</h1>
-				<div
-					className="mx-auto mt-1.5 mb-1"
-					style={{
-						width: "60%",
-						height: "1px",
-						background:
-							"linear-gradient(90deg, transparent, rgba(255,184,0,0.3), transparent)",
-					}}
-				/>
-				<p className="font-mono-retro text-[10px] tracking-[6px] text-neon-amber/40">
-					✦ ✦ ✦
-				</p>
+				{BULBS.map((bulb) => (
+					<div
+						key={bulb.id}
+						className="bg-neon-amber rounded-full"
+						style={{
+							width: "6px",
+							height: "6px",
+							flexShrink: 0,
+							animation: bulb.even
+								? "chase 1.2s infinite"
+								: "chase 1.2s infinite 0.6s",
+						}}
+					/>
+				))}
 			</div>
-		</div>
-	);
-}
 
-function Bulb({ even }: { even: boolean }) {
-	return (
-		<div
-			className="size-1.5 rounded-full bg-neon-amber"
-			style={{
-				boxShadow: "0 0 6px rgba(255,184,0,0.6), 0 0 12px rgba(255,184,0,0.3)",
-				animationName: "bulb-chase",
-				animationDuration: "1.2s",
-				animationTimingFunction: "ease-in-out",
-				animationIterationCount: "infinite",
-				animationDelay: even ? "0s" : "0.6s",
-			}}
-		/>
+			{/* Bottom chasing bulbs */}
+			<div
+				aria-hidden="true"
+				className="flex gap-3 justify-center"
+				style={{
+					position: "absolute",
+					bottom: "-4px",
+					left: "20px",
+					right: "20px",
+				}}
+			>
+				{BULBS.map((bulb) => (
+					<div
+						key={bulb.id}
+						className="bg-neon-amber rounded-full"
+						style={{
+							width: "6px",
+							height: "6px",
+							flexShrink: 0,
+							animation: bulb.even
+								? "chase 1.2s infinite"
+								: "chase 1.2s infinite 0.6s",
+						}}
+					/>
+				))}
+			</div>
+
+			{/* NOW SHUFFLING label */}
+			<p className="font-mono-retro text-[10px] tracking-[4px] uppercase text-neon-amber opacity-70 mb-2">
+				NOW SHUFFLING
+			</p>
+
+			{/* Title */}
+			<h1 className="font-display text-4xl uppercase text-cream [text-shadow:0_0_30px_rgba(255,255,240,0.2),0_0_60px_rgba(255,255,240,0.05)] mb-1.5">
+				SHOWTIME SHUFFLE
+			</h1>
+
+			{/* Decorative stars */}
+			<p className="font-mono-retro text-xs text-cream/45 tracking-[1px]">
+				✦ ✦ ✦
+			</p>
+		</div>
 	);
 }

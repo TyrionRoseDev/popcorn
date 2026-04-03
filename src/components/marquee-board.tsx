@@ -1,15 +1,19 @@
 import { motion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 
-const BULB_COUNT = 16;
-const BULBS = Array.from({ length: BULB_COUNT }, (_, i) => i);
+const BULBS = Array.from({ length: 20 }, (_, i) => ({
+	id: `bulb-${i}`,
+	even: i % 2 === 0,
+}));
 
 export function MarqueeBoard({
 	title,
+	subtitle,
 	children,
 }: {
 	title: string;
-	children: React.ReactNode;
+	subtitle?: string;
+	children?: React.ReactNode;
 }) {
 	const ref = useRef<HTMLDivElement>(null);
 	const { scrollYProgress } = useScroll({
@@ -24,28 +28,101 @@ export function MarqueeBoard({
 	return (
 		<div ref={ref} style={{ perspective: "800px" }}>
 			<motion.div
-				className="relative z-10 overflow-hidden rounded border-[2.5px] border-drive-in-border bg-drive-in-card/85 backdrop-blur-sm"
 				style={{
 					rotateX,
 					scale,
 					opacity,
 					transformOrigin: "center top",
-					boxShadow: "0 -10px 40px rgba(0,0,0,0.4)",
 				}}
 			>
-				<BulbRow />
-				<div className="px-6 py-7 text-center">
-					<h2
-						className="mb-5 font-display text-[22px] text-neon-pink"
+				{/* Marquee frame — fixed size matching all other marquees */}
+				<div className="w-[700px] max-w-full h-[130px] mx-auto relative flex flex-col items-center justify-center px-10">
+					{/* Amber border */}
+					<div
+						aria-hidden="true"
 						style={{
-							textShadow: "0 0 10px rgba(255,45,120,0.3)",
+							position: "absolute",
+							inset: 0,
+							border: "2px solid rgba(255,184,0,0.3)",
+							borderRadius: "8px",
+							boxShadow: "0 0 20px rgba(255,184,0,0.08)",
+							pointerEvents: "none",
+						}}
+					/>
+
+					{/* Top chasing bulbs */}
+					<div
+						aria-hidden="true"
+						className="flex gap-3 justify-center"
+						style={{
+							position: "absolute",
+							top: "-4px",
+							left: "20px",
+							right: "20px",
 						}}
 					>
+						{BULBS.map((bulb) => (
+							<div
+								key={bulb.id}
+								className="bg-neon-amber rounded-full"
+								style={{
+									width: "6px",
+									height: "6px",
+									flexShrink: 0,
+									animation: bulb.even
+										? "chase 1.2s infinite"
+										: "chase 1.2s infinite 0.6s",
+								}}
+							/>
+						))}
+					</div>
+
+					{/* Bottom chasing bulbs */}
+					<div
+						aria-hidden="true"
+						className="flex gap-3 justify-center"
+						style={{
+							position: "absolute",
+							bottom: "-4px",
+							left: "20px",
+							right: "20px",
+						}}
+					>
+						{BULBS.map((bulb) => (
+							<div
+								key={bulb.id}
+								className="bg-neon-amber rounded-full"
+								style={{
+									width: "6px",
+									height: "6px",
+									flexShrink: 0,
+									animation: bulb.even
+										? "chase 1.2s infinite"
+										: "chase 1.2s infinite 0.6s",
+								}}
+							/>
+						))}
+					</div>
+
+					{/* Title */}
+					<h2 className="font-display text-4xl uppercase text-cream [text-shadow:0_0_30px_rgba(255,255,240,0.2),0_0_60px_rgba(255,255,240,0.05)] mb-1.5">
 						{title}
 					</h2>
-					{children}
+
+					{/* Subtitle */}
+					{subtitle && (
+						<p className="font-mono-retro text-xs text-cream/45 tracking-[1px]">
+							{subtitle}
+						</p>
+					)}
 				</div>
-				<BulbRow />
+
+				{/* Content rows — below the marquee frame */}
+				{children && (
+					<div className="w-[700px] max-w-full mx-auto mt-4 px-6">
+						{children}
+					</div>
+				)}
 			</motion.div>
 		</div>
 	);
@@ -66,7 +143,6 @@ export function MarqueeBoardRow({
 		offset: ["start 0.95", "start 0.55"],
 	});
 
-	// Each row staggers slightly based on index
 	const start = Math.min(index * 0.08, 0.3);
 	const opacity = useTransform(scrollYProgress, [start, start + 0.4], [0, 1]);
 	const x = useTransform(scrollYProgress, [start, start + 0.5], [-20, 0]);
@@ -93,26 +169,5 @@ export function MarqueeBoardRow({
 				{status}
 			</motion.span>
 		</motion.div>
-	);
-}
-
-function BulbRow() {
-	return (
-		<div className="flex justify-around border-b-2 border-drive-in-border bg-[rgba(17,17,17,0.9)] px-3 py-2 last:border-b-0 last:border-t-2">
-			{BULBS.map((i) => (
-				<div
-					key={i}
-					className="h-[7px] w-[7px] rounded-full bg-neon-amber"
-					style={{
-						boxShadow: "0 0 6px rgba(255,184,0,0.5)",
-						animationName: "bulb-chase",
-						animationDuration: "2s",
-						animationTimingFunction: "ease-in-out",
-						animationIterationCount: "infinite",
-						animationDelay: i % 2 === 0 ? "0s" : "0.5s",
-					}}
-				/>
-			))}
-		</div>
 	);
 }

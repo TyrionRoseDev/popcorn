@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { MarqueeBadge } from "#/components/auth/marquee-badge";
 import { FilmStrip } from "#/components/film-strip";
 import { MarqueeBoard, MarqueeBoardRow } from "#/components/marquee-board";
 import { RetroOverlays } from "#/components/retro-overlays";
@@ -68,17 +69,8 @@ function LandingPage() {
 				/>
 
 				{/* NOW SHOWING marquee */}
-				<div
-					className="relative z-10 mb-10 inline-block border-[1.5px] border-neon-amber/50 px-6 py-2 font-mono-retro text-[11px] uppercase tracking-[6px] text-neon-amber"
-					style={{
-						textShadow: "0 0 8px rgba(255,184,0,0.4)",
-						animationName: "marquee-pulse",
-						animationDuration: "3s",
-						animationTimingFunction: "ease-in-out",
-						animationIterationCount: "infinite",
-					}}
-				>
-					✦ Now Showing ✦
+				<div className="relative z-10">
+					<MarqueeBadge text="Now Showing" />
 				</div>
 
 				{/* POPCORN logo */}
@@ -120,7 +112,7 @@ function LandingPage() {
 					</div>
 
 					{/* Programme board — scrolls up OVER the ticket */}
-					<div className="relative z-20 mx-auto max-w-[550px] pb-24 pt-8">
+					<div className="relative z-20 mx-auto max-w-[700px] pb-24 pt-8">
 						<MarqueeBoard title="Tonight's Programme">
 							{FEATURES.map((feature, i) => (
 								<MarqueeBoardRow
