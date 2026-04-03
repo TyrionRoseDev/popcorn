@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bookmark, Film, Loader2 } from "lucide-react";
+import { Film, Loader2 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { FeedAtmosphere } from "#/components/feed/feed-atmosphere";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
@@ -198,14 +198,22 @@ function WatchlistCreatedCard({
 	const itemCount = watchlist.items.length;
 
 	return (
-		<div className="rounded-lg border border-drive-in-border p-3 transition-colors hover:bg-cream/[0.03]">
-			<div className="flex items-center gap-2 mb-2">
+		<div
+			className="relative rounded-[10px] border border-neon-pink/15 p-4 transition-all hover:border-neon-pink/25 hover:-translate-y-px"
+			style={{
+				background:
+					"linear-gradient(145deg, rgba(10,10,30,0.95) 0%, rgba(15,15,35,0.8) 100%)",
+				boxShadow: "0 0 12px rgba(255,45,120,0.04), 0 4px 16px rgba(0,0,0,0.3)",
+			}}
+		>
+			{/* Header row */}
+			<div className="flex items-center gap-2 mb-2.5">
 				<Link
 					to="/app/profile/$userId"
 					params={{ userId: actor.id }}
 					className="flex items-center gap-2 no-underline"
 				>
-					<div className="w-7 h-7 rounded-full bg-cream/10 flex items-center justify-center text-xs font-medium text-cream/60 shrink-0">
+					<div className="w-7 h-7 rounded-full bg-neon-pink/15 border border-neon-pink/20 flex items-center justify-center text-[11px] font-medium text-neon-pink shrink-0">
 						{actor.avatarUrl ? (
 							<img
 								src={actor.avatarUrl}
@@ -216,32 +224,33 @@ function WatchlistCreatedCard({
 							(actor.username?.charAt(0) ?? "?").toUpperCase()
 						)}
 					</div>
-					<span className="text-xs font-semibold text-cream/80">
+					<span className="text-[13px] font-semibold text-cream/75">
 						{isOwn ? "You" : (actor.username ?? "Someone")}
 					</span>
 				</Link>
 				<span className="text-xs text-cream/30">created a watchlist</span>
-				<span className="text-[10px] text-cream/25 ml-auto">
+				<span className="text-[10px] text-cream/20 ml-auto font-mono-retro">
 					{formatTimeAgo(watchlist.createdAt)}
 				</span>
 			</div>
 
-			<Link
-				to="/app/watchlists/$watchlistId"
-				params={{ watchlistId: watchlist.id }}
-				search={{ sort: "date-added", type: "all" }}
-				className="no-underline"
-			>
-				<div className="flex items-center gap-2 ml-9">
-					<Bookmark className="h-3.5 w-3.5 text-neon-pink/60" />
-					<span className="text-sm font-semibold text-cream/90 hover:text-cream">
+			{/* Main row */}
+			<div className="flex items-start justify-between gap-4">
+				<div className="min-w-0 flex-1">
+					<Link
+						to="/app/watchlists/$watchlistId"
+						params={{ watchlistId: watchlist.id }}
+						search={{ sort: "date-added", type: "all" }}
+						className="text-[15px] font-bold text-neon-pink no-underline hover:text-neon-pink/90"
+						style={{ textShadow: "0 0 8px rgba(255,45,120,0.15)" }}
+					>
 						{watchlist.name}
-					</span>
-					<span className="text-[11px] text-cream/30">
+					</Link>
+					<span className="ml-2 text-[11px] font-mono-retro text-cream/35">
 						{itemCount} {itemCount === 1 ? "title" : "titles"}
 					</span>
 				</div>
-			</Link>
+			</div>
 		</div>
 	);
 }
