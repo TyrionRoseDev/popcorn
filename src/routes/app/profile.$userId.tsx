@@ -1326,9 +1326,18 @@ function FriendExpandedSections({
 	ratingDistribution: Array<{ star: number; count: number }>;
 }) {
 	const trpc = useTRPC();
+	const [selectedStar, setSelectedStar] = useState<number | null>(null);
 
 	const { data: watchActivity } = useQuery(
 		trpc.friend.watchActivity.queryOptions({ userId: profile.id }),
+	);
+
+	const { data: starRatings } = useQuery(
+		trpc.friend.ratingsByStars.queryOptions(
+			selectedStar
+				? { userId: profile.id, star: selectedStar }
+				: (skipToken as never),
+		),
 	);
 
 	const maxGenreCount = genreStats.length > 0 ? genreStats[0].count : 0;
@@ -1370,9 +1379,11 @@ function FriendExpandedSections({
 								);
 								const heightPct = (r.count / maxRating) * 100;
 								return (
-									<div
+									<button
 										key={r.star}
-										className="flex flex-1 flex-col items-center gap-2"
+										type="button"
+										onClick={() => r.count > 0 && setSelectedStar(r.star)}
+										className={`flex flex-1 flex-col items-center gap-2 bg-transparent transition-opacity ${r.count > 0 ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}
 									>
 										<span className="font-mono-retro text-[10px] text-cream/35">
 											{r.count}
@@ -1394,7 +1405,7 @@ function FriendExpandedSections({
 											</span>
 											<Star className="h-2.5 w-2.5 fill-neon-amber/60 text-neon-amber/60" />
 										</div>
-									</div>
+									</button>
 								);
 							})}
 						</div>
@@ -1404,6 +1415,81 @@ function FriendExpandedSections({
 							<p className="text-[11px] text-cream/25">No ratings yet</p>
 						</div>
 					)}
+
+					{/* Star ratings modal */}
+					<AnimatePresence>
+						{selectedStar && (
+							<motion.div
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+								onClick={() => setSelectedStar(null)}
+							>
+								<motion.div
+									initial={{ opacity: 0, scale: 0.95 }}
+									animate={{ opacity: 1, scale: 1 }}
+									exit={{ opacity: 0, scale: 0.95 }}
+									onClick={(e) => e.stopPropagation()}
+									className="max-h-[70vh] w-full max-w-md overflow-y-auto rounded-xl border border-drive-in-border bg-[#0a0a1e] p-5 shadow-2xl"
+								>
+									<div className="mb-4 flex items-center justify-between">
+										<div className="flex items-center gap-2">
+											<h3 className="font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/70">
+												{selectedStar} Star Ratings
+											</h3>
+											<div className="flex items-center gap-0.5">
+												{[1, 2, 3, 4, 5].slice(0, selectedStar).map((n) => (
+													<Star
+														key={n}
+														className="h-3 w-3 fill-neon-amber/60 text-neon-amber/60"
+													/>
+												))}
+											</div>
+										</div>
+										<button
+											type="button"
+											onClick={() => setSelectedStar(null)}
+											className="text-cream/30 transition-colors hover:text-cream/60"
+										>
+											<X className="h-4 w-4" />
+										</button>
+									</div>
+									{!starRatings ? (
+										<div className="flex justify-center py-8">
+											<Loader2 className="h-5 w-5 animate-spin text-cream/30" />
+										</div>
+									) : starRatings.length === 0 ? (
+										<p className="py-8 text-center font-mono-retro text-[11px] text-cream/30">
+											No public ratings
+										</p>
+									) : (
+										<div className="flex flex-col gap-2">
+											{starRatings.map((item) => (
+												<Link
+													key={`${item.tmdbId}-${item.mediaType}`}
+													to="/app/tracker/$tmdbId"
+													params={{ tmdbId: String(item.tmdbId) }}
+													search={{ type: item.mediaType as "movie" | "tv" }}
+													onClick={() => setSelectedStar(null)}
+													className="group rounded-lg border border-cream/[0.06] p-3 no-underline transition-colors hover:border-cream/15 hover:bg-cream/[0.03]"
+												>
+													<p className="text-sm font-medium text-cream/80 group-hover:text-cream">
+														{item.titleName}
+													</p>
+													{item.reviewText && (
+														<p className="mt-1 line-clamp-2 text-xs text-cream/40">
+															{item.reviewText}
+														</p>
+													)}
+												</Link>
+											))}
+										</div>
+									)}
+								</motion.div>
+							</motion.div>
+						)}
+					</AnimatePresence>
 				</div>
 
 				{/* ── Favourite film ── */}

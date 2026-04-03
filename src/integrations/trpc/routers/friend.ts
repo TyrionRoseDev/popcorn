@@ -927,4 +927,60 @@ export const friendRouter = createTRPCRouter({
 
 			return result;
 		}),
+
+	ratingsByStars: protectedProcedure
+		.input(
+			z.object({ userId: z.string(), star: z.number().int().min(1).max(5) }),
+		)
+		.query(async ({ input, ctx }) => {
+			// Only self or friends can see ratings
+			if (ctx.userId !== input.userId) {
+				const existingFriendship = await db.query.friendship.findFirst({
+					where: and(
+						or(
+							and(
+								eq(friendship.requesterId, ctx.userId),
+								eq(friendship.addresseeId, input.userId),
+							),
+							and(
+								eq(friendship.requesterId, input.userId),
+								eq(friendship.addresseeId, ctx.userId),
+							),
+						),
+						eq(friendship.status, "accepted"),
+					),
+				});
+				if (!existingFriendship) return [];
+			}
+
+			const rows = await db
+				.select({
+					tmdbId: watchEvent.tmdbId,
+					mediaType: watchEvent.mediaType,
+					titleName: watchEvent.titleName,
+					reviewText: watchEvent.reviewText,
+				})
+				.from(watchEvent)
+				.where(
+					and(
+						eq(watchEvent.userId, input.userId),
+						eq(watchEvent.rating, input.star),
+						eq(watchEvent.reviewPublic, true),
+					),
+				)
+				.orderBy(sql`${watchEvent.watchedAt} desc`);
+
+			// Deduplicate by tmdbId+mediaType (keep first / most recent)
+			const seen = new Set<string>();
+			const deduped: typeof rows = [];
+			for (const row of rows) {
+				const key = `${row.tmdbId}-${row.mediaType}`;
+				if (!seen.has(key)) {
+					seen.add(key);
+					deduped.push(row);
+				}
+			}
+
+			return deduped;
+		}),
 });
