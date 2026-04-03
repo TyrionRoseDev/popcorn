@@ -293,9 +293,8 @@ function PendingRequestCard({
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, x: -20 }}
-			className="group flex overflow-hidden rounded-lg transition-all hover:-translate-y-px"
+			className="group flex overflow-hidden rounded-lg border border-neon-pink/10 transition-all hover:-translate-y-px hover:border-neon-pink/25"
 			style={{
-				border: "1px solid rgba(255,45,120,0.1)",
 				background: "rgba(8,6,18,0.95)",
 				boxShadow: "0 2px 16px rgba(0,0,0,0.4)",
 			}}
@@ -421,9 +420,8 @@ function DiscoverResultCard({
 		<motion.div
 			initial={{ opacity: 0, y: 12 }}
 			animate={{ opacity: 1, y: 0 }}
-			className="group flex overflow-hidden rounded-lg transition-all hover:-translate-y-px"
+			className="group flex overflow-hidden rounded-lg border border-neon-cyan/10 transition-all hover:-translate-y-px hover:border-neon-cyan/25"
 			style={{
-				border: "1px solid rgba(0,229,255,0.1)",
 				background: "rgba(8,6,18,0.95)",
 				boxShadow: "0 2px 16px rgba(0,0,0,0.4)",
 			}}
