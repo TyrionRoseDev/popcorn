@@ -7,6 +7,7 @@ import {
 	earnedAchievement,
 	friendship,
 	journalEntry,
+	user,
 	userTitle,
 	watchEvent,
 	watchEventCompanion,
@@ -49,6 +50,10 @@ export const watchEventRouter = {
 				scope: z.enum(["episode", "season", "show"]).optional(),
 				scopeSeasonNumber: z.number().optional(),
 				scopeEpisodeNumber: z.number().optional(),
+				visibility: z
+					.enum(["public", "private", "companion"])
+					.optional()
+					.default("public"),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -72,6 +77,38 @@ export const watchEventRouter = {
 				genreIds = details.tmdbGenreIds;
 			} catch {
 				// Non-critical — event still gets created without genres
+			}
+
+			// Upgrade: if user has a reciprocal event for this title+scope, delete it
+			const existingReciprocal = await db.query.watchEvent.findFirst({
+				where: and(
+					eq(watchEvent.userId, ctx.userId),
+					eq(watchEvent.tmdbId, input.tmdbId),
+					sql`${watchEvent.originEventId} IS NOT NULL`,
+					...(input.scope
+						? [
+								eq(watchEvent.scope, input.scope),
+								...(input.scopeSeasonNumber != null
+									? [eq(watchEvent.scopeSeasonNumber, input.scopeSeasonNumber)]
+									: []),
+								...(input.scopeEpisodeNumber != null
+									? [
+											eq(
+												watchEvent.scopeEpisodeNumber,
+												input.scopeEpisodeNumber,
+											),
+										]
+									: []),
+							]
+						: [sql`${watchEvent.scope} IS NULL`]),
+					eq(watchEvent.watchNumber, watchNum),
+				),
+			});
+
+			if (existingReciprocal) {
+				await db
+					.delete(watchEvent)
+					.where(eq(watchEvent.id, existingReciprocal.id));
 			}
 
 			const [event] = await db
@@ -107,20 +144,94 @@ export const watchEventRouter = {
 					})),
 				);
 
+				const hasReview = !!(input.rating || input.note);
+				const creator = await db.query.user.findFirst({
+					where: eq(user.id, ctx.userId),
+					columns: { username: true },
+				});
+
 				for (const c of input.companions) {
-					if (c.friendId) {
-						await createNotification({
-							recipientId: c.friendId,
-							actorId: ctx.userId,
-							type: "watched_with",
-							data: {
+					if (!c.friendId) continue;
+
+					// Dedup: skip if companion already has a watch event for this title+scope
+					const existing = await db.query.watchEvent.findFirst({
+						where: and(
+							eq(watchEvent.userId, c.friendId),
+							eq(watchEvent.tmdbId, input.tmdbId),
+							...(input.scope
+								? [
+										eq(watchEvent.scope, input.scope),
+										...(input.scopeSeasonNumber != null
+											? [
+													eq(
+														watchEvent.scopeSeasonNumber,
+														input.scopeSeasonNumber,
+													),
+												]
+											: []),
+										...(input.scopeEpisodeNumber != null
+											? [
+													eq(
+														watchEvent.scopeEpisodeNumber,
+														input.scopeEpisodeNumber,
+													),
+												]
+											: []),
+									]
+								: [sql`${watchEvent.scope} IS NULL`]),
+							eq(watchEvent.watchNumber, watchNum),
+						),
+					});
+
+					if (!existing) {
+						// Create reciprocal event
+						const [reciprocal] = await db
+							.insert(watchEvent)
+							.values({
+								userId: c.friendId,
 								tmdbId: input.tmdbId,
 								mediaType: input.mediaType,
 								titleName: input.titleName ?? "",
-								watchEventId: event.id,
-							},
+								rating: null,
+								note: null,
+								title: input.titleName ?? null,
+								posterPath: input.posterPath ?? null,
+								watchedAt: input.watchedAt
+									? new Date(input.watchedAt)
+									: new Date(),
+								genreIds,
+								scope: input.scope ?? null,
+								scopeSeasonNumber: input.scopeSeasonNumber ?? null,
+								scopeEpisodeNumber: input.scopeEpisodeNumber ?? null,
+								watchNumber: watchNum,
+								originEventId: event.id,
+								visibility: "public",
+							})
+							.returning();
+
+						// Add companion link on the reciprocal event (pointing back to the creator)
+						await db.insert(watchEventCompanion).values({
+							watchEventId: reciprocal.id,
+							friendId: ctx.userId,
+							name: creator?.username ?? "",
 						});
 					}
+
+					// Send notification
+					await createNotification({
+						recipientId: c.friendId,
+						actorId: ctx.userId,
+						type: hasReview ? "companion_reviewed" : "watched_with",
+						data: {
+							tmdbId: input.tmdbId,
+							mediaType: input.mediaType,
+							titleName: input.titleName ?? "",
+							watchEventId: event.id,
+							scope: input.scope ?? null,
+							scopeSeasonNumber: input.scopeSeasonNumber ?? null,
+							scopeEpisodeNumber: input.scopeEpisodeNumber ?? null,
+						},
+					});
 				}
 			}
 
@@ -212,14 +323,25 @@ export const watchEventRouter = {
 					...(input.scopeEpisodeNumber !== undefined
 						? { scopeEpisodeNumber: input.scopeEpisodeNumber }
 						: {}),
-					...(input.visibility !== undefined && {
-						visibility: input.visibility,
-					}),
+					...(input.visibility !== undefined
+						? { visibility: input.visibility }
+						: {}),
 				})
 				.where(eq(watchEvent.id, input.id))
 				.returning();
 
 			if (input.companions !== undefined) {
+				// Get old companions before deleting
+				const oldCompanions = await db.query.watchEventCompanion.findMany({
+					where: eq(watchEventCompanion.watchEventId, input.id),
+				});
+				const oldFriendIds = new Set(
+					oldCompanions
+						.filter((c) => c.friendId)
+						.map((c) => c.friendId as string),
+				);
+
+				// Replace companions
 				await db
 					.delete(watchEventCompanion)
 					.where(eq(watchEventCompanion.watchEventId, input.id));
@@ -232,22 +354,115 @@ export const watchEventRouter = {
 							name: c.name,
 						})),
 					);
+				}
 
-					for (const c of input.companions) {
-						if (c.friendId) {
-							await createNotification({
-								recipientId: c.friendId,
-								actorId: ctx.userId,
-								type: "watched_with",
-								data: {
-									tmdbId: existing.tmdbId,
-									mediaType: existing.mediaType,
-									titleName: input.titleName ?? "",
-									watchEventId: input.id,
-								},
-							});
-						}
+				const newFriendIds = new Set(
+					input.companions
+						.filter((c) => c.friendId)
+						.map((c) => c.friendId as string),
+				);
+
+				// Delete reciprocal events for removed companions
+				for (const oldId of oldFriendIds) {
+					if (!newFriendIds.has(oldId)) {
+						await db
+							.delete(watchEvent)
+							.where(
+								and(
+									eq(watchEvent.userId, oldId),
+									eq(watchEvent.originEventId, input.id),
+								),
+							);
 					}
+				}
+
+				// Create reciprocal events for newly added companions
+				const creator = await db.query.user.findFirst({
+					where: eq(user.id, ctx.userId),
+					columns: { username: true },
+				});
+
+				for (const c of input.companions) {
+					if (!c.friendId || oldFriendIds.has(c.friendId)) continue;
+
+					// Dedup check
+					const existingEvent = await db.query.watchEvent.findFirst({
+						where: and(
+							eq(watchEvent.userId, c.friendId),
+							eq(watchEvent.tmdbId, existing.tmdbId),
+							eq(watchEvent.watchNumber, existing.watchNumber),
+							...(existing.scope
+								? [
+										eq(watchEvent.scope, existing.scope),
+										...(existing.scopeSeasonNumber != null
+											? [
+													eq(
+														watchEvent.scopeSeasonNumber,
+														existing.scopeSeasonNumber,
+													),
+												]
+											: []),
+										...(existing.scopeEpisodeNumber != null
+											? [
+													eq(
+														watchEvent.scopeEpisodeNumber,
+														existing.scopeEpisodeNumber,
+													),
+												]
+											: []),
+									]
+								: [sql`${watchEvent.scope} IS NULL`]),
+						),
+					});
+
+					if (!existingEvent) {
+						const [reciprocal] = await db
+							.insert(watchEvent)
+							.values({
+								userId: c.friendId,
+								tmdbId: existing.tmdbId,
+								mediaType: existing.mediaType,
+								titleName: input.titleName ?? existing.titleName,
+								rating: null,
+								note: null,
+								title: input.titleName ?? existing.title,
+								posterPath: existing.posterPath,
+								watchedAt: existing.watchedAt,
+								genreIds: existing.genreIds,
+								scope: existing.scope,
+								scopeSeasonNumber: existing.scopeSeasonNumber,
+								scopeEpisodeNumber: existing.scopeEpisodeNumber,
+								watchNumber: existing.watchNumber,
+								originEventId: input.id,
+								visibility: "public",
+							})
+							.returning();
+
+						await db.insert(watchEventCompanion).values({
+							watchEventId: reciprocal.id,
+							friendId: ctx.userId,
+							name: creator?.username ?? "",
+						});
+					}
+
+					// Notify new companion
+					const hasReview = !!(
+						existing.rating ||
+						existing.note ||
+						input.rating ||
+						input.note
+					);
+					await createNotification({
+						recipientId: c.friendId,
+						actorId: ctx.userId,
+						type: hasReview ? "companion_reviewed" : "watched_with",
+						data: {
+							tmdbId: existing.tmdbId,
+							mediaType: existing.mediaType,
+							titleName: input.titleName ?? existing.titleName,
+							watchEventId: input.id,
+						},
+					});
 				}
 			}
 
