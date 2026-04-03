@@ -1385,7 +1385,7 @@ function FriendExpandedSections({
 					>
 						{/* Height-capped container */}
 						<div className="relative">
-							<div className="max-h-[420px] overflow-hidden">
+							<div className="h-[420px] overflow-hidden">
 								{activeTab === "activity" && (
 									<ActivityTab userId={profile.id} isOwn={isSelf} />
 								)}
@@ -1447,26 +1447,34 @@ function WatchlistsTab({
 	}
 
 	return (
-		<div className="space-y-2">
+		<div className="flex flex-col gap-3">
 			{watchlists.map((wl) => (
 				<Link
 					key={wl.id}
 					to="/app/watchlists/$watchlistId"
 					params={{ watchlistId: wl.id }}
 					search={{ sort: "date-added", type: "all" }}
-					className="group flex items-center gap-3 rounded-lg border border-drive-in-border px-3 py-2.5 no-underline transition-all hover:border-neon-cyan/25 hover:bg-neon-cyan/[0.03]"
+					className="group relative block rounded-[10px] border border-neon-cyan/15 p-4 no-underline transition-colors hover:border-neon-cyan/30"
+					style={{
+						background:
+							"linear-gradient(145deg, rgba(10,10,30,0.95) 0%, rgba(15,15,35,0.8) 100%)",
+						boxShadow:
+							"0 0 12px rgba(0,229,255,0.04), inset 0 1px 0 rgba(255,255,240,0.03)",
+					}}
 				>
-					<Film className="h-4 w-4 shrink-0 text-neon-cyan/40" />
-					<div className="min-w-0 flex-1">
-						<p className="truncate text-sm text-cream/70 transition-colors group-hover:text-cream/90">
-							{wl.name}
-						</p>
-						<p className="mt-0.5 font-mono-retro text-[9px] text-cream/25">
-							{wl.itemCount} titles &middot; {wl.memberCount} member
-							{wl.memberCount !== 1 ? "s" : ""}
-						</p>
+					<div className="flex items-center gap-3">
+						<Film className="h-5 w-5 shrink-0 text-neon-cyan/40" />
+						<div className="min-w-0 flex-1">
+							<p className="truncate text-sm font-semibold text-cream/80 transition-colors group-hover:text-cream">
+								{wl.name}
+							</p>
+							<p className="mt-1 font-mono-retro text-[10px] text-cream/30">
+								{wl.itemCount} titles &middot; {wl.memberCount} member
+								{wl.memberCount !== 1 ? "s" : ""}
+							</p>
+						</div>
+						<ChevronRight className="h-4 w-4 shrink-0 text-cream/15 transition-colors group-hover:text-neon-cyan/50" />
 					</div>
-					<ChevronRight className="h-4 w-4 shrink-0 text-cream/15 transition-colors group-hover:text-neon-cyan/50" />
 				</Link>
 			))}
 		</div>
