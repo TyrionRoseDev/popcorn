@@ -208,6 +208,34 @@ function FilmStripCard({ friend }: { friend: Friend }) {
 	);
 }
 
+function VerticalSprockets({
+	color,
+	side,
+}: {
+	color: string;
+	side: "left" | "right";
+}) {
+	return (
+		<div
+			className="flex shrink-0 flex-col items-center justify-center gap-[6px] px-1.5"
+			style={{
+				background: `${color}06`,
+				...(side === "left"
+					? { borderRight: `1px solid ${color}15` }
+					: { borderLeft: `1px solid ${color}15` }),
+			}}
+		>
+			{[0, 1, 2, 3].map((i) => (
+				<div
+					key={i}
+					className="h-[5px] w-2 rounded-sm"
+					style={{ background: `${color}26` }}
+				/>
+			))}
+		</div>
+	);
+}
+
 function PendingRequestCard({
 	request,
 }: {
@@ -265,64 +293,80 @@ function PendingRequestCard({
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, x: -20 }}
-			className="group flex items-center gap-4 rounded-lg border border-neon-amber/10 px-4 py-3 transition-colors hover:border-neon-amber/25 hover:bg-cream/[0.02]"
+			className="group flex overflow-hidden rounded-lg transition-all hover:-translate-y-px"
 			style={{
-				background:
-					"linear-gradient(180deg, rgba(10,10,30,0.9) 0%, rgba(10,10,30,0.8) 100%)",
+				border: "1px solid rgba(255,45,120,0.1)",
+				background: "rgba(8,6,18,0.95)",
+				boxShadow: "0 2px 16px rgba(0,0,0,0.4)",
 			}}
 		>
-			<Link
-				to="/app/profile/$userId"
-				params={{ userId: request.requesterId }}
-				className="flex min-w-0 flex-1 items-center gap-4"
-			>
-				{request.avatarUrl ? (
-					<img
-						src={request.avatarUrl}
-						alt=""
-						className="h-10 w-10 shrink-0 rounded-full border border-neon-amber/20 object-cover"
-					/>
-				) : (
-					<div
-						className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neon-amber/20"
-						style={{ background: gradient }}
-					>
-						<span className="text-[15px] font-bold text-cream/90">
-							{initial}
-						</span>
+			{/* Left sprockets */}
+			<VerticalSprockets color="#FF2D78" side="left" />
+
+			{/* Content */}
+			<div className="flex flex-1 items-center gap-3 px-4 py-3">
+				<Link
+					to="/app/profile/$userId"
+					params={{ userId: request.requesterId }}
+					className="flex min-w-0 flex-1 items-center gap-3"
+				>
+					{request.avatarUrl ? (
+						<img
+							src={request.avatarUrl}
+							alt=""
+							className="h-10 w-10 shrink-0 rounded-full border border-neon-pink/20 object-cover"
+						/>
+					) : (
+						<div
+							className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neon-pink/20"
+							style={{ background: gradient }}
+						>
+							<span className="text-[15px] font-bold text-cream/90">
+								{initial}
+							</span>
+						</div>
+					)}
+
+					<div className="min-w-0 flex-1">
+						<p className="truncate font-mono-retro text-sm text-cream/85">
+							@{request.username ?? "unknown"}
+						</p>
+						{timeAgo && (
+							<p className="mt-0.5 text-xs text-cream/30">{timeAgo}</p>
+						)}
 					</div>
-				)}
+				</Link>
 
-				<div className="min-w-0 flex-1">
-					<p className="truncate font-mono-retro text-sm text-cream/85">
-						@{request.username ?? "unknown"}
-					</p>
-					{timeAgo && <p className="mt-0.5 text-xs text-cream/30">{timeAgo}</p>}
+				<div className="flex shrink-0 items-center gap-2">
+					<button
+						type="button"
+						disabled={isPending}
+						onClick={() =>
+							acceptMutation.mutate({
+								friendshipId: request.friendshipId,
+							})
+						}
+						className="flex h-8 w-8 items-center justify-center rounded-full border border-green-500/30 bg-green-500/10 text-green-400 transition-colors hover:border-green-500/50 hover:bg-green-500/20 disabled:opacity-40"
+					>
+						<Check className="h-4 w-4" />
+					</button>
+					<button
+						type="button"
+						disabled={isPending}
+						onClick={() =>
+							declineMutation.mutate({
+								friendshipId: request.friendshipId,
+							})
+						}
+						className="flex h-8 w-8 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-400 transition-colors hover:border-red-500/50 hover:bg-red-500/20 disabled:opacity-40"
+					>
+						<X className="h-4 w-4" />
+					</button>
 				</div>
-			</Link>
-
-			<div className="flex shrink-0 items-center gap-2">
-				<button
-					type="button"
-					disabled={isPending}
-					onClick={() =>
-						acceptMutation.mutate({ friendshipId: request.friendshipId })
-					}
-					className="flex h-8 w-8 items-center justify-center rounded-full border border-green-500/30 bg-green-500/10 text-green-400 transition-colors hover:border-green-500/50 hover:bg-green-500/20 disabled:opacity-40"
-				>
-					<Check className="h-4 w-4" />
-				</button>
-				<button
-					type="button"
-					disabled={isPending}
-					onClick={() =>
-						declineMutation.mutate({ friendshipId: request.friendshipId })
-					}
-					className="flex h-8 w-8 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-400 transition-colors hover:border-red-500/50 hover:bg-red-500/20 disabled:opacity-40"
-				>
-					<X className="h-4 w-4" />
-				</button>
 			</div>
+
+			{/* Right sprockets */}
+			<VerticalSprockets color="#FF2D78" side="right" />
 		</motion.div>
 	);
 }
