@@ -1,5 +1,6 @@
 import {
 	skipToken,
+	useInfiniteQuery,
 	useMutation,
 	useQuery,
 	useQueryClient,
@@ -8,10 +9,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
 	Ban,
 	BarChart3,
+	BookOpen,
 	CalendarDays,
 	ChevronRight,
 	Film,
 	Heart,
+	List,
+	Loader2,
 	Lock,
 	Trophy,
 	UserMinus,
@@ -21,6 +25,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { AchievementGrid } from "#/components/achievements/achievement-grid";
+import { FeedJournalCard } from "#/components/tracker/feed-journal-card";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { useTRPC } from "#/integrations/trpc/react";
@@ -46,7 +51,7 @@ function avatarGradient(_letter: string) {
 }
 
 // ── Tabs enum ──────────────────────────────────────────────────
-type FriendTab = "watchlists" | "diary" | "activity";
+type FriendTab = "activity" | "journal" | "watchlists";
 const TABS: {
 	key: FriendTab;
 	label: string;
@@ -54,22 +59,22 @@ const TABS: {
 	activeColor: string;
 }[] = [
 	{
-		key: "watchlists",
-		label: "Watchlists",
-		color: "neon-cyan",
-		activeColor: "text-neon-cyan border-neon-cyan",
+		key: "activity",
+		label: "Recent Activity",
+		color: "neon-pink",
+		activeColor: "text-neon-pink border-neon-pink",
 	},
 	{
-		key: "diary",
-		label: "Diary",
+		key: "journal",
+		label: "Journal",
 		color: "neon-amber",
 		activeColor: "text-neon-amber border-neon-amber",
 	},
 	{
-		key: "activity",
-		label: "Activity",
-		color: "neon-pink",
-		activeColor: "text-neon-pink border-neon-pink",
+		key: "watchlists",
+		label: "Watchlists",
+		color: "neon-cyan",
+		activeColor: "text-neon-cyan border-neon-cyan",
 	},
 ];
 
@@ -189,7 +194,7 @@ function ProfilePage() {
 		trpc.friend.block.mutationOptions({ onSuccess: invalidateAll }),
 	);
 
-	const [activeTab, setActiveTab] = useState<FriendTab>("watchlists");
+	const [activeTab, setActiveTab] = useState<FriendTab>("activity");
 	const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 	const [showBlockConfirm, setShowBlockConfirm] = useState(false);
 
@@ -1376,13 +1381,15 @@ function FriendExpandedSections({
 						transition={{ duration: 0.2 }}
 						className="pt-4"
 					>
+						{activeTab === "activity" && (
+							<ActivityTab userId={profile.id} isOwn={isSelf} />
+						)}
+						{activeTab === "journal" && (
+							<DiaryTab userId={profile.id} isOwn={isSelf} />
+						)}
 						{activeTab === "watchlists" && (
 							<WatchlistsTab watchlists={profile.publicWatchlists} />
 						)}
-						{activeTab === "diary" && (
-							<DiaryTab userId={profile.id} isOwn={isSelf} />
-						)}
-						{activeTab === "activity" && <ActivityTab />}
 					</motion.div>
 				</AnimatePresence>
 			</div>
@@ -1441,14 +1448,114 @@ function WatchlistsTab({
 }
 
 // ════════════════════════════════════════════════════════════════
-// DiaryTab
+// JournalTab (journal entries, not watch events/reviews)
 // ════════════════════════════════════════════════════════════════
 
-function DiaryTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
+function DiaryTab({ userId }: { userId: string; isOwn: boolean }) {
 	const trpc = useTRPC();
 	const { data, isLoading } = useQuery(
-		trpc.watchEvent.getUserEvents.queryOptions({ userId, limit: 50 }),
+		trpc.journalEntry.getAll.queryOptions({ userId, limit: 50 }),
 	);
+
+	if (isLoading) {
+		return (
+			<div className="flex justify-center py-8">
+				<div className="h-4 w-4 animate-spin rounded-full border-2 border-cream/20 border-t-cream/60" />
+			</div>
+		);
+	}
+
+	const entries = data?.items ?? [];
+
+	if (entries.length === 0) {
+		return (
+			<div className="flex flex-col items-center py-8 text-center">
+				<BookOpen className="mb-2 h-6 w-6 text-neon-amber/20" />
+				<p className="text-xs text-cream/30">No journal entries yet</p>
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex flex-col gap-3">
+			{entries.map((entry) => {
+				const badge = formatJournalScope(
+					entry.scope,
+					entry.seasonNumber,
+					entry.episodeNumber,
+				);
+
+				return (
+					<Link
+						key={entry.id}
+						to="/app/title/$mediaType/$tmdbId"
+						params={{ mediaType: "tv", tmdbId: entry.tmdbId }}
+						className="group relative block rounded-[10px] border border-neon-amber/15 p-4 no-underline transition-colors hover:border-neon-amber/30"
+						style={{
+							background:
+								"linear-gradient(145deg, rgba(10,10,30,0.95) 0%, rgba(15,15,35,0.8) 100%)",
+							boxShadow:
+								"0 0 12px rgba(255,184,0,0.04), inset 0 1px 0 rgba(255,255,240,0.03)",
+						}}
+					>
+						<div className="flex items-start justify-between gap-3">
+							<div className="min-w-0 flex-1">
+								<div className="flex items-center gap-2">
+									<span className="text-sm font-semibold text-cream/80 group-hover:text-cream transition-colors truncate">
+										{entry.titleName}
+									</span>
+									{badge && (
+										<span className="shrink-0 rounded bg-neon-amber/10 px-1.5 py-0.5 font-mono-retro text-[9px] text-neon-amber/60">
+											{badge}
+										</span>
+									)}
+								</div>
+								<p className="mt-0.5 font-mono-retro text-[10px] text-cream/25">
+									{formatActivityTime(entry.createdAt)}
+								</p>
+							</div>
+						</div>
+						<div className="mt-2.5 flex items-start gap-2">
+							<BookOpen className="h-3 w-3 text-neon-amber/30 mt-0.5 shrink-0" />
+							<p className="text-[12.5px] leading-[1.6] text-cream/50 line-clamp-3 pl-2 relative before:absolute before:left-0 before:top-0.5 before:bottom-0.5 before:w-0.5 before:rounded-full before:bg-neon-amber/20">
+								{entry.note}
+							</p>
+						</div>
+					</Link>
+				);
+			})}
+		</div>
+	);
+}
+
+function formatJournalScope(
+	scope: string,
+	seasonNumber: number | null,
+	episodeNumber: number | null,
+): string | null {
+	if (scope === "episode" && seasonNumber != null && episodeNumber != null) {
+		return `S${seasonNumber}E${episodeNumber}`;
+	}
+	if (scope === "season" && seasonNumber != null) {
+		return `Season ${seasonNumber}`;
+	}
+	return null;
+}
+
+// ════════════════════════════════════════════════════════════════
+// ActivityTab
+// ════════════════════════════════════════════════════════════════
+
+function ActivityTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
+	const trpc = useTRPC();
+
+	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+		useInfiniteQuery(
+			trpc.watchEvent.getFeed.infiniteQueryOptions(
+				{ userId, limit: 15 },
+				{ getNextPageParam: (lastPage) => lastPage.nextCursor },
+			),
+		);
 
 	const [editModal, setEditModal] = useState<{
 		open: boolean;
@@ -1468,18 +1575,18 @@ function DiaryTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 	if (isLoading) {
 		return (
 			<div className="flex justify-center py-8">
-				<div className="h-4 w-4 animate-spin rounded-full border-2 border-cream/20 border-t-cream/60" />
+				<Loader2 className="h-4 w-4 animate-spin text-cream/30" />
 			</div>
 		);
 	}
 
-	const events = data?.items ?? [];
+	const items = data?.pages.flatMap((p) => p.items) ?? [];
 
-	if (events.length === 0) {
+	if (items.length === 0) {
 		return (
 			<div className="flex flex-col items-center py-8 text-center">
-				<Film className="mb-2 h-6 w-6 text-neon-amber/20" />
-				<p className="text-xs text-cream/30">No diary entries yet</p>
+				<Film className="mb-2 h-6 w-6 text-neon-pink/20" />
+				<p className="text-xs text-cream/30">No activity yet</p>
 			</div>
 		);
 	}
@@ -1487,26 +1594,85 @@ function DiaryTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 	return (
 		<>
 			<div className="flex flex-col gap-3">
-				{events.map((event) => (
-					<WatchEventCard
-						key={event.id}
-						event={event}
-						showTitle={{
-							name: event.title ?? `Title #${event.tmdbId}`,
-						}}
-						isOwn={isOwn}
-						onEdit={(e) =>
-							setEditModal({
-								open: true,
-								tmdbId: event.tmdbId,
-								mediaType: event.mediaType as "movie" | "tv",
-								titleName: event.title ?? `Title #${event.tmdbId}`,
-								event: e,
-							})
-						}
-					/>
-				))}
+				{items.map((item) => {
+					if (item.type === "watch_event") {
+						const event = item.data;
+						return (
+							<WatchEventCard
+								key={`we-${event.id}`}
+								event={event}
+								showTitle={{
+									name: event.title ?? `Title #${event.tmdbId}`,
+								}}
+								isOwn={isOwn}
+								onEdit={(e) =>
+									setEditModal({
+										open: true,
+										tmdbId: event.tmdbId,
+										mediaType: event.mediaType as "movie" | "tv",
+										titleName: event.title ?? `Title #${event.tmdbId}`,
+										event: e,
+									})
+								}
+							/>
+						);
+					}
+
+					if (item.type === "watchlist_created") {
+						const wl = item.data;
+						return (
+							<Link
+								key={`wl-${wl.id}`}
+								to="/app/watchlists/$watchlistId"
+								params={{ watchlistId: wl.id }}
+								search={{ sort: "date-added", type: "all" }}
+								className="group flex items-center gap-3 rounded-lg border border-neon-pink/15 px-3 py-2.5 no-underline transition-all hover:border-neon-pink/25 hover:bg-neon-pink/[0.03]"
+							>
+								<List className="h-4 w-4 shrink-0 text-neon-pink/40" />
+								<div className="min-w-0 flex-1">
+									<p className="truncate text-sm text-cream/70 transition-colors group-hover:text-cream/90">
+										Created{" "}
+										<span className="font-semibold text-neon-pink/80">
+											{wl.name}
+										</span>
+									</p>
+									<p className="mt-0.5 font-mono-retro text-[9px] text-cream/25">
+										{wl.items.length}{" "}
+										{wl.items.length === 1 ? "title" : "titles"}
+									</p>
+								</div>
+								<span className="font-mono-retro text-[9px] text-cream/20">
+									{formatActivityTime(wl.createdAt)}
+								</span>
+							</Link>
+						);
+					}
+
+					if (item.type === "journal_entry") {
+						return (
+							<FeedJournalCard key={`je-${item.data.id}`} entry={item.data} />
+						);
+					}
+
+					return null;
+				})}
 			</div>
+
+			{hasNextPage && (
+				<button
+					type="button"
+					onClick={() => fetchNextPage()}
+					disabled={isFetchingNextPage}
+					className="mx-auto mt-4 block py-2 px-6 font-mono-retro text-[10px] tracking-wider text-cream/30 hover:text-cream/60 transition-colors"
+				>
+					{isFetchingNextPage ? (
+						<Loader2 className="h-3 w-3 animate-spin" />
+					) : (
+						"Load more"
+					)}
+				</button>
+			)}
+
 			{editModal && (
 				<ReviewModal
 					open={editModal.open}
@@ -1523,15 +1689,21 @@ function DiaryTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 	);
 }
 
-// ════════════════════════════════════════════════════════════════
-// ActivityTab
-// ════════════════════════════════════════════════════════════════
+function formatActivityTime(date: Date | string): string {
+	const now = new Date();
+	const d = new Date(date);
+	const diffMs = now.getTime() - d.getTime();
+	const diffMin = Math.floor(diffMs / 60000);
+	const diffHr = Math.floor(diffMs / 3600000);
+	const diffDay = Math.floor(diffMs / 86400000);
 
-function ActivityTab() {
-	return (
-		<div className="flex flex-col items-center py-8 text-center">
-			<Film className="mb-2 h-6 w-6 text-neon-pink/20" />
-			<p className="text-xs text-cream/30">No activity yet</p>
-		</div>
-	);
+	if (diffMin < 1) return "Just now";
+	if (diffMin < 60) return `${diffMin}m ago`;
+	if (diffHr < 24) return `${diffHr}h ago`;
+	if (diffDay === 1) return "Yesterday";
+	if (diffDay < 30) return `${diffDay}d ago`;
+	return d.toLocaleDateString("en-US", {
+		month: "short",
+		day: "numeric",
+	});
 }

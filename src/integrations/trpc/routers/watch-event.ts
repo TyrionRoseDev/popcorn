@@ -388,6 +388,7 @@ export const watchEventRouter = {
 		.input(
 			z.object({
 				filter: z.enum(["all", "mine"]).optional().default("all"),
+				userId: z.string().optional(),
 				limit: z.number().min(1).max(50).optional().default(20),
 				cursor: z.string().optional(),
 			}),
@@ -395,7 +396,9 @@ export const watchEventRouter = {
 		.query(async ({ input, ctx }) => {
 			let userIds: string[];
 
-			if (input.filter === "mine") {
+			if (input.userId) {
+				userIds = [input.userId];
+			} else if (input.filter === "mine") {
 				userIds = [ctx.userId];
 			} else {
 				const friendships = await db.query.friendship.findMany({
