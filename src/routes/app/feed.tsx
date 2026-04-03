@@ -117,9 +117,11 @@ function FeedPage() {
 					<div className="flex flex-col items-center py-12 text-center">
 						<Film className="mb-3 h-8 w-8 text-cream/15" />
 						<p className="text-sm text-cream/30">
-							{filter === "mine"
-								? "No activity yet. Mark something as watched!"
-								: "No activity yet. Add some friends to see their activity here."}
+							{filterUserId
+								? `${filterUser?.username ?? "This user"} has no activity yet.`
+								: filter === "mine"
+									? "No activity yet. Mark something as watched!"
+									: "No activity yet. Add some friends to see their activity here."}
 						</p>
 					</div>
 				) : (
