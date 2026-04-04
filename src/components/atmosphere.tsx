@@ -43,7 +43,7 @@ export function Atmosphere({
 			/>
 
 			{/* Fog layers */}
-			{fog !== false && (
+			{fog && (
 				<>
 					<div
 						className="fixed inset-x-0 bottom-0"
@@ -130,7 +130,7 @@ export function Atmosphere({
 			{/* Light orbs */}
 			{orbs?.map((orb) => (
 				<div
-					key={`${orb.color}-${orb.size}-${JSON.stringify(orb.position)}`}
+					key={`${orb.size}-${orb.color}`}
 					className="fixed"
 					style={{
 						...orb.position,

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import type React from "react";
 import { useState } from "react";
 import { z } from "zod";
 import { Atmosphere } from "#/components/atmosphere";
@@ -8,6 +9,12 @@ import { WatchlistDetailHeader } from "#/components/watchlist/watchlist-detail-h
 import { WatchlistFilters } from "#/components/watchlist/watchlist-filters";
 import { WatchlistItemCard } from "#/components/watchlist/watchlist-item-card";
 import { useTRPC } from "#/integrations/trpc/react";
+
+const watchlistAtmosphere: React.ComponentProps<typeof Atmosphere> = {
+	glowColor: "rgba(236,72,153,0.15)",
+	glowHeight: "200px",
+	fogHeights: ["120px", "100px", "80px"],
+};
 
 const searchSchema = z.object({
 	sort: z
@@ -91,11 +98,7 @@ function WatchlistDetailPage() {
 	if (isLoading) {
 		return (
 			<>
-				<Atmosphere
-					glowColor="rgba(236,72,153,0.15)"
-					glowHeight="200px"
-					fogHeights={["120px", "100px", "80px"]}
-				/>
+				<Atmosphere {...watchlistAtmosphere} />
 				<div
 					className="relative mx-auto max-w-6xl 2xl:max-w-[1600px] px-4"
 					style={{ zIndex: 2, paddingTop: "40px" }}
@@ -132,11 +135,7 @@ function WatchlistDetailPage() {
 	if (!watchlist) {
 		return (
 			<>
-				<Atmosphere
-					glowColor="rgba(236,72,153,0.15)"
-					glowHeight="200px"
-					fogHeights={["120px", "100px", "80px"]}
-				/>
+				<Atmosphere {...watchlistAtmosphere} />
 				<div
 					className="relative flex flex-col items-center justify-center py-32 text-center"
 					style={{ zIndex: 2 }}
@@ -152,11 +151,7 @@ function WatchlistDetailPage() {
 
 	return (
 		<>
-			<Atmosphere
-				glowColor="rgba(236,72,153,0.15)"
-				glowHeight="200px"
-				fogHeights={["120px", "100px", "80px"]}
-			/>
+			<Atmosphere {...watchlistAtmosphere} />
 
 			<div className="relative" style={{ zIndex: 2, paddingTop: "40px" }}>
 				<WatchlistDetailHeader
