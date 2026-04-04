@@ -92,7 +92,6 @@ export function SearchBar({ initialValue }: SearchBarProps) {
 
 	return (
 		<form onSubmit={handleSubmit} className="relative">
-			<Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/30" />
 			<input
 				ref={inputRef}
 				type="text"
@@ -100,7 +99,7 @@ export function SearchBar({ initialValue }: SearchBarProps) {
 				value={value}
 				onChange={(e) => handleChange(e.target.value)}
 				placeholder="Search movies & TV shows..."
-				className="w-full rounded-xl border border-cream/12 bg-cream/6 py-3 pl-10 pr-20 text-[15px] text-cream placeholder:text-cream/30 outline-none transition-all duration-200 focus:border-neon-cyan/40 focus:shadow-[0_0_20px_rgba(0,229,255,0.1)]"
+				className="w-full rounded-xl border border-cream/12 bg-cream/6 py-3 px-4 pr-20 text-[15px] text-cream placeholder:text-cream/30 outline-none transition-all duration-200 focus:border-neon-cyan/40 focus:shadow-[0_0_20px_rgba(0,229,255,0.1)]"
 			/>
 			<div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
 				{value && (
