@@ -40,10 +40,9 @@ export function RecommendModal({
 		Array<{ id: string; username: string | null }>
 	>([]);
 
-	const { data: friends = [], isLoading } = useQuery({
-		...trpc.friend.list.queryOptions(),
-		enabled: open,
-	});
+	const { data: friends = [], isLoading } = useQuery(
+		trpc.friend.list.queryOptions(),
+	);
 
 	function handleClose() {
 		setSelectedIds(new Set());
@@ -64,9 +63,6 @@ export function RecommendModal({
 					setSent(true);
 					setTimeout(handleClose, 1400);
 				}
-			},
-			onError: (error) => {
-				toast.error(error.message || "Failed to send recommendation");
 			},
 		}),
 	);
@@ -129,12 +125,7 @@ export function RecommendModal({
 		});
 
 		return (
-			<Dialog
-				open={open}
-				onOpenChange={(v) => {
-					if (!v) handleClose();
-				}}
-			>
+			<Dialog open={open} onOpenChange={onOpenChange}>
 				<DialogContent
 					className="max-w-[360px] border-none bg-transparent p-0 gap-0 shadow-none"
 					showCloseButton={false}
@@ -170,7 +161,7 @@ export function RecommendModal({
 								<div className="flex justify-end -mb-2">
 									<button
 										type="button"
-										onClick={handleClose}
+										onClick={() => onOpenChange(false)}
 										className="font-mono-retro text-[10px] tracking-[2px] uppercase text-cream/30 hover:text-cream/60 transition-colors duration-200"
 									>
 										close ✕
@@ -194,21 +185,39 @@ export function RecommendModal({
 								{/* Autocomplete results */}
 								{filtered.length > 0 && (
 									<div className="flex flex-col gap-1 max-h-36 overflow-y-auto">
-										{filtered.slice(0, 5).map((friend) => (
-											<button
-												key={friend.id}
-												type="button"
-												onClick={() => toggleFriendMarquee(friend)}
-												className="flex items-center gap-2.5 px-3 py-2 rounded-md border border-cream/[0.05] bg-black/20 transition-colors duration-200 text-left hover:border-cream/10"
-											>
-												<div className="w-7 h-7 rounded-full flex items-center justify-center font-mono-retro text-xs shrink-0 border border-cream/10 bg-cream/[0.06] text-cream/40">
-													{friend.username?.slice(0, 2).toUpperCase() ?? "?"}
-												</div>
-												<span className="flex-1 text-sm text-cream/70">
-													@{friend.username}
-												</span>
-											</button>
-										))}
+										{filtered.slice(0, 5).map((friend) => {
+											const isPicked = selectedFriends.some(
+												(s) => s.id === friend.id,
+											);
+											return (
+												<button
+													key={friend.id}
+													type="button"
+													onClick={() => toggleFriendMarquee(friend)}
+													className={`flex items-center gap-2.5 px-3 py-2 rounded-md border transition-colors duration-200 text-left ${
+														isPicked
+															? "bg-neon-pink/[0.06] border-neon-pink/20"
+															: "bg-black/20 border-cream/[0.05] hover:border-cream/10"
+													}`}
+												>
+													<div
+														className={`w-7 h-7 rounded-full flex items-center justify-center font-mono-retro text-xs shrink-0 border ${
+															isPicked
+																? "border-neon-pink/30 bg-neon-pink/10 text-neon-pink"
+																: "border-cream/10 bg-cream/[0.06] text-cream/40"
+														}`}
+													>
+														{friend.username?.slice(0, 2).toUpperCase() ?? "?"}
+													</div>
+													<span className="flex-1 text-sm text-cream/70">
+														@{friend.username}
+													</span>
+													{isPicked && (
+														<span className="text-sm text-neon-pink">✓</span>
+													)}
+												</button>
+											);
+										})}
 									</div>
 								)}
 
@@ -248,8 +257,7 @@ export function RecommendModal({
 										</div>
 										<textarea
 											value={message}
-											onChange={(e) => setMessage(e.target.value.slice(0, 150))}
-											maxLength={150}
+											onChange={(e) => setMessage(e.target.value)}
 											placeholder="You have to see this one…"
 											className="w-full bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-2.5 min-h-14 font-sans text-sm text-cream placeholder:text-cream/25 placeholder:italic leading-relaxed shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] focus:outline-none focus:border-neon-pink/20 resize-none transition-colors duration-200"
 										/>
@@ -454,8 +462,7 @@ export function RecommendModal({
 								</p>
 								<textarea
 									value={message}
-									onChange={(e) => setMessage(e.target.value.slice(0, 150))}
-									maxLength={150}
+									onChange={(e) => setMessage(e.target.value)}
 									placeholder="You have to see this one…"
 									className="w-full bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-2.5 min-h-14 font-sans text-sm text-cream placeholder:text-cream/25 placeholder:italic leading-relaxed shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] focus:outline-none focus:border-neon-amber/20 resize-none transition-colors duration-200"
 								/>

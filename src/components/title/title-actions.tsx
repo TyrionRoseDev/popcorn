@@ -4,7 +4,6 @@ import { Check, EyeOff, Loader2, Plus, Send, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { RecommendModal } from "#/components/recommend/recommend-modal";
-import { HideConfirmDialog } from "#/components/shuffle/hide-confirm-dialog";
 import { ArcadeButton } from "#/components/title/arcade-button";
 import {
 	Popover,
@@ -499,12 +498,6 @@ export function TitleActions({
 				titleName={title}
 				showMessage
 				variant="marquee"
-			/>
-
-			<HideConfirmDialog
-				open={hideConfirmOpen}
-				onOpenChange={setHideConfirmOpen}
-				onConfirm={() => toggleHideMutation.mutate({ tmdbId, mediaType })}
 			/>
 		</>
 	);

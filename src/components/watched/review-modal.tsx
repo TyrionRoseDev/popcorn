@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarDays, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { RecommendModal } from "#/components/recommend/recommend-modal";
 import { Calendar } from "#/components/ui/calendar";
 import { Dialog, DialogContent, DialogTitle } from "#/components/ui/dialog";
@@ -215,7 +214,6 @@ export function ReviewModal({
 								type="button"
 								onClick={handleClose}
 								className="absolute top-2.5 right-3 p-1 text-cream/25 hover:text-cream/60 transition-colors duration-200"
-								aria-label="Close"
 							>
 								<X className="w-4 h-4" />
 							</button>
@@ -251,94 +249,96 @@ export function ReviewModal({
 
 								{/* Note */}
 								<div>
-									<div className="font-mono-retro text-[10px] tracking-[3px] uppercase text-cream/70 mb-2">
+									<div className="font-mono-retro text-[10px] tracking-[3px] uppercase text-cream/30 mb-2">
 										Your Review
 									</div>
 									<textarea
 										value={note}
 										onChange={(e) => setNote(e.target.value)}
 										placeholder="Share your thoughts…"
-										className="w-full bg-black/30 border border-cream/[0.08] rounded-md px-3.5 py-3 min-h-16 font-sans text-sm text-cream placeholder:text-cream/55 placeholder:italic leading-relaxed shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] focus:outline-none focus:border-neon-cyan/20 resize-none transition-colors duration-200"
+										className="w-full bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-3 min-h-16 font-sans text-sm text-cream placeholder:text-cream/25 placeholder:italic leading-relaxed shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] focus:outline-none focus:border-neon-cyan/20 resize-none transition-colors duration-200"
 									/>
 								</div>
 
 								{/* Date & time */}
-								<div className="flex items-center gap-2">
-									<Popover>
-										<PopoverTrigger asChild>
-											{watchedAt ? (
+								<div>
+									<div className="font-mono-retro text-[10px] tracking-[3px] uppercase text-cream/30 mb-2">
+										Watched On
+										<span className="text-cream/15 ml-1.5 tracking-[1px] lowercase">
+											optional
+										</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<Popover>
+											<PopoverTrigger asChild>
 												<button
 													type="button"
-													className="flex items-center gap-2 bg-black/30 border border-cream/[0.06] rounded-md px-3 py-2 text-left hover:border-cream/15 focus:outline-none focus:border-neon-cyan/20 transition-colors duration-200"
+													className="flex-1 flex items-center gap-2.5 bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-2.5 text-left hover:border-cream/15 focus:outline-none focus:border-neon-cyan/20 transition-colors duration-200"
 												>
-													<CalendarDays className="w-3.5 h-3.5 shrink-0 text-neon-cyan/40" />
-													<span className="font-mono-retro text-sm text-cream">
-														{format(
-															new Date(watchedAt),
-															"MMM d, yyyy · h:mm a",
-														)}
+													<CalendarDays
+														className={`w-4 h-4 shrink-0 ${watchedAt ? "text-neon-cyan/40" : "text-cream/15"}`}
+													/>
+													<span
+														className={`font-mono-retro text-sm ${watchedAt ? "text-cream" : "text-cream/25 italic"}`}
+													>
+														{watchedAt
+															? format(
+																	new Date(watchedAt),
+																	"MMM d, yyyy · h:mm a",
+																)
+															: "I don't remember"}
 													</span>
 												</button>
-											) : (
-												<button
-													type="button"
-													className="flex items-center justify-center gap-2 w-full text-cream/70 hover:text-cream/90 transition-colors duration-200"
-												>
-													<CalendarDays className="w-3.5 h-3.5 shrink-0" />
-													<span className="font-mono-retro text-[11px] tracking-[1px]">
-														Add date
-													</span>
-												</button>
-											)}
-										</PopoverTrigger>
-										<PopoverContent
-											className="dark w-auto p-0 z-[60]"
-											align="start"
-										>
-											<Calendar
-												mode="single"
-												disabled={{ after: new Date() }}
-												toDate={new Date()}
-												selected={watchedAt ? new Date(watchedAt) : undefined}
-												onSelect={(date) => {
-													if (!date) return;
-													const time = watchedAt
-														? watchedAt.slice(11, 16)
-														: `${String(new Date().getHours()).padStart(2, "0")}:${String(new Date().getMinutes()).padStart(2, "0")}`;
-													const pad = (n: number) => String(n).padStart(2, "0");
-													setWatchedAt(
-														`${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${time}`,
-													);
-												}}
-											/>
-											<label className="border-t border-border px-3 py-2.5 flex items-center gap-2">
-												<span className="font-mono-retro text-[10px] tracking-[2px] uppercase text-muted-foreground">
-													Time
-												</span>
-												<input
-													type="time"
-													value={watchedAt ? watchedAt.slice(11, 16) : ""}
-													onChange={(e) => {
-														const dateStr = watchedAt
-															? watchedAt.slice(0, 10)
-															: toLocalDatetime(new Date()).slice(0, 10);
-														setWatchedAt(`${dateStr}T${e.target.value}`);
+											</PopoverTrigger>
+											<PopoverContent
+												className="dark w-auto p-0 z-[60]"
+												align="start"
+											>
+												<Calendar
+													mode="single"
+													disabled={{ after: new Date() }}
+													toDate={new Date()}
+													selected={watchedAt ? new Date(watchedAt) : undefined}
+													onSelect={(date) => {
+														if (!date) return;
+														const time = watchedAt
+															? watchedAt.slice(11, 16)
+															: `${String(new Date().getHours()).padStart(2, "0")}:${String(new Date().getMinutes()).padStart(2, "0")}`;
+														const pad = (n: number) =>
+															String(n).padStart(2, "0");
+														setWatchedAt(
+															`${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${time}`,
+														);
 													}}
-													className="flex-1 bg-transparent border border-border rounded px-2 py-1 font-mono-retro text-sm text-popover-foreground focus:outline-none focus:border-ring [color-scheme:dark]"
 												/>
-											</label>
-										</PopoverContent>
-									</Popover>
-									{watchedAt && (
-										<button
-											type="button"
-											onClick={() => setWatchedAt("")}
-											className="p-1.5 text-cream/20 hover:text-cream/50 transition-colors duration-200"
-											aria-label="Clear watched date"
-										>
-											<X className="w-3 h-3" />
-										</button>
-									)}
+												<label className="border-t border-border px-3 py-2.5 flex items-center gap-2">
+													<span className="font-mono-retro text-[10px] tracking-[2px] uppercase text-muted-foreground">
+														Time
+													</span>
+													<input
+														type="time"
+														value={watchedAt ? watchedAt.slice(11, 16) : ""}
+														onChange={(e) => {
+															const dateStr = watchedAt
+																? watchedAt.slice(0, 10)
+																: toLocalDatetime(new Date()).slice(0, 10);
+															setWatchedAt(`${dateStr}T${e.target.value}`);
+														}}
+														className="flex-1 bg-transparent border border-border rounded px-2 py-1 font-mono-retro text-sm text-popover-foreground focus:outline-none focus:border-ring [color-scheme:dark]"
+													/>
+												</label>
+											</PopoverContent>
+										</Popover>
+										{watchedAt && (
+											<button
+												type="button"
+												onClick={() => setWatchedAt("")}
+												className="p-2 text-cream/20 hover:text-cream/50 transition-colors duration-200"
+											>
+												<X className="w-3.5 h-3.5" />
+											</button>
+										)}
+									</div>
 								</div>
 
 								<div className="h-px bg-gradient-to-r from-transparent via-cream/[0.06] to-transparent" />
@@ -352,10 +352,10 @@ export function ReviewModal({
 									<div className="w-7 h-7 rounded-full bg-neon-pink/10 border border-neon-pink/20 flex items-center justify-center text-sm shrink-0">
 										📽️
 									</div>
-									<span className="flex-1 text-left text-sm font-semibold text-neon-pink/90">
+									<span className="flex-1 text-left text-sm font-semibold text-neon-pink/75">
 										Recommend to a friend
 									</span>
-									<span className="text-base text-neon-pink/50">›</span>
+									<span className="text-base text-neon-pink/30">›</span>
 								</button>
 
 								{/* Watched with */}
@@ -367,12 +367,12 @@ export function ReviewModal({
 									<div className="w-7 h-7 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 flex items-center justify-center text-sm shrink-0">
 										👥
 									</div>
-									<span className="flex-1 text-left text-sm font-semibold text-neon-cyan/90">
+									<span className="flex-1 text-left text-sm font-semibold text-neon-cyan/75">
 										{companions.length > 0
 											? `Watched with ${companions.map((c) => c.name).join(", ")}`
 											: "Watched with…"}
 									</span>
-									<span className="text-base text-neon-cyan/50">›</span>
+									<span className="text-base text-neon-cyan/30">›</span>
 								</button>
 
 								<VisibilitySelector
@@ -401,16 +401,16 @@ export function ReviewModal({
 												handleClose();
 											}}
 											disabled={isPending}
-											className="font-mono-retro text-[10px] tracking-[2px] uppercase text-cream/60 hover:text-cream/80 transition-colors duration-200 py-1.5"
+											className="font-mono-retro text-[10px] tracking-[2px] uppercase text-cream/25 hover:text-cream/50 transition-colors duration-200 py-1.5"
 										>
 											skip
 										</button>
-										<span className="text-cream/30 text-[10px]">·</span>
+										<span className="text-cream/15 text-[10px]">·</span>
 										<button
 											type="button"
 											onClick={handleRemindMe}
 											disabled={isPending}
-											className="font-mono-retro text-[10px] tracking-[2px] uppercase text-neon-amber/65 hover:text-neon-amber/90 transition-colors duration-200 py-1.5"
+											className="font-mono-retro text-[10px] tracking-[2px] uppercase text-neon-amber/40 hover:text-neon-amber/70 transition-colors duration-200 py-1.5"
 										>
 											remind me later
 										</button>

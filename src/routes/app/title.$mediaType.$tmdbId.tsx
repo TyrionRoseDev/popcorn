@@ -9,6 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 import { Atmosphere } from "#/components/atmosphere";
+import { RecommendModal } from "#/components/recommend/recommend-modal";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { CastList } from "#/components/title/cast-list";
 import { DriveInScreen } from "#/components/title/drive-in-screen";
