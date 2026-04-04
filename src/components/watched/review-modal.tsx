@@ -37,6 +37,8 @@ interface WatchEventModalProps {
 	onRemindMe?: () => void;
 	/** Called when a new watch event is successfully created */
 	onEventCreated?: () => void;
+	/** Called when user taps "Skip" — confirms watch without review */
+	onSkip?: () => void;
 	/** Optional scope for scoped reviews (TV shows) */
 	scope?: "episode" | "season" | "show";
 	scopeSeasonNumber?: number;
@@ -58,6 +60,7 @@ export function ReviewModal({
 	editEvent,
 	onRemindMe,
 	onEventCreated,
+	onSkip,
 	scope,
 	scopeSeasonNumber,
 	scopeEpisodeNumber,
@@ -391,7 +394,10 @@ export function ReviewModal({
 											<div className="flex justify-center items-center gap-3">
 												<button
 													type="button"
-													onClick={handleClose}
+													onClick={() => {
+														onSkip?.();
+														handleClose();
+													}}
 													disabled={isPending}
 													className="font-mono-retro text-[10px] tracking-[2px] uppercase text-cream/25 hover:text-cream/50 transition-colors duration-200 py-1.5"
 												>

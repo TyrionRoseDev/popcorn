@@ -66,12 +66,18 @@ export function WatchlistItemCard({
 				queryClient.invalidateQueries(
 					trpc.watchlist.get.queryFilter({ watchlistId }),
 				);
-				if (!item.watched) {
-					setReviewOpen(true);
-				}
 			},
 		}),
 	);
+
+	function confirmWatched() {
+		markWatched.mutate({
+			watchlistId,
+			tmdbId: item.tmdbId,
+			mediaType: item.mediaType as "movie" | "tv",
+			watched: true,
+		});
+	}
 
 	const removeItem = useMutation(
 		trpc.watchlist.removeItem.mutationOptions({
@@ -166,14 +172,18 @@ export function WatchlistItemCard({
 							{canToggleWatched && (
 								<button
 									type="button"
-									onClick={() =>
-										markWatched.mutate({
-											watchlistId,
-											tmdbId: item.tmdbId,
-											mediaType: item.mediaType as "movie" | "tv",
-											watched: !item.watched,
-										})
-									}
+									onClick={() => {
+										if (!item.watched) {
+											setReviewOpen(true);
+										} else {
+											markWatched.mutate({
+												watchlistId,
+												tmdbId: item.tmdbId,
+												mediaType: item.mediaType as "movie" | "tv",
+												watched: false,
+											});
+										}
+									}}
 									disabled={markWatched.isPending}
 									className={`rounded-lg p-1.5 transition-colors ${
 										item.watched
@@ -228,7 +238,9 @@ export function WatchlistItemCard({
 				tmdbId={item.tmdbId}
 				mediaType={item.mediaType as "movie" | "tv"}
 				titleName={item.title ?? ""}
+				onSkip={confirmWatched}
 				onEventCreated={() => {
+					confirmWatched();
 					keepInWatchlist.mutate({
 						tmdbId: item.tmdbId,
 						mediaType: item.mediaType as "movie" | "tv",
