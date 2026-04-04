@@ -110,7 +110,6 @@ export function ReviewDialog({
 									showLabel={false}
 									showNumeric
 									toggleable={false}
-									className=""
 								/>
 							</div>
 
