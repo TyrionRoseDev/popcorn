@@ -98,11 +98,7 @@ function WatchlistDetailPage() {
 	if (isLoading) {
 		return (
 			<>
-				<Atmosphere
-					glowColor="rgba(236,72,153,0.15)"
-					glowHeight="200px"
-					fogHeights={["120px", "100px", "80px"]}
-				/>
+				<Atmosphere {...watchlistAtmosphere} />
 				<div
 					className="relative mx-auto max-w-6xl 2xl:max-w-[1600px] px-4"
 					style={{ zIndex: 2, paddingTop: "40px" }}
@@ -139,11 +135,7 @@ function WatchlistDetailPage() {
 	if (!watchlist) {
 		return (
 			<>
-				<Atmosphere
-					glowColor="rgba(236,72,153,0.15)"
-					glowHeight="200px"
-					fogHeights={["120px", "100px", "80px"]}
-				/>
+				<Atmosphere {...watchlistAtmosphere} />
 				<div
 					className="relative flex flex-col items-center justify-center py-32 text-center"
 					style={{ zIndex: 2 }}
@@ -159,11 +151,7 @@ function WatchlistDetailPage() {
 
 	return (
 		<>
-			<Atmosphere
-				glowColor="rgba(236,72,153,0.15)"
-				glowHeight="200px"
-				fogHeights={["120px", "100px", "80px"]}
-			/>
+			<Atmosphere {...watchlistAtmosphere} />
 
 			<div className="relative" style={{ zIndex: 2, paddingTop: "40px" }}>
 				<WatchlistDetailHeader
