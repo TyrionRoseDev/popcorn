@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarDays, X } from "lucide-react";
+import { CalendarDays, X, XCircle } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { useEffect, useState } from "react";
 import { Calendar } from "#/components/ui/calendar";
@@ -75,12 +75,14 @@ export function ReviewModal({
 			if (editEvent) {
 				setRating(editEvent.rating);
 				setNote(editEvent.note ?? "");
-				setWatchedAt(editEvent.watchedAt.slice(0, 16));
+				setWatchedAt(
+					editEvent.watchedAt ? editEvent.watchedAt.slice(0, 16) : "",
+				);
 				setCompanions(editEvent.companions);
 			} else {
 				setRating(null);
 				setNote("");
-				setWatchedAt(toLocalDatetime(new Date()));
+				setWatchedAt("");
 				setCompanions([]);
 			}
 		}
@@ -134,7 +136,7 @@ export function ReviewModal({
 				id: editEvent.id,
 				rating: rating ?? null,
 				note: note.trim() || null,
-				watchedAt: watchedAtISO,
+				watchedAt: watchedAtISO ?? null,
 				companions,
 				titleName,
 			});
@@ -248,22 +250,36 @@ export function ReviewModal({
 												Watched On
 											</div>
 											<Popover>
-												<PopoverTrigger asChild>
-													<button
-														type="button"
-														className="w-full flex items-center gap-2.5 bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-2.5 text-left hover:border-cream/15 focus:outline-none focus:border-neon-cyan/20 transition-colors duration-200"
-													>
-														<CalendarDays className="w-4 h-4 text-neon-cyan/40 shrink-0" />
-														<span className="font-mono-retro text-sm text-cream">
-															{watchedAt
-																? format(
-																		new Date(watchedAt),
-																		"MMM d, yyyy · h:mm a",
-																	)
-																: "Select date…"}
-														</span>
-													</button>
-												</PopoverTrigger>
+												<div className="flex items-center gap-1.5">
+													<PopoverTrigger asChild>
+														<button
+															type="button"
+															className="flex-1 flex items-center gap-2.5 bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-2.5 text-left hover:border-cream/15 focus:outline-none focus:border-neon-cyan/20 transition-colors duration-200"
+														>
+															<CalendarDays className="w-4 h-4 text-neon-cyan/40 shrink-0" />
+															<span
+																className={`font-mono-retro text-sm ${watchedAt ? "text-cream" : "text-cream/25 italic"}`}
+															>
+																{watchedAt
+																	? format(
+																			new Date(watchedAt),
+																			"MMM d, yyyy · h:mm a",
+																		)
+																	: "I don't remember"}
+															</span>
+														</button>
+													</PopoverTrigger>
+													{watchedAt && (
+														<button
+															type="button"
+															onClick={() => setWatchedAt("")}
+															className="p-2 text-cream/20 hover:text-cream/50 transition-colors duration-200"
+															title="Clear date"
+														>
+															<XCircle className="w-4 h-4" />
+														</button>
+													)}
+												</div>
 												<PopoverContent
 													className="dark w-auto p-0 z-[60]"
 													align="start"

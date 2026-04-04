@@ -75,7 +75,7 @@ export const watchEventRouter = {
 					note: input.note ?? null,
 					title: input.titleName ?? null,
 					posterPath: input.posterPath ?? null,
-					watchedAt: input.watchedAt ? new Date(input.watchedAt) : new Date(),
+					watchedAt: input.watchedAt ? new Date(input.watchedAt) : null,
 					reviewReminderAt: input.remindMe
 						? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 						: null,
@@ -159,7 +159,7 @@ export const watchEventRouter = {
 				id: z.string(),
 				rating: z.number().min(1).max(5).optional().nullable(),
 				note: z.string().max(1000).optional().nullable(),
-				watchedAt: z.string().datetime().optional(),
+				watchedAt: z.string().datetime().optional().nullable(),
 				companions: z.array(companionSchema).optional(),
 				titleName: z.string().optional(),
 				scope: z.enum(["episode", "season", "show"]).optional().nullable(),
@@ -183,7 +183,9 @@ export const watchEventRouter = {
 				.set({
 					...(input.rating !== undefined ? { rating: input.rating } : {}),
 					...(input.note !== undefined ? { note: input.note } : {}),
-					...(input.watchedAt ? { watchedAt: new Date(input.watchedAt) } : {}),
+					...(input.watchedAt !== undefined
+						? { watchedAt: input.watchedAt ? new Date(input.watchedAt) : null }
+						: {}),
 					...(input.scope !== undefined ? { scope: input.scope } : {}),
 					...(input.scopeSeasonNumber !== undefined
 						? { scopeSeasonNumber: input.scopeSeasonNumber }
@@ -296,7 +298,9 @@ export const watchEventRouter = {
 				with: {
 					companions: true,
 				},
-				orderBy: (e, { desc }) => [desc(e.watchedAt)],
+				orderBy: (e, { desc }) => [
+					desc(sql`COALESCE(${e.watchedAt}, ${e.createdAt})`),
+				],
 			});
 			return events;
 		}),
@@ -315,14 +319,16 @@ export const watchEventRouter = {
 					eq(watchEvent.userId, input.userId),
 					...(input.cursor
 						? [
-								sql`${watchEvent.watchedAt} < (SELECT watched_at FROM watch_event WHERE id = ${input.cursor})`,
+								sql`COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}) < (SELECT COALESCE(watched_at, created_at) FROM watch_event WHERE id = ${input.cursor})`,
 							]
 						: []),
 				),
 				with: {
 					companions: true,
 				},
-				orderBy: (e, { desc }) => [desc(e.watchedAt)],
+				orderBy: (e, { desc }) => [
+					desc(sql`COALESCE(${e.watchedAt}, ${e.createdAt})`),
+				],
 				limit: input.limit + 1,
 			});
 
@@ -350,7 +356,9 @@ export const watchEventRouter = {
 					eq(watchEvent.mediaType, input.mediaType),
 					sql`${watchEvent.rating} IS NOT NULL`,
 				),
-				orderBy: (e, { desc }) => [desc(e.watchedAt)],
+				orderBy: (e, { desc }) => [
+					desc(sql`COALESCE(${e.watchedAt}, ${e.createdAt})`),
+				],
 				columns: { rating: true },
 			});
 			return event?.rating ?? null;
@@ -391,7 +399,11 @@ export const watchEventRouter = {
 			const watchEvents = await db.query.watchEvent.findMany({
 				where: and(
 					inArray(watchEvent.userId, userIds),
-					...(cursorDate ? [sql`${watchEvent.watchedAt} < ${cursorDate}`] : []),
+					...(cursorDate
+						? [
+								sql`COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}) < ${cursorDate}`,
+							]
+						: []),
 				),
 				with: {
 					companions: true,
@@ -403,7 +415,9 @@ export const watchEventRouter = {
 						},
 					},
 				},
-				orderBy: (e, { desc }) => [desc(e.watchedAt)],
+				orderBy: (e, { desc }) => [
+					desc(sql`COALESCE(${e.watchedAt}, ${e.createdAt})`),
+				],
 				limit: input.limit + 1,
 			});
 
@@ -491,7 +505,7 @@ export const watchEventRouter = {
 			const merged: FeedItem[] = [
 				...watchEvents.map((e) => ({
 					type: "watch_event" as const,
-					timestamp: new Date(e.watchedAt),
+					timestamp: new Date(e.watchedAt ?? e.createdAt),
 					data: e,
 				})),
 				...watchlistCreations.map((wl) => ({

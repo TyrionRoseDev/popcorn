@@ -102,7 +102,8 @@ function FeedPage() {
 												userId: string;
 												rating: number | null;
 												note: string | null;
-												watchedAt: Date | string;
+												watchedAt: Date | string | null;
+												createdAt: Date | string;
 												companions: Array<{
 													friendId: string | null;
 													name: string;

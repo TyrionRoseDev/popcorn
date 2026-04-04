@@ -90,7 +90,7 @@ export function TitleActions({
 			id: event.id,
 			rating: event.rating,
 			note: event.note,
-			watchedAt: new Date(event.watchedAt).toISOString(),
+			watchedAt: event.watchedAt ? new Date(event.watchedAt).toISOString() : "",
 			companions: event.companions.map((c) => ({
 				friendId: c.friendId ?? undefined,
 				name: c.name,

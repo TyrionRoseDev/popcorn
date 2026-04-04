@@ -1149,7 +1149,7 @@ interface NotesAndReviewsSectionProps {
 		scope: string | null;
 		scopeSeasonNumber: number | null;
 		scopeEpisodeNumber: number | null;
-		watchedAt: Date;
+		watchedAt: Date | null;
 		createdAt: Date;
 		watchNumber: number;
 	}>;

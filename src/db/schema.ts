@@ -289,7 +289,7 @@ export const watchEvent = pgTable(
 		scopeEpisodeNumber: integer("scope_episode_number"),
 		watchNumber: integer("watch_number").default(1).notNull(),
 		genreIds: jsonb("genre_ids").$type<number[]>(),
-		watchedAt: timestamp("watched_at").notNull(),
+		watchedAt: timestamp("watched_at"),
 		reviewReminderAt: timestamp("review_reminder_at"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")

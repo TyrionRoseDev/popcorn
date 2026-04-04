@@ -24,7 +24,7 @@ export const watchedRouter = createTRPCRouter({
 					tmdbId: input.tmdbId,
 					mediaType: input.mediaType,
 					titleName: input.titleName,
-					watchedAt: input.watchedAt ? new Date(input.watchedAt) : new Date(),
+					watchedAt: input.watchedAt ? new Date(input.watchedAt) : null,
 				})
 				.returning({ id: watchEvent.id });
 
@@ -133,7 +133,9 @@ export const watchedRouter = createTRPCRouter({
 					eq(watchEvent.tmdbId, input.tmdbId),
 					eq(watchEvent.mediaType, input.mediaType),
 				),
-				orderBy: [desc(watchEvent.watchedAt)],
+				orderBy: [
+					desc(sql`COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt})`),
+				],
 			});
 		}),
 

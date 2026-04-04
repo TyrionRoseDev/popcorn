@@ -18,7 +18,8 @@ interface WatchEventCardProps {
 		mediaType: string;
 		rating: number | null;
 		note: string | null;
-		watchedAt: Date | string;
+		watchedAt: Date | string | null;
+		createdAt?: Date | string;
 		companions: Array<{ friendId: string | null; name: string }>;
 	};
 	showTitle?: { name: string };
@@ -108,7 +109,7 @@ export function WatchEventCard({
 			id: event.id,
 			rating: event.rating,
 			note: event.note,
-			watchedAt: new Date(event.watchedAt).toISOString(),
+			watchedAt: event.watchedAt ? new Date(event.watchedAt).toISOString() : "",
 			companions: event.companions.map((c) => ({
 				friendId: c.friendId ?? undefined,
 				name: c.name,
@@ -163,9 +164,11 @@ export function WatchEventCard({
 							{isOwn ? "You" : (actor.username ?? "Someone")}
 						</span>
 					</Link>
-					<span className="text-xs text-cream/30">watched</span>
+					<span className="text-xs text-cream/30">
+						{event.watchedAt ? "watched" : "logged"}
+					</span>
 					<span className="text-[10px] text-cream/20 ml-auto font-mono-retro">
-						{formatTimeAgo(event.watchedAt)}
+						{formatTimeAgo(event.watchedAt ?? event.createdAt ?? new Date())}
 					</span>
 				</div>
 			)}
@@ -189,7 +192,11 @@ export function WatchEventCard({
 
 					{!actor && (
 						<div className="font-mono-retro text-[10px] tracking-[1px] text-[rgba(255,184,0,0.45)] mt-1">
-							{formatDate(event.watchedAt)}
+							{event.watchedAt
+								? formatDate(event.watchedAt)
+								: event.createdAt
+									? `Logged ${formatDate(event.createdAt)}`
+									: "Date unknown"}
 						</div>
 					)}
 

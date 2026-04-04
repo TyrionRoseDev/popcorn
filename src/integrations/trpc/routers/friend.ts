@@ -881,14 +881,18 @@ export const friendRouter = createTRPCRouter({
 
 			const result = await db
 				.select({
-					date: sql<string>`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`,
+					date: sql<string>`to_char(COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}), 'YYYY-MM-DD')`,
 					count: sql<number>`count(*)::int`,
 					titles: sql<string[]>`array_agg(${watchEvent.titleName})`,
 				})
 				.from(watchEvent)
 				.where(eq(watchEvent.userId, input.userId))
-				.groupBy(sql`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`)
-				.orderBy(sql`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`);
+				.groupBy(
+					sql`to_char(COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}), 'YYYY-MM-DD')`,
+				)
+				.orderBy(
+					sql`to_char(COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}), 'YYYY-MM-DD')`,
+				);
 
 			return result;
 		}),
