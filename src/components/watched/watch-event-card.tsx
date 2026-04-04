@@ -21,6 +21,7 @@ interface WatchEventCardProps {
 		watchedAt: Date | string | null;
 		createdAt?: Date | string;
 		companions: Array<{ friendId: string | null; name: string }>;
+		visibility?: "public" | "companion" | "private";
 	};
 	showTitle?: { name: string };
 	actor?: {
@@ -35,6 +36,7 @@ interface WatchEventCardProps {
 		note: string | null;
 		watchedAt: string;
 		companions: Companion[];
+		visibility: "public" | "companion" | "private";
 	}) => void;
 }
 
@@ -114,6 +116,7 @@ export function WatchEventCard({
 				friendId: c.friendId ?? undefined,
 				name: c.name,
 			})),
+			visibility: event.visibility ?? "public",
 		});
 	}
 

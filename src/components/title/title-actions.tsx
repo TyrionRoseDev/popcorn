@@ -56,6 +56,7 @@ export function TitleActions({
 				note: string | null;
 				watchedAt: string;
 				companions: Array<{ friendId?: string; name: string }>;
+				visibility: "public" | "companion" | "private";
 		  }
 		| undefined
 	>(undefined);
@@ -95,6 +96,7 @@ export function TitleActions({
 				friendId: c.friendId ?? undefined,
 				name: c.name,
 			})),
+			visibility: event.visibility ?? "public",
 		});
 		setReviewOpen(true);
 

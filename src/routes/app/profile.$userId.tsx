@@ -1461,6 +1461,7 @@ function DiaryTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 			note: string | null;
 			watchedAt: string;
 			companions: Array<{ friendId?: string; name: string }>;
+			visibility: "public" | "companion" | "private";
 		};
 	} | null>(null);
 
