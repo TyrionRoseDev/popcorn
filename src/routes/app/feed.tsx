@@ -30,6 +30,7 @@ function FeedPage() {
 			note: string | null;
 			watchedAt: string;
 			companions: Companion[];
+			visibility: "public" | "companion" | "private";
 		};
 	} | null>(null);
 
@@ -104,6 +105,7 @@ function FeedPage() {
 												note: string | null;
 												watchedAt: Date | string | null;
 												createdAt: Date | string;
+												visibility?: "public" | "companion" | "private";
 												companions: Array<{
 													friendId: string | null;
 													name: string;
@@ -130,7 +132,10 @@ function FeedPage() {
 															mediaType: event.mediaType as "movie" | "tv",
 															titleName:
 																event.title ?? `Title #${event.tmdbId}`,
-															event: e,
+															event: {
+																...e,
+																visibility: event.visibility ?? "public",
+															},
 														})
 													}
 												/>
