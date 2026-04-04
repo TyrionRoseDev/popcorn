@@ -47,6 +47,8 @@ describe("mapMovieToFeedItem", () => {
 			overview: "A mind-bending thriller",
 			release_date: "2010-07-16",
 			vote_average: 8.8,
+			vote_count: 30000,
+			popularity: 150,
 			genre_ids: [28, 878],
 		};
 
@@ -60,6 +62,8 @@ describe("mapMovieToFeedItem", () => {
 			overview: "A mind-bending thriller",
 			year: "2010",
 			rating: 8.8,
+			voteCount: 30000,
+			popularity: 150,
 			genreIds: [28, 878],
 			isTrending: false,
 		});
@@ -73,6 +77,8 @@ describe("mapMovieToFeedItem", () => {
 			overview: "Trending",
 			release_date: "2024-01-01",
 			vote_average: 7.0,
+			vote_count: 500,
+			popularity: 80,
 			genre_ids: [28],
 		};
 
@@ -88,6 +94,8 @@ describe("mapMovieToFeedItem", () => {
 			overview: "Unknown date",
 			release_date: "",
 			vote_average: 6.0,
+			vote_count: 100,
+			popularity: 20,
 			genre_ids: [35],
 		};
 
@@ -105,6 +113,8 @@ describe("mapTvToFeedItem", () => {
 			overview: "A chemistry teacher turns to crime",
 			first_air_date: "2008-01-20",
 			vote_average: 9.5,
+			vote_count: 12000,
+			popularity: 200,
 			genre_ids: [18, 80],
 		};
 
@@ -118,6 +128,8 @@ describe("mapTvToFeedItem", () => {
 			overview: "A chemistry teacher turns to crime",
 			year: "2008",
 			rating: 9.5,
+			voteCount: 12000,
+			popularity: 200,
 			genreIds: [18, 80],
 			isTrending: false,
 		});
@@ -131,6 +143,8 @@ describe("mapTvToFeedItem", () => {
 			overview: "Trending",
 			first_air_date: "2024-06-01",
 			vote_average: 8.0,
+			vote_count: 300,
+			popularity: 50,
 			genre_ids: [18],
 		};
 
@@ -149,6 +163,8 @@ describe("mapSearchResultToFeedItem", () => {
 			overview: "A movie found by search",
 			release_date: "2023-05-10",
 			vote_average: 7.5,
+			vote_count: 5000,
+			popularity: 90,
 			genre_ids: [28, 12],
 		};
 
@@ -162,6 +178,8 @@ describe("mapSearchResultToFeedItem", () => {
 			overview: "A movie found by search",
 			year: "2023",
 			rating: 7.5,
+			voteCount: 5000,
+			popularity: 90,
 			genreIds: [28, 12],
 			isTrending: false,
 		});
@@ -176,6 +194,8 @@ describe("mapSearchResultToFeedItem", () => {
 			overview: "A show found by search",
 			first_air_date: "2022-09-15",
 			vote_average: 8.2,
+			vote_count: 2000,
+			popularity: 70,
 			genre_ids: [18],
 		};
 
@@ -189,6 +209,8 @@ describe("mapSearchResultToFeedItem", () => {
 			overview: "A show found by search",
 			year: "2022",
 			rating: 8.2,
+			voteCount: 2000,
+			popularity: 70,
 			genreIds: [18],
 			isTrending: false,
 		});
@@ -206,6 +228,8 @@ describe("buildFeed", () => {
 					overview: "Action!",
 					release_date: "2024-01-01",
 					vote_average: 7.0,
+					vote_count: 1000,
+					popularity: 80,
 					genre_ids: [28],
 				},
 			],
@@ -223,6 +247,8 @@ describe("buildFeed", () => {
 					overview: "Action TV!",
 					first_air_date: "2024-02-01",
 					vote_average: 8.0,
+					vote_count: 500,
+					popularity: 60,
 					genre_ids: [10759],
 				},
 			],
@@ -241,6 +267,8 @@ describe("buildFeed", () => {
 					overview: "Trending!",
 					release_date: "2024-03-01",
 					vote_average: 9.0,
+					vote_count: 20000,
+					popularity: 300,
 					genre_ids: [28],
 				},
 			],
@@ -276,6 +304,8 @@ describe("buildFeed", () => {
 					overview: "Scary!",
 					release_date: "2024-01-01",
 					vote_average: 7.0,
+					vote_count: 3000,
+					popularity: 100,
 					genre_ids: [27],
 				},
 			],
@@ -315,6 +345,8 @@ describe("buildFeed", () => {
 					overview: "Reality!",
 					first_air_date: "2024-01-01",
 					vote_average: 6.0,
+					vote_count: 200,
+					popularity: 40,
 					genre_ids: [10764],
 				},
 			],

@@ -11,6 +11,7 @@ import {
 	watchlistMember,
 } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
+import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import { deduplicateFeed, type FeedItem } from "#/lib/feed-assembler";
 import { getUnifiedGenreById, UNIFIED_GENRES } from "#/lib/genre-map";
 import {
@@ -27,7 +28,6 @@ import {
 	discoverTvWithParams,
 	fetchTrending,
 } from "#/lib/tmdb";
-import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import { createNotification } from "./notification";
 import { mapMovieToFeedItem, mapTvToFeedItem } from "./taste-profile";
 
@@ -153,6 +153,8 @@ export const shuffleRouter = {
 								overview: t.overview,
 								release_date: t.release_date ?? "",
 								vote_average: t.vote_average,
+								vote_count: t.vote_count,
+								popularity: t.popularity,
 								genre_ids: t.genre_ids,
 							},
 							true,
@@ -166,6 +168,8 @@ export const shuffleRouter = {
 							overview: t.overview,
 							first_air_date: t.first_air_date ?? "",
 							vote_average: t.vote_average,
+							vote_count: t.vote_count,
+							popularity: t.popularity,
 							genre_ids: t.genre_ids,
 						},
 						true,

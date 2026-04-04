@@ -37,9 +37,24 @@ const searchParamsSchema = z.object({
 
 type SearchParams = z.infer<typeof searchParamsSchema>;
 
+/**
+ * Build query variants to work around TMDB's literal matching.
+ * e.g. "pride and prejudice" also searches "pride & prejudice" and vice-versa.
+ */
+function buildQueryVariants(q: string): string[] {
+	const variants = new Set<string>([q]);
+
+	// & ↔ and
+	if (q.includes(" and ")) variants.add(q.replace(/ and /gi, " & "));
+	if (q.includes("&")) variants.add(q.replace(/&/g, "and"));
+
+	return [...variants];
+}
+
 export async function fetchSearchResults(params: SearchParams) {
 	const { q, type, genre, yearMin, yearMax, rating, sort, page } = params;
 
+	const queries = buildQueryVariants(q);
 	let allItems: FeedItem[] = [];
 
 	if (type === "all") {
@@ -49,7 +64,9 @@ export async function fetchSearchResults(params: SearchParams) {
 			(_, i) => i + 1,
 		);
 		const multiPages = await Promise.all(
-			pageNumbers.map((p) => searchMulti(q, p).catch(() => null)),
+			queries.flatMap((query) =>
+				pageNumbers.map((p) => searchMulti(query, p).catch(() => null)),
+			),
 		);
 		if (multiPages.every((r) => r == null)) {
 			throw new Error("TMDB: all search requests failed");
@@ -67,7 +84,9 @@ export async function fetchSearchResults(params: SearchParams) {
 
 		if (type === "movie") {
 			const moviePages = await Promise.all(
-				pageNumbers.map((p) => searchMovies(q, p).catch(() => null)),
+				queries.flatMap((query) =>
+					pageNumbers.map((p) => searchMovies(query, p).catch(() => null)),
+				),
 			);
 			if (moviePages.every((r) => r == null)) {
 				throw new Error("TMDB: all movie page requests failed");
@@ -81,7 +100,9 @@ export async function fetchSearchResults(params: SearchParams) {
 
 		if (type === "tv") {
 			const tvPages = await Promise.all(
-				pageNumbers.map((p) => searchTvShows(q, p).catch(() => null)),
+				queries.flatMap((query) =>
+					pageNumbers.map((p) => searchTvShows(query, p).catch(() => null)),
+				),
 			);
 			if (tvPages.every((r) => r == null)) {
 				throw new Error("TMDB: all TV page requests failed");
@@ -106,7 +127,7 @@ export async function fetchSearchResults(params: SearchParams) {
 		rating,
 	});
 
-	const sorted = sortResults(filtered, sort);
+	const sorted = sortResults(filtered, sort, q);
 
 	// Paginate
 	const totalResults = sorted.length;

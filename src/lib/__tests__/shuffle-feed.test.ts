@@ -16,6 +16,8 @@ function makeFeedItem(
 		overview: "Synopsis",
 		year: "2024",
 		rating: 7,
+		voteCount: 1000,
+		popularity: 50,
 		genreIds: [1],
 		isTrending: false,
 		...overrides,
