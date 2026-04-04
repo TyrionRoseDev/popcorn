@@ -8,7 +8,7 @@ export const env = createEnv({
 			(value) =>
 				typeof value === "string" && value.trim().length > 0
 					? value
-					: process.env.COOLIFY_FQDN,
+					: process.env.COOLIFY_URL,
 			z.string().url(),
 		),
 		BETTER_AUTH_SECRET: z.string().min(1),

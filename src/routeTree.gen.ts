@@ -18,6 +18,7 @@ import { Route as AppSettingsRouteImport } from './routes/app/settings'
 import { Route as AppSearchRouteImport } from './routes/app/search'
 import { Route as AppFriendsRouteImport } from './routes/app/friends'
 import { Route as AppFeedRouteImport } from './routes/app/feed'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AppWatchlistsIndexRouteImport } from './routes/app/watchlists/index'
 import { Route as AppTrackerIndexRouteImport } from './routes/app/tracker.index'
 import { Route as AppShuffleIndexRouteImport } from './routes/app/shuffle/index'
@@ -76,6 +77,11 @@ const AppFeedRoute = AppFeedRouteImport.update({
   id: '/feed',
   path: '/feed',
   getParentRoute: () => AppRouteRoute,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppWatchlistsIndexRoute = AppWatchlistsIndexRouteImport.update({
   id: '/watchlists/',
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/api/health': typeof ApiHealthRoute
   '/app/feed': typeof AppFeedRoute
   '/app/friends': typeof AppFriendsRoute
   '/app/search': typeof AppSearchRoute
@@ -172,6 +179,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/api/health': typeof ApiHealthRoute
   '/app/feed': typeof AppFeedRoute
   '/app/friends': typeof AppFriendsRoute
   '/app/search': typeof AppSearchRoute
@@ -197,6 +205,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/api/health': typeof ApiHealthRoute
   '/app/feed': typeof AppFeedRoute
   '/app/friends': typeof AppFriendsRoute
   '/app/search': typeof AppSearchRoute
@@ -223,6 +232,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/onboarding'
     | '/login'
+    | '/api/health'
     | '/app/feed'
     | '/app/friends'
     | '/app/search'
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/login'
+    | '/api/health'
     | '/app/feed'
     | '/app/friends'
     | '/app/search'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/onboarding'
     | '/login'
+    | '/api/health'
     | '/app/feed'
     | '/app/friends'
     | '/app/search'
@@ -295,6 +307,7 @@ export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   OnboardingRouteRoute: typeof OnboardingRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiCronReviewRemindersRoute: typeof ApiCronReviewRemindersRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
@@ -365,6 +378,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/feed'
       preLoaderRoute: typeof AppFeedRouteImport
       parentRoute: typeof AppRouteRoute
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/watchlists/': {
       id: '/app/watchlists/'
@@ -523,6 +543,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   OnboardingRouteRoute: OnboardingRouteRouteWithChildren,
   LoginRoute: LoginRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiCronReviewRemindersRoute: ApiCronReviewRemindersRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
