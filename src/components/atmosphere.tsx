@@ -1,5 +1,4 @@
 interface LightOrb {
-	id: string;
 	position: { top?: string; bottom?: string; left?: string; right?: string };
 	size: string;
 	color: string;
@@ -44,7 +43,7 @@ export function Atmosphere({
 			/>
 
 			{/* Fog layers */}
-			{fog && (
+			{fog !== false && (
 				<>
 					<div
 						className="fixed inset-x-0 bottom-0"
@@ -131,7 +130,7 @@ export function Atmosphere({
 			{/* Light orbs */}
 			{orbs?.map((orb) => (
 				<div
-					key={orb.id}
+					key={`${orb.color}-${orb.size}-${JSON.stringify(orb.position)}`}
 					className="fixed"
 					style={{
 						...orb.position,
