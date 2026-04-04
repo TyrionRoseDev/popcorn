@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { z } from "zod";
+import { InviteMemberModal } from "#/components/watchlist/invite-member-modal";
 import { WatchlistAtmosphere } from "#/components/watchlist/watchlist-atmosphere";
 import { WatchlistDetailHeader } from "#/components/watchlist/watchlist-detail-header";
 import { WatchlistFilters } from "#/components/watchlist/watchlist-filters";
@@ -23,6 +25,8 @@ function WatchlistDetailPage() {
 	const { watchlistId } = Route.useParams();
 	const { sort, type } = Route.useSearch();
 	const navigate = useNavigate({ from: Route.fullPath });
+
+	const [inviteOpen, setInviteOpen] = useState(false);
 
 	const trpc = useTRPC();
 	const { data: watchlist, isLoading } = useQuery(
@@ -147,9 +151,7 @@ function WatchlistDetailPage() {
 				<WatchlistDetailHeader
 					watchlist={watchlist}
 					userRole={watchlist.userRole}
-					onInvite={() => {
-						console.log("Invite clicked — dialog comes in Task 9");
-					}}
+					onInvite={() => setInviteOpen(true)}
 				/>
 
 				{/* Filters */}
@@ -192,6 +194,15 @@ function WatchlistDetailPage() {
 					)}
 				</div>
 			</div>
+
+			{watchlist && (
+				<InviteMemberModal
+					open={inviteOpen}
+					onOpenChange={setInviteOpen}
+					watchlistId={watchlist.id}
+					watchlistName={watchlist.name}
+				/>
+			)}
 		</>
 	);
 }
