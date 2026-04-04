@@ -428,7 +428,7 @@ export const watchEventRouter = {
 								scopeEpisodeNumber: existing.scopeEpisodeNumber,
 								watchNumber: existing.watchNumber,
 								originEventId: input.id,
-								visibility: existing.visibility ?? "public",
+								visibility: input.visibility ?? existing.visibility ?? "public",
 							})
 							.returning();
 

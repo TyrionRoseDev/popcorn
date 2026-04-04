@@ -419,42 +419,50 @@ export const episodeTrackerRouter = {
 					(ep: { episodeNumber: number }) =>
 						ep.episodeNumber === input.scopeEpisodeNumber,
 				);
-				if (episode) {
-					await db
-						.insert(episodeWatch)
-						.values({
-							userId: ctx.userId,
-							tmdbId: input.tmdbId,
-							seasonNumber: input.scopeSeasonNumber,
-							episodeNumber: input.scopeEpisodeNumber,
-							runtime: episode.runtime ?? 0,
-							watchNumber: watchNum,
-						})
-						.onConflictDoNothing();
+				if (!episode) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Requested episode not found",
+					});
 				}
+				await db
+					.insert(episodeWatch)
+					.values({
+						userId: ctx.userId,
+						tmdbId: input.tmdbId,
+						seasonNumber: input.scopeSeasonNumber,
+						episodeNumber: input.scopeEpisodeNumber,
+						runtime: episode.runtime ?? 0,
+						watchNumber: watchNum,
+					})
+					.onConflictDoNothing();
 			} else if (input.scope === "season" && input.scopeSeasonNumber != null) {
 				// Mark entire season
 				const episodes = await fetchSeasonDetails(
 					input.tmdbId,
 					input.scopeSeasonNumber,
 				);
-				if (episodes.length > 0) {
-					await db
-						.insert(episodeWatch)
-						.values(
-							episodes.map(
-								(ep: { episodeNumber: number; runtime: number | null }) => ({
-									userId: ctx.userId,
-									tmdbId: input.tmdbId,
-									seasonNumber: input.scopeSeasonNumber as number,
-									episodeNumber: ep.episodeNumber,
-									runtime: ep.runtime ?? 0,
-									watchNumber: watchNum,
-								}),
-							),
-						)
-						.onConflictDoNothing();
+				if (episodes.length === 0) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Requested season not found",
+					});
 				}
+				await db
+					.insert(episodeWatch)
+					.values(
+						episodes.map(
+							(ep: { episodeNumber: number; runtime: number | null }) => ({
+								userId: ctx.userId,
+								tmdbId: input.tmdbId,
+								seasonNumber: input.scopeSeasonNumber as number,
+								episodeNumber: ep.episodeNumber,
+								runtime: ep.runtime ?? 0,
+								watchNumber: watchNum,
+							}),
+						),
+					)
+					.onConflictDoNothing();
 			}
 
 			return { success: true };

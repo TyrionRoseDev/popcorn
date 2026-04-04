@@ -927,7 +927,8 @@ export const watchlistRouter = {
 				);
 
 			const ownedIds = ownedWatchlists.map((m) => m.watchlistId);
-			if (ownedIds.length !== input.watchlistIds.length) {
+			const uniqueInputIds = [...new Set(input.watchlistIds)];
+			if (ownedIds.length !== uniqueInputIds.length) {
 				throw new TRPCError({
 					code: "FORBIDDEN",
 					message: "You do not own all specified watchlists",

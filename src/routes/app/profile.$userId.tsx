@@ -1575,9 +1575,7 @@ function FriendExpandedSections({
 								{activeTab === "activity" && (
 									<ActivityTab userId={profile.id} isOwn={isSelf} />
 								)}
-								{activeTab === "journal" && (
-									<DiaryTab userId={profile.id} isOwn={isSelf} />
-								)}
+								{activeTab === "journal" && <DiaryTab userId={profile.id} />}
 								{activeTab === "watchlists" && (
 									<WatchlistsTab watchlists={profile.publicWatchlists} />
 								)}
@@ -1689,7 +1687,7 @@ function WatchlistsTab({
 // JournalTab (journal entries, not watch events/reviews)
 // ════════════════════════════════════════════════════════════════
 
-function DiaryTab({ userId }: { userId: string; isOwn: boolean }) {
+function DiaryTab({ userId }: { userId: string }) {
 	const trpc = useTRPC();
 	const { data, isLoading } = useQuery(
 		trpc.journalEntry.getAll.queryOptions({ userId, limit: 50 }),

@@ -22,7 +22,7 @@ export function NowShowingMarquee({
 	}
 
 	return (
-		<div className="w-[700px] max-w-full h-[130px] mx-auto mt-[50px] relative flex flex-col items-center justify-center px-10">
+		<div className="w-[700px] max-w-full min-h-[130px] mx-auto mt-[50px] relative flex flex-col items-center justify-center px-10">
 			{/* Amber border */}
 			<div
 				aria-hidden="true"

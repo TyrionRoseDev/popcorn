@@ -1,4 +1,5 @@
 import type { TRPCRouterRecord } from "@trpc/server";
+import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
@@ -312,6 +313,15 @@ export const tasteProfileRouter = {
 	updateFavouriteGenre: protectedProcedure
 		.input(z.object({ genreId: z.number().int().nullable() }))
 		.mutation(async ({ input, ctx }) => {
+			if (
+				input.genreId != null &&
+				!UNIFIED_GENRES.some((g) => g.id === input.genreId)
+			) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Unknown genre ID",
+				});
+			}
 			await db
 				.update(user)
 				.set({ favouriteGenreId: input.genreId })

@@ -86,7 +86,6 @@ export function WatchlistRemovalDialog({
 									);
 									setSelected(new Set());
 									onOpenChange(false);
-									onDone?.();
 								},
 								onError: () => {
 									toast.error("Failed to keep in remaining watchlists");
@@ -99,7 +98,6 @@ export function WatchlistRemovalDialog({
 						);
 						setSelected(new Set());
 						onOpenChange(false);
-						onDone?.();
 					}
 				},
 			},
@@ -115,7 +113,6 @@ export function WatchlistRemovalDialog({
 					toast.success("Removed from all watchlists");
 					setSelected(new Set());
 					onOpenChange(false);
-					onDone?.();
 				},
 			},
 		);
@@ -128,7 +125,6 @@ export function WatchlistRemovalDialog({
 				onSuccess: () => {
 					setSelected(new Set());
 					onOpenChange(false);
-					onDone?.();
 				},
 				onError: () => {
 					toast.error("Failed to keep in watchlists");
