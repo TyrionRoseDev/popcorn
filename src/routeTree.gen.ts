@@ -17,14 +17,18 @@ import { Route as OnboardingIndexRouteImport } from './routes/onboarding/index'
 import { Route as AppSettingsRouteImport } from './routes/app/settings'
 import { Route as AppSearchRouteImport } from './routes/app/search'
 import { Route as AppFriendsRouteImport } from './routes/app/friends'
+import { Route as AppFeedRouteImport } from './routes/app/feed'
 import { Route as AppWatchlistsIndexRouteImport } from './routes/app/watchlists/index'
+import { Route as AppTrackerIndexRouteImport } from './routes/app/tracker.index'
 import { Route as AppShuffleIndexRouteImport } from './routes/app/shuffle/index'
 import { Route as AppWatchlistsWatchlistIdRouteImport } from './routes/app/watchlists/$watchlistId'
+import { Route as AppTrackerTmdbIdRouteImport } from './routes/app/tracker.$tmdbId'
 import { Route as AppShuffleHiddenRouteImport } from './routes/app/shuffle/hidden'
 import { Route as AppSettingsBlockedRouteImport } from './routes/app/settings/blocked'
 import { Route as AppProfileUserIdRouteImport } from './routes/app/profile.$userId'
 import { Route as ApiUploadthingSplatRouteImport } from './routes/api/uploadthing/$'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
+import { Route as ApiCronReviewRemindersRouteImport } from './routes/api/cron/review-reminders'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppTitleMediaTypeTmdbIdRouteImport } from './routes/app/title.$mediaType.$tmdbId'
 
@@ -68,9 +72,19 @@ const AppFriendsRoute = AppFriendsRouteImport.update({
   path: '/friends',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppFeedRoute = AppFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppWatchlistsIndexRoute = AppWatchlistsIndexRouteImport.update({
   id: '/watchlists/',
   path: '/watchlists/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppTrackerIndexRoute = AppTrackerIndexRouteImport.update({
+  id: '/tracker/',
+  path: '/tracker/',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppShuffleIndexRoute = AppShuffleIndexRouteImport.update({
@@ -84,6 +98,11 @@ const AppWatchlistsWatchlistIdRoute =
     path: '/watchlists/$watchlistId',
     getParentRoute: () => AppRouteRoute,
   } as any)
+const AppTrackerTmdbIdRoute = AppTrackerTmdbIdRouteImport.update({
+  id: '/tracker/$tmdbId',
+  path: '/tracker/$tmdbId',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppShuffleHiddenRoute = AppShuffleHiddenRouteImport.update({
   id: '/shuffle/hidden',
   path: '/shuffle/hidden',
@@ -109,6 +128,11 @@ const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   path: '/api/trpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronReviewRemindersRoute = ApiCronReviewRemindersRouteImport.update({
+  id: '/api/cron/review-reminders',
+  path: '/api/cron/review-reminders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -125,18 +149,22 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/feed': typeof AppFeedRoute
   '/app/friends': typeof AppFriendsRoute
   '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/onboarding/': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/review-reminders': typeof ApiCronReviewRemindersRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/settings/blocked': typeof AppSettingsBlockedRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
+  '/app/tracker/$tmdbId': typeof AppTrackerTmdbIdRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle/': typeof AppShuffleIndexRoute
+  '/app/tracker/': typeof AppTrackerIndexRoute
   '/app/watchlists/': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -144,18 +172,22 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/feed': typeof AppFeedRoute
   '/app/friends': typeof AppFriendsRoute
   '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/onboarding': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/review-reminders': typeof ApiCronReviewRemindersRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/settings/blocked': typeof AppSettingsBlockedRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
+  '/app/tracker/$tmdbId': typeof AppTrackerTmdbIdRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle': typeof AppShuffleIndexRoute
+  '/app/tracker': typeof AppTrackerIndexRoute
   '/app/watchlists': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -165,18 +197,22 @@ export interface FileRoutesById {
   '/app': typeof AppRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/feed': typeof AppFeedRoute
   '/app/friends': typeof AppFriendsRoute
   '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/onboarding/': typeof OnboardingIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/review-reminders': typeof ApiCronReviewRemindersRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/settings/blocked': typeof AppSettingsBlockedRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
+  '/app/tracker/$tmdbId': typeof AppTrackerTmdbIdRoute
   '/app/watchlists/$watchlistId': typeof AppWatchlistsWatchlistIdRoute
   '/app/shuffle/': typeof AppShuffleIndexRoute
+  '/app/tracker/': typeof AppTrackerIndexRoute
   '/app/watchlists/': typeof AppWatchlistsIndexRoute
   '/app/title/$mediaType/$tmdbId': typeof AppTitleMediaTypeTmdbIdRoute
 }
@@ -187,18 +223,22 @@ export interface FileRouteTypes {
     | '/app'
     | '/onboarding'
     | '/login'
+    | '/app/feed'
     | '/app/friends'
     | '/app/search'
     | '/app/settings'
     | '/onboarding/'
     | '/api/auth/$'
+    | '/api/cron/review-reminders'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
     | '/app/profile/$userId'
     | '/app/settings/blocked'
     | '/app/shuffle/hidden'
+    | '/app/tracker/$tmdbId'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle/'
+    | '/app/tracker/'
     | '/app/watchlists/'
     | '/app/title/$mediaType/$tmdbId'
   fileRoutesByTo: FileRoutesByTo
@@ -206,18 +246,22 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/login'
+    | '/app/feed'
     | '/app/friends'
     | '/app/search'
     | '/app/settings'
     | '/onboarding'
     | '/api/auth/$'
+    | '/api/cron/review-reminders'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
     | '/app/profile/$userId'
     | '/app/settings/blocked'
     | '/app/shuffle/hidden'
+    | '/app/tracker/$tmdbId'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle'
+    | '/app/tracker'
     | '/app/watchlists'
     | '/app/title/$mediaType/$tmdbId'
   id:
@@ -226,18 +270,22 @@ export interface FileRouteTypes {
     | '/app'
     | '/onboarding'
     | '/login'
+    | '/app/feed'
     | '/app/friends'
     | '/app/search'
     | '/app/settings'
     | '/onboarding/'
     | '/api/auth/$'
+    | '/api/cron/review-reminders'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
     | '/app/profile/$userId'
     | '/app/settings/blocked'
     | '/app/shuffle/hidden'
+    | '/app/tracker/$tmdbId'
     | '/app/watchlists/$watchlistId'
     | '/app/shuffle/'
+    | '/app/tracker/'
     | '/app/watchlists/'
     | '/app/title/$mediaType/$tmdbId'
   fileRoutesById: FileRoutesById
@@ -248,6 +296,7 @@ export interface RootRouteChildren {
   OnboardingRouteRoute: typeof OnboardingRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiCronReviewRemindersRoute: typeof ApiCronReviewRemindersRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
   ApiUploadthingSplatRoute: typeof ApiUploadthingSplatRoute
 }
@@ -310,11 +359,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFriendsRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/feed': {
+      id: '/app/feed'
+      path: '/feed'
+      fullPath: '/app/feed'
+      preLoaderRoute: typeof AppFeedRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/watchlists/': {
       id: '/app/watchlists/'
       path: '/watchlists'
       fullPath: '/app/watchlists/'
       preLoaderRoute: typeof AppWatchlistsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/tracker/': {
+      id: '/app/tracker/'
+      path: '/tracker'
+      fullPath: '/app/tracker/'
+      preLoaderRoute: typeof AppTrackerIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/shuffle/': {
@@ -329,6 +392,13 @@ declare module '@tanstack/react-router' {
       path: '/watchlists/$watchlistId'
       fullPath: '/app/watchlists/$watchlistId'
       preLoaderRoute: typeof AppWatchlistsWatchlistIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/tracker/$tmdbId': {
+      id: '/app/tracker/$tmdbId'
+      path: '/tracker/$tmdbId'
+      fullPath: '/app/tracker/$tmdbId'
+      preLoaderRoute: typeof AppTrackerTmdbIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/shuffle/hidden': {
@@ -366,6 +436,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTrpcSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/review-reminders': {
+      id: '/api/cron/review-reminders'
+      path: '/api/cron/review-reminders'
+      fullPath: '/api/cron/review-reminders'
+      preLoaderRoute: typeof ApiCronReviewRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -396,25 +473,31 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
 )
 
 interface AppRouteRouteChildren {
+  AppFeedRoute: typeof AppFeedRoute
   AppFriendsRoute: typeof AppFriendsRoute
   AppSearchRoute: typeof AppSearchRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppProfileUserIdRoute: typeof AppProfileUserIdRoute
   AppShuffleHiddenRoute: typeof AppShuffleHiddenRoute
+  AppTrackerTmdbIdRoute: typeof AppTrackerTmdbIdRoute
   AppWatchlistsWatchlistIdRoute: typeof AppWatchlistsWatchlistIdRoute
   AppShuffleIndexRoute: typeof AppShuffleIndexRoute
+  AppTrackerIndexRoute: typeof AppTrackerIndexRoute
   AppWatchlistsIndexRoute: typeof AppWatchlistsIndexRoute
   AppTitleMediaTypeTmdbIdRoute: typeof AppTitleMediaTypeTmdbIdRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppFeedRoute: AppFeedRoute,
   AppFriendsRoute: AppFriendsRoute,
   AppSearchRoute: AppSearchRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppProfileUserIdRoute: AppProfileUserIdRoute,
   AppShuffleHiddenRoute: AppShuffleHiddenRoute,
+  AppTrackerTmdbIdRoute: AppTrackerTmdbIdRoute,
   AppWatchlistsWatchlistIdRoute: AppWatchlistsWatchlistIdRoute,
   AppShuffleIndexRoute: AppShuffleIndexRoute,
+  AppTrackerIndexRoute: AppTrackerIndexRoute,
   AppWatchlistsIndexRoute: AppWatchlistsIndexRoute,
   AppTitleMediaTypeTmdbIdRoute: AppTitleMediaTypeTmdbIdRoute,
 }
@@ -441,6 +524,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRouteRoute: OnboardingRouteRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiCronReviewRemindersRoute: ApiCronReviewRemindersRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
   ApiUploadthingSplatRoute: ApiUploadthingSplatRoute,
 }

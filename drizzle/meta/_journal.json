@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1774195048995,
-      "tag": "0000_eager_brother_voodoo",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1774363692717,
-      "tag": "0001_naive_cyclops",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1774886400000,
-      "tag": "0002_shuffle_swipe",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1774792543072,
-      "tag": "0003_far_nightmare",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1774812350926,
-      "tag": "0004_violet_major_mapleleaf",
+      "when": 1775221314750,
+      "tag": "0000_elite_wallow",
       "breakpoints": true
     }
   ]

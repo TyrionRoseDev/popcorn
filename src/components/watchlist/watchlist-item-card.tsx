@@ -1,9 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { Check, Eye, EyeOff, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
+import { ReviewModal } from "#/components/watched/review-modal";
 import { useTRPC } from "#/integrations/trpc/react";
-import { AchievementPopup } from "#/components/achievements/achievement-popup";
-import { ReviewDialog } from "./review-dialog";
+import { getTmdbImageUrl } from "#/lib/tmdb";
 
 const POSTER_GRADIENTS = [
 	"linear-gradient(135deg, #1a3a5c, #0d2240)",
@@ -24,14 +26,24 @@ interface WatchlistItemCardProps {
 	item: {
 		tmdbId: number;
 		mediaType: string;
+		title: string | null;
+		posterPath: string | null;
 		watched: boolean;
-		title?: string | null;
+		keptInWatchlist: boolean;
 		createdAt: Date | string;
 		addedByUser: {
 			id: string;
 			username: string | null;
 			avatarUrl: string | null;
 		};
+		recommendedBy?: string | null;
+		recommendationMessage?: string | null;
+		titleName?: string | null;
+		recommendedByUser?: {
+			id: string;
+			username: string | null;
+			avatarUrl: string | null;
+		} | null;
 	};
 	watchlistId: string;
 	userRole: string | null;
@@ -46,10 +58,7 @@ export function WatchlistItemCard({
 }: WatchlistItemCardProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
-
-	const [showReviewDialog, setShowReviewDialog] = useState(false);
-	const [newAchievements, setNewAchievements] = useState<string[]>([]);
-	const [achievementIndex, setAchievementIndex] = useState(0);
+	const [reviewOpen, setReviewOpen] = useState(false);
 
 	const markWatched = useMutation(
 		trpc.watchlist.markWatched.mutationOptions({
@@ -57,15 +66,8 @@ export function WatchlistItemCard({
 				queryClient.invalidateQueries(
 					trpc.watchlist.get.queryFilter({ watchlistId }),
 				);
-			},
-		}),
-	);
-
-	const submitReview = useMutation(
-		trpc.review.upsert.mutationOptions({
-			onSuccess: (data) => {
-				if (data.newAchievements.length > 0) {
-					setNewAchievements((prev) => [...prev, ...data.newAchievements]);
+				if (!item.watched) {
+					setReviewOpen(true);
 				}
 			},
 		}),
@@ -81,119 +83,97 @@ export function WatchlistItemCard({
 		}),
 	);
 
+	const keepInWatchlist = useMutation(
+		trpc.watchlist.keepInWatchlist.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					trpc.watchlist.get.queryFilter({ watchlistId }),
+				);
+			},
+		}),
+	);
+
+	const [imageFailed, setImageFailed] = useState(false);
 	const canToggleWatched = userRole === "owner" || userRole === "member";
 	const canRemove = userRole === "owner";
-
-	function handleWatchedClick() {
-		if (item.watched) {
-			// Unmark watched directly — no review needed
-			markWatched.mutate({
-				watchlistId,
-				tmdbId: item.tmdbId,
-				mediaType: item.mediaType as "movie" | "tv",
-				watched: false,
-				titleName: item.title ?? undefined,
-			});
-		} else {
-			// Show review dialog first
-			setShowReviewDialog(true);
-		}
-	}
-
-	const handleReviewSubmit = (data: {
-		rating: number;
-		text?: string;
-		watchedAt?: string;
-	}) => {
-		setShowReviewDialog(false);
-		markWatched.mutate(
-			{
-				watchlistId,
-				tmdbId: item.tmdbId,
-				mediaType: item.mediaType as "movie" | "tv",
-				watched: true,
-				titleName: item.title ?? undefined,
-				watchedAt: data.watchedAt,
-			},
-			{
-				onSuccess: (result) => {
-					if (result?.newAchievements?.length) {
-						setNewAchievements(result.newAchievements);
-						setAchievementIndex(0);
-					}
-				},
-			},
-		);
-		submitReview.mutate({
-			tmdbId: item.tmdbId,
-			mediaType: item.mediaType as "movie" | "tv",
-			rating: data.rating,
-			text: data.text,
-			titleName: item.title ?? undefined,
-		});
-	};
-
-	const handleReviewSkip = () => {
-		setShowReviewDialog(false);
-		markWatched.mutate(
-			{
-				watchlistId,
-				tmdbId: item.tmdbId,
-				mediaType: item.mediaType as "movie" | "tv",
-				watched: true,
-				titleName: item.title ?? undefined,
-			},
-			{
-				onSuccess: (result) => {
-					if (result?.newAchievements?.length) {
-						setNewAchievements(result.newAchievements);
-						setAchievementIndex(0);
-					}
-				},
-			},
-		);
-	};
+	const posterUrl = getTmdbImageUrl(item.posterPath, "w342");
+	const displayTitle = item.title || `Title #${item.tmdbId}`;
 
 	return (
 		<>
 			<div className="group/card flex flex-col">
 				<div className="overflow-hidden rounded-xl border border-cream/8 bg-cream/[0.03] transition-all duration-200 hover:border-[#FF2D78]/30 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
-					{/* Poster area */}
-					<div className="relative aspect-[2/3] overflow-hidden">
-						<div
-							className="h-full w-full"
-							style={{ background: gradientForId(item.tmdbId) }}
-						/>
+					{/* Poster area — links to title page */}
+					<Link
+						to="/app/title/$mediaType/$tmdbId"
+						params={{
+							mediaType: item.mediaType as "movie" | "tv",
+							tmdbId: item.tmdbId,
+						}}
+						className="block no-underline"
+					>
+						<div className="relative aspect-[2/3] overflow-hidden">
+							{posterUrl && !imageFailed ? (
+								<img
+									src={posterUrl}
+									alt={displayTitle}
+									className="h-full w-full object-cover"
+									loading="lazy"
+									onError={() => setImageFailed(true)}
+								/>
+							) : (
+								<div
+									className="h-full w-full"
+									style={{ background: gradientForId(item.tmdbId) }}
+								/>
+							)}
 
-						{/* Media type badge */}
-						<div className="absolute top-2 right-2 rounded-md bg-black/60 px-1.5 py-0.5 font-mono-retro text-[9px] font-semibold uppercase tracking-wider text-cream/60">
-							{item.mediaType === "tv" ? "TV" : "Film"}
-						</div>
-
-						{/* Watched overlay */}
-						{item.watched && (
-							<div className="absolute inset-0 flex items-center justify-center bg-black/50">
-								<div className="rounded-full bg-neon-cyan/20 p-3">
-									<Check className="h-8 w-8 text-neon-cyan" />
-								</div>
+							{/* Media type badge */}
+							<div className="absolute top-2 right-2 rounded-md bg-black/60 px-1.5 py-0.5 font-mono-retro text-[9px] font-semibold uppercase tracking-wider text-cream/60">
+								{item.mediaType === "tv" ? "TV" : "Film"}
 							</div>
-						)}
-					</div>
+
+							{/* Watched overlay */}
+							{item.watched && !item.keptInWatchlist && (
+								<div className="absolute inset-0 flex items-center justify-center bg-black/50">
+									<div className="rounded-full bg-neon-cyan/20 p-3">
+										<Check className="h-8 w-8 text-neon-cyan" />
+									</div>
+								</div>
+							)}
+						</div>
+					</Link>
 
 					{/* Info & actions */}
 					<div className="p-3">
-						<h3
-							className={`truncate text-sm font-bold ${item.watched ? "text-cream/40" : "text-cream"}`}
+						<Link
+							to="/app/title/$mediaType/$tmdbId"
+							params={{
+								mediaType: item.mediaType as "movie" | "tv",
+								tmdbId: item.tmdbId,
+							}}
+							className="no-underline"
 						>
-							{item.title ?? `Title #${item.tmdbId}`}
-						</h3>
+							<h3
+								className={`truncate text-sm font-bold ${item.watched && !item.keptInWatchlist ? "text-cream/40" : "text-cream"}`}
+							>
+								{displayTitle}
+							</h3>
+						</Link>
 
 						{/* Action buttons */}
 						<div className="mt-2 flex items-center gap-1.5">
 							{canToggleWatched && (
 								<button
 									type="button"
-									onClick={handleWatchedClick}
+									onClick={() =>
+										markWatched.mutate({
+											watchlistId,
+											tmdbId: item.tmdbId,
+											mediaType: item.mediaType as "movie" | "tv",
+											watched: !item.watched,
+										})
+									}
 									disabled={markWatched.isPending}
 									className={`rounded-lg p-1.5 transition-colors ${
 										item.watched
@@ -231,37 +211,44 @@ export function WatchlistItemCard({
 					</div>
 				</div>
 
-				{/* Added by info */}
-				{isShared && item.addedByUser.username && (
+				{/* Attribution */}
+				{item.recommendedByUser?.username ? (
+					<p className="mt-1.5 truncate text-[11px] text-neon-amber/50">
+						Recommended by @{item.recommendedByUser.username}
+					</p>
+				) : isShared && item.addedByUser.username ? (
 					<p className="mt-1.5 truncate text-[11px] text-cream/30">
 						Added by @{item.addedByUser.username}
 					</p>
-				)}
+				) : null}
 			</div>
-
-			{showReviewDialog && (
-				<ReviewDialog
-					titleName={item.title ?? "this title"}
-					onSubmit={handleReviewSubmit}
-					onSkip={handleReviewSkip}
-				/>
-			)}
-
-			{newAchievements.length > 0 && (
-				<AchievementPopup
-					achievementIds={newAchievements}
-					currentIndex={achievementIndex}
-					earnedTotal={0}
-					onDismiss={() => {
-						if (achievementIndex < newAchievements.length - 1) {
-							setAchievementIndex((i) => i + 1);
-						} else {
-							setNewAchievements([]);
-							setAchievementIndex(0);
-						}
-					}}
-				/>
-			)}
+			<ReviewModal
+				open={reviewOpen}
+				onOpenChange={setReviewOpen}
+				tmdbId={item.tmdbId}
+				mediaType={item.mediaType as "movie" | "tv"}
+				titleName={item.title ?? ""}
+				onEventCreated={() => {
+					keepInWatchlist.mutate({
+						tmdbId: item.tmdbId,
+						mediaType: item.mediaType as "movie" | "tv",
+					});
+					if (canRemove) {
+						toast(`Remove ${displayTitle} from this watchlist?`, {
+							duration: 8000,
+							action: {
+								label: "Remove",
+								onClick: () =>
+									removeItem.mutate({
+										watchlistId,
+										tmdbId: item.tmdbId,
+										mediaType: item.mediaType as "movie" | "tv",
+									}),
+							},
+						});
+					}
+				}}
+			/>
 		</>
 	);
 }

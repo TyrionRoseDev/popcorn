@@ -42,19 +42,29 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 				}}
 			>
 				<Head>
+					<meta name="color-scheme" content="only light" />
+					<meta name="supported-color-schemes" content="only light" />
 					<style>{`
             @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+            :root { color-scheme: only light; }
+            body, .body { background-color: #0c0c1a !important; }
           `}</style>
 				</Head>
 				<Preview>Your Popcorn sign-in link</Preview>
 				<Body
-					className="bg-drive-in"
-					style={{ fontFamily: "'Manrope', sans-serif", margin: 0, padding: 0 }}
+					{...({ bgcolor: "#0c0c1a" } as Record<string, string>)}
+					style={{
+						fontFamily: "'Manrope', sans-serif",
+						margin: 0,
+						padding: 0,
+						backgroundColor: "#0c0c1a",
+					}}
 				>
 					<Container className="mx-auto max-w-lg py-10 px-4">
 						{/* === HEADER AREA === */}
 						<Container
 							className="mx-auto rounded-t-2xl px-10 pt-10 pb-8 text-center"
+							{...({ bgcolor: "#0f1025" } as Record<string, string>)}
 							style={{
 								backgroundColor: "#0f1025",
 								border: "1px solid #1e1e3a",
@@ -67,11 +77,12 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 								style={{ width: "fit-content" }}
 							>
 								<Text
-									className="m-0 px-5 py-2 text-center text-xs font-bold uppercase tracking-widest text-neon-amber"
+									className="m-0 px-5 py-2 text-center text-xs font-bold uppercase tracking-widest"
 									style={{
 										fontFamily: "'Space Mono', monospace",
 										border: "1.5px dashed rgba(255,184,0,0.5)",
 										letterSpacing: "4px",
+										color: "#FFB800",
 									}}
 								>
 									Magic Link
@@ -80,10 +91,11 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 
 							{/* POPCORN logo */}
 							<Heading
-								className="m-0 text-4xl font-bold text-cream"
+								className="m-0 text-4xl font-bold"
 								style={{
 									fontFamily: "'Space Mono', monospace",
 									letterSpacing: "6px",
+									color: "#fffff0",
 								}}
 							>
 								POPCORN
@@ -91,8 +103,11 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 
 							{/* Tagline */}
 							<Text
-								className="m-0 mt-2 text-sm text-cream/50"
-								style={{ fontFamily: "'Space Mono', monospace" }}
+								className="m-0 mt-2 text-sm"
+								style={{
+									fontFamily: "'Space Mono', monospace",
+									color: "rgba(255, 255, 240, 0.5)",
+								}}
 							>
 								Best enjoyed with popcorn.
 							</Text>
@@ -100,6 +115,7 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 
 						{/* === FILM STRIP DIVIDER === */}
 						<Container
+							{...({ bgcolor: "#2a2a3e" } as Record<string, string>)}
 							style={{ backgroundColor: "#2a2a3e", padding: "6px 12px" }}
 						>
 							<Row>
@@ -126,6 +142,7 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 						{/* === TICKET STUB === */}
 						<Container
 							className="mx-auto"
+							{...({ bgcolor: "#12132a" } as Record<string, string>)}
 							style={{
 								backgroundColor: "#12132a",
 								border: "1px solid #1e1e3a",
@@ -174,6 +191,7 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 							{/* Ticket body */}
 							<Section style={{ padding: "0 24px" }}>
 								<Container
+									{...({ bgcolor: "#171835" } as Record<string, string>)}
 									style={{
 										backgroundColor: "#171835",
 										padding: "28px 24px 32px",
@@ -184,36 +202,50 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 									}}
 								>
 									<Heading
-										className="m-0 mb-3 text-2xl font-bold text-cream"
-										style={{ fontFamily: "'Manrope', sans-serif" }}
+										className="m-0 mb-3 text-2xl font-bold"
+										style={{
+											fontFamily: "'Manrope', sans-serif",
+											color: "#fffff0",
+										}}
 									>
 										Welcome to Popcorn.
 									</Heading>
 
-									<Text className="m-0 mb-6 text-base leading-relaxed text-cream/60">
+									<Text
+										className="m-0 mb-6 text-base leading-relaxed"
+										style={{ color: "rgba(255, 255, 240, 0.6)" }}
+									>
 										Tap the button below to sign in. This link is single-use and
 										will expire shortly.
 									</Text>
 
 									<Button
 										href={url}
-										className="rounded-lg bg-neon-pink px-8 py-4 text-center text-sm font-bold uppercase tracking-widest text-cream no-underline"
+										className="rounded-lg px-8 py-4 text-center text-sm font-bold uppercase tracking-widest no-underline"
 										style={{
 											fontFamily: "'Space Mono', monospace",
 											letterSpacing: "2px",
 											boxShadow: "0 0 24px rgba(255,45,120,0.3)",
+											backgroundColor: "#FF2D78",
+											color: "#fffff0",
 										}}
 									>
 										Sign in to Popcorn
 									</Button>
 
-									<Text className="m-0 mt-6 text-xs leading-relaxed text-cream/35">
+									<Text
+										className="m-0 mt-6 text-xs leading-relaxed"
+										style={{ color: "rgba(255, 255, 240, 0.35)" }}
+									>
 										If the button does not work, copy and paste this link into
 										your browser:{" "}
 										<Link
 											href={url}
-											className="text-neon-amber/70 underline"
-											style={{ wordBreak: "break-all" }}
+											className="underline"
+											style={{
+												wordBreak: "break-all",
+												color: "rgba(255, 184, 0, 0.7)",
+											}}
 										>
 											{url}
 										</Link>
@@ -263,8 +295,11 @@ export default function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 								}}
 							>
 								<Text
-									className="m-0 text-center text-xs text-cream/30"
-									style={{ fontFamily: "'Space Mono', monospace" }}
+									className="m-0 text-center text-xs"
+									style={{
+										fontFamily: "'Space Mono', monospace",
+										color: "rgba(255, 255, 240, 0.3)",
+									}}
 								>
 									If you didn't request this link, feel free to ignore this
 									email.

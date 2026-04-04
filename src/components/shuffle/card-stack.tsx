@@ -171,7 +171,7 @@ export function CardStack({ watchlistId }: CardStackProps) {
 	return (
 		<div className="flex w-full flex-1 flex-col items-center gap-5">
 			{/* Card area — the MOVIE SCREEN at the drive-in */}
-			<div className="relative w-full max-w-[420px] flex-1">
+			<div className="relative w-full max-w-[360px] flex-1">
 				{/* Dramatic screen glow — multi-layer light spill behind the card */}
 				<div
 					className="absolute -inset-10 -z-10"

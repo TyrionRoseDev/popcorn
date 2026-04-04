@@ -31,6 +31,17 @@ interface TmdbTvDetail {
 	poster_path: string | null;
 	backdrop_path: string | null;
 	created_by: Array<{ name: string }>;
+	seasons: Array<{
+		season_number: number;
+		episode_count: number;
+		name: string;
+	}>;
+	next_episode_to_air: {
+		air_date: string;
+		name: string;
+		episode_number: number;
+		season_number: number;
+	} | null;
 }
 
 interface TmdbCreditsResponse {
@@ -71,6 +82,22 @@ interface TmdbTvContentRatingsResponse {
 	}>;
 }
 
+export interface TmdbEpisode {
+	episode_number: number;
+	name: string;
+	overview: string;
+	runtime: number | null;
+	air_date: string | null;
+	still_path: string | null;
+	season_number: number;
+}
+
+interface TmdbSeasonDetail {
+	season_number: number;
+	name: string;
+	episodes: TmdbEpisode[];
+}
+
 // --- Return type ---
 
 export interface TitleData {
@@ -81,9 +108,11 @@ export interface TitleData {
 	overview: string;
 	year: string;
 	runtime: string;
+	runtimeMinutes: number | null;
 	rating: number;
 	contentRating: string;
 	genres: string[];
+	tmdbGenreIds: number[];
 	posterPath: string | null;
 	backdropPath: string | null;
 	director: string | null;
@@ -97,6 +126,12 @@ export interface TitleData {
 	seasons?: number;
 	episodes?: number;
 	status?: string;
+	seasonList?: Array<{
+		seasonNumber: number;
+		episodeCount: number;
+		name: string;
+	}>;
+	nextEpisodeAirDate?: string | null;
 }
 
 // --- Helpers ---
@@ -190,9 +225,11 @@ export async function fetchTitleDetails(
 			overview: movie.overview,
 			year: movie.release_date?.slice(0, 4) ?? "",
 			runtime: formatRuntime(movie.runtime),
+			runtimeMinutes: movie.runtime ?? null,
 			rating: movie.vote_average,
 			contentRating,
 			genres: movie.genres.map((g) => g.name),
+			tmdbGenreIds: movie.genres.map((g) => g.id),
 			posterPath: movie.poster_path,
 			backdropPath: movie.backdrop_path,
 			director: findDirector(credits),
@@ -217,9 +254,11 @@ export async function fetchTitleDetails(
 		overview: tv.overview,
 		year: tv.first_air_date?.slice(0, 4) ?? "",
 		runtime: episodeRuntime ? `${episodeRuntime}m per episode` : "",
+		runtimeMinutes: episodeRuntime ?? null,
 		rating: tv.vote_average,
 		contentRating,
 		genres: tv.genres.map((g) => g.name),
+		tmdbGenreIds: tv.genres.map((g) => g.id),
 		posterPath: tv.poster_path,
 		backdropPath: tv.backdrop_path,
 		director: tv.created_by[0]?.name ?? null,
@@ -233,5 +272,47 @@ export async function fetchTitleDetails(
 		seasons: tv.number_of_seasons,
 		episodes: tv.number_of_episodes,
 		status: tv.status,
+		seasonList: tv.seasons.map((s) => ({
+			seasonNumber: s.season_number,
+			episodeCount: s.episode_count,
+			name: s.name,
+		})),
+		nextEpisodeAirDate: tv.next_episode_to_air?.air_date ?? null,
 	};
+}
+
+export interface SeasonEpisode {
+	episodeNumber: number;
+	name: string;
+	runtime: number | null;
+	airDate: string | null;
+	seasonNumber: number;
+}
+
+export async function fetchSeasonDetails(
+	tmdbId: number,
+	seasonNumber: number,
+): Promise<SeasonEpisode[]> {
+	const season = await tmdbFetch<TmdbSeasonDetail>(
+		`/tv/${tmdbId}/season/${seasonNumber}`,
+	);
+	return season.episodes.map((ep) => ({
+		episodeNumber: ep.episode_number,
+		name: ep.name,
+		runtime: ep.runtime,
+		airDate: ep.air_date,
+		seasonNumber: ep.season_number,
+	}));
+}
+
+export async function fetchAllSeasons(
+	tmdbId: number,
+	seasonList: Array<{ seasonNumber: number }>,
+): Promise<SeasonEpisode[]> {
+	const seasons = await Promise.all(
+		seasonList
+			.filter((s) => s.seasonNumber > 0) // Exclude specials (Season 0)
+			.map((s) => fetchSeasonDetails(tmdbId, s.seasonNumber).catch(() => [])),
+	);
+	return seasons.flat();
 }

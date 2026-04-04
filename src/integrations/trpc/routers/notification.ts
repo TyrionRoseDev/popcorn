@@ -16,6 +16,11 @@ const NOTIFICATION_TYPES = [
 	"title_reviewed",
 	"recommendation",
 	"achievement_earned",
+	"recommendation_received",
+	"recommendation_reviewed",
+	"recommendation_watched",
+	"review_reminder",
+	"watched_with",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
@@ -26,8 +31,12 @@ export async function createNotification(params: {
 	type: NotificationType;
 	data: Record<string, unknown>;
 }) {
-	// Don't notify yourself
-	if (params.recipientId === params.actorId) return;
+	// Don't notify yourself (except for system reminders like review_reminder)
+	if (
+		params.recipientId === params.actorId &&
+		params.type !== "review_reminder"
+	)
+		return;
 
 	await db.insert(notification).values({
 		recipientId: params.recipientId,
@@ -116,6 +125,20 @@ export const notificationRouter = {
 		.mutation(async ({ input, ctx }) => {
 			await db
 				.delete(notification)
+				.where(
+					and(
+						eq(notification.id, input.id),
+						eq(notification.recipientId, ctx.userId),
+					),
+				);
+		}),
+
+	setActionTaken: protectedProcedure
+		.input(z.object({ id: z.string(), action: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			await db
+				.update(notification)
+				.set({ actionTaken: input.action, read: true })
 				.where(
 					and(
 						eq(notification.id, input.id),

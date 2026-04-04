@@ -2,7 +2,9 @@ import type { TRPCRouterRecord } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "./init";
 import { achievementRouter } from "./routers/achievement";
+import { episodeTrackerRouter } from "./routers/episode-tracker";
 import { friendRouter } from "./routers/friend";
+import { journalEntryRouter } from "./routers/journal-entry";
 import { notificationRouter } from "./routers/notification";
 import { recommendationRouter } from "./routers/recommendation";
 import { reviewRouter } from "./routers/review";
@@ -10,6 +12,9 @@ import { searchRouter } from "./routers/search";
 import { shuffleRouter } from "./routers/shuffle";
 import { tasteProfileRouter } from "./routers/taste-profile";
 import { titleRouter } from "./routers/title";
+import { userRouter } from "./routers/user";
+import { watchEventRouter } from "./routers/watch-event";
+import { watchedRouter } from "./routers/watched";
 import { watchlistRouter } from "./routers/watchlist";
 
 const todos = [
@@ -40,6 +45,11 @@ export const trpcRouter = createTRPCRouter({
 	shuffle: shuffleRouter,
 	title: titleRouter,
 	notification: notificationRouter,
+	watched: watchedRouter,
+	watchEvent: watchEventRouter,
 	watchlist: watchlistRouter,
+	user: userRouter,
+	episodeTracker: episodeTrackerRouter,
+	journalEntry: journalEntryRouter,
 });
 export type TRPCRouter = typeof trpcRouter;

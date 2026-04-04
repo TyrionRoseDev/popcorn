@@ -1,17 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check, Plus, Send } from "lucide-react";
+import {
+	createFileRoute,
+	Link,
+	useLocation,
+	useRouter,
+} from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
-import { ArcadeButton } from "#/components/title/arcade-button";
-import { RecommendDialog } from "#/components/title/recommend-dialog";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { CastList } from "#/components/title/cast-list";
 import { DriveInScreen } from "#/components/title/drive-in-screen";
 import { NowShowingMarquee } from "#/components/title/now-showing-marquee";
 import { PosterDisplayCase } from "#/components/title/poster-display-case";
+import { RecommendDialog } from "#/components/title/recommend-dialog";
 import { SectionBoard } from "#/components/title/section-board";
 import { Synopsis } from "#/components/title/synopsis";
+import { TitleActions } from "#/components/title/title-actions";
 import { TitleMetadata } from "#/components/title/title-metadata";
 import { TitlePageAtmosphere } from "#/components/title/title-page-atmosphere";
 import { TitlePageSkeleton } from "#/components/title/title-page-skeleton";
@@ -22,6 +27,10 @@ const paramsSchema = z.object({
 	tmdbId: z.coerce.number(),
 });
 
+const searchSchema = z.object({
+	reviewEventId: z.string().optional(),
+});
+
 export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
 	params: {
 		parse: (raw) => paramsSchema.parse(raw),
@@ -30,6 +39,7 @@ export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
 			tmdbId: String(params.tmdbId),
 		}),
 	},
+	validateSearch: (search) => searchSchema.parse(search),
 	loader: async ({ context: { queryClient, trpc }, params }) => {
 		await queryClient.ensureQueryData(
 			trpc.title.details.queryOptions({
@@ -45,6 +55,12 @@ export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
 
 function TitlePage() {
 	const { mediaType, tmdbId } = Route.useParams();
+	const { reviewEventId } = Route.useSearch();
+	const location = useLocation();
+	const router = useRouter();
+	const fromShuffle =
+		(location.state as unknown as Record<string, unknown> | undefined)?.from ===
+		"shuffle";
 	const trpc = useTRPC();
 	const { data } = useQuery(
 		trpc.title.details.queryOptions({ mediaType, tmdbId }),
@@ -57,10 +73,38 @@ function TitlePage() {
 		<div className="relative z-10">
 			<TitlePageAtmosphere />
 
-			<DriveInScreen
-				backdropPath={data.backdropPath}
-				trailerKey={data.trailerKey}
-			/>
+			<div className="relative">
+				{fromShuffle && (
+					<>
+						{/* Large screens: centered in left margin */}
+						<div className="absolute z-50 top-[calc(2.5rem+6px)] left-0 hidden xl:flex w-[calc((100%-1100px)/2)] items-start justify-center">
+							<button
+								type="button"
+								onClick={() => router.history.back()}
+								className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-neon-pink/25 bg-neon-pink/10 px-3 py-1.5 font-mono-retro text-[11px] uppercase tracking-wider text-neon-pink transition-colors hover:bg-neon-pink/20 hover:border-neon-pink/40"
+							>
+								<ArrowLeft className="h-3.5 w-3.5" />
+								Return to Shuffle
+							</button>
+						</div>
+						{/* Smaller screens: above trailer */}
+						<div className="xl:hidden px-6 pt-4 pb-2 flex justify-start max-w-[1100px] mx-auto">
+							<button
+								type="button"
+								onClick={() => router.history.back()}
+								className="inline-flex items-center gap-1.5 rounded-lg border border-neon-pink/25 bg-neon-pink/10 px-3 py-1.5 font-mono-retro text-[11px] uppercase tracking-wider text-neon-pink transition-colors hover:bg-neon-pink/20 hover:border-neon-pink/40"
+							>
+								<ArrowLeft className="h-3.5 w-3.5" />
+								Return to Shuffle
+							</button>
+						</div>
+					</>
+				)}
+				<DriveInScreen
+					backdropPath={data.backdropPath}
+					trailerKey={data.trailerKey}
+				/>
+			</div>
 
 			<CarSilhouettes />
 
@@ -75,16 +119,16 @@ function TitlePage() {
 				{/* Left column */}
 				<div className="w-full md:w-[280px] flex-shrink-0">
 					<PosterDisplayCase posterPath={data.posterPath} title={data.title} />
-					<div className="flex gap-4 justify-center mt-5">
-						<ArcadeButton icon={Plus} label="Watchlist" color="pink" />
-						<ArcadeButton icon={Check} label="Watched" color="cyan" />
-						<ArcadeButton
-							icon={Send}
-							label="Recommend"
-							color="amber"
-							onClick={() => setShowRecommend(true)}
-						/>
-					</div>
+					<TitleActions
+						tmdbId={tmdbId}
+						mediaType={mediaType}
+						title={data.title}
+						posterPath={data.posterPath}
+						runtime={data.runtimeMinutes}
+						year={data.year}
+						reviewEventId={reviewEventId}
+						seasonList={data.seasonList}
+					/>
 				</div>
 
 				{/* Right column */}

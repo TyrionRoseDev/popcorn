@@ -1,51 +1,233 @@
 import type { TRPCRouterRecord } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
+import { and, eq, ilike, isNull, or } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
-import { recommendation } from "#/db/schema";
+import {
+	friendship,
+	notification,
+	recommendation,
+	user,
+	watchlist,
+	watchlistItem,
+	watchlistMember,
+} from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
 import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import { createNotification } from "./notification";
 
+async function getOrCreateRecommendationsWatchlist(
+	tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+	userId: string,
+) {
+	const existing = await tx.query.watchlist.findFirst({
+		where: and(
+			eq(watchlist.ownerId, userId),
+			eq(watchlist.type, "recommendations"),
+		),
+	});
+	if (existing) return existing.id;
+
+	const [wl] = await tx
+		.insert(watchlist)
+		.values({
+			name: "Recommendations",
+			ownerId: userId,
+			type: "recommendations",
+		})
+		.onConflictDoNothing()
+		.returning({ id: watchlist.id });
+
+	if (!wl) {
+		// Race: another transaction created it; re-query
+		const retry = await tx.query.watchlist.findFirst({
+			where: and(
+				eq(watchlist.ownerId, userId),
+				eq(watchlist.type, "recommendations"),
+			),
+		});
+		if (!retry) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+		return retry.id;
+	}
+
+	await tx.insert(watchlistMember).values({
+		watchlistId: wl.id,
+		userId,
+		role: "owner",
+	});
+
+	return wl.id;
+}
+
 export const recommendationRouter = {
 	send: protectedProcedure
-		.input(z.object({
-			tmdbId: z.number(),
-			mediaType: z.enum(["movie", "tv"]),
-			friendIds: z.array(z.string()).min(1),
-			titleName: z.string().optional(),
-		}))
+		.input(
+			z.object({
+				recipientIds: z.array(z.string()).min(1),
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+				titleName: z.string(),
+				message: z.string().max(150).optional(),
+			}),
+		)
 		.mutation(async ({ input, ctx }) => {
-			await db.insert(recommendation).values(
-				input.friendIds.map((friendId) => ({
+			const recipientIds = [...new Set(input.recipientIds)];
+
+			// Verify all recipients are friends
+			for (const recipientId of recipientIds) {
+				if (recipientId === ctx.userId) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "Cannot recommend to yourself",
+					});
+				}
+
+				const isFriend = await db.query.friendship.findFirst({
+					where: and(
+						eq(friendship.status, "accepted"),
+						or(
+							and(
+								eq(friendship.requesterId, ctx.userId),
+								eq(friendship.addresseeId, recipientId),
+							),
+							and(
+								eq(friendship.addresseeId, ctx.userId),
+								eq(friendship.requesterId, recipientId),
+							),
+						),
+					),
+				});
+
+				if (!isFriend) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "You can only recommend to friends",
+					});
+				}
+			}
+
+			// Insert recommendations and send notifications
+			for (const recipientId of recipientIds) {
+				await db.insert(recommendation).values({
 					senderId: ctx.userId,
-					recipientId: friendId,
+					recipientId,
 					tmdbId: input.tmdbId,
 					mediaType: input.mediaType,
-				})),
-			);
+					titleName: input.titleName,
+					message: input.message ?? null,
+				});
 
-			for (const friendId of input.friendIds) {
 				await createNotification({
-					recipientId: friendId,
+					recipientId,
 					actorId: ctx.userId,
-					type: "recommendation",
+					type: "recommendation_received",
 					data: {
+						titleName: input.titleName,
 						tmdbId: input.tmdbId,
 						mediaType: input.mediaType,
-						titleName: input.titleName ?? "",
+						message: input.message ?? null,
 					},
 				});
 			}
 
-			const newAchievements = await evaluateAchievements(ctx.userId, "recommendation_sent");
-			return { newAchievements };
+			await evaluateAchievements(ctx.userId, "recommendation_sent");
 		}),
 
-	received: protectedProcedure.query(async ({ ctx }) => {
-		return db.query.recommendation.findMany({
-			where: eq(recommendation.recipientId, ctx.userId),
-			orderBy: desc(recommendation.createdAt),
-		});
-	}),
+	accept: protectedProcedure
+		.input(
+			z.object({
+				notificationId: z.string(),
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+				recommendedBy: z.string(),
+				message: z.string().nullable().optional(),
+				titleName: z.string().optional(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			await db.transaction(async (tx) => {
+				const watchlistId = await getOrCreateRecommendationsWatchlist(
+					tx,
+					ctx.userId,
+				);
+
+				await tx
+					.insert(watchlistItem)
+					.values({
+						watchlistId,
+						tmdbId: input.tmdbId,
+						mediaType: input.mediaType,
+						addedBy: ctx.userId,
+						recommendedBy: input.recommendedBy,
+						recommendationMessage: input.message ?? null,
+						titleName: input.titleName ?? null,
+					})
+					.onConflictDoNothing();
+
+				// Mark notification as actioned
+				await tx
+					.update(notification)
+					.set({ actionTaken: "accepted", read: true })
+					.where(
+						and(
+							eq(notification.id, input.notificationId),
+							eq(notification.recipientId, ctx.userId),
+						),
+					);
+			});
+		}),
+
+	decline: protectedProcedure
+		.input(z.object({ notificationId: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			await db
+				.update(notification)
+				.set({ actionTaken: "declined", read: true })
+				.where(
+					and(
+						eq(notification.id, input.notificationId),
+						eq(notification.recipientId, ctx.userId),
+						isNull(notification.actionTaken),
+					),
+				);
+		}),
+
+	searchFriends: protectedProcedure
+		.input(z.object({ query: z.string().min(1) }))
+		.query(async ({ input, ctx }) => {
+			const escaped = input.query.replace(/%/g, "\\%").replace(/_/g, "\\_");
+			const friends = await db
+				.select({
+					id: user.id,
+					username: user.username,
+					avatarUrl: user.avatarUrl,
+				})
+				.from(friendship)
+				.innerJoin(
+					user,
+					or(
+						and(
+							eq(friendship.requesterId, ctx.userId),
+							eq(user.id, friendship.addresseeId),
+						),
+						and(
+							eq(friendship.addresseeId, ctx.userId),
+							eq(user.id, friendship.requesterId),
+						),
+					),
+				)
+				.where(
+					and(
+						eq(friendship.status, "accepted"),
+						or(
+							eq(friendship.requesterId, ctx.userId),
+							eq(friendship.addresseeId, ctx.userId),
+						),
+						ilike(user.username, `%${escaped}%`),
+					),
+				)
+				.limit(10);
+
+			return friends;
+		}),
 } satisfies TRPCRouterRecord;

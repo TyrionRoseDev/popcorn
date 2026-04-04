@@ -1,4 +1,5 @@
 import { generateReactHelpers } from "@uploadthing/react";
+import heic2any from "heic2any";
 import { useState } from "react";
 import {
 	Dialog,
@@ -63,13 +64,35 @@ export function ChangeAvatarDialog({
 	}
 
 	async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-		const file = e.target.files?.[0];
+		let file = e.target.files?.[0];
 		if (!file) return;
 		setError("");
 
-		const reader = new FileReader();
-		reader.onloadend = () => setPreview(reader.result as string);
-		reader.readAsDataURL(file);
+		// Convert HEIC/HEIF (iPhone photos) to JPEG since browsers can't display them
+		if (
+			file.type === "image/heic" ||
+			file.type === "image/heif" ||
+			file.name.toLowerCase().endsWith(".heic") ||
+			file.name.toLowerCase().endsWith(".heif")
+		) {
+			try {
+				const blob = await heic2any({
+					blob: file,
+					toType: "image/jpeg",
+					quality: 0.9,
+				});
+				file = new File(
+					[blob as Blob],
+					file.name.replace(/\.heic$/i, ".jpg").replace(/\.heif$/i, ".jpg"),
+					{ type: "image/jpeg" },
+				);
+			} catch {
+				setError("Could not process this image. Try a JPEG or PNG instead.");
+				return;
+			}
+		}
+
+		setPreview(URL.createObjectURL(file));
 
 		await startUpload([file]);
 	}

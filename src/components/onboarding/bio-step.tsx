@@ -27,7 +27,9 @@ export function BioStep({
 				onNext();
 			},
 			onError: (error) => {
-				toast.error(error.message || "Failed to save. Please try again.");
+				toast.error("Couldn't save your profile details.", {
+					description: error.message || "Please try again in a moment.",
+				});
 			},
 		}),
 	);
@@ -35,6 +37,7 @@ export function BioStep({
 	function handleFinish(bioValue: string | null) {
 		saveMutation.mutate({
 			favouriteFilmTmdbId: onboardingState?.favouriteFilmTmdbId ?? null,
+			favouriteFilmMediaType: onboardingState?.favouriteFilmMediaType ?? null,
 			favouriteGenreId: onboardingState?.favouriteGenreId ?? null,
 			bio: bioValue,
 		});

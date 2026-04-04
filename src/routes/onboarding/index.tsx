@@ -39,7 +39,7 @@ const STEPS: StepConfig[] = [
 	{ label: "Username", component: UsernameStep },
 	{ label: "Avatar", component: AvatarStep },
 	{ label: "Taste", component: TasteProfileStep },
-	{ label: "Film", component: FavouriteFilmStep },
+	{ label: "Favourite", component: FavouriteFilmStep },
 	{ label: "Genre", component: FavouriteGenreStep },
 	{ label: "Bio", component: BioStep },
 ];
@@ -51,6 +51,7 @@ function OnboardingPage() {
 	const [cardUnlocked, setCardUnlocked] = useState(false);
 	const [onboardingState, setOnboardingStateRaw] = useState<OnboardingState>({
 		favouriteFilmTmdbId: null,
+		favouriteFilmMediaType: null,
 		favouriteGenreId: null,
 		bio: null,
 	});
@@ -198,10 +199,8 @@ function AvatarStep({ onNext }: { onNext: () => void }) {
 		const file = e.target.files?.[0];
 		if (!file) return;
 
-		// Show preview
-		const reader = new FileReader();
-		reader.onloadend = () => setPreview(reader.result as string);
-		reader.readAsDataURL(file);
+		// Show preview immediately via blob URL
+		setPreview(URL.createObjectURL(file));
 
 		// Upload
 		await startUpload([file]);

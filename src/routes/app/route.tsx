@@ -3,9 +3,8 @@ import {
 	Link,
 	Outlet,
 	redirect,
-	useMatches,
 } from "@tanstack/react-router";
-import { Bookmark, Search, Shuffle, Users } from "lucide-react";
+import { Bookmark, Rss, Search, Shuffle, Tv, Users } from "lucide-react";
 import { NotificationBell } from "#/components/notifications/notification-bell";
 import { RetroOverlays } from "#/components/retro-overlays";
 import BetterAuthHeader from "#/integrations/better-auth/header-user";
@@ -29,14 +28,9 @@ export const Route = createFileRoute("/app")({
 });
 
 function AppLayout() {
-	const matches = useMatches();
-	const isTitlePage = matches.some(
-		(m) => m.routeId === "/app/title/$mediaType/$tmdbId",
-	);
-
 	return (
 		<div className="relative min-h-screen bg-drive-in-bg">
-			{!isTitlePage && <RetroOverlays />}
+			<RetroOverlays />
 
 			{/* Navbar */}
 			<header className="sticky top-0 z-50 border-b border-cream/8 bg-drive-in-bg/80 backdrop-blur-lg">
@@ -90,6 +84,20 @@ function AppLayout() {
 						>
 							<Users className="h-3.5 w-3.5" />
 							Friends
+						</Link>
+						<Link
+							to="/app/feed"
+							className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-cream/50 no-underline transition-colors hover:bg-cream/5 hover:text-cream/80 [&.active]:text-neon-cyan [&.active]:bg-neon-cyan/8"
+						>
+							<Rss className="h-3.5 w-3.5" />
+							Feed
+						</Link>
+						<Link
+							to="/app/tracker"
+							className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-cream/50 no-underline transition-colors hover:bg-cream/5 hover:text-cream/80 [&.active]:text-neon-cyan [&.active]:bg-neon-cyan/8"
+						>
+							<Tv className="h-3.5 w-3.5" />
+							Tracker
 						</Link>
 					</div>
 

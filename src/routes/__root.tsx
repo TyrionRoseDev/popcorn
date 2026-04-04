@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
+import { Toaster } from "#/components/ui/sonner";
 import { TooltipProvider } from "#/components/ui/tooltip";
 import type { TRPCRouter } from "#/integrations/trpc/router";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
@@ -56,6 +57,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
 				<TanStackQueryProvider>
 					<TooltipProvider>{children}</TooltipProvider>
+					<Toaster />
 					<TanStackDevtools
 						config={{
 							position: "bottom-right",

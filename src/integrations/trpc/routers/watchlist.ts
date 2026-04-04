@@ -1,6 +1,15 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { and, eq, ilike, inArray, notInArray, or, sql } from "drizzle-orm";
+import {
+	and,
+	eq,
+	ilike,
+	inArray,
+	isNull,
+	notInArray,
+	or,
+	sql,
+} from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import {
@@ -14,7 +23,56 @@ import {
 import { protectedProcedure } from "#/integrations/trpc/init";
 import { ACHIEVEMENTS_BY_ID } from "#/lib/achievements";
 import { evaluateAchievements } from "#/lib/evaluate-achievements";
+import { tmdbFetch } from "#/lib/tmdb";
 import { createNotification } from "./notification";
+
+/** Fetch poster_path and title from TMDB for items missing that data, then update DB. */
+async function backfillPosterData(
+	items: Array<{
+		tmdbId: number;
+		mediaType: string;
+		posterPath: string | null;
+		title: string | null;
+	}>,
+) {
+	const missing = items.filter((i) => i.posterPath === null);
+	if (missing.length === 0) return;
+
+	await Promise.allSettled(
+		missing.map(async (item) => {
+			try {
+				const endpoint =
+					item.mediaType === "tv"
+						? `/tv/${item.tmdbId}`
+						: `/movie/${item.tmdbId}`;
+				const data = await tmdbFetch<{
+					poster_path: string | null;
+					title?: string;
+					name?: string;
+				}>(endpoint);
+				const title = data.title ?? data.name ?? null;
+				const posterPath = data.poster_path ?? null;
+				item.posterPath = posterPath;
+				item.title = item.title ?? title;
+				await db
+					.update(watchlistItem)
+					.set({ posterPath, title: item.title })
+					.where(
+						and(
+							eq(watchlistItem.tmdbId, item.tmdbId),
+							eq(watchlistItem.mediaType, item.mediaType),
+							isNull(watchlistItem.posterPath),
+						),
+					);
+			} catch (err) {
+				console.error(
+					`[backfillPosterData] Failed for tmdbId=${item.tmdbId} mediaType=${item.mediaType}:`,
+					err,
+				);
+			}
+		}),
+	);
+}
 
 async function assertOwner(watchlistId: string, userId: string) {
 	const membership = await db.query.watchlistMember.findFirst({
@@ -65,6 +123,34 @@ async function ensureAreFriends(userId: string, candidateIds: string[]) {
 	}
 }
 
+async function getOrCreateDefaultWatchlist(userId: string) {
+	const existing = await db.query.watchlist.findFirst({
+		where: and(eq(watchlist.ownerId, userId), eq(watchlist.type, "default")),
+		columns: { id: true },
+	});
+	if (existing) return existing;
+
+	return db.transaction(async (tx) => {
+		// Double-check inside transaction to avoid race conditions
+		const check = await tx.query.watchlist.findFirst({
+			where: and(eq(watchlist.ownerId, userId), eq(watchlist.type, "default")),
+			columns: { id: true },
+		});
+		if (check) return check;
+
+		const [wl] = await tx
+			.insert(watchlist)
+			.values({ name: "My Picks", ownerId: userId, type: "default" })
+			.returning({ id: watchlist.id });
+
+		await tx
+			.insert(watchlistMember)
+			.values({ watchlistId: wl.id, userId, role: "owner" });
+
+		return wl;
+	});
+}
+
 export const watchlistRouter = {
 	list: protectedProcedure.query(async ({ ctx }) => {
 		const memberships = await db
@@ -78,7 +164,15 @@ export const watchlistRouter = {
 		const watchlists = await db.query.watchlist.findMany({
 			where: (wl, { inArray }) => inArray(wl.id, watchlistIds),
 			with: {
-				items: { columns: { tmdbId: true, mediaType: true }, limit: 20 },
+				items: {
+					columns: {
+						tmdbId: true,
+						mediaType: true,
+						posterPath: true,
+						title: true,
+					},
+					limit: 20,
+				},
 				members: {
 					with: {
 						user: { columns: { id: true, username: true, avatarUrl: true } },
@@ -86,10 +180,14 @@ export const watchlistRouter = {
 				},
 			},
 			orderBy: (wl, { desc }) => [
-				sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'custom' THEN 2 WHEN 'shuffle' THEN 3 ELSE 99 END`,
+				sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'recommendations' THEN 2 WHEN 'custom' THEN 3 WHEN 'shuffle' THEN 4 ELSE 99 END`,
 				desc(wl.updatedAt),
 			],
 		});
+
+		// Lazily backfill poster data for items added before the column existed (fire-and-forget)
+		const allItems = watchlists.flatMap((wl) => wl.items);
+		void backfillPosterData(allItems);
 
 		return watchlists.map((wl) => ({
 			...wl,
@@ -116,6 +214,9 @@ export const watchlistRouter = {
 							addedByUser: {
 								columns: { id: true, username: true, avatarUrl: true },
 							},
+							recommendedByUser: {
+								columns: { id: true, username: true, avatarUrl: true },
+							},
 						},
 						orderBy: (item, { desc }) => [desc(item.createdAt)],
 					},
@@ -133,6 +234,8 @@ export const watchlistRouter = {
 			if (!wl.isPublic && !membership) {
 				throw new TRPCError({ code: "FORBIDDEN" });
 			}
+
+			void backfillPosterData(wl.items);
 
 			const userRole = membership?.role ?? null;
 			return { ...wl, userRole };
@@ -178,7 +281,7 @@ export const watchlistRouter = {
 			where: (wl, { inArray }) => inArray(wl.id, watchlistIds),
 			columns: { id: true, name: true, type: true },
 			orderBy: (wl, { desc }) => [
-				sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'custom' THEN 2 WHEN 'shuffle' THEN 3 ELSE 99 END`,
+				sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'recommendations' THEN 2 WHEN 'custom' THEN 3 WHEN 'shuffle' THEN 4 ELSE 99 END`,
 				desc(wl.updatedAt),
 			],
 		});
@@ -231,40 +334,45 @@ export const watchlistRouter = {
 		.mutation(async ({ input, ctx }) => {
 			await ensureAreFriends(ctx.userId, input.memberIds);
 
-			return db.transaction(async (tx) => {
-				const [wl] = await tx
-					.insert(watchlist)
-					.values({
-						name: input.name,
-						ownerId: ctx.userId,
-						isPublic: input.isPublic,
-					})
-					.returning();
+			return db
+				.transaction(async (tx) => {
+					const [wl] = await tx
+						.insert(watchlist)
+						.values({
+							name: input.name,
+							ownerId: ctx.userId,
+							isPublic: input.isPublic,
+						})
+						.returning();
 
-				await tx.insert(watchlistMember).values({
-					watchlistId: wl.id,
-					userId: ctx.userId,
-					role: "owner",
+					await tx.insert(watchlistMember).values({
+						watchlistId: wl.id,
+						userId: ctx.userId,
+						role: "owner",
+					});
+
+					if (input.memberIds.length > 0) {
+						await tx
+							.insert(watchlistMember)
+							.values(
+								input.memberIds.map((userId) => ({
+									watchlistId: wl.id,
+									userId,
+									role: "member",
+								})),
+							)
+							.onConflictDoNothing();
+					}
+
+					return wl;
+				})
+				.then(async (wl) => {
+					const newAchievements = await evaluateAchievements(
+						ctx.userId,
+						"watchlist_created",
+					);
+					return { ...wl, newAchievements };
 				});
-
-				if (input.memberIds.length > 0) {
-					await tx
-						.insert(watchlistMember)
-						.values(
-							input.memberIds.map((userId) => ({
-								watchlistId: wl.id,
-								userId,
-								role: "member",
-							})),
-						)
-						.onConflictDoNothing();
-				}
-
-				return wl;
-			}).then(async (wl) => {
-				const newAchievements = await evaluateAchievements(ctx.userId, "watchlist_created");
-				return { ...wl, newAchievements };
-			});
 		}),
 
 	update: protectedProcedure
@@ -277,6 +385,16 @@ export const watchlistRouter = {
 		)
 		.mutation(async ({ input, ctx }) => {
 			await assertOwner(input.watchlistId, ctx.userId);
+			const wl = await db.query.watchlist.findFirst({
+				where: eq(watchlist.id, input.watchlistId),
+				columns: { type: true },
+			});
+			if (wl?.type === "recommendations") {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Cannot modify the Recommendations watchlist",
+				});
+			}
 			const { watchlistId, ...updates } = input;
 			if (Object.keys(updates).length === 0) return;
 			await db
@@ -292,10 +410,10 @@ export const watchlistRouter = {
 			const wl = await db.query.watchlist.findFirst({
 				where: eq(watchlist.id, input.watchlistId),
 			});
-			if (wl?.type === "default") {
+			if (wl?.type === "default" || wl?.type === "recommendations") {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
-					message: "Cannot delete the default watchlist",
+					message: "Cannot delete this watchlist",
 				});
 			}
 			await db.delete(watchlist).where(eq(watchlist.id, input.watchlistId));
@@ -308,6 +426,7 @@ export const watchlistRouter = {
 				tmdbId: z.number(),
 				mediaType: z.enum(["movie", "tv"]),
 				titleName: z.string().optional(),
+				posterPath: z.string().nullish(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -318,7 +437,10 @@ export const watchlistRouter = {
 					watchlistId: input.watchlistId,
 					tmdbId: input.tmdbId,
 					mediaType: input.mediaType,
+					title: input.titleName,
+					posterPath: input.posterPath ?? null,
 					addedBy: ctx.userId,
+					titleName: input.titleName ?? null,
 				})
 				.onConflictDoNothing()
 				.returning({ id: watchlistItem.id });
@@ -398,7 +520,9 @@ export const watchlistRouter = {
 			if (!existing || existing.watched === input.watched) return;
 
 			const watchedAtDate = input.watched
-				? (input.watchedAt ? new Date(input.watchedAt) : new Date())
+				? input.watchedAt
+					? new Date(input.watchedAt)
+					: new Date()
 				: null;
 
 			await db
@@ -406,6 +530,7 @@ export const watchlistRouter = {
 				.set({
 					watched: input.watched,
 					watchedAt: watchedAtDate,
+					keptInWatchlist: false,
 				})
 				.where(
 					and(
@@ -419,7 +544,7 @@ export const watchlistRouter = {
 			if (input.watched) {
 				const wl = await db.query.watchlist.findFirst({
 					where: eq(watchlist.id, input.watchlistId),
-					columns: { name: true },
+					columns: { name: true, type: true },
 				});
 				const members = await db.query.watchlistMember.findMany({
 					where: eq(watchlistMember.watchlistId, input.watchlistId),
@@ -438,6 +563,31 @@ export const watchlistRouter = {
 							mediaType: input.mediaType,
 						},
 					});
+				}
+
+				// If recommended item was watched, notify the recommender
+				if (wl?.type === "recommendations") {
+					const item = await db.query.watchlistItem.findFirst({
+						where: and(
+							eq(watchlistItem.watchlistId, input.watchlistId),
+							eq(watchlistItem.tmdbId, input.tmdbId),
+							eq(watchlistItem.mediaType, input.mediaType),
+						),
+						columns: { recommendedBy: true },
+					});
+
+					if (item?.recommendedBy) {
+						await createNotification({
+							recipientId: item.recommendedBy,
+							actorId: ctx.userId,
+							type: "recommendation_reviewed",
+							data: {
+								titleName: input.titleName ?? "",
+								tmdbId: input.tmdbId,
+								mediaType: input.mediaType,
+							},
+						});
+					}
 				}
 
 				// Evaluate achievements
@@ -469,7 +619,10 @@ export const watchlistRouter = {
 								recipientId: friendId,
 								actorId: ctx.userId,
 								type: "achievement_earned",
-								data: { achievementId, achievementName: achievementDef?.name ?? "" },
+								data: {
+									achievementId,
+									achievementName: achievementDef?.name ?? "",
+								},
 							});
 						}
 					}
@@ -488,6 +641,16 @@ export const watchlistRouter = {
 		)
 		.mutation(async ({ input, ctx }) => {
 			await assertOwner(input.watchlistId, ctx.userId);
+			const wl = await db.query.watchlist.findFirst({
+				where: eq(watchlist.id, input.watchlistId),
+				columns: { type: true, name: true },
+			});
+			if (wl?.type === "recommendations") {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Cannot invite members to the Recommendations watchlist",
+				});
+			}
 			await ensureAreFriends(ctx.userId, [input.userId]);
 
 			const inserted = await db
@@ -503,10 +666,6 @@ export const watchlistRouter = {
 			if (inserted.length === 0) return; // Already existed, skip notifications
 
 			// Notify other members (including the new member)
-			const wl = await db.query.watchlist.findFirst({
-				where: eq(watchlist.id, input.watchlistId),
-				columns: { name: true },
-			});
 			const members = await db.query.watchlistMember.findMany({
 				where: eq(watchlistMember.watchlistId, input.watchlistId),
 				columns: { userId: true },
@@ -524,6 +683,175 @@ export const watchlistRouter = {
 			}
 
 			await evaluateAchievements(input.userId, "watchlist_joined");
+		}),
+
+	isWatched: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+			}),
+		)
+		.query(async ({ input, ctx }) => {
+			const defaultWl = await getOrCreateDefaultWatchlist(ctx.userId);
+
+			const item = await db.query.watchlistItem.findFirst({
+				where: and(
+					eq(watchlistItem.watchlistId, defaultWl.id),
+					eq(watchlistItem.tmdbId, input.tmdbId),
+					eq(watchlistItem.mediaType, input.mediaType),
+					eq(watchlistItem.watched, true),
+				),
+				columns: { watched: true, watchedSeasons: true },
+			});
+
+			if (!item) return null;
+			return {
+				watched: true,
+				watchedSeasons: item.watchedSeasons as number[] | null,
+			};
+		}),
+
+	quickMarkWatched: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+				titleName: z.string().optional(),
+				posterPath: z.string().nullish(),
+				runtime: z.number().optional(),
+				watchedSeasons: z.array(z.number()).optional(),
+				seasonEpisodeCounts: z
+					.array(
+						z.object({
+							seasonNumber: z.number(),
+							episodeCount: z.number(),
+						}),
+					)
+					.optional(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const defaultWl = await getOrCreateDefaultWatchlist(ctx.userId);
+
+			// Add item if not already there
+			await db
+				.insert(watchlistItem)
+				.values({
+					watchlistId: defaultWl.id,
+					tmdbId: input.tmdbId,
+					mediaType: input.mediaType,
+					title: input.titleName,
+					posterPath: input.posterPath ?? null,
+					addedBy: ctx.userId,
+					runtime: input.runtime ?? null,
+				})
+				.onConflictDoNothing();
+
+			// Get current watched state
+			const item = await db.query.watchlistItem.findFirst({
+				where: and(
+					eq(watchlistItem.watchlistId, defaultWl.id),
+					eq(watchlistItem.tmdbId, input.tmdbId),
+					eq(watchlistItem.mediaType, input.mediaType),
+				),
+				columns: { watched: true },
+			});
+
+			// If already watched and seasons provided, update seasons (don't toggle)
+			const isSeasonEdit =
+				item?.watched &&
+				input.watchedSeasons &&
+				input.watchedSeasons.length > 0;
+			const newWatched = isSeasonEdit ? true : !item?.watched;
+
+			// Compute runtime for TV shows based on selected seasons
+			let computedRuntime: number | null = input.runtime ?? null;
+			if (
+				newWatched &&
+				input.watchedSeasons &&
+				input.seasonEpisodeCounts &&
+				input.runtime
+			) {
+				const selectedSet = new Set(input.watchedSeasons);
+				const totalEpisodes = input.seasonEpisodeCounts
+					.filter((s) => selectedSet.has(s.seasonNumber))
+					.reduce((sum, s) => sum + s.episodeCount, 0);
+				computedRuntime = input.runtime * totalEpisodes;
+			}
+
+			await db
+				.update(watchlistItem)
+				.set({
+					watched: newWatched,
+					keptInWatchlist: false,
+					runtime: newWatched ? computedRuntime : null,
+					watchedSeasons: newWatched ? (input.watchedSeasons ?? null) : null,
+				})
+				.where(
+					and(
+						eq(watchlistItem.watchlistId, defaultWl.id),
+						eq(watchlistItem.tmdbId, input.tmdbId),
+						eq(watchlistItem.mediaType, input.mediaType),
+					),
+				);
+
+			return { watched: newWatched, defaultWatchlistId: defaultWl.id };
+		}),
+
+	keepInWatchlist: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const memberships = await db
+				.select({ watchlistId: watchlistMember.watchlistId })
+				.from(watchlistMember)
+				.where(eq(watchlistMember.userId, ctx.userId));
+			const wlIds = memberships.map((m) => m.watchlistId);
+			if (wlIds.length === 0) return;
+
+			await db
+				.update(watchlistItem)
+				.set({ keptInWatchlist: true })
+				.where(
+					and(
+						inArray(watchlistItem.watchlistId, wlIds),
+						eq(watchlistItem.tmdbId, input.tmdbId),
+						eq(watchlistItem.mediaType, input.mediaType),
+					),
+				);
+		}),
+
+	recommendTitle: protectedProcedure
+		.input(
+			z.object({
+				friendIds: z.array(z.string()).min(1),
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+				titleName: z.string().optional(),
+				message: z.string().max(280).optional(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			await ensureAreFriends(ctx.userId, input.friendIds);
+
+			for (const friendId of input.friendIds) {
+				await createNotification({
+					recipientId: friendId,
+					actorId: ctx.userId,
+					type: "recommendation_received",
+					data: {
+						tmdbId: input.tmdbId,
+						mediaType: input.mediaType,
+						titleName: input.titleName ?? "",
+						message: input.message ?? "",
+					},
+				});
+			}
 		}),
 
 	removeMember: protectedProcedure

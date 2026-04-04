@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { AnimatePresence, motion } from "motion/react";
 import { Check, Send, Users, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { useTRPC } from "#/integrations/trpc/react";
 
@@ -51,7 +51,7 @@ export function RecommendDialog({
 		sendRec.mutate({
 			tmdbId,
 			mediaType: mediaType as "movie" | "tv",
-			friendIds: Array.from(selectedIds),
+			recipientIds: Array.from(selectedIds),
 			titleName,
 		});
 	}
@@ -130,9 +130,8 @@ export function RecommendDialog({
 									Recommend
 								</h2>
 								<p className="mt-0.5 text-xs text-cream/40 pr-6 truncate">
-									Send{" "}
-									<span className="text-cream/65">{titleName}</span>{" "}
-									to your friends
+									Send <span className="text-cream/65">{titleName}</span> to
+									your friends
 								</p>
 							</div>
 
@@ -153,7 +152,8 @@ export function RecommendDialog({
 									<ul className="space-y-1">
 										{friends.map((friend) => {
 											const isSelected = selectedIds.has(friend.id);
-											const initial = (friend.username ?? "?")[0]?.toUpperCase() ?? "?";
+											const initial =
+												(friend.username ?? "?")[0]?.toUpperCase() ?? "?";
 
 											return (
 												<li key={friend.id}>
@@ -218,7 +218,11 @@ export function RecommendDialog({
 																	initial={{ scale: 0, opacity: 0 }}
 																	animate={{ scale: 1, opacity: 1 }}
 																	exit={{ scale: 0, opacity: 0 }}
-																	transition={{ type: "spring", damping: 18, stiffness: 300 }}
+																	transition={{
+																		type: "spring",
+																		damping: 18,
+																		stiffness: 300,
+																	}}
 																>
 																	<Check
 																		className="h-4 w-4"

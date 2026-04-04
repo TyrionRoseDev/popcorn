@@ -7,7 +7,11 @@ interface WatchlistReelProps {
 		id: string;
 		name: string;
 		type: string;
-		items: Array<{ tmdbId: number; mediaType: string }>;
+		items: Array<{
+			tmdbId: number;
+			mediaType: string;
+			posterPath: string | null;
+		}>;
 		members: Array<{
 			user: {
 				id: string;

@@ -1,19 +1,22 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, or, sql } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import {
 	block,
+	episodeWatch,
 	friendship,
 	user,
+	watchEvent,
 	watchlist,
 	watchlistItem,
 	watchlistMember,
 } from "#/db/schema";
 import { createTRPCRouter, protectedProcedure } from "#/integrations/trpc/init";
+import { createNotification } from "#/integrations/trpc/routers/notification";
 import { ACHIEVEMENTS_BY_ID } from "#/lib/achievements";
 import { evaluateAchievements } from "#/lib/evaluate-achievements";
-import { createNotification } from "#/integrations/trpc/routers/notification";
+import { getUnifiedGenreById, getUnifiedIdByTmdbId } from "#/lib/genre-map";
 
 async function forkSharedWatchlists(
 	tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
@@ -139,6 +142,7 @@ export const friendRouter = createTRPCRouter({
 				username: user.username,
 				avatarUrl: user.avatarUrl,
 				favouriteFilmTmdbId: user.favouriteFilmTmdbId,
+				favouriteFilmMediaType: user.favouriteFilmMediaType,
 				favouriteGenreId: user.favouriteGenreId,
 				bio: user.bio,
 			})
@@ -166,7 +170,64 @@ export const friendRouter = createTRPCRouter({
 				),
 			);
 
-		return friends;
+		if (friends.length === 0) return [];
+
+		const friendIds = friends.map((f) => f.id);
+
+		// Batch watch stats
+		const watchStats = await db
+			.select({
+				userId: watchEvent.userId,
+				watchCount: sql<number>`count(*)::int`,
+				avgRating: sql<
+					number | null
+				>`round(avg(${watchEvent.rating})::numeric, 1)::float`,
+			})
+			.from(watchEvent)
+			.where(inArray(watchEvent.userId, friendIds))
+			.groupBy(watchEvent.userId);
+
+		// Batch list counts (owned + member)
+		const ownedCounts = await db
+			.select({
+				userId: watchlist.ownerId,
+				count: sql<number>`count(*)::int`,
+			})
+			.from(watchlist)
+			.where(
+				and(
+					inArray(watchlist.ownerId, friendIds),
+					eq(watchlist.isPublic, true),
+				),
+			)
+			.groupBy(watchlist.ownerId);
+
+		const memberCounts = await db
+			.select({
+				userId: watchlistMember.userId,
+				count: sql<number>`count(*)::int`,
+			})
+			.from(watchlistMember)
+			.innerJoin(watchlist, eq(watchlist.id, watchlistMember.watchlistId))
+			.where(
+				and(
+					inArray(watchlistMember.userId, friendIds),
+					eq(watchlist.isPublic, true),
+					sql`${watchlistMember.userId} <> ${watchlist.ownerId}`,
+				),
+			)
+			.groupBy(watchlistMember.userId);
+
+		const watchMap = new Map(watchStats.map((s) => [s.userId, s]));
+		const ownedMap = new Map(ownedCounts.map((s) => [s.userId, s.count]));
+		const memberMap = new Map(memberCounts.map((s) => [s.userId, s.count]));
+
+		return friends.map((f) => ({
+			...f,
+			watchCount: watchMap.get(f.id)?.watchCount ?? 0,
+			avgRating: watchMap.get(f.id)?.avgRating ?? null,
+			listCount: (ownedMap.get(f.id) ?? 0) + (memberMap.get(f.id) ?? 0),
+		}));
 	}),
 
 	pendingRequests: protectedProcedure.query(async ({ ctx }) => {
@@ -385,13 +446,19 @@ export const friendRouter = createTRPCRouter({
 							recipientId: friendId,
 							actorId: earnerId,
 							type: "achievement_earned",
-							data: { achievementId, achievementName: achievementDef?.name ?? "" },
+							data: {
+								achievementId,
+								achievementName: achievementDef?.name ?? "",
+							},
 						});
 					}
 				}
 			};
 
-			await notifyFriendsAboutAchievements(updated.requesterId, requesterAchievements);
+			await notifyFriendsAboutAchievements(
+				updated.requesterId,
+				requesterAchievements,
+			);
 			await notifyFriendsAboutAchievements(ctx.userId, addresseeAchievements);
 
 			return updated;
@@ -560,6 +627,7 @@ export const friendRouter = createTRPCRouter({
 					avatarUrl: user.avatarUrl,
 					bio: user.bio,
 					favouriteFilmTmdbId: user.favouriteFilmTmdbId,
+					favouriteFilmMediaType: user.favouriteFilmMediaType,
 					favouriteGenreId: user.favouriteGenreId,
 				})
 				.from(user)
@@ -631,15 +699,53 @@ export const friendRouter = createTRPCRouter({
 				}
 			}
 
+			const isSelf = ctx.userId === input.userId;
 			const isFriend = relationshipStatus === "friends";
+
+			// Compute total watch time (sum of runtime for watched items across user's watchlists)
+			const userMemberships = await db
+				.select({ watchlistId: watchlistMember.watchlistId })
+				.from(watchlistMember)
+				.where(eq(watchlistMember.userId, input.userId));
+			const wlIds = userMemberships.map((m) => m.watchlistId);
+			// Film watch time (from watchlist items)
+			let filmWatchTimeMinutes = 0;
+			if (wlIds.length > 0) {
+				const [result] = await db
+					.select({
+						total: sql<number>`coalesce(sum(${watchlistItem.runtime}), 0)::int`,
+					})
+					.from(watchlistItem)
+					.where(
+						and(
+							inArray(watchlistItem.watchlistId, wlIds),
+							eq(watchlistItem.watched, true),
+							eq(watchlistItem.mediaType, "movie"),
+						),
+					);
+				filmWatchTimeMinutes = result?.total ?? 0;
+			}
+
+			// TV watch time (from episode tracker)
+			const [tvResult] = await db
+				.select({
+					total: sql<number>`coalesce(sum(${episodeWatch.runtime}), 0)::int`,
+				})
+				.from(episodeWatch)
+				.where(eq(episodeWatch.userId, input.userId));
+			const tvWatchTimeMinutes = tvResult?.total ?? 0;
+
+			const watchTimeMinutes = filmWatchTimeMinutes + tvWatchTimeMinutes;
 
 			// Base profile (always returned)
 			const profile = {
 				...targetUser,
 				friendCount: friendCount?.count ?? 0,
+				watchTimeMinutes,
 				relationshipStatus,
 				friendshipId,
 				isFriend,
+				isSelf,
 				publicWatchlists: [] as Array<{
 					id: string;
 					name: string;
@@ -648,8 +754,8 @@ export const friendRouter = createTRPCRouter({
 				}>,
 			};
 
-			// Friends get public watchlists
-			if (isFriend) {
+			// Friends and self get public watchlists
+			if (isFriend || isSelf) {
 				const watchlists = await db
 					.select({
 						id: watchlist.id,
@@ -685,5 +791,105 @@ export const friendRouter = createTRPCRouter({
 			}
 
 			return profile;
+		}),
+
+	genreStats: protectedProcedure
+		.input(z.object({ userId: z.string() }))
+		.query(async ({ input, ctx }) => {
+			// Only self or friends can see genre stats
+			if (ctx.userId !== input.userId) {
+				const existingFriendship = await db.query.friendship.findFirst({
+					where: and(
+						or(
+							and(
+								eq(friendship.requesterId, ctx.userId),
+								eq(friendship.addresseeId, input.userId),
+							),
+							and(
+								eq(friendship.requesterId, input.userId),
+								eq(friendship.addresseeId, ctx.userId),
+							),
+						),
+						eq(friendship.status, "accepted"),
+					),
+				});
+				if (!existingFriendship) return [];
+			}
+
+			const events = await db
+				.select({ genreIds: watchEvent.genreIds })
+				.from(watchEvent)
+				.where(
+					and(
+						eq(watchEvent.userId, input.userId),
+						sql`${watchEvent.genreIds} IS NOT NULL`,
+					),
+				);
+
+			// Count occurrences of each TMDB genre ID
+			const counts = new Map<number, number>();
+			for (const event of events) {
+				if (!event.genreIds) continue;
+				for (const id of event.genreIds as number[]) {
+					counts.set(id, (counts.get(id) ?? 0) + 1);
+				}
+			}
+
+			// Convert to unified genre IDs and merge
+			const unifiedCounts = new Map<number, { name: string; count: number }>();
+			for (const [tmdbId, count] of counts) {
+				const unifiedId = getUnifiedIdByTmdbId(tmdbId);
+				if (unifiedId === null) continue;
+				const genre = getUnifiedGenreById(unifiedId);
+				if (!genre) continue;
+				const existing = unifiedCounts.get(unifiedId);
+				if (existing) {
+					existing.count += count;
+				} else {
+					unifiedCounts.set(unifiedId, { name: genre.name, count });
+				}
+			}
+
+			// Sort by count descending, return top 5
+			return Array.from(unifiedCounts.values())
+				.sort((a, b) => b.count - a.count)
+				.slice(0, 5);
+		}),
+
+	watchActivity: protectedProcedure
+		.input(z.object({ userId: z.string() }))
+		.query(async ({ input, ctx }) => {
+			// Only self or friends can see watch activity
+			if (ctx.userId !== input.userId) {
+				const existingFriendship = await db.query.friendship.findFirst({
+					where: and(
+						or(
+							and(
+								eq(friendship.requesterId, ctx.userId),
+								eq(friendship.addresseeId, input.userId),
+							),
+							and(
+								eq(friendship.requesterId, input.userId),
+								eq(friendship.addresseeId, ctx.userId),
+							),
+						),
+						eq(friendship.status, "accepted"),
+					),
+				});
+				if (!existingFriendship) return [];
+			}
+
+			const result = await db
+				.select({
+					date: sql<string>`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`,
+					count: sql<number>`count(*)::int`,
+					titles: sql<string[]>`array_agg(${watchEvent.titleName})`,
+				})
+				.from(watchEvent)
+				.where(eq(watchEvent.userId, input.userId))
+				.groupBy(sql`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`)
+				.orderBy(sql`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`);
+
+			return result;
 		}),
 });

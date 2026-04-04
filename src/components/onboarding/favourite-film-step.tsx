@@ -21,6 +21,9 @@ export function FavouriteFilmStep({
 	const [selectedTmdbId, setSelectedTmdbId] = useState<number | null>(
 		onboardingState?.favouriteFilmTmdbId ?? null,
 	);
+	const [selectedMediaType, setSelectedMediaType] = useState<
+		"movie" | "tv" | null
+	>(onboardingState?.favouriteFilmMediaType ?? null);
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const trpc = useTRPC();
@@ -42,32 +45,43 @@ export function FavouriteFilmStep({
 		),
 	);
 
-	function handleSelect(tmdbId: number) {
-		setSelectedTmdbId((prev) => (prev === tmdbId ? null : tmdbId));
+	function handleSelect(tmdbId: number, mediaType: "movie" | "tv") {
+		if (selectedTmdbId === tmdbId && selectedMediaType === mediaType) {
+			setSelectedTmdbId(null);
+			setSelectedMediaType(null);
+			return;
+		}
+
+		setSelectedTmdbId(tmdbId);
+		setSelectedMediaType(mediaType);
 	}
 
 	function handleContinue() {
-		setOnboardingState?.({ favouriteFilmTmdbId: selectedTmdbId });
+		setOnboardingState?.({
+			favouriteFilmTmdbId: selectedTmdbId,
+			favouriteFilmMediaType: selectedMediaType,
+		});
 		onNext();
 	}
 
 	function handleSkip() {
-		setOnboardingState?.({ favouriteFilmTmdbId: null });
+		setOnboardingState?.({
+			favouriteFilmTmdbId: null,
+			favouriteFilmMediaType: null,
+		});
 		onNext();
 	}
 
-	const items = (searchResults.data?.items ?? []).filter(
-		(item) => item.mediaType === "movie",
-	);
+	const items = searchResults.data?.items ?? [];
 	const showResults = debouncedQuery.length >= 2;
 
 	return (
 		<div>
 			<h2 className="mb-1.5 font-display text-xl text-cream">
-				Favourite film?
+				Favourite film or TV show?
 			</h2>
 			<p className="mb-6 text-sm text-cream/50">
-				Search for a movie or show you love most
+				Search for the movie or show you love most
 			</p>
 
 			<input
@@ -89,12 +103,14 @@ export function FavouriteFilmStep({
 						</div>
 					)}
 					{items.map((item) => {
-						const isSelected = selectedTmdbId === item.tmdbId;
+						const isSelected =
+							selectedTmdbId === item.tmdbId &&
+							selectedMediaType === item.mediaType;
 						return (
 							<button
 								key={`${item.tmdbId}-${item.mediaType}`}
 								type="button"
-								onClick={() => handleSelect(item.tmdbId)}
+								onClick={() => handleSelect(item.tmdbId, item.mediaType)}
 								className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-cream/5 ${
 									isSelected ? "bg-neon-pink/10" : ""
 								}`}
@@ -125,7 +141,9 @@ export function FavouriteFilmStep({
 			)}
 
 			{selectedTmdbId !== null && !showResults && (
-				<p className="mb-4 text-xs text-neon-pink/80">Film selected</p>
+				<p className="mb-4 text-xs text-neon-pink/80">
+					{selectedMediaType === "tv" ? "TV show selected" : "Film selected"}
+				</p>
 			)}
 
 			<button

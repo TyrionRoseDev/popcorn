@@ -104,10 +104,10 @@ export const auth = betterAuth({
 });
 ```
 
-Then run migrations:
+Then sync the schema:
 
 ```bash
-bunx --bun @better-auth/cli migrate
+bun run db:push
 ```
 
 

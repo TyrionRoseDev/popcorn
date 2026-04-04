@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { X } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Check, X } from "lucide-react";
+import { toast } from "sonner";
 import { useTRPC } from "#/integrations/trpc/react";
 
 interface NotificationItemProps {
@@ -36,7 +37,7 @@ function getNotificationMessage(
 	data: Record<string, unknown>,
 	_actorName: string,
 	actorId: string | null,
-): { text: string; link?: string } {
+): { text: string; link?: string; showActor?: boolean } {
 	switch (type) {
 		case "watchlist_item_added":
 			return {
@@ -83,8 +84,9 @@ function getNotificationMessage(
 					: undefined,
 			};
 		case "recommendation":
+		case "recommendation_received":
 			return {
-				text: `recommended ${data.titleName || "a title"} to you`,
+				text: `recommended ${data.titleName || "a title"} for you${data.message ? ` — "${data.message}"` : ""}`,
 				link: data.tmdbId
 					? `/app/title/${data.mediaType}/${data.tmdbId}`
 					: undefined,
@@ -96,6 +98,33 @@ function getNotificationMessage(
 				link: actorId ? `/app/profile/${actorId}` : undefined,
 			};
 		}
+		case "recommendation_reviewed":
+			return {
+				text: `reviewed ${data.titleName || "a title"} you recommended`,
+				link: data.tmdbId
+					? `/app/title/${data.mediaType}/${data.tmdbId}`
+					: undefined,
+			};
+		case "recommendation_watched":
+			return {
+				text: `watched ${data.titleName || "a title"} that you recommended`,
+				link: data.tmdbId
+					? `/app/title/${data.mediaType}/${data.tmdbId}`
+					: undefined,
+			};
+		case "watched_with":
+			return {
+				text: `watched ${data.titleName || "a title"} with you`,
+				link: data.tmdbId
+					? `/app/title/${data.mediaType}/${data.tmdbId}`
+					: undefined,
+			};
+		case "review_reminder":
+			return {
+				text: `Time to review ${data.titleName || "a title"}!`,
+				link: undefined,
+				showActor: false,
+			};
 		default:
 			return { text: "sent you a notification" };
 	}
@@ -127,15 +156,58 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 		}),
 	);
 
+	const acceptRecommendation = useMutation(
+		trpc.recommendation.accept.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(trpc.notification.getAll.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.notification.getUnreadCount.queryFilter(),
+				);
+				queryClient.invalidateQueries(trpc.watchlist.list.queryFilter());
+			},
+			onError: () => {
+				toast.error("Failed to accept recommendation");
+			},
+		}),
+	);
+
+	const declineRecommendation = useMutation(
+		trpc.recommendation.decline.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(trpc.notification.getAll.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.notification.getUnreadCount.queryFilter(),
+				);
+			},
+			onError: () => {
+				toast.error("Failed to decline recommendation");
+			},
+		}),
+	);
+
+	const navigate = useNavigate();
+
+	const setActionTaken = useMutation(
+		trpc.notification.setActionTaken.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(trpc.notification.getAll.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.notification.getUnreadCount.queryFilter(),
+				);
+			},
+		}),
+	);
+
 	const data = (n.data ?? {}) as Record<string, unknown>;
 	const actorName = n.actorUsername ?? "Someone";
-	const { text, link } = getNotificationMessage(
+	const { text, link, showActor } = getNotificationMessage(
 		n.type,
 		data,
 		actorName,
 		n.actorId,
 	);
 	const isMatch = n.type === "shuffle_match";
+	const hideActor = showActor === false;
 
 	const content = (
 		<div
@@ -167,7 +239,7 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 				<p
 					className={`text-[13px] leading-snug ${n.read ? "text-cream/50" : "text-cream/90"}`}
 				>
-					{isMatch ? (
+					{isMatch || hideActor ? (
 						text
 					) : (
 						<>
@@ -183,6 +255,93 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 				>
 					{formatTimeAgo(n.createdAt)}
 				</span>
+				{n.type === "recommendation_received" &&
+					!n.actionTaken &&
+					n.actorId && (
+						<div className="mt-1.5 flex items-center gap-2">
+							<button
+								type="button"
+								onClick={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									acceptRecommendation.mutate({
+										notificationId: n.id,
+										tmdbId: data.tmdbId as number,
+										mediaType: data.mediaType as "movie" | "tv",
+										recommendedBy: n.actorId as string,
+										message: (data.message as string) ?? null,
+										titleName: (data.titleName as string) ?? undefined,
+									});
+								}}
+								disabled={acceptRecommendation.isPending}
+								className="inline-flex items-center gap-1 rounded-full border border-neon-cyan/30 bg-neon-cyan/10 px-2.5 py-1 text-[11px] font-semibold text-neon-cyan transition-colors hover:bg-neon-cyan/20 disabled:opacity-50"
+							>
+								<Check className="h-3 w-3" />
+								Accept
+							</button>
+							<button
+								type="button"
+								onClick={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									declineRecommendation.mutate({
+										notificationId: n.id,
+									});
+								}}
+								disabled={declineRecommendation.isPending}
+								className="rounded-full border border-cream/15 px-2.5 py-1 text-[11px] text-cream/40 transition-colors hover:text-cream/60 hover:border-cream/25 disabled:opacity-50"
+							>
+								Decline
+							</button>
+						</div>
+					)}
+				{n.type === "recommendation_received" &&
+					n.actionTaken === "accepted" && (
+						<span className="mt-1 inline-block text-[10px] text-neon-cyan/60">
+							Added to your Recommendations
+						</span>
+					)}
+				{n.type === "recommendation_received" &&
+					n.actionTaken === "declined" && (
+						<span className="mt-1 inline-block text-[10px] text-cream/25">
+							Declined
+						</span>
+					)}
+				{/* Review reminder actions */}
+				{n.type === "review_reminder" && !n.actionTaken && (
+					<div className="flex gap-2 mt-1.5">
+						<button
+							type="button"
+							onClick={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								setActionTaken.mutate({ id: n.id, action: "accepted" });
+								navigate({
+									to: "/app/title/$mediaType/$tmdbId",
+									params: {
+										mediaType: data.mediaType as "movie" | "tv",
+										tmdbId: Number(data.tmdbId),
+									},
+									search: { reviewEventId: data.watchEventId as string },
+								});
+							}}
+							className="px-2.5 py-1 rounded text-[11px] font-semibold bg-neon-cyan/10 border border-neon-cyan/25 text-neon-cyan/80 hover:bg-neon-cyan/20 hover:border-neon-cyan/40 transition-all"
+						>
+							Review now
+						</button>
+						<button
+							type="button"
+							onClick={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								deleteNotification.mutate({ id: n.id });
+							}}
+							className="px-2.5 py-1 rounded text-[11px] font-semibold bg-cream/5 border border-cream/10 text-cream/40 hover:bg-cream/10 hover:text-cream/60 transition-all"
+						>
+							Dismiss
+						</button>
+					</div>
+				)}
 			</div>
 
 			{/* Dismiss */}

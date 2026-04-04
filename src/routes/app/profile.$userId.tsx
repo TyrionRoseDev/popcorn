@@ -6,7 +6,6 @@ import {
 } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-	Award,
 	Ban,
 	BarChart3,
 	CalendarDays,
@@ -22,10 +21,11 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { AchievementGrid } from "#/components/achievements/achievement-grid";
+import { ReviewModal } from "#/components/watched/review-modal";
+import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { useTRPC } from "#/integrations/trpc/react";
 import { ACHIEVEMENTS } from "#/lib/achievements";
 import { authClient } from "#/lib/auth-client";
-import { getUnifiedGenreById } from "#/lib/genre-map";
 import { getTmdbImageUrl } from "#/lib/tmdb";
 
 export const Route = createFileRoute("/app/profile/$userId")({
@@ -39,93 +39,6 @@ const MARQUEE_BULBS = Array.from({ length: MARQUEE_BULB_COUNT }, (_, i) => ({
 	delay: `${(i * 0.12) % 1.0}s`,
 }));
 
-// ── Deterministic hash for seeded "random" demo data ──────────
-function hashStr(s: string) {
-	let h = 0;
-	for (let i = 0; i < s.length; i++)
-		h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
-	return Math.abs(h);
-}
-
-function seededRandom(seed: number) {
-	let s = seed;
-	return () => {
-		s = (s * 16807 + 0) % 2147483647;
-		return s / 2147483647;
-	};
-}
-
-// ── Heatmap: flat array of cells in column-major order (7 rows × COLS) ──
-const HEATMAP_COLS = 26;
-const HEATMAP_ROWS = 7;
-
-function buildHeatmapCells(userId: string) {
-	const rand = seededRandom(hashStr(`${userId}heatmap`));
-	const cells: { key: string; level: number }[] = [];
-	for (let row = 0; row < HEATMAP_ROWS; row++) {
-		for (let col = 0; col < HEATMAP_COLS; col++) {
-			const r = rand();
-			const level = r < 0.3 ? 0 : r < 0.55 ? 1 : r < 0.75 ? 2 : r < 0.9 ? 3 : 4;
-			cells.push({ key: `h-${row}-${col}`, level });
-		}
-	}
-	return cells;
-}
-
-const HEATMAP_COLORS = [
-	"bg-cream/[0.04]", // 0 — empty
-	"bg-neon-pink/20", // 1
-	"bg-neon-pink/40", // 2
-	"bg-neon-pink/60", // 3
-	"bg-neon-pink/80", // 4
-];
-
-// ── Demo reviews ──────────────────────────────────────────────
-const DEMO_REVIEWS = [
-	{
-		title: "The Shining",
-		rating: 5,
-		text: "Kubrick at his finest. The Overlook Hotel is a character in itself.",
-		time: "2d ago",
-	},
-	{
-		title: "Alien",
-		rating: 4,
-		text: "Ridley Scott created the perfect sci-fi horror. Still holds up.",
-		time: "1w ago",
-	},
-	{
-		title: "Hereditary",
-		rating: 5,
-		text: "Ari Aster doesn't let you look away. Toni Collette was robbed.",
-		time: "2w ago",
-	},
-];
-
-// ── Demo activity ─────────────────────────────────────────────
-const DEMO_ACTIVITY = [
-	{
-		action: "Watched",
-		title: "The Shining",
-		time: "2d ago",
-		color: "neon-pink",
-	},
-	{
-		action: "Added to watchlist",
-		title: "Midsommar",
-		time: "3d ago",
-		color: "neon-cyan",
-	},
-	{ action: "Reviewed", title: "Alien", time: "1w ago", color: "neon-amber" },
-	{ action: "Watched", title: "Get Out", time: "1w ago", color: "neon-pink" },
-	{
-		action: "Added to watchlist",
-		title: "Nope",
-		time: "2w ago",
-		color: "neon-cyan",
-	},
-];
-
 // ── Avatar gradient by first character ──────────────────────────
 function avatarGradient(_letter: string) {
 	// Site colors only — pink, amber, cyan — with hard stops to avoid green blending
@@ -133,7 +46,7 @@ function avatarGradient(_letter: string) {
 }
 
 // ── Tabs enum ──────────────────────────────────────────────────
-type FriendTab = "watchlists" | "reviews" | "activity";
+type FriendTab = "watchlists" | "diary" | "activity";
 const TABS: {
 	key: FriendTab;
 	label: string;
@@ -147,8 +60,8 @@ const TABS: {
 		activeColor: "text-neon-cyan border-neon-cyan",
 	},
 	{
-		key: "reviews",
-		label: "Reviews",
+		key: "diary",
+		label: "Diary",
 		color: "neon-amber",
 		activeColor: "text-neon-amber border-neon-amber",
 	},
@@ -229,8 +142,16 @@ function ProfilePage() {
 			profile?.favouriteFilmTmdbId
 				? {
 						tmdbId: profile.favouriteFilmTmdbId,
-						mediaType: "movie" as const,
+						mediaType: profile.favouriteFilmMediaType === "tv" ? "tv" : "movie",
 					}
+				: skipToken,
+		),
+	);
+
+	const { data: genreStats } = useQuery(
+		trpc.friend.genreStats.queryOptions(
+			profile && (profile.isSelf || profile.isFriend)
+				? { userId: profile.id }
 				: skipToken,
 		),
 	);
@@ -333,12 +254,11 @@ function ProfilePage() {
 		);
 	}
 
+	const isSelf = profile.isSelf;
 	const isFriend = profile.isFriend;
 	const isOwnProfile = !!session?.user?.id && session.user.id === userId;
 	const initial = (profile.username ?? "?").charAt(0).toUpperCase();
-	const genreName = profile.favouriteGenreId
-		? (getUnifiedGenreById(profile.favouriteGenreId)?.name ?? null)
-		: null;
+	const genreName = genreStats?.[0]?.name ?? null;
 
 	return (
 		<>
@@ -419,7 +339,7 @@ function ProfilePage() {
 									}}
 								/>
 								{/* Avatar itself */}
-								<div className="relative h-24 w-24 overflow-hidden rounded-full border-[3px] border-drive-in-bg">
+								<div className="relative h-36 w-36 overflow-hidden rounded-full border-[3px] border-drive-in-bg">
 									{profile.avatarUrl ? (
 										<img
 											src={profile.avatarUrl}
@@ -434,7 +354,7 @@ function ProfilePage() {
 													"linear-gradient(135deg, rgba(10,10,30,0.9), rgba(20,20,50,0.9))",
 											}}
 										>
-											<span className="font-display text-3xl text-cream/80">
+											<span className="font-display text-5xl text-cream/80">
 												{initial}
 											</span>
 										</div>
@@ -453,214 +373,230 @@ function ProfilePage() {
 							@{profile.username ?? "unknown"}
 						</h1>
 
-						{/* ── 4. Action buttons ───────────────── */}
-						<div className="mt-3 flex justify-center gap-2">
-							{profile.relationshipStatus ===
-							"blocked" ? null : profile.relationshipStatus === "none" ? (
-								/* Add Friend */
-								<button
-									type="button"
-									onClick={() => sendRequest.mutate({ userId })}
-									disabled={anyMutating}
-									className="relative flex items-center gap-2 overflow-hidden rounded-lg border border-neon-pink/40 bg-neon-pink/10 px-5 py-2.5 font-mono-retro text-xs uppercase tracking-[2px] text-neon-pink transition-all hover:border-neon-pink/60 hover:bg-neon-pink/15 disabled:opacity-50"
-									style={{
-										textShadow: "0 0 10px rgba(255,45,120,0.3)",
-									}}
-								>
-									<div
-										className="pointer-events-none absolute inset-0 opacity-20"
-										style={{
-											background:
-												"linear-gradient(90deg, transparent, rgba(255,45,120,0.4), transparent)",
-											animation: "shimmer-sweep 2.5s ease-in-out infinite",
-										}}
-									/>
-									<UserPlus className="relative z-10 h-4 w-4" />
-									<span className="relative z-10">Add Friend</span>
-								</button>
-							) : profile.relationshipStatus === "request_sent" ? (
-								/* Request Sent */
-								<div className="flex items-center gap-2">
-									<span className="font-mono-retro text-[10px] uppercase tracking-[1.5px] text-cream/35">
-										Request Sent
-									</span>
-									<button
-										type="button"
-										onClick={() =>
-											profile.friendshipId &&
-											cancelRequest.mutate({
-												friendshipId: profile.friendshipId,
-											})
-										}
-										disabled={anyMutating}
-										className="flex items-center gap-1 rounded-md border border-cream/12 bg-cream/[0.04] px-3 py-1.5 font-mono-retro text-[10px] uppercase tracking-[1px] text-cream/40 transition-all hover:border-cream/25 hover:text-cream/60 disabled:opacity-50"
-									>
-										<X className="h-3 w-3" />
-										Cancel
-									</button>
-								</div>
-							) : profile.relationshipStatus === "request_received" ? (
-								/* Accept / Decline */
-								<div className="flex items-center gap-2">
-									<button
-										type="button"
-										onClick={() =>
-											profile.friendshipId &&
-											acceptRequest.mutate({
-												friendshipId: profile.friendshipId,
-											})
-										}
-										disabled={anyMutating}
-										className="flex items-center gap-1.5 rounded-lg border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-2 font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-cyan transition-all hover:border-neon-cyan/60 hover:bg-neon-cyan/15 disabled:opacity-50"
-										style={{
-											textShadow: "0 0 8px rgba(0,229,255,0.25)",
-										}}
-									>
-										Accept
-									</button>
-									<button
-										type="button"
-										onClick={() =>
-											profile.friendshipId &&
-											declineRequest.mutate({
-												friendshipId: profile.friendshipId,
-											})
-										}
-										disabled={anyMutating}
-										className="flex items-center gap-1 rounded-lg border border-cream/12 bg-cream/[0.04] px-4 py-2 font-mono-retro text-[10px] uppercase tracking-[1.5px] text-cream/35 transition-all hover:border-cream/25 hover:text-cream/55 disabled:opacity-50"
-									>
-										Decline
-									</button>
-								</div>
-							) : isFriend ? (
-								/* Friend actions: Remove / Block */
-								<AnimatePresence mode="wait">
-									{showRemoveConfirm ? (
-										<motion.div
-											key="remove-confirm"
-											initial={{
-												opacity: 0,
-												scale: 0.95,
-											}}
-											animate={{
-												opacity: 1,
-												scale: 1,
-											}}
-											exit={{
-												opacity: 0,
-												scale: 0.95,
-											}}
-											className="flex items-center gap-2"
-										>
-											<span className="text-xs text-cream/40">Remove?</span>
-											<button
-												type="button"
-												onClick={() => {
-													removeFriend.mutate({
-														userId,
-													});
-													setShowRemoveConfirm(false);
-												}}
-												disabled={anyMutating}
-												className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1 font-mono-retro text-[10px] uppercase text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/20 disabled:opacity-50"
+						{/* ── 4. Action buttons (hidden for own profile) ── */}
+						{!isSelf && (
+							<div className="mt-3 flex justify-center gap-2">
+								{profile.relationshipStatus === "blocked" ? null : (
+									<AnimatePresence mode="wait">
+										{showBlockConfirm ? (
+											<motion.div
+												key="block-confirm"
+												initial={{ opacity: 0, scale: 0.95 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.95 }}
+												className="flex items-center gap-2"
 											>
-												Yes
-											</button>
-											<button
-												type="button"
-												onClick={() => setShowRemoveConfirm(false)}
-												className="rounded-md border border-cream/12 bg-cream/[0.04] px-3 py-1 font-mono-retro text-[10px] uppercase text-cream/40 transition-all hover:border-cream/25"
+												<span className="text-xs text-cream/40">Block?</span>
+												<button
+													type="button"
+													onClick={() => {
+														blockUser.mutate({ userId });
+														setShowBlockConfirm(false);
+													}}
+													disabled={anyMutating}
+													className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1 font-mono-retro text-[10px] uppercase text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/20 disabled:opacity-50"
+												>
+													Yes
+												</button>
+												<button
+													type="button"
+													onClick={() => setShowBlockConfirm(false)}
+													className="rounded-md border border-cream/12 bg-cream/[0.04] px-3 py-1 font-mono-retro text-[10px] uppercase text-cream/40 transition-all hover:border-cream/25"
+												>
+													No
+												</button>
+											</motion.div>
+										) : showRemoveConfirm ? (
+											<motion.div
+												key="remove-confirm"
+												initial={{ opacity: 0, scale: 0.95 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.95 }}
+												className="flex items-center gap-2"
 											>
-												No
-											</button>
-										</motion.div>
-									) : showBlockConfirm ? (
-										<motion.div
-											key="block-confirm"
-											initial={{
-												opacity: 0,
-												scale: 0.95,
-											}}
-											animate={{
-												opacity: 1,
-												scale: 1,
-											}}
-											exit={{
-												opacity: 0,
-												scale: 0.95,
-											}}
-											className="flex items-center gap-2"
-										>
-											<span className="text-xs text-cream/40">Block?</span>
-											<button
-												type="button"
-												onClick={() => {
-													blockUser.mutate({
-														userId,
-													});
-													setShowBlockConfirm(false);
-												}}
-												disabled={anyMutating}
-												className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1 font-mono-retro text-[10px] uppercase text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/20 disabled:opacity-50"
+												<span className="text-xs text-cream/40">Remove?</span>
+												<button
+													type="button"
+													onClick={() => {
+														removeFriend.mutate({ userId });
+														setShowRemoveConfirm(false);
+													}}
+													disabled={anyMutating}
+													className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1 font-mono-retro text-[10px] uppercase text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/20 disabled:opacity-50"
+												>
+													Yes
+												</button>
+												<button
+													type="button"
+													onClick={() => setShowRemoveConfirm(false)}
+													className="rounded-md border border-cream/12 bg-cream/[0.04] px-3 py-1 font-mono-retro text-[10px] uppercase text-cream/40 transition-all hover:border-cream/25"
+												>
+													No
+												</button>
+											</motion.div>
+										) : profile.relationshipStatus === "none" ? (
+											/* No relationship: Add Friend + Block */
+											<motion.div
+												key="none-actions"
+												initial={{ opacity: 0, scale: 0.95 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.95 }}
+												className="flex items-center gap-2"
 											>
-												Yes
-											</button>
-											<button
-												type="button"
-												onClick={() => setShowBlockConfirm(false)}
-												className="rounded-md border border-cream/12 bg-cream/[0.04] px-3 py-1 font-mono-retro text-[10px] uppercase text-cream/40 transition-all hover:border-cream/25"
+												<button
+													type="button"
+													onClick={() => sendRequest.mutate({ userId })}
+													disabled={anyMutating}
+													className="relative flex items-center gap-2 overflow-hidden rounded-lg border border-neon-pink/40 bg-neon-pink/10 px-5 py-2.5 font-mono-retro text-xs uppercase tracking-[2px] text-neon-pink transition-all hover:border-neon-pink/60 hover:bg-neon-pink/15 disabled:opacity-50"
+													style={{
+														textShadow: "0 0 10px rgba(255,45,120,0.3)",
+													}}
+												>
+													<div
+														className="pointer-events-none absolute inset-0 opacity-20"
+														style={{
+															background:
+																"linear-gradient(90deg, transparent, rgba(255,45,120,0.4), transparent)",
+															animation:
+																"shimmer-sweep 2.5s ease-in-out infinite",
+														}}
+													/>
+													<UserPlus className="relative z-10 h-4 w-4" />
+													<span className="relative z-10">Add Friend</span>
+												</button>
+												<button
+													type="button"
+													onClick={() => setShowBlockConfirm(true)}
+													className="flex items-center gap-1 rounded-md border border-cream/10 bg-cream/[0.03] px-3 py-1.5 font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/30 transition-all hover:border-red-500/25 hover:text-red-400/60"
+												>
+													<Ban className="h-3 w-3" />
+													Block
+												</button>
+											</motion.div>
+										) : profile.relationshipStatus === "request_sent" ? (
+											/* Request Sent: Cancel + Block */
+											<motion.div
+												key="sent-actions"
+												initial={{ opacity: 0, scale: 0.95 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.95 }}
+												className="flex items-center gap-2"
 											>
-												No
-											</button>
-										</motion.div>
-									) : (
-										<motion.div
-											key="friend-actions"
-											initial={{
-												opacity: 0,
-												scale: 0.95,
-											}}
-											animate={{
-												opacity: 1,
-												scale: 1,
-											}}
-											exit={{
-												opacity: 0,
-												scale: 0.95,
-											}}
-											className="flex items-center gap-2"
-										>
-											<button
-												type="button"
-												onClick={() => setShowRemoveConfirm(true)}
-												className="flex items-center gap-1 rounded-md border border-cream/10 bg-cream/[0.03] px-3 py-1.5 font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/30 transition-all hover:border-cream/20 hover:text-cream/50"
+												<span className="font-mono-retro text-[10px] uppercase tracking-[1.5px] text-cream/35">
+													Request Sent
+												</span>
+												<button
+													type="button"
+													onClick={() =>
+														profile.friendshipId &&
+														cancelRequest.mutate({
+															friendshipId: profile.friendshipId,
+														})
+													}
+													disabled={anyMutating}
+													className="flex items-center gap-1 rounded-md border border-cream/12 bg-cream/[0.04] px-3 py-1.5 font-mono-retro text-[10px] uppercase tracking-[1px] text-cream/40 transition-all hover:border-cream/25 hover:text-cream/60 disabled:opacity-50"
+												>
+													<X className="h-3 w-3" />
+													Cancel
+												</button>
+												<button
+													type="button"
+													onClick={() => setShowBlockConfirm(true)}
+													className="flex items-center gap-1 rounded-md border border-cream/10 bg-cream/[0.03] px-3 py-1.5 font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/30 transition-all hover:border-red-500/25 hover:text-red-400/60"
+												>
+													<Ban className="h-3 w-3" />
+													Block
+												</button>
+											</motion.div>
+										) : profile.relationshipStatus === "request_received" ? (
+											/* Request Received: Accept + Decline + Block */
+											<motion.div
+												key="received-actions"
+												initial={{ opacity: 0, scale: 0.95 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.95 }}
+												className="flex items-center gap-2"
 											>
-												<UserMinus className="h-3 w-3" />
-												Remove
-											</button>
-											<button
-												type="button"
-												onClick={() => setShowBlockConfirm(true)}
-												className="flex items-center gap-1 rounded-md border border-cream/10 bg-cream/[0.03] px-3 py-1.5 font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/30 transition-all hover:border-red-500/25 hover:text-red-400/60"
+												<button
+													type="button"
+													onClick={() =>
+														profile.friendshipId &&
+														acceptRequest.mutate({
+															friendshipId: profile.friendshipId,
+														})
+													}
+													disabled={anyMutating}
+													className="flex items-center gap-1.5 rounded-lg border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-2 font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-cyan transition-all hover:border-neon-cyan/60 hover:bg-neon-cyan/15 disabled:opacity-50"
+													style={{
+														textShadow: "0 0 8px rgba(0,229,255,0.25)",
+													}}
+												>
+													Accept
+												</button>
+												<button
+													type="button"
+													onClick={() =>
+														profile.friendshipId &&
+														declineRequest.mutate({
+															friendshipId: profile.friendshipId,
+														})
+													}
+													disabled={anyMutating}
+													className="flex items-center gap-1 rounded-lg border border-cream/12 bg-cream/[0.04] px-4 py-2 font-mono-retro text-[10px] uppercase tracking-[1.5px] text-cream/35 transition-all hover:border-cream/25 hover:text-cream/55 disabled:opacity-50"
+												>
+													Decline
+												</button>
+												<button
+													type="button"
+													onClick={() => setShowBlockConfirm(true)}
+													className="flex items-center gap-1 rounded-md border border-cream/10 bg-cream/[0.03] px-3 py-1.5 font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/30 transition-all hover:border-red-500/25 hover:text-red-400/60"
+												>
+													<Ban className="h-3 w-3" />
+													Block
+												</button>
+											</motion.div>
+										) : isFriend ? (
+											/* Friends: Remove + Block */
+											<motion.div
+												key="friend-actions"
+												initial={{ opacity: 0, scale: 0.95 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.95 }}
+												className="flex items-center gap-2"
 											>
-												<Ban className="h-3 w-3" />
-												Block
-											</button>
-										</motion.div>
-									)}
-								</AnimatePresence>
-							) : null}
-						</div>
+												<button
+													type="button"
+													onClick={() => setShowRemoveConfirm(true)}
+													className="flex items-center gap-1 rounded-md border border-cream/10 bg-cream/[0.03] px-3 py-1.5 font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/30 transition-all hover:border-cream/20 hover:text-cream/50"
+												>
+													<UserMinus className="h-3 w-3" />
+													Remove
+												</button>
+												<button
+													type="button"
+													onClick={() => setShowBlockConfirm(true)}
+													className="flex items-center gap-1 rounded-md border border-cream/10 bg-cream/[0.03] px-3 py-1.5 font-mono-retro text-[9px] uppercase tracking-[1px] text-cream/30 transition-all hover:border-red-500/25 hover:text-red-400/60"
+												>
+													<Ban className="h-3 w-3" />
+													Block
+												</button>
+											</motion.div>
+										) : null}
+									</AnimatePresence>
+								)}
+							</div>
+						)}
 
 						{/* ── 5a. Watch time ─────────────────── */}
 						<div className="mt-6 flex flex-col items-center py-2">
 							<span
-								className="font-display text-2xl text-neon-cyan"
+								className="font-display text-2xl text-neon-amber"
 								style={{
-									textShadow: "0 0 12px rgba(0,229,255,0.3)",
+									textShadow: "0 0 12px rgba(255,184,0,0.3)",
 								}}
 							>
-								72h 0m
+								{Math.floor((profile.watchTimeMinutes ?? 0) / 60)}h{" "}
+								{(profile.watchTimeMinutes ?? 0) % 60}m
 							</span>
 							<span className="mt-0.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/55">
 								Watched
@@ -698,21 +634,25 @@ function ProfilePage() {
 									Fav Genre
 								</span>
 							</div>
-							<div className="w-px bg-drive-in-border" />
-							{/* Mutual friends */}
-							<div className="flex flex-1 flex-col items-center justify-center py-3">
-								<span
-									className="font-display text-lg text-neon-amber"
-									style={{
-										textShadow: "0 0 10px rgba(255,184,0,0.3)",
-									}}
-								>
-									{mutualFriends?.length ?? 0}
-								</span>
-								<span className="mt-0.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/55">
-									Mutual
-								</span>
-							</div>
+							{!isSelf && (
+								<>
+									<div className="w-px bg-drive-in-border" />
+									{/* Mutual friends */}
+									<div className="flex flex-1 flex-col items-center justify-center py-3">
+										<span
+											className="font-display text-lg text-neon-amber"
+											style={{
+												textShadow: "0 0 10px rgba(255,184,0,0.3)",
+											}}
+										>
+											{mutualFriends?.length ?? 0}
+										</span>
+										<span className="mt-0.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/55">
+											Mutual
+										</span>
+									</div>
+								</>
+							)}
 						</div>
 
 						{/* ── 6. Bio ───────────────────────────── */}
@@ -745,17 +685,23 @@ function ProfilePage() {
 							friendName={profile.username ?? undefined}
 						/>
 
-						{/* ── 8. Favourite film ────────────────── */}
+						{/* ── 8. Favourite pick ────────────────── */}
 						{profile.favouriteFilmTmdbId && (
 							<div className="mt-5">
 								<div className="mb-2 flex items-center justify-center gap-1.5">
 									<Heart className="h-3 w-3 text-neon-pink/60" />
 									<span className="font-mono-retro text-[10px] uppercase tracking-[2px] text-cream/70">
-										Favourite Film
+										Favourite{" "}
+										{profile.favouriteFilmMediaType === "tv"
+											? "TV Show"
+											: "Film"}
 									</span>
 								</div>
 								<FavouriteFilmPoster
 									tmdbId={profile.favouriteFilmTmdbId}
+									mediaType={
+										profile.favouriteFilmMediaType === "tv" ? "tv" : "movie"
+									}
 									film={favFilm ?? null}
 								/>
 							</div>
@@ -765,15 +711,16 @@ function ProfilePage() {
 						{/* Friend-only or non-friend sections     */}
 						{/* ═══════════════════════════════════════ */}
 
-						{isFriend ? (
+						{isFriend || isSelf ? (
 							<FriendExpandedSections
 								profile={profile}
-								userId={userId}
+								genreStats={genreStats ?? []}
 								activeTab={activeTab}
 								setActiveTab={setActiveTab}
+								isSelf={isSelf}
 							/>
 						) : (
-							<NonFriendGatedSections status={profile.relationshipStatus} />
+							<NonFriendGatedSections />
 						)}
 					</div>
 				</div>
@@ -937,9 +884,11 @@ function ProfileAchievements({
 
 function FavouriteFilmPoster({
 	tmdbId,
+	mediaType,
 	film,
 }: {
 	tmdbId: number;
+	mediaType: "movie" | "tv";
 	film: {
 		title: string;
 		year: string;
@@ -954,7 +903,7 @@ function FavouriteFilmPoster({
 	return (
 		<Link
 			to="/app/title/$mediaType/$tmdbId"
-			params={{ mediaType: "movie", tmdbId }}
+			params={{ mediaType, tmdbId }}
 			className="group flex flex-col items-center no-underline"
 		>
 			<div className="relative w-[140px] overflow-hidden rounded-lg shadow-lg transition-transform duration-300 group-hover:scale-105">
@@ -986,7 +935,7 @@ function FavouriteFilmPoster({
 // NonFriendGatedSections (9 + 10)
 // ════════════════════════════════════════════════════════════════
 
-function NonFriendGatedSections({ status }: { status: string }) {
+function NonFriendGatedSections() {
 	return (
 		<>
 			{/* ── 9. Blurred activity teaser ─────────── */}
@@ -1015,16 +964,281 @@ function NonFriendGatedSections({ status }: { status: string }) {
 					</span>
 				</div>
 			</div>
+		</>
+	);
+}
 
-			{/* ── 10. Gated message ──────────────────── */}
-			{status !== "blocked" && (
-				<div className="mt-5 flex flex-col items-center gap-2 py-4 text-center">
-					<Lock className="h-4 w-4 text-cream/15" />
-					<p className="max-w-[280px] text-xs leading-relaxed text-cream/30">
-						Add as a friend to see watchlists, reviews &amp; activity
-					</p>
+// ════════════════════════════════════════════════════════════════
+// WatchActivityHeatmap
+// ════════════════════════════════════════════════════════════════
+
+function pad2(n: number) {
+	return n.toString().padStart(2, "0");
+}
+
+function fmtDate(d: Date) {
+	return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+// Year colors: current year = pink, past years cycle cyan → amber → pink
+const YEAR_COLORS = [
+	{ r: 0, g: 229, b: 255 }, // cyan
+	{ r: 255, g: 184, b: 0 }, // amber
+	{ r: 255, g: 45, b: 120 }, // pink
+];
+
+type HeatmapData = Array<{ date: string; count: number; titles: string[] }>;
+
+function buildYearGrid(
+	year: number,
+	dataMap: Map<string, { count: number; titles: string[] }>,
+) {
+	const jan1 = new Date(year, 0, 1);
+	const endDate = new Date(year, 11, 31);
+	const endStr = fmtDate(endDate);
+	const startDow = jan1.getDay();
+	const cells: Array<{ date: string; count: number } | null> = [];
+
+	for (let i = 0; i < startDow; i++) cells.push(null);
+
+	const cursor = new Date(jan1);
+	while (fmtDate(cursor) <= endStr) {
+		const ds = fmtDate(cursor);
+		cells.push({ date: ds, count: dataMap.get(ds)?.count ?? 0 });
+		cursor.setDate(cursor.getDate() + 1);
+	}
+
+	return cells;
+}
+
+function formatDisplayDate(dateStr: string) {
+	const d = new Date(`${dateStr}T00:00:00`);
+	return d.toLocaleDateString("en-US", {
+		weekday: "short",
+		month: "short",
+		day: "numeric",
+	});
+}
+
+function HeatmapGrid({
+	cells,
+	dataMap,
+	maxCount,
+	todayStr,
+	color,
+}: {
+	cells: Array<{ date: string; count: number } | null>;
+	dataMap: Map<string, { count: number; titles: string[] }>;
+	maxCount: number;
+	todayStr: string;
+	color: { r: number; g: number; b: number };
+}) {
+	const [hover, setHover] = useState<{
+		date: string;
+		count: number;
+		titles: string[];
+		x: number;
+		y: number;
+	} | null>(null);
+
+	return (
+		<div className="relative">
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: tooltip dismiss on mouse leave */}
+			<div
+				className="overflow-x-auto"
+				style={{ direction: "rtl" }}
+				onMouseLeave={() => setHover(null)}
+			>
+				<div
+					style={{
+						direction: "ltr",
+						display: "grid",
+						gridTemplateRows: "repeat(7, 10px)",
+						gridAutoColumns: "10px",
+						gridAutoFlow: "column",
+						gap: "3px",
+					}}
+				>
+					{cells.map((cell, idx) =>
+						cell === null ? (
+							// biome-ignore lint/suspicious/noArrayIndexKey: null padding cells have no unique id
+							<div key={`empty-${idx}`} />
+						) : (
+							// biome-ignore lint/a11y/noStaticElementInteractions: hover tooltip
+							<div
+								key={cell.date}
+								onMouseEnter={(e) => {
+									const rect = (
+										e.target as HTMLElement
+									).getBoundingClientRect();
+									const entry = dataMap.get(cell.date);
+									setHover({
+										date: cell.date,
+										count: cell.count,
+										titles: entry?.titles ?? [],
+										x: rect.left + rect.width / 2,
+										y: rect.top,
+									});
+								}}
+								onMouseLeave={() => setHover(null)}
+								style={{
+									width: 10,
+									height: 10,
+									borderRadius: 2,
+									cursor: cell.count > 0 ? "pointer" : "default",
+									backgroundColor:
+										cell.date > todayStr
+											? "rgba(255, 255, 240, 0.02)"
+											: cell.count > 0
+												? `rgba(${color.r}, ${color.g}, ${color.b}, ${0.2 + (cell.count / maxCount) * 0.8})`
+												: "rgba(255, 255, 240, 0.04)",
+								}}
+							/>
+						),
+					)}
+				</div>
+			</div>
+			{hover && (
+				<div
+					className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full"
+					style={{ left: hover.x, top: hover.y - 8 }}
+				>
+					<div className="rounded-lg border border-drive-in-border bg-[#0a0a1e] px-3 py-2 shadow-xl">
+						<p className="font-mono-retro text-[10px] tracking-[1px] text-cream/60">
+							{formatDisplayDate(hover.date)}
+						</p>
+						{hover.count > 0 ? (
+							<div className="mt-1 flex flex-col gap-0.5">
+								{[...new Set(hover.titles.filter(Boolean))].map((title) => (
+									<p
+										key={title}
+										className="text-[11px]"
+										style={{
+											color: `rgb(${color.r}, ${color.g}, ${color.b})`,
+										}}
+									>
+										{title}
+									</p>
+								))}
+							</div>
+						) : (
+							<p className="mt-0.5 text-[10px] text-cream/25">
+								No films logged
+							</p>
+						)}
+					</div>
 				</div>
 			)}
+		</div>
+	);
+}
+
+function WatchActivityHeatmap({ data }: { data: HeatmapData }) {
+	const currentYear = new Date().getFullYear().toString();
+	const todayStr = fmtDate(new Date());
+	const [showHistory, setShowHistory] = useState(false);
+
+	// Build date→data lookup
+	const dataMap = new Map(
+		data.map((d) => [d.date, { count: d.count, titles: d.titles }]),
+	);
+
+	// Past years with data (excluding current year), newest first
+	const pastYears = [...new Set(data.map((d) => d.date.slice(0, 4)))]
+		.filter((y) => y !== currentYear)
+		.sort()
+		.reverse();
+
+	const maxCount = Math.max(...data.map((d) => d.count), 1);
+	const currentYearCells = buildYearGrid(
+		Number.parseInt(currentYear, 10),
+		dataMap,
+	);
+
+	return (
+		<>
+			<div className="rounded-lg border border-drive-in-border p-3">
+				<HeatmapGrid
+					cells={currentYearCells}
+					dataMap={dataMap}
+					maxCount={maxCount}
+					todayStr={todayStr}
+					color={YEAR_COLORS[2]}
+				/>
+				{pastYears.length > 0 && (
+					<button
+						type="button"
+						onClick={() => setShowHistory(true)}
+						className="mt-2.5 w-full rounded-md border border-cream/[0.06] bg-cream/[0.02] py-1.5 font-mono-retro text-[9px] uppercase tracking-[2px] text-cream/35 transition-colors hover:border-cream/15 hover:text-cream/55"
+					>
+						See previous years
+					</button>
+				)}
+			</div>
+
+			{/* History modal */}
+			<AnimatePresence>
+				{showHistory && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+						onClick={() => setShowHistory(false)}
+					>
+						<motion.div
+							initial={{ opacity: 0, scale: 0.95 }}
+							animate={{ opacity: 1, scale: 1 }}
+							exit={{ opacity: 0, scale: 0.95 }}
+							onClick={(e) => e.stopPropagation()}
+							className="max-h-[80vh] w-full max-w-[600px] overflow-y-auto rounded-xl border border-drive-in-border bg-[#0a0a1e] p-5 shadow-2xl"
+						>
+							<div className="mb-4 flex items-center justify-between">
+								<h3 className="font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/70">
+									Watch History
+								</h3>
+								<button
+									type="button"
+									onClick={() => setShowHistory(false)}
+									className="text-cream/30 transition-colors hover:text-cream/60"
+								>
+									<X className="h-4 w-4" />
+								</button>
+							</div>
+							<div className="flex flex-col gap-5">
+								{pastYears.map((year, i) => {
+									const yearCells = buildYearGrid(
+										Number.parseInt(year, 10),
+										dataMap,
+									);
+									const color = YEAR_COLORS[i % YEAR_COLORS.length];
+									return (
+										<div key={year}>
+											<p
+												className="mb-1.5 font-mono-retro text-[10px] tracking-[1px]"
+												style={{
+													color: `rgb(${color.r}, ${color.g}, ${color.b})`,
+												}}
+											>
+												{year}
+											</p>
+											<div className="rounded-lg border border-drive-in-border p-3">
+												<HeatmapGrid
+													cells={yearCells}
+													dataMap={dataMap}
+													maxCount={maxCount}
+													todayStr={todayStr}
+													color={color}
+												/>
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</>
 	);
 }
@@ -1033,13 +1247,23 @@ function NonFriendGatedSections({ status }: { status: string }) {
 // FriendExpandedSections (9-11)
 // ════════════════════════════════════════════════════════════════
 
+const GENRE_BAR_COLORS = [
+	"rgb(0, 229, 255)", // neon-cyan
+	"rgb(255, 45, 120)", // neon-pink
+	"rgb(255, 184, 0)", // neon-amber
+	"rgba(0, 229, 255, 0.5)", // cyan soft
+	"rgba(255, 45, 120, 0.5)", // pink soft
+];
+
 function FriendExpandedSections({
 	profile,
-	userId,
+	genreStats,
 	activeTab,
 	setActiveTab,
+	isSelf,
 }: {
 	profile: {
+		id: string;
 		publicWatchlists: Array<{
 			id: string;
 			name: string;
@@ -1047,14 +1271,22 @@ function FriendExpandedSections({
 			memberCount: number;
 		}>;
 	};
-	userId: string;
+	genreStats: Array<{ name: string; count: number }>;
 	activeTab: FriendTab;
 	setActiveTab: (tab: FriendTab) => void;
+	isSelf: boolean;
 }) {
-	const heatmapCells = buildHeatmapCells(userId);
+	const trpc = useTRPC();
+
+	const { data: watchActivity } = useQuery(
+		trpc.friend.watchActivity.queryOptions({ userId: profile.id }),
+	);
+
+	const maxGenreCount = genreStats.length > 0 ? genreStats[0].count : 0;
+
 	return (
 		<>
-			{/* ── 9. Top Genres chart ──────────────── */}
+			{/* ── 9. Top Genres ────────────────────── */}
 			<div className="mt-5">
 				<div className="mb-2 flex items-center gap-1.5">
 					<BarChart3 className="h-3 w-3 text-neon-cyan/50" />
@@ -1062,31 +1294,38 @@ function FriendExpandedSections({
 						Top Genres
 					</span>
 				</div>
-				<div className="rounded-lg border border-drive-in-border px-4 py-3">
-					<div className="space-y-2">
-						{[
-							{ genre: "Horror", pct: 82, color: "rgba(0,229,255,0.6)" },
-							{ genre: "Sci-Fi", pct: 64, color: "rgba(255,45,120,0.5)" },
-							{ genre: "Thriller", pct: 45, color: "rgba(255,184,0,0.5)" },
-							{ genre: "Mystery", pct: 28, color: "rgba(123,47,190,0.5)" },
-						].map((g) => (
-							<div key={g.genre} className="flex items-center gap-2">
-								<span className="w-14 text-right font-mono-retro text-[10px] text-cream/55">
-									{g.genre}
+				{genreStats.length > 0 ? (
+					<div className="space-y-2 rounded-lg border border-drive-in-border p-4">
+						{genreStats.map((genre, i) => (
+							<div key={genre.name} className="flex items-center gap-3">
+								<span className="w-20 shrink-0 text-right font-mono-retro text-[10px] uppercase tracking-wider text-cream/60">
+									{genre.name}
 								</span>
-								<div className="h-1.5 flex-1 overflow-hidden rounded-full bg-cream/[0.04]">
+								<div className="relative h-4 flex-1 overflow-hidden rounded-full bg-cream/[0.04]">
 									<div
-										className="h-full rounded-full transition-all duration-700"
-										style={{ width: `${g.pct}%`, background: g.color }}
+										className="absolute inset-y-0 left-0 rounded-full"
+										style={{
+											width: `${maxGenreCount > 0 ? (genre.count / maxGenreCount) * 100 : 0}%`,
+											backgroundColor:
+												GENRE_BAR_COLORS[i] ?? GENRE_BAR_COLORS[4],
+											boxShadow: `0 0 8px ${GENRE_BAR_COLORS[i] ?? GENRE_BAR_COLORS[4]}40`,
+										}}
 									/>
 								</div>
-								<span className="w-7 font-mono-retro text-[9px] text-cream/45">
-									{g.pct}%
+								<span className="w-8 shrink-0 font-mono-retro text-[10px] text-cream/40">
+									{genre.count}
 								</span>
 							</div>
 						))}
 					</div>
-				</div>
+				) : (
+					<div className="flex flex-col items-center rounded-lg border border-drive-in-border py-6 text-center">
+						<BarChart3 className="mb-2 h-5 w-5 text-cream/15" />
+						<p className="text-[10px] text-cream/25">
+							Watch more films to see your genre breakdown
+						</p>
+					</div>
+				)}
 			</div>
 
 			{/* ── 10. Watch Activity heatmap ──────── */}
@@ -1097,34 +1336,14 @@ function FriendExpandedSections({
 						Watch Activity
 					</span>
 				</div>
-				<div className="rounded-lg border border-drive-in-border px-3 py-3">
-					<div
-						className="grid gap-[3px]"
-						style={{
-							gridTemplateColumns: `repeat(${HEATMAP_COLS}, 1fr)`,
-							gridTemplateRows: `repeat(${HEATMAP_ROWS}, 1fr)`,
-						}}
-					>
-						{heatmapCells.map((cell) => (
-							<div
-								key={cell.key}
-								className={`aspect-square rounded-[2px] ${HEATMAP_COLORS[cell.level]}`}
-							/>
-						))}
+				{watchActivity && watchActivity.length > 0 ? (
+					<WatchActivityHeatmap data={watchActivity} />
+				) : (
+					<div className="flex flex-col items-center rounded-lg border border-drive-in-border py-6 text-center">
+						<CalendarDays className="mb-2 h-5 w-5 text-cream/15" />
+						<p className="text-[10px] text-cream/25">No watch activity yet</p>
 					</div>
-					{/* Legend */}
-					<div className="mt-2 flex items-center justify-end gap-1">
-						<span className="font-mono-retro text-[9px] text-cream/40">
-							Less
-						</span>
-						{HEATMAP_COLORS.map((c) => (
-							<div key={c} className={`h-[8px] w-[8px] rounded-[2px] ${c}`} />
-						))}
-						<span className="font-mono-retro text-[9px] text-cream/40">
-							More
-						</span>
-					</div>
-				</div>
+				)}
 			</div>
 
 			{/* ── 11. Tabbed content ───────────────── */}
@@ -1160,8 +1379,10 @@ function FriendExpandedSections({
 						{activeTab === "watchlists" && (
 							<WatchlistsTab watchlists={profile.publicWatchlists} />
 						)}
-						{activeTab === "reviews" && <DemoReviewsTab />}
-						{activeTab === "activity" && <DemoActivityTab />}
+						{activeTab === "diary" && (
+							<DiaryTab userId={profile.id} isOwn={isSelf} />
+						)}
+						{activeTab === "activity" && <ActivityTab />}
 					</motion.div>
 				</AnimatePresence>
 			</div>
@@ -1220,103 +1441,96 @@ function WatchlistsTab({
 }
 
 // ════════════════════════════════════════════════════════════════
-// DemoReviewsTab
+// DiaryTab
 // ════════════════════════════════════════════════════════════════
 
-function DemoReviewsTab() {
+function DiaryTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
+	const trpc = useTRPC();
+	const { data, isLoading } = useQuery(
+		trpc.watchEvent.getUserEvents.queryOptions({ userId, limit: 50 }),
+	);
+
+	const [editModal, setEditModal] = useState<{
+		open: boolean;
+		tmdbId: number;
+		mediaType: "movie" | "tv";
+		titleName: string;
+		event?: {
+			id: string;
+			rating: number | null;
+			note: string | null;
+			watchedAt: string;
+			companions: Array<{ friendId?: string; name: string }>;
+		};
+	} | null>(null);
+
+	if (isLoading) {
+		return (
+			<div className="flex justify-center py-8">
+				<div className="h-4 w-4 animate-spin rounded-full border-2 border-cream/20 border-t-cream/60" />
+			</div>
+		);
+	}
+
+	const events = data?.items ?? [];
+
+	if (events.length === 0) {
+		return (
+			<div className="flex flex-col items-center py-8 text-center">
+				<Film className="mb-2 h-6 w-6 text-neon-amber/20" />
+				<p className="text-xs text-cream/30">No diary entries yet</p>
+			</div>
+		);
+	}
+
 	return (
-		<div className="space-y-3">
-			{DEMO_REVIEWS.map((r) => (
-				<div
-					key={r.title}
-					className="rounded-lg border border-drive-in-border px-4 py-3"
-					style={{
-						background:
-							"linear-gradient(135deg, rgba(10,10,30,0.6), rgba(5,5,15,0.8))",
+		<>
+			<div className="flex flex-col gap-3">
+				{events.map((event) => (
+					<WatchEventCard
+						key={event.id}
+						event={event}
+						showTitle={{
+							name: event.title ?? `Title #${event.tmdbId}`,
+						}}
+						isOwn={isOwn}
+						onEdit={(e) =>
+							setEditModal({
+								open: true,
+								tmdbId: event.tmdbId,
+								mediaType: event.mediaType as "movie" | "tv",
+								titleName: event.title ?? `Title #${event.tmdbId}`,
+								event: e,
+							})
+						}
+					/>
+				))}
+			</div>
+			{editModal && (
+				<ReviewModal
+					open={editModal.open}
+					onOpenChange={(open) => {
+						if (!open) setEditModal(null);
 					}}
-				>
-					<div className="flex items-center justify-between">
-						<span className="text-sm font-medium text-cream/75">{r.title}</span>
-						<span className="font-mono-retro text-[9px] text-cream/25">
-							{r.time}
-						</span>
-					</div>
-					<div
-						className="mt-1 flex items-center gap-0.5"
-						style={{ fontSize: "10px" }}
-					>
-						<span className="text-neon-amber">{"★".repeat(r.rating)}</span>
-						<span className="text-cream/10">{"★".repeat(5 - r.rating)}</span>
-					</div>
-					<p className="mt-1.5 text-xs leading-relaxed text-cream/45">
-						{r.text}
-					</p>
-				</div>
-			))}
-			{DEMO_REVIEWS.length > 3 && (
-				<div className="flex justify-center pt-2">
-					<span
-						className="cursor-not-allowed font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-amber/50"
-						style={{ textShadow: "0 0 6px rgba(255,184,0,0.15)" }}
-					>
-						See all
-					</span>
-				</div>
+					tmdbId={editModal.tmdbId}
+					mediaType={editModal.mediaType}
+					titleName={editModal.titleName}
+					editEvent={editModal.event}
+				/>
 			)}
-		</div>
+		</>
 	);
 }
 
 // ════════════════════════════════════════════════════════════════
-// DemoActivityTab
+// ActivityTab
 // ════════════════════════════════════════════════════════════════
 
-function DemoActivityTab() {
-	const colorMap: Record<string, string> = {
-		"neon-pink": "bg-neon-pink/30 text-neon-pink",
-		"neon-cyan": "bg-neon-cyan/30 text-neon-cyan",
-		"neon-amber": "bg-neon-amber/30 text-neon-amber",
-	};
-
+function ActivityTab() {
 	return (
-		<div className="space-y-1">
-			{DEMO_ACTIVITY.map((a) => (
-				<div
-					key={`${a.action}-${a.title}`}
-					className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-cream/[0.02]"
-				>
-					<div
-						className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${colorMap[a.color]}`}
-					>
-						{a.action === "Watched" ? (
-							<Film className="h-3 w-3" />
-						) : a.action === "Reviewed" ? (
-							<Award className="h-3 w-3" />
-						) : (
-							<Heart className="h-3 w-3" />
-						)}
-					</div>
-					<div className="min-w-0 flex-1">
-						<p className="truncate text-xs text-cream/60">
-							<span className="text-cream/35">{a.action}</span>{" "}
-							<span className="font-medium text-cream/75">{a.title}</span>
-						</p>
-					</div>
-					<span className="shrink-0 font-mono-retro text-[9px] text-cream/40">
-						{a.time}
-					</span>
-				</div>
-			))}
-			{DEMO_ACTIVITY.length > 5 && (
-				<div className="flex justify-center pt-2">
-					<span
-						className="cursor-not-allowed font-mono-retro text-[10px] uppercase tracking-[1.5px] text-neon-pink/50"
-						style={{ textShadow: "0 0 6px rgba(255,45,120,0.15)" }}
-					>
-						See all
-					</span>
-				</div>
-			)}
+		<div className="flex flex-col items-center py-8 text-center">
+			<Film className="mb-2 h-6 w-6 text-neon-pink/20" />
+			<p className="text-xs text-cream/30">No activity yet</p>
 		</div>
 	);
 }
