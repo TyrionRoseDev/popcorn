@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarDays, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { RecommendModal } from "#/components/recommend/recommend-modal";
 import { Calendar } from "#/components/ui/calendar";
 import { Dialog, DialogContent, DialogTitle } from "#/components/ui/dialog";
@@ -120,6 +121,9 @@ export function ReviewModal({
 				onEventCreated?.();
 				handleClose();
 			},
+			onError: () => {
+				toast.error("Failed to save review");
+			},
 		}),
 	);
 
@@ -128,6 +132,9 @@ export function ReviewModal({
 			onSuccess: () => {
 				invalidateQueries();
 				handleClose();
+			},
+			onError: () => {
+				toast.error("Failed to save changes");
 			},
 		}),
 	);
