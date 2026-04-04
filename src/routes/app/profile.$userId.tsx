@@ -1228,7 +1228,6 @@ function WatchActivityHeatmap({ data }: { data: HeatmapData }) {
 							type="button"
 							onClick={() => setShowHistory(false)}
 							className="text-cream/30 transition-colors hover:text-cream/60"
-							aria-label="Close"
 						>
 							<X className="h-4 w-4" />
 						</button>
@@ -1428,7 +1427,6 @@ function FriendExpandedSections({
 									type="button"
 									onClick={() => setSelectedStar(null)}
 									className="text-cream/30 transition-colors hover:text-cream/60"
-									aria-label="Close"
 								>
 									<X className="h-4 w-4" />
 								</button>

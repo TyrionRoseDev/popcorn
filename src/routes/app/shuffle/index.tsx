@@ -12,7 +12,7 @@ const shuffleSearchSchema = z.object({
 	watchlistId: z.string().optional(),
 });
 
-const SHUFFLE_INTRO_KEY = "shufflePlayedIntro";
+let hasPlayedIntro = false;
 
 export const Route = createFileRoute("/app/shuffle/")({
 	validateSearch: (search) => shuffleSearchSchema.parse(search),
@@ -27,9 +27,8 @@ function ShufflePage() {
 		trpc.shuffle.getOrCreateShuffleWatchlist.queryOptions(),
 	);
 
-	// Show countdown intro only on first visit per session
-	const [showIntro, setShowIntro] = useState(
-		() => sessionStorage.getItem(SHUFFLE_INTRO_KEY) === null,
+	const [activeWatchlistId, _setActiveWatchlistId] = useState<string | null>(
+		initialWatchlistId ?? null,
 	);
 	useEffect(() => {
 		if (!showIntro) return;
@@ -40,8 +39,18 @@ function ShufflePage() {
 		return () => clearTimeout(timer);
 	}, [showIntro]);
 
-	const resolvedWatchlistId =
-		initialWatchlistId ?? shuffleWatchlist?.id ?? null;
+	// Show countdown intro only on first visit per session
+	const [showIntro, setShowIntro] = useState(!hasPlayedIntro);
+	useEffect(() => {
+		if (!showIntro) return;
+		const timer = setTimeout(() => {
+			hasPlayedIntro = true;
+			setShowIntro(false);
+		}, 1800);
+		return () => clearTimeout(timer);
+	}, [showIntro]);
+
+	const resolvedWatchlistId = activeWatchlistId ?? shuffleWatchlist?.id ?? null;
 
 	if (!resolvedWatchlistId && !isLoading) {
 		return (

@@ -1,6 +1,6 @@
 import { Trophy, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "#/components/ui/dialog";
 import { ACHIEVEMENTS } from "#/lib/achievements";
 import { AchievementBadge } from "./achievement-badge";
@@ -92,18 +92,15 @@ export function AchievementGrid({
 			}}
 		>
 			<DialogContent
-				className="flex max-h-[85vh] w-full max-w-[520px] flex-col overflow-hidden rounded-2xl border-drive-in-border bg-drive-in-card p-0 gap-0 shadow-2xl"
+				className="flex max-h-[85vh] max-w-[600px] flex-col overflow-hidden rounded-2xl border-drive-in-border bg-drive-in-card p-0 gap-0 shadow-2xl"
 				overlayClassName="bg-[rgba(5,5,8,0.82)] backdrop-blur-[10px]"
 				showCloseButton={false}
 				aria-describedby={undefined}
 			>
-				<DialogTitle className="sr-only">
-					{isComparison ? "Compare Achievements" : "Achievements"}
-				</DialogTitle>
-
+				<DialogTitle className="sr-only">Achievements</DialogTitle>
 				<motion.div
-					className="flex flex-col overflow-hidden rounded-2xl border border-drive-in-border bg-drive-in-card shadow-2xl w-full"
-					style={{ maxHeight: "85vh" }}
+					className="flex flex-col overflow-hidden rounded-2xl border border-drive-in-border bg-drive-in-card shadow-2xl"
+					style={{ width: "100%", maxWidth: "600px", maxHeight: "85vh" }}
 					initial={{ scale: 0.94, y: 16, opacity: 0 }}
 					animate={{ scale: 1, y: 0, opacity: 1 }}
 					exit={{ scale: 0.94, y: 16, opacity: 0 }}
@@ -113,14 +110,16 @@ export function AchievementGrid({
 					<div className="flex items-center justify-between border-b border-drive-in-border/60 px-5 py-4">
 						<div className="flex items-center gap-2.5">
 							<Trophy
-								className="text-neon-amber"
+								className="h-4.5 w-4.5 text-neon-amber"
 								style={{ width: "18px", height: "18px" }}
 							/>
 							<h2
 								className="font-display text-lg text-cream"
-								style={{ textShadow: "0 0 12px rgba(255,184,0,0.25)" }}
+								style={{
+									textShadow: "0 0 12px rgba(255,184,0,0.25)",
+								}}
 							>
-								{isComparison ? "Compare Achievements" : "Achievements"}
+								Achievements
 							</h2>
 						</div>
 						<button
@@ -132,76 +131,71 @@ export function AchievementGrid({
 						</button>
 					</div>
 
-					{/* Progress bars */}
-					<div className="border-b border-drive-in-border/40 px-5 py-4 flex flex-col gap-3">
-						{/* You */}
-						<ProgressRow
-							label="You"
-							count={myCount}
-							total={total}
-							pct={myPct}
-							color="amber"
-						/>
-						{/* Them */}
-						{isComparison && (
-							<ProgressRow
-								label={theirName}
-								count={theirCount}
-								total={total}
-								pct={theirPct}
-								color="cyan"
-							/>
+					{/* Stats row */}
+					<div className="border-b border-drive-in-border/40 px-5 py-3">
+						{isComparison ? (
+							<div className="flex items-center gap-4">
+								<StatChip
+									label="You"
+									value={myCount}
+									total={ACHIEVEMENTS.length}
+									color="amber"
+								/>
+								<span className="text-cream/15 text-xs">·</span>
+								<StatChip
+									label={theirName}
+									value={theirCount}
+									total={ACHIEVEMENTS.length}
+									color="cyan"
+								/>
+								<span className="text-cream/15 text-xs">·</span>
+								<div className="flex items-center gap-1.5">
+									<span className="font-mono-retro text-[10px] uppercase tracking-[1px] text-cream/40">
+										Shared
+									</span>
+									<span className="font-display text-sm text-cream/70">
+										{sharedCount}
+									</span>
+								</div>
+							</div>
+						) : (
+							<div className="flex items-center gap-1.5">
+								<span className="font-display text-base text-neon-amber">
+									{myCount}
+								</span>
+								<span className="font-mono-retro text-[10px] uppercase tracking-[1.5px] text-cream/35">
+									/ {ACHIEVEMENTS.length} Earned
+								</span>
+							</div>
 						)}
 					</div>
 
-					{/* Filter tabs */}
+					{/* Filter tabs — only in comparison mode */}
 					{isComparison && (
-						<div className="flex items-center gap-1 border-b border-drive-in-border/40 px-5 py-2.5 overflow-x-auto">
-							{filterTabs.map((tab) => {
-								const isActive = filter === tab.key;
-								const activeColor =
-									tab.key === "them"
-										? "bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan"
-										: "bg-neon-amber/15 border-neon-amber/40 text-neon-amber";
-								return (
-									<button
-										key={tab.key}
-										type="button"
-										onClick={() => setFilter(tab.key)}
-										className={`rounded-full px-3 py-1 font-mono-retro text-[9px] uppercase tracking-[0.5px] transition-all whitespace-nowrap border ${
-											isActive
-												? activeColor
-												: "border-transparent text-cream/35 hover:text-cream/60"
-										}`}
-									>
-										{tab.label}
-										{tab.count !== undefined && (
-											<span className="ml-1 opacity-60">{tab.count}</span>
-										)}
-									</button>
-								);
-							})}
+						<div className="flex items-center gap-1 border-b border-drive-in-border/40 px-5 py-2.5">
+							{(["all", "shared"] as FilterTab[]).map((tab) => (
+								<button
+									key={tab}
+									type="button"
+									onClick={() => setFilter(tab)}
+									className={[
+										"rounded-full px-3.5 py-1 font-mono-retro text-[10px] uppercase tracking-[1px] transition-all",
+										filter === tab
+											? "bg-neon-amber/15 border border-neon-amber/40 text-neon-amber"
+											: "border border-transparent text-cream/35 hover:text-cream/60",
+									].join(" ")}
+								>
+									{tab === "all" ? "All" : "Shared"}
+								</button>
+							))}
 						</div>
 					)}
 
-					{/* Column headers in comparison mode */}
-					{isComparison && (
-						<div className="flex items-center gap-3 px-4 py-2 border-b border-drive-in-border/30">
-							<span className="w-16 text-center font-mono-retro text-[8px] uppercase tracking-[1px] text-neon-amber/40">
-								You
-							</span>
-							<div className="flex-1" />
-							<span className="w-16 text-center font-mono-retro text-[8px] uppercase tracking-[1px] text-neon-cyan/40">
-								{theirName}
-							</span>
-						</div>
-					)}
-
-					{/* Achievement list */}
-					<div className="flex-1 overflow-y-auto">
-						<div className="flex flex-col gap-px py-1">
+					{/* Grid */}
+					<div className="flex-1 overflow-y-auto px-5 py-5">
+						<motion.div layout className="flex flex-wrap justify-center gap-3">
 							<AnimatePresence mode="popLayout">
-								{visibleAchievements.map((achievement, i) => {
+								{visibleAchievements.map((achievement) => {
 									const myDate = myMap.get(achievement.id) ?? null;
 									const theirDate = theirMap.get(achievement.id) ?? null;
 									const isEarned = myDate !== null;
@@ -210,14 +204,13 @@ export function AchievementGrid({
 										<motion.div
 											key={achievement.id}
 											layout
-											initial={{ opacity: 0, x: -8 }}
-											animate={{ opacity: 1, x: 0 }}
-											exit={{ opacity: 0, x: 8 }}
+											initial={{ opacity: 0, scale: 0.85 }}
+											animate={{ opacity: 1, scale: 1 }}
+											exit={{ opacity: 0, scale: 0.85 }}
 											transition={{
 												type: "spring",
-												damping: 24,
-												stiffness: 300,
-												delay: Math.min(i * 0.02, 0.3),
+												damping: 20,
+												stiffness: 260,
 											}}
 										>
 											<AchievementBadge
@@ -238,7 +231,7 @@ export function AchievementGrid({
 									);
 								})}
 							</AnimatePresence>
-						</div>
+						</motion.div>
 					</div>
 				</motion.div>
 			</DialogContent>

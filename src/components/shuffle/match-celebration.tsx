@@ -35,7 +35,7 @@ export function MatchCelebration({
 			}}
 		>
 			<DialogContent
-				className="pointer-events-none inset-0 top-0 left-0 flex items-center justify-center max-w-none w-screen h-screen translate-x-0 translate-y-0 rounded-none border-none bg-transparent p-0 gap-0 shadow-none"
+				className="pointer-events-none inset-0 top-0 left-0 max-w-none w-screen h-screen translate-x-0 translate-y-0 rounded-none border-none bg-transparent p-0 gap-0 shadow-none"
 				overlayClassName="bg-black/80"
 				showCloseButton={false}
 				aria-describedby={undefined}
