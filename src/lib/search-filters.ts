@@ -55,19 +55,68 @@ export function filterResults(
 
 type SortOption = "relevance" | "popularity" | "rating" | "newest" | "oldest";
 
-export function sortResults(items: FeedItem[], sort: SortOption): FeedItem[] {
+/**
+ * Bayesian-weighted rating: prevents low-vote-count titles (e.g. 10/10 with
+ * 1 vote) from dominating. Pulls ratings toward a prior mean unless backed
+ * by enough votes.
+ *   weightedRating = (v / (v + m)) * R + (m / (v + m)) * C
+ * where v = vote count, m = minimum votes for full weight, R = raw rating,
+ * C = prior mean (assumed ~6.5 across TMDB).
+ */
+function weightedRating(rating: number, voteCount: number): number {
+	const m = 100; // minimum votes for full confidence
+	const C = 6.5; // prior mean
+	return (voteCount / (voteCount + m)) * rating + (m / (voteCount + m)) * C;
+}
+
+export function sortResults(
+	items: FeedItem[],
+	sort: SortOption,
+	query?: string,
+): FeedItem[] {
 	const sorted = [...items];
 	switch (sort) {
 		case "rating":
-			return sorted.sort((a, b) => b.rating - a.rating);
+			return sorted.sort(
+				(a, b) =>
+					weightedRating(b.rating, b.voteCount) -
+					weightedRating(a.rating, a.voteCount),
+			);
 		case "newest":
 			return sorted.sort((a, b) => (b.year || "").localeCompare(a.year || ""));
 		case "oldest":
 			return sorted.sort((a, b) => (a.year || "").localeCompare(b.year || ""));
-		case "relevance":
 		case "popularity":
-			return sorted.sort((a, b) => b.rating - a.rating);
+			return sorted.sort((a, b) => b.popularity - a.popularity);
+		case "relevance": {
+			// Preserve TMDB's relevance ordering as the base, but boost titles
+			// that closely match the query to the top.
+			if (!query) return sorted;
+			const q = query.toLowerCase().trim();
+			return sorted.sort((a, b) => {
+				const tierA = titleMatchTier(a.title, q);
+				const tierB = titleMatchTier(b.title, q);
+				if (tierA !== tierB) return tierA - tierB;
+				// Within the same tier, preserve original TMDB order
+				return 0;
+			});
+		}
 		default:
 			return sorted;
 	}
+}
+
+/** Lower tier = better match. Stable sort preserves TMDB order within tiers. */
+function titleMatchTier(title: string, query: string): number {
+	const t = title.toLowerCase();
+	if (t === query) return 0; // exact match
+	if (t.startsWith(query)) return 1; // prefix match
+	// Check for word-boundary match (query appears as a whole word/phrase)
+	const wordBoundary = new RegExp(`\\b${escapeRegex(query)}\\b`);
+	if (wordBoundary.test(t)) return 2;
+	return 3; // substring / fuzzy
+}
+
+function escapeRegex(s: string): string {
+	return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

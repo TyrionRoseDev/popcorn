@@ -14,6 +14,8 @@ import {
 } from "#/db/schema";
 import { createTRPCRouter, protectedProcedure } from "#/integrations/trpc/init";
 import { createNotification } from "#/integrations/trpc/routers/notification";
+import { ACHIEVEMENTS_BY_ID } from "#/lib/achievements";
+import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import { getUnifiedGenreById, getUnifiedIdByTmdbId } from "#/lib/genre-map";
 
 async function forkSharedWatchlists(
@@ -416,6 +418,48 @@ export const friendRouter = createTRPCRouter({
 				type: "friend_request_accepted",
 				data: {},
 			});
+
+			// Evaluate friend-related achievements for both users
+			const [requesterAchievements, addresseeAchievements] = await Promise.all([
+				evaluateAchievements(updated.requesterId, "friend"),
+				evaluateAchievements(ctx.userId, "friend"),
+			]);
+
+			// Notify friends about new achievements
+			const notifyFriendsAboutAchievements = async (
+				earnerId: string,
+				achievementIds: string[],
+			) => {
+				if (achievementIds.length === 0) return;
+				const friends = await db.query.friendship.findMany({
+					where: and(
+						sql`(${friendship.requesterId} = ${earnerId} OR ${friendship.addresseeId} = ${earnerId})`,
+						eq(friendship.status, "accepted"),
+					),
+				});
+				for (const f of friends) {
+					const friendId =
+						f.requesterId === earnerId ? f.addresseeId : f.requesterId;
+					for (const achievementId of achievementIds) {
+						const achievementDef = ACHIEVEMENTS_BY_ID.get(achievementId);
+						await createNotification({
+							recipientId: friendId,
+							actorId: earnerId,
+							type: "achievement_earned",
+							data: {
+								achievementId,
+								achievementName: achievementDef?.name ?? "",
+							},
+						});
+					}
+				}
+			};
+
+			await notifyFriendsAboutAchievements(
+				updated.requesterId,
+				requesterAchievements,
+			);
+			await notifyFriendsAboutAchievements(ctx.userId, addresseeAchievements);
 
 			return updated;
 		}),
@@ -837,14 +881,18 @@ export const friendRouter = createTRPCRouter({
 
 			const result = await db
 				.select({
-					date: sql<string>`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`,
+					date: sql<string>`to_char(COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}), 'YYYY-MM-DD')`,
 					count: sql<number>`count(*)::int`,
 					titles: sql<string[]>`array_agg(${watchEvent.titleName})`,
 				})
 				.from(watchEvent)
 				.where(eq(watchEvent.userId, input.userId))
-				.groupBy(sql`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`)
-				.orderBy(sql`to_char(${watchEvent.watchedAt}, 'YYYY-MM-DD')`);
+				.groupBy(
+					sql`to_char(COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}), 'YYYY-MM-DD')`,
+				)
+				.orderBy(
+					sql`to_char(COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}), 'YYYY-MM-DD')`,
+				);
 
 			return result;
 		}),

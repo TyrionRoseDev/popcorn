@@ -83,6 +83,7 @@ function getNotificationMessage(
 					? `/app/title/${data.mediaType}/${data.tmdbId}`
 					: undefined,
 			};
+		case "recommendation":
 		case "recommendation_received":
 			return {
 				text: `recommended ${data.titleName || "a title"} for you${data.message ? ` — "${data.message}"` : ""}`,
@@ -90,6 +91,13 @@ function getNotificationMessage(
 					? `/app/title/${data.mediaType}/${data.tmdbId}`
 					: undefined,
 			};
+		case "achievement_earned": {
+			const achievementName = data.achievementName || "an achievement";
+			return {
+				text: `earned the ${achievementName} achievement`,
+				link: actorId ? `/app/profile/${actorId}` : undefined,
+			};
+		}
 		case "recommendation_reviewed":
 			return {
 				text: `reviewed ${data.titleName || "a title"} you recommended`,

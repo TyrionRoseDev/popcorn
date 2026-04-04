@@ -6,12 +6,14 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
 import { z } from "zod";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { CastList } from "#/components/title/cast-list";
 import { DriveInScreen } from "#/components/title/drive-in-screen";
 import { NowShowingMarquee } from "#/components/title/now-showing-marquee";
 import { PosterDisplayCase } from "#/components/title/poster-display-case";
+import { RecommendDialog } from "#/components/title/recommend-dialog";
 import { SectionBoard } from "#/components/title/section-board";
 import { Synopsis } from "#/components/title/synopsis";
 import { TitleActions } from "#/components/title/title-actions";
@@ -63,6 +65,8 @@ function TitlePage() {
 	const { data } = useQuery(
 		trpc.title.details.queryOptions({ mediaType, tmdbId }),
 	);
+	const [showRecommend, setShowRecommend] = useState(false);
+
 	if (!data) return <TitlePageSkeleton />;
 
 	return (
@@ -84,7 +88,7 @@ function TitlePage() {
 							</button>
 						</div>
 						{/* Smaller screens: above trailer */}
-						<div className="xl:hidden px-6 pt-4 pb-2 flex justify-start max-w-[1100px] mx-auto">
+						<div className="xl:hidden px-6 pt-4 pb-2 flex justify-start max-w-[1100px] 2xl:max-w-[1400px] mx-auto">
 							<button
 								type="button"
 								onClick={() => router.history.back()}
@@ -111,7 +115,7 @@ function TitlePage() {
 				contentRating={data.contentRating}
 			/>
 
-			<div className="max-w-[1060px] mx-auto mt-12 px-8 pb-[120px] flex flex-col md:flex-row gap-12">
+			<div className="max-w-[1060px] 2xl:max-w-[1400px] mx-auto mt-12 px-8 pb-[120px] flex flex-col md:flex-row gap-12">
 				{/* Left column */}
 				<div className="w-full md:w-[280px] flex-shrink-0">
 					<PosterDisplayCase posterPath={data.posterPath} title={data.title} />
@@ -130,7 +134,11 @@ function TitlePage() {
 				{/* Right column */}
 				<div className="flex-1 min-w-0">
 					<SectionBoard title="Synopsis">
-						<Synopsis overview={data.overview} tagline={data.tagline} />
+						<Synopsis
+							overview={data.overview}
+							featuredLine={data.featuredQuote ?? data.tagline}
+							quoteCharacter={data.quoteCharacter}
+						/>
 					</SectionBoard>
 
 					<TitleMetadata
@@ -149,6 +157,15 @@ function TitlePage() {
 					</SectionBoard>
 				</div>
 			</div>
+
+			{showRecommend && (
+				<RecommendDialog
+					tmdbId={data.tmdbId}
+					mediaType={mediaType}
+					titleName={data.title}
+					onClose={() => setShowRecommend(false)}
+				/>
+			)}
 		</div>
 	);
 }

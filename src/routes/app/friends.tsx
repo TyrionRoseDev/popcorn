@@ -98,9 +98,10 @@ function FilmStripCard({ friend }: { friend: Friend }) {
 			friend.favouriteFilmTmdbId
 				? {
 						tmdbId: friend.favouriteFilmTmdbId,
-						mediaType: (friend.favouriteFilmMediaType === "tv"
-							? "tv"
-							: "movie") as const,
+						mediaType:
+							friend.favouriteFilmMediaType === "tv"
+								? ("tv" as const)
+								: ("movie" as const),
 					}
 				: skipToken,
 		),
@@ -547,7 +548,7 @@ function FriendsPage() {
 	return (
 		<>
 			<FriendsAtmosphere />
-			<div className="relative z-[2] mx-auto max-w-2xl px-4 pt-8 pb-16">
+			<div className="relative z-[2] mx-auto max-w-2xl 2xl:max-w-4xl px-4 pt-8 pb-16">
 				<NowShowingHeader title="Friends" />
 
 				{/* Search bar */}

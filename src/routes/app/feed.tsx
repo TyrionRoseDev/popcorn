@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Film, Loader2 } from "lucide-react";
+import { Film, Loader2, Trophy } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { FeedAtmosphere } from "#/components/feed/feed-atmosphere";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
@@ -10,6 +10,7 @@ import { WatchEventCard } from "#/components/watched/watch-event-card";
 import type { Companion } from "#/components/watched/watched-with-modal";
 import { NowShowingHeader } from "#/components/watchlist/now-showing-header";
 import { useTRPC } from "#/integrations/trpc/react";
+import { ACHIEVEMENTS_BY_ID } from "#/lib/achievements";
 
 export const Route = createFileRoute("/app/feed")({
 	component: FeedPage,
@@ -29,6 +30,7 @@ function FeedPage() {
 			note: string | null;
 			watchedAt: string;
 			companions: Companion[];
+			visibility: "public" | "companion" | "private";
 		};
 	} | null>(null);
 
@@ -48,7 +50,7 @@ function FeedPage() {
 	return (
 		<>
 			<FeedAtmosphere />
-			<div className="relative z-[2] mx-auto max-w-2xl px-4 py-8">
+			<div className="relative z-[2] mx-auto max-w-2xl 2xl:max-w-3xl px-4 py-8">
 				{/* Car silhouettes + Marquee header */}
 				<CarSilhouettes />
 				<NowShowingHeader title="Feed" />
@@ -93,7 +95,27 @@ function FeedPage() {
 										let card: ReactNode = null;
 
 										if (item.type === "watch_event") {
-											const event = item.data;
+											const event = item.data as {
+												id: string;
+												tmdbId: number;
+												mediaType: string;
+												title: string | null;
+												userId: string;
+												rating: number | null;
+												note: string | null;
+												watchedAt: Date | string | null;
+												createdAt: Date | string;
+												visibility?: "public" | "companion" | "private";
+												companions: Array<{
+													friendId: string | null;
+													name: string;
+												}>;
+												user: {
+													id: string;
+													username: string | null;
+													avatarUrl: string | null;
+												};
+											};
 											card = (
 												<WatchEventCard
 													key={`we-${event.id}`}
@@ -110,13 +132,27 @@ function FeedPage() {
 															mediaType: event.mediaType as "movie" | "tv",
 															titleName:
 																event.title ?? `Title #${event.tmdbId}`,
-															event: e,
+															event: {
+																...e,
+																visibility: event.visibility ?? "public",
+															},
 														})
 													}
 												/>
 											);
 										} else if (item.type === "watchlist_created") {
-											const wl = item.data;
+											const wl = item.data as {
+												id: string;
+												name: string;
+												ownerId: string;
+												createdAt: Date;
+												owner: {
+													id: string;
+													username: string | null;
+													avatarUrl: string | null;
+												};
+												items: Array<{ id: string }>;
+											};
 											card = (
 												<WatchlistCreatedCard
 													key={`wl-${wl.id}`}
@@ -125,10 +161,41 @@ function FeedPage() {
 												/>
 											);
 										} else if (item.type === "journal_entry") {
+											const je = item.data as {
+												id: string;
+												userId: string;
+												tmdbId: number;
+												titleName: string;
+												scope: string;
+												seasonNumber: number | null;
+												episodeNumber: number | null;
+												note: string;
+												isPublic: boolean;
+												createdAt: Date;
+												user: {
+													id: string;
+													username: string | null;
+													avatarUrl: string | null;
+												};
+											};
+											card = <FeedJournalCard key={`je-${je.id}`} entry={je} />;
+										} else if (item.type === "achievement_earned") {
+											const achievement = item.data as {
+												id: string;
+												achievementId: string;
+												userId: string;
+												earnedAt: Date | string;
+												user: {
+													id: string;
+													username: string | null;
+													avatarUrl: string | null;
+												};
+											};
 											card = (
-												<FeedJournalCard
-													key={`je-${item.data.id}`}
-													entry={item.data}
+												<AchievementEarnedCard
+													key={`ae-${achievement.id}`}
+													achievement={achievement}
+													isOwn={achievement.userId === currentUserId}
 												/>
 											);
 										}
@@ -177,6 +244,86 @@ function FeedPage() {
 				)}
 			</div>
 		</>
+	);
+}
+
+function AchievementEarnedCard({
+	achievement,
+	isOwn,
+}: {
+	achievement: {
+		id: string;
+		achievementId: string;
+		userId: string;
+		earnedAt: Date | string;
+		user: { id: string; username: string | null; avatarUrl: string | null };
+	};
+	isOwn: boolean;
+}) {
+	const def = ACHIEVEMENTS_BY_ID.get(achievement.achievementId);
+	const actor = achievement.user;
+
+	return (
+		<div
+			className="relative rounded-[10px] border border-neon-amber/15 p-4 transition-all hover:border-neon-amber/25 hover:-translate-y-px"
+			style={{
+				background:
+					"linear-gradient(145deg, rgba(10,10,30,0.95) 0%, rgba(20,18,10,0.8) 100%)",
+				boxShadow: "0 0 12px rgba(255,184,0,0.04), 0 4px 16px rgba(0,0,0,0.3)",
+			}}
+		>
+			{/* Header row */}
+			<div className="flex items-center gap-2 mb-2.5">
+				<Link
+					to="/app/profile/$userId"
+					params={{ userId: actor.id }}
+					className="flex items-center gap-2 no-underline"
+				>
+					<div className="w-7 h-7 rounded-full bg-neon-amber/15 border border-neon-amber/20 flex items-center justify-center text-[11px] font-medium text-neon-amber shrink-0">
+						{actor.avatarUrl ? (
+							<img
+								src={actor.avatarUrl}
+								alt=""
+								className="w-7 h-7 rounded-full object-cover"
+							/>
+						) : (
+							(actor.username?.charAt(0) ?? "?").toUpperCase()
+						)}
+					</div>
+					<span className="text-[13px] font-semibold text-cream/75">
+						{isOwn ? "You" : (actor.username ?? "Someone")}
+					</span>
+				</Link>
+				<span className="text-xs text-cream/30">earned an achievement</span>
+				<span className="text-[10px] text-cream/20 ml-auto font-mono-retro">
+					{formatTimeAgo(achievement.earnedAt)}
+				</span>
+			</div>
+
+			{/* Achievement detail */}
+			<div className="flex items-center gap-3">
+				<div
+					className="flex h-12 w-12 items-center justify-center rounded-lg border border-neon-amber/20 text-2xl"
+					style={{
+						background:
+							"linear-gradient(135deg, rgba(255,184,0,0.1), rgba(255,184,0,0.03))",
+					}}
+				>
+					{def?.icon ?? <Trophy className="h-5 w-5 text-neon-amber/60" />}
+				</div>
+				<div className="min-w-0 flex-1">
+					<p
+						className="text-[15px] font-bold text-neon-amber"
+						style={{ textShadow: "0 0 8px rgba(255,184,0,0.15)" }}
+					>
+						{def?.name ?? "Achievement"}
+					</p>
+					<p className="text-[11px] text-cream/40 mt-0.5">
+						{def?.description ?? ""}
+					</p>
+				</div>
+			</div>
+		</div>
 	);
 }
 

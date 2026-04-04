@@ -4,6 +4,7 @@ import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import {
+	earnedAchievement,
 	friendship,
 	journalEntry,
 	userTitle,
@@ -32,6 +33,10 @@ export const watchEventRouter = {
 				note: z.string().max(1000).optional(),
 				watchedAt: z.string().datetime().optional(),
 				companions: z.array(companionSchema).optional(),
+				visibility: z
+					.enum(["public", "companion", "private"])
+					.optional()
+					.default("public"),
 				titleName: z.string().optional(),
 				posterPath: z.string().nullish(),
 				remindMe: z.boolean().optional(),
@@ -74,11 +79,12 @@ export const watchEventRouter = {
 					note: input.note ?? null,
 					title: input.titleName ?? null,
 					posterPath: input.posterPath ?? null,
-					watchedAt: input.watchedAt ? new Date(input.watchedAt) : new Date(),
+					watchedAt: input.watchedAt ? new Date(input.watchedAt) : null,
 					reviewReminderAt: input.remindMe
 						? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 						: null,
 					genreIds,
+					visibility: input.visibility,
 					scope: input.scope ?? null,
 					scopeSeasonNumber: input.scopeSeasonNumber ?? null,
 					scopeEpisodeNumber: input.scopeEpisodeNumber ?? null,
@@ -158,8 +164,9 @@ export const watchEventRouter = {
 				id: z.string(),
 				rating: z.number().min(1).max(5).optional().nullable(),
 				note: z.string().max(1000).optional().nullable(),
-				watchedAt: z.string().datetime().optional(),
+				watchedAt: z.string().datetime().optional().nullable(),
 				companions: z.array(companionSchema).optional(),
+				visibility: z.enum(["public", "companion", "private"]).optional(),
 				titleName: z.string().optional(),
 				scope: z.enum(["episode", "season", "show"]).optional().nullable(),
 				scopeSeasonNumber: z.number().optional().nullable(),
@@ -182,7 +189,9 @@ export const watchEventRouter = {
 				.set({
 					...(input.rating !== undefined ? { rating: input.rating } : {}),
 					...(input.note !== undefined ? { note: input.note } : {}),
-					...(input.watchedAt ? { watchedAt: new Date(input.watchedAt) } : {}),
+					...(input.watchedAt !== undefined
+						? { watchedAt: input.watchedAt ? new Date(input.watchedAt) : null }
+						: {}),
 					...(input.scope !== undefined ? { scope: input.scope } : {}),
 					...(input.scopeSeasonNumber !== undefined
 						? { scopeSeasonNumber: input.scopeSeasonNumber }
@@ -190,6 +199,9 @@ export const watchEventRouter = {
 					...(input.scopeEpisodeNumber !== undefined
 						? { scopeEpisodeNumber: input.scopeEpisodeNumber }
 						: {}),
+					...(input.visibility !== undefined && {
+						visibility: input.visibility,
+					}),
 				})
 				.where(eq(watchEvent.id, input.id))
 				.returning();
@@ -295,7 +307,9 @@ export const watchEventRouter = {
 				with: {
 					companions: true,
 				},
-				orderBy: (e, { desc }) => [desc(e.watchedAt)],
+				orderBy: (e, { desc }) => [
+					desc(sql`COALESCE(${e.watchedAt}, ${e.createdAt})`),
+				],
 			});
 			return events;
 		}),
@@ -308,25 +322,38 @@ export const watchEventRouter = {
 				cursor: z.string().optional(),
 			}),
 		)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			const events = await db.query.watchEvent.findMany({
 				where: and(
 					eq(watchEvent.userId, input.userId),
 					...(input.cursor
 						? [
-								sql`${watchEvent.watchedAt} < (SELECT watched_at FROM watch_event WHERE id = ${input.cursor})`,
+								sql`COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}) < (SELECT COALESCE(watched_at, created_at) FROM watch_event WHERE id = ${input.cursor})`,
 							]
 						: []),
 				),
 				with: {
 					companions: true,
 				},
-				orderBy: (e, { desc }) => [desc(e.watchedAt)],
+				orderBy: (e, { desc }) => [
+					desc(sql`COALESCE(${e.watchedAt}, ${e.createdAt})`),
+				],
 				limit: input.limit + 1,
 			});
 
 			const hasMore = events.length > input.limit;
-			const items = hasMore ? events.slice(0, input.limit) : events;
+			const raw = hasMore ? events.slice(0, input.limit) : events;
+			const items = raw.map((event) => {
+				if (event.userId === ctx.userId) return event;
+				if (event.visibility === "public") return event;
+				if (event.visibility === "companion") {
+					const isCompanion = event.companions.some(
+						(c) => c.friendId === ctx.userId,
+					);
+					if (isCompanion) return event;
+				}
+				return { ...event, rating: null, note: null };
+			});
 
 			return {
 				items,
@@ -349,7 +376,9 @@ export const watchEventRouter = {
 					eq(watchEvent.mediaType, input.mediaType),
 					sql`${watchEvent.rating} IS NOT NULL`,
 				),
-				orderBy: (e, { desc }) => [desc(e.watchedAt)],
+				orderBy: (e, { desc }) => [
+					desc(sql`COALESCE(${e.watchedAt}, ${e.createdAt})`),
+				],
 				columns: { rating: true },
 			});
 			return event?.rating ?? null;
@@ -390,7 +419,11 @@ export const watchEventRouter = {
 			const watchEvents = await db.query.watchEvent.findMany({
 				where: and(
 					inArray(watchEvent.userId, userIds),
-					...(cursorDate ? [sql`${watchEvent.watchedAt} < ${cursorDate}`] : []),
+					...(cursorDate
+						? [
+								sql`COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}) < ${cursorDate}`,
+							]
+						: []),
 				),
 				with: {
 					companions: true,
@@ -402,8 +435,23 @@ export const watchEventRouter = {
 						},
 					},
 				},
-				orderBy: (e, { desc }) => [desc(e.watchedAt)],
+				orderBy: (e, { desc }) => [
+					desc(sql`COALESCE(${e.watchedAt}, ${e.createdAt})`),
+				],
 				limit: input.limit + 1,
+			});
+
+			// Filter review content based on visibility
+			const filteredWatchEvents = watchEvents.map((event) => {
+				if (event.userId === ctx.userId) return event;
+				if (event.visibility === "public") return event;
+				if (event.visibility === "companion") {
+					const isCompanion = event.companions.some(
+						(c) => c.friendId === ctx.userId,
+					);
+					if (isCompanion) return event;
+				}
+				return { ...event, rating: null, note: null };
 			});
 
 			// Fetch public watchlist creations
@@ -447,6 +495,23 @@ export const watchEventRouter = {
 				limit: input.limit + 1,
 			});
 
+			// Fetch earned achievements
+			const achievements = await db.query.earnedAchievement.findMany({
+				where: and(
+					inArray(earnedAchievement.userId, userIds),
+					...(cursorDate
+						? [sql`${earnedAchievement.earnedAt} < ${cursorDate}`]
+						: []),
+				),
+				with: {
+					user: {
+						columns: { id: true, username: true, avatarUrl: true },
+					},
+				},
+				orderBy: (e, { desc }) => [desc(e.earnedAt)],
+				limit: input.limit + 1,
+			});
+
 			// Merge and sort by timestamp
 			type FeedItem =
 				| {
@@ -463,12 +528,17 @@ export const watchEventRouter = {
 						type: "journal_entry";
 						timestamp: Date;
 						data: (typeof journalEntries)[number];
+				  }
+				| {
+						type: "achievement_earned";
+						timestamp: Date;
+						data: (typeof achievements)[number];
 				  };
 
 			const merged: FeedItem[] = [
-				...watchEvents.map((e) => ({
+				...filteredWatchEvents.map((e) => ({
 					type: "watch_event" as const,
-					timestamp: new Date(e.watchedAt),
+					timestamp: new Date(e.watchedAt ?? e.createdAt),
 					data: e,
 				})),
 				...watchlistCreations.map((wl) => ({
@@ -480,6 +550,11 @@ export const watchEventRouter = {
 					type: "journal_entry" as const,
 					timestamp: new Date(je.createdAt),
 					data: je,
+				})),
+				...achievements.map((a) => ({
+					type: "achievement_earned" as const,
+					timestamp: new Date(a.earnedAt),
+					data: a,
 				})),
 			].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 

@@ -28,7 +28,7 @@ export const Route = createFileRoute("/app/search")({
 
 function SearchErrorFallback({ reset }: ErrorComponentProps) {
 	return (
-		<div className="mx-auto max-w-6xl px-4 py-10">
+		<div className="mx-auto max-w-6xl px-4 py-10 2xl:max-w-[1600px]">
 			<div className="mb-8">
 				<SearchBar initialValue="" />
 			</div>
@@ -55,7 +55,7 @@ function SearchPage() {
 	const hasQuery = q.trim().length > 0;
 
 	return (
-		<div className="mx-auto max-w-6xl px-4 py-10">
+		<div className="mx-auto max-w-6xl px-4 py-10 2xl:max-w-[1600px]">
 			<div className="mb-8">
 				<SearchBar initialValue={q} />
 			</div>

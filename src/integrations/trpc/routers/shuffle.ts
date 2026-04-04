@@ -11,6 +11,7 @@ import {
 	watchlistMember,
 } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
+import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import { deduplicateFeed, type FeedItem } from "#/lib/feed-assembler";
 import { getUnifiedGenreById, UNIFIED_GENRES } from "#/lib/genre-map";
 import {
@@ -152,6 +153,8 @@ export const shuffleRouter = {
 								overview: t.overview,
 								release_date: t.release_date ?? "",
 								vote_average: t.vote_average,
+								vote_count: t.vote_count,
+								popularity: t.popularity,
 								genre_ids: t.genre_ids,
 							},
 							true,
@@ -165,6 +168,8 @@ export const shuffleRouter = {
 							overview: t.overview,
 							first_air_date: t.first_air_date ?? "",
 							vote_average: t.vote_average,
+							vote_count: t.vote_count,
+							popularity: t.popularity,
 							genre_ids: t.genre_ids,
 						},
 						true,
@@ -263,6 +268,8 @@ export const shuffleRouter = {
 					set: { action: input.action },
 				});
 
+			await evaluateAchievements(ctx.userId, "swipe");
+
 			// Check watchlist type to determine solo vs group behavior
 			const wl = await db.query.watchlist.findFirst({
 				where: eq(watchlist.id, input.watchlistId),
@@ -291,6 +298,8 @@ export const shuffleRouter = {
 							addedBy: ctx.userId,
 						})
 						.onConflictDoNothing();
+
+					await evaluateAchievements(ctx.userId, "shuffle_to_watchlist");
 
 					return { match: false };
 				}
@@ -332,6 +341,8 @@ export const shuffleRouter = {
 								},
 							});
 						}
+
+						await evaluateAchievements(ctx.userId, "shuffle_to_watchlist");
 					}
 
 					return {

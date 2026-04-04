@@ -13,6 +13,7 @@ import {
 	watchlistMember,
 } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
+import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import { createNotification } from "./notification";
 
 async function getOrCreateRecommendationsWatchlist(
@@ -128,6 +129,8 @@ export const recommendationRouter = {
 					},
 				});
 			}
+
+			await evaluateAchievements(ctx.userId, "recommendation_sent");
 		}),
 
 	accept: protectedProcedure

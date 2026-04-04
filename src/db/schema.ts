@@ -170,6 +170,7 @@ export const watchlistItem = pgTable(
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
 		watched: boolean("watched").default(false).notNull(),
+		watchedAt: timestamp("watched_at"),
 		recommendedBy: text("recommended_by").references(() => user.id, {
 			onDelete: "set null",
 		}),
@@ -279,7 +280,10 @@ export const watchEvent = pgTable(
 		titleName: text("title_name").notNull(),
 		rating: integer("rating"),
 		reviewText: text("review_text"),
-		reviewPublic: boolean("review_public").default(true).notNull(),
+		visibility: text("visibility")
+			.$type<"public" | "companion" | "private">()
+			.default("public")
+			.notNull(),
 		title: text("title"),
 		note: text("note"),
 		posterPath: text("poster_path"),
@@ -288,7 +292,7 @@ export const watchEvent = pgTable(
 		scopeEpisodeNumber: integer("scope_episode_number"),
 		watchNumber: integer("watch_number").default(1).notNull(),
 		genreIds: jsonb("genre_ids").$type<number[]>(),
-		watchedAt: timestamp("watched_at").notNull(),
+		watchedAt: timestamp("watched_at"),
 		reviewReminderAt: timestamp("review_reminder_at"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
@@ -398,6 +402,48 @@ export const block = pgTable(
 	],
 );
 
+export const titleQuote = pgTable(
+	"title_quote",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		tmdbId: integer("tmdb_id").notNull(),
+		mediaType: text("media_type").notNull(),
+		quote: text("quote"),
+		character: text("character"),
+		parserVersion: integer("parser_version").default(1).notNull(),
+		checkedAt: timestamp("checked_at")
+			.defaultNow()
+			.$onUpdate(() => /* @__PURE__ */ new Date())
+			.notNull(),
+	},
+	(table) => [
+		uniqueIndex("title_quote_unique").on(table.tmdbId, table.mediaType),
+	],
+);
+
+export const earnedAchievement = pgTable(
+	"earned_achievement",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		achievementId: text("achievement_id").notNull(),
+		earnedAt: timestamp("earned_at").defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("earned_achievement_unique").on(
+			table.userId,
+			table.achievementId,
+		),
+		index("earned_achievement_user_id_idx").on(table.userId),
+	],
+);
+
 export const review = pgTable(
 	"review",
 	{
@@ -409,7 +455,7 @@ export const review = pgTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		tmdbId: integer("tmdb_id").notNull(),
 		mediaType: text("media_type").notNull(),
-		rating: integer("rating").notNull(), // 1-5 stars
+		rating: integer("rating").notNull(),
 		text: text("text"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},
@@ -484,7 +530,7 @@ export const journalEntry = pgTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		tmdbId: integer("tmdb_id").notNull(),
 		titleName: text("title_name").notNull(),
-		scope: text("scope").notNull(), // 'episode' | 'season' | 'show'
+		scope: text("scope").notNull(),
 		seasonNumber: integer("season_number"),
 		episodeNumber: integer("episode_number"),
 		note: text("note").notNull(),
@@ -523,6 +569,8 @@ export const userRelations = relations(user, ({ many }) => ({
 	}),
 	blocksCreated: many(block, { relationName: "blockBlocker" }),
 	blocksReceived: many(block, { relationName: "blockBlocked" }),
+	earnedAchievements: many(earnedAchievement),
+	reviews: many(review),
 	sentRecommendations: many(recommendation, {
 		relationName: "sentRecommendations",
 	}),
@@ -670,6 +718,23 @@ export const watchEventCompanionRelations = relations(
 		}),
 	}),
 );
+
+export const earnedAchievementRelations = relations(
+	earnedAchievement,
+	({ one }) => ({
+		user: one(user, {
+			fields: [earnedAchievement.userId],
+			references: [user.id],
+		}),
+	}),
+);
+
+export const reviewRelations = relations(review, ({ one }) => ({
+	user: one(user, {
+		fields: [review.userId],
+		references: [user.id],
+	}),
+}));
 
 export const recommendationRelations = relations(recommendation, ({ one }) => ({
 	sender: one(user, {

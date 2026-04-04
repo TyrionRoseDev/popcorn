@@ -19,10 +19,13 @@ import {
 	X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { AchievementGrid } from "#/components/achievements/achievement-grid";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { useTRPC } from "#/integrations/trpc/react";
+import { ACHIEVEMENTS } from "#/lib/achievements";
+import { authClient } from "#/lib/auth-client";
 import { getTmdbImageUrl } from "#/lib/tmdb";
 
 export const Route = createFileRoute("/app/profile/$userId")({
@@ -120,6 +123,7 @@ function ProfilePage() {
 	const { userId } = Route.useParams();
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
+	const { data: session } = authClient.useSession();
 
 	// ── Queries ────────────────────────────────────────────────
 	const {
@@ -252,6 +256,7 @@ function ProfilePage() {
 
 	const isSelf = profile.isSelf;
 	const isFriend = profile.isFriend;
+	const isOwnProfile = !!session?.user?.id && session.user.id === userId;
 	const initial = (profile.username ?? "?").charAt(0).toUpperCase();
 	const genreName = genreStats?.[0]?.name ?? null;
 
@@ -673,7 +678,12 @@ function ProfilePage() {
 						)}
 
 						{/* ── 7. Achievements ──────────────────── */}
-						<AchievementsDesignB />
+						<ProfileAchievements
+							userId={userId}
+							isFriend={isFriend}
+							isOwnProfile={isOwnProfile}
+							friendName={profile.username ?? undefined}
+						/>
 
 						{/* ── 8. Favourite pick ────────────────── */}
 						{profile.favouriteFilmTmdbId && (
@@ -720,28 +730,151 @@ function ProfilePage() {
 }
 
 // ════════════════════════════════════════════════════════════════
-// Achievements popup (shared by all designs)
+// ProfileAchievements — Real data with ring progress + grid popup
 // ════════════════════════════════════════════════════════════════
 
-// ════════════════════════════════════════════════════════════════
-// Design A — Recent badges row with count chip
-// Shows last 3 earned icons in a row + "12/50" badge on the right
-// ════════════════════════════════════════════════════════════════
+function ProfileAchievements({
+	userId,
+	isFriend,
+	isOwnProfile,
+	friendName,
+}: {
+	userId: string;
+	isFriend: boolean;
+	isOwnProfile: boolean;
+	friendName?: string;
+}) {
+	const trpc = useTRPC();
+	const queryClient = useQueryClient();
+	const [showGrid, setShowGrid] = useState(false);
+	const syncedRef = useRef(false);
 
-// ════════════════════════════════════════════════════════════════
-// Achievements — Centered trophy with ring progress
-// ════════════════════════════════════════════════════════════════
+	useQuery(trpc.achievement.myAchievements.queryOptions());
 
-// TODO: Replace this placeholder with real achievements display once the achievements system is implemented
-function AchievementsDesignB() {
+	const syncMutation = useMutation(
+		trpc.achievement.sync.mutationOptions({
+			onSuccess: (data) => {
+				if (data.newAchievements.length > 0) {
+					queryClient.invalidateQueries({
+						queryKey: trpc.achievement.myAchievements.queryKey(),
+					});
+					queryClient.invalidateQueries({
+						queryKey: trpc.achievement.userAchievements.queryKey({ userId }),
+					});
+				}
+			},
+		}),
+	);
+
+	useEffect(() => {
+		if (isOwnProfile && !syncedRef.current) {
+			syncedRef.current = true;
+			syncMutation.mutate();
+		}
+	}, [isOwnProfile, syncMutation.mutate]);
+
+	const { data: comparison } = useQuery({
+		...trpc.achievement.compare.queryOptions({ friendId: userId }),
+		enabled: isFriend && !isOwnProfile,
+	});
+
+	const { data: theirAchievements } = useQuery({
+		...trpc.achievement.userAchievements.queryOptions({ userId }),
+		enabled: isOwnProfile,
+	});
+
+	const earnedCount = isOwnProfile
+		? (theirAchievements?.earned.length ?? 0)
+		: isFriend
+			? (comparison?.theirTotal ?? 0)
+			: 0;
+	const total = ACHIEVEMENTS.length;
+
+	// SVG ring progress
+	const radius = 38;
+	const circumference = 2 * Math.PI * radius;
+	const progress = (earnedCount / total) * circumference;
+
 	return (
-		<div className="mt-6 flex flex-col items-center gap-1 py-2">
-			<Trophy className="h-6 w-6 text-cream/20" />
-			<p className="font-mono-retro text-[10px] uppercase tracking-[2px] text-cream/40">
-				Achievements
-			</p>
-			<p className="text-[10px] text-cream/25">Coming soon</p>
-		</div>
+		<>
+			<button
+				type="button"
+				onClick={() => (isFriend || isOwnProfile) && setShowGrid(true)}
+				className="group flex flex-col items-center gap-2"
+			>
+				<div className="relative flex h-24 w-24 items-center justify-center">
+					<svg
+						className="absolute inset-0 -rotate-90"
+						viewBox="0 0 96 96"
+						role="img"
+						aria-label="Achievement progress"
+					>
+						<circle
+							cx="48"
+							cy="48"
+							r={radius}
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="3"
+							className="text-cream/10"
+						/>
+						<circle
+							cx="48"
+							cy="48"
+							r={radius}
+							fill="none"
+							stroke="url(#achievement-gradient)"
+							strokeWidth="3"
+							strokeLinecap="round"
+							strokeDasharray={circumference}
+							strokeDashoffset={circumference - progress}
+							className="transition-all duration-700"
+						/>
+						<defs>
+							<linearGradient id="achievement-gradient">
+								<stop offset="0%" stopColor="#FF2D78" />
+								<stop offset="50%" stopColor="#FFB800" />
+								<stop offset="100%" stopColor="#00E5FF" />
+							</linearGradient>
+						</defs>
+					</svg>
+					<Trophy className="h-6 w-6 text-neon-amber transition-transform group-hover:scale-110" />
+				</div>
+				<span className="font-mono text-xs text-cream/50">Achievements</span>
+				<span className="font-mono text-sm text-cream">
+					{earnedCount} / {total}
+				</span>
+			</button>
+
+			{showGrid && isOwnProfile && theirAchievements && (
+				<AchievementGrid
+					myEarned={theirAchievements.earned.map((e) => ({
+						id: e.id,
+						earnedAt: e.earnedAt,
+					}))}
+					onClose={() => setShowGrid(false)}
+				/>
+			)}
+
+			{showGrid && isFriend && !isOwnProfile && comparison && (
+				<AchievementGrid
+					myEarned={comparison.achievements
+						.filter(
+							(a): a is typeof a & { myEarnedAt: Date } =>
+								a.myEarnedAt !== null,
+						)
+						.map((a) => ({ id: a.id, earnedAt: a.myEarnedAt }))}
+					theirEarned={comparison.achievements
+						.filter(
+							(a): a is typeof a & { theirEarnedAt: Date } =>
+								a.theirEarnedAt !== null,
+						)
+						.map((a) => ({ id: a.id, earnedAt: a.theirEarnedAt }))}
+					theirName={friendName}
+					onClose={() => setShowGrid(false)}
+				/>
+			)}
+		</>
 	);
 }
 
@@ -1328,6 +1461,7 @@ function DiaryTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 			note: string | null;
 			watchedAt: string;
 			companions: Array<{ friendId?: string; name: string }>;
+			visibility: "public" | "companion" | "private";
 		};
 	} | null>(null);
 

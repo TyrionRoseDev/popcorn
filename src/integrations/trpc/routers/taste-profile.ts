@@ -11,6 +11,7 @@ import {
 	watchlistMember,
 } from "#/db/schema";
 import { protectedProcedure, publicProcedure } from "#/integrations/trpc/init";
+import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import {
 	deduplicateFeed,
 	type FeedCursor,
@@ -44,6 +45,8 @@ export function mapMovieToFeedItem(
 		overview: movie.overview,
 		year: movie.release_date ? movie.release_date.slice(0, 4) : "",
 		rating: movie.vote_average,
+		voteCount: movie.vote_count ?? 0,
+		popularity: movie.popularity ?? 0,
 		genreIds: movie.genre_ids,
 		isTrending,
 	};
@@ -61,6 +64,8 @@ export function mapTvToFeedItem(
 		overview: show.overview,
 		year: show.first_air_date ? show.first_air_date.slice(0, 4) : "",
 		rating: show.vote_average,
+		voteCount: show.vote_count ?? 0,
+		popularity: show.popularity ?? 0,
 		genreIds: show.genre_ids,
 		isTrending,
 	};
@@ -76,6 +81,8 @@ export function mapSearchResultToFeedItem(result: TmdbSearchResult): FeedItem {
 			overview: result.overview,
 			year: result.release_date ? result.release_date.slice(0, 4) : "",
 			rating: result.vote_average,
+			voteCount: result.vote_count ?? 0,
+			popularity: result.popularity ?? 0,
 			genreIds: result.genre_ids,
 			isTrending: false,
 		};
@@ -88,6 +95,8 @@ export function mapSearchResultToFeedItem(result: TmdbSearchResult): FeedItem {
 		overview: result.overview,
 		year: result.first_air_date ? result.first_air_date.slice(0, 4) : "",
 		rating: result.vote_average,
+		voteCount: result.vote_count ?? 0,
+		popularity: result.popularity ?? 0,
 		genreIds: result.genre_ids,
 		isTrending: false,
 	};
@@ -174,6 +183,8 @@ export async function buildFeed(
 						overview: t.overview,
 						release_date: t.release_date ?? "",
 						vote_average: t.vote_average,
+						vote_count: t.vote_count,
+						popularity: t.popularity,
 						genre_ids: t.genre_ids,
 					},
 					true,
@@ -187,6 +198,8 @@ export async function buildFeed(
 					overview: t.overview,
 					first_air_date: t.first_air_date ?? "",
 					vote_average: t.vote_average,
+					vote_count: t.vote_count,
+					popularity: t.popularity,
 					genre_ids: t.genre_ids,
 				},
 				true,
@@ -369,6 +382,8 @@ export const tasteProfileRouter = {
 					.where(eq(user.id, userId));
 			});
 
+			await evaluateAchievements(userId, "onboarding");
+
 			return { success: true };
 		}),
 
@@ -392,6 +407,8 @@ export const tasteProfileRouter = {
 					onboardingCompleted: true,
 				})
 				.where(eq(user.id, ctx.userId));
+
+			await evaluateAchievements(ctx.userId, "onboarding");
 
 			return { success: true };
 		}),

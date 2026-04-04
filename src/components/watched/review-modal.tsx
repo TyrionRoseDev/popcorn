@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarDays, X } from "lucide-react";
+import { CalendarDays, X, XCircle } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { useEffect, useState } from "react";
 import { Calendar } from "#/components/ui/calendar";
@@ -13,6 +13,7 @@ import {
 import { useTRPC } from "#/integrations/trpc/react";
 import { RecommendModal } from "./recommend-modal";
 import { StarRating } from "./star-rating";
+import { type Visibility, VisibilitySelector } from "./visibility-selector";
 import type { Companion } from "./watched-with-modal";
 import { WatchedWithModal } from "./watched-with-modal";
 
@@ -30,11 +31,14 @@ interface WatchEventModalProps {
 		note: string | null;
 		watchedAt: string;
 		companions: Companion[];
+		visibility: Visibility;
 	};
 	/** Called when user taps "Remind me later" in create mode */
 	onRemindMe?: () => void;
 	/** Called when a new watch event is successfully created */
 	onEventCreated?: () => void;
+	/** Called when user taps "Skip" — confirms watch without review */
+	onSkip?: () => void;
 	/** Optional scope for scoped reviews (TV shows) */
 	scope?: "episode" | "season" | "show";
 	scopeSeasonNumber?: number;
@@ -56,6 +60,7 @@ export function ReviewModal({
 	editEvent,
 	onRemindMe,
 	onEventCreated,
+	onSkip,
 	scope,
 	scopeSeasonNumber,
 	scopeEpisodeNumber,
@@ -67,6 +72,7 @@ export function ReviewModal({
 	const [note, setNote] = useState("");
 	const [watchedAt, setWatchedAt] = useState("");
 	const [companions, setCompanions] = useState<Companion[]>([]);
+	const [visibility, setVisibility] = useState<Visibility | null>(null);
 	const [watchedWithOpen, setWatchedWithOpen] = useState(false);
 	const [recommendOpen, setRecommendOpen] = useState(false);
 
@@ -75,16 +81,26 @@ export function ReviewModal({
 			if (editEvent) {
 				setRating(editEvent.rating);
 				setNote(editEvent.note ?? "");
-				setWatchedAt(editEvent.watchedAt.slice(0, 16));
+				setWatchedAt(
+					editEvent.watchedAt ? editEvent.watchedAt.slice(0, 16) : "",
+				);
 				setCompanions(editEvent.companions);
+				setVisibility(editEvent.visibility);
 			} else {
 				setRating(null);
 				setNote("");
-				setWatchedAt(toLocalDatetime(new Date()));
+				setWatchedAt("");
 				setCompanions([]);
+				setVisibility(null);
 			}
 		}
 	}, [open, editEvent]);
+
+	useEffect(() => {
+		if (visibility === "companion" && companions.length === 0) {
+			setVisibility(null);
+		}
+	}, [companions, visibility]);
 
 	function invalidateQueries() {
 		queryClient.invalidateQueries(trpc.watchEvent.getForTitle.queryFilter());
@@ -121,6 +137,7 @@ export function ReviewModal({
 		setRating(null);
 		setNote("");
 		setCompanions([]);
+		setVisibility(null);
 		onOpenChange(false);
 	}
 
@@ -134,9 +151,10 @@ export function ReviewModal({
 				id: editEvent.id,
 				rating: rating ?? null,
 				note: note.trim() || null,
-				watchedAt: watchedAtISO,
+				watchedAt: watchedAtISO ?? null,
 				companions,
 				titleName,
+				visibility: visibility ?? undefined,
 			});
 		} else {
 			createEvent.mutate({
@@ -150,6 +168,7 @@ export function ReviewModal({
 				scope,
 				scopeSeasonNumber,
 				scopeEpisodeNumber,
+				visibility: visibility ?? "public",
 			});
 		}
 	}
@@ -167,6 +186,7 @@ export function ReviewModal({
 				companions,
 				titleName,
 				remindMe: true,
+				visibility: "public",
 			},
 			{
 				onSuccess: () => {
@@ -248,22 +268,36 @@ export function ReviewModal({
 												Watched On
 											</div>
 											<Popover>
-												<PopoverTrigger asChild>
-													<button
-														type="button"
-														className="w-full flex items-center gap-2.5 bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-2.5 text-left hover:border-cream/15 focus:outline-none focus:border-neon-cyan/20 transition-colors duration-200"
-													>
-														<CalendarDays className="w-4 h-4 text-neon-cyan/40 shrink-0" />
-														<span className="font-mono-retro text-sm text-cream">
-															{watchedAt
-																? format(
-																		new Date(watchedAt),
-																		"MMM d, yyyy · h:mm a",
-																	)
-																: "Select date…"}
-														</span>
-													</button>
-												</PopoverTrigger>
+												<div className="flex items-center gap-1.5">
+													<PopoverTrigger asChild>
+														<button
+															type="button"
+															className="flex-1 flex items-center gap-2.5 bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-2.5 text-left hover:border-cream/15 focus:outline-none focus:border-neon-cyan/20 transition-colors duration-200"
+														>
+															<CalendarDays className="w-4 h-4 text-neon-cyan/40 shrink-0" />
+															<span
+																className={`font-mono-retro text-sm ${watchedAt ? "text-cream" : "text-cream/25 italic"}`}
+															>
+																{watchedAt
+																	? format(
+																			new Date(watchedAt),
+																			"MMM d, yyyy · h:mm a",
+																		)
+																	: "I don't remember"}
+															</span>
+														</button>
+													</PopoverTrigger>
+													{watchedAt && (
+														<button
+															type="button"
+															onClick={() => setWatchedAt("")}
+															className="p-2 text-cream/20 hover:text-cream/50 transition-colors duration-200"
+															title="Clear date"
+														>
+															<XCircle className="w-4 h-4" />
+														</button>
+													)}
+												</div>
 												<PopoverContent
 													className="dark w-auto p-0 z-[60]"
 													align="start"
@@ -339,11 +373,17 @@ export function ReviewModal({
 											<span className="text-base text-neon-cyan/30">›</span>
 										</button>
 
+										<VisibilitySelector
+											value={visibility}
+											onChange={setVisibility}
+											hasCompanions={companions.length > 0}
+										/>
+
 										{/* Save button */}
 										<button
 											type="button"
 											onClick={handleSave}
-											disabled={isPending}
+											disabled={isPending || visibility === null}
 											className="w-full py-3 px-6 bg-neon-cyan/[0.08] border-2 border-neon-cyan/35 rounded-lg font-display text-base tracking-widest text-neon-cyan text-center shadow-[0_4px_0_rgba(0,229,255,0.15),0_0_16px_rgba(0,229,255,0.1)] cursor-pointer hover:translate-y-0.5 hover:shadow-[0_2px_0_rgba(0,229,255,0.15),0_0_24px_rgba(0,229,255,0.15)] transition-all duration-200 disabled:opacity-50"
 										>
 											{editEvent ? "Save Changes" : "Save & Done"}
@@ -354,7 +394,10 @@ export function ReviewModal({
 											<div className="flex justify-center items-center gap-3">
 												<button
 													type="button"
-													onClick={handleClose}
+													onClick={() => {
+														onSkip?.();
+														handleClose();
+													}}
 													disabled={isPending}
 													className="font-mono-retro text-[10px] tracking-[2px] uppercase text-cream/25 hover:text-cream/50 transition-colors duration-200 py-1.5"
 												>

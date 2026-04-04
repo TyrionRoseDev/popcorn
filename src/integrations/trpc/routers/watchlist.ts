@@ -21,6 +21,8 @@ import {
 	watchlistMember,
 } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
+import { ACHIEVEMENTS_BY_ID } from "#/lib/achievements";
+import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import { tmdbFetch } from "#/lib/tmdb";
 import { createNotification } from "./notification";
 
@@ -332,37 +334,45 @@ export const watchlistRouter = {
 		.mutation(async ({ input, ctx }) => {
 			await ensureAreFriends(ctx.userId, input.memberIds);
 
-			return db.transaction(async (tx) => {
-				const [wl] = await tx
-					.insert(watchlist)
-					.values({
-						name: input.name,
-						ownerId: ctx.userId,
-						isPublic: input.isPublic,
-					})
-					.returning();
+			return db
+				.transaction(async (tx) => {
+					const [wl] = await tx
+						.insert(watchlist)
+						.values({
+							name: input.name,
+							ownerId: ctx.userId,
+							isPublic: input.isPublic,
+						})
+						.returning();
 
-				await tx.insert(watchlistMember).values({
-					watchlistId: wl.id,
-					userId: ctx.userId,
-					role: "owner",
+					await tx.insert(watchlistMember).values({
+						watchlistId: wl.id,
+						userId: ctx.userId,
+						role: "owner",
+					});
+
+					if (input.memberIds.length > 0) {
+						await tx
+							.insert(watchlistMember)
+							.values(
+								input.memberIds.map((userId) => ({
+									watchlistId: wl.id,
+									userId,
+									role: "member",
+								})),
+							)
+							.onConflictDoNothing();
+					}
+
+					return wl;
+				})
+				.then(async (wl) => {
+					const newAchievements = await evaluateAchievements(
+						ctx.userId,
+						"watchlist_created",
+					);
+					return { ...wl, newAchievements };
 				});
-
-				if (input.memberIds.length > 0) {
-					await tx
-						.insert(watchlistMember)
-						.values(
-							input.memberIds.map((userId) => ({
-								watchlistId: wl.id,
-								userId,
-								role: "member",
-							})),
-						)
-						.onConflictDoNothing();
-				}
-
-				return wl;
-			});
 		}),
 
 	update: protectedProcedure
@@ -491,6 +501,7 @@ export const watchlistRouter = {
 				mediaType: z.enum(["movie", "tv"]),
 				watched: z.boolean(),
 				titleName: z.string().optional(),
+				watchedAt: z.string().datetime().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -508,9 +519,19 @@ export const watchlistRouter = {
 
 			if (!existing || existing.watched === input.watched) return;
 
+			const watchedAtDate = input.watched
+				? input.watchedAt
+					? new Date(input.watchedAt)
+					: new Date()
+				: null;
+
 			await db
 				.update(watchlistItem)
-				.set({ watched: input.watched, keptInWatchlist: false })
+				.set({
+					watched: input.watched,
+					watchedAt: watchedAtDate,
+					keptInWatchlist: false,
+				})
 				.where(
 					and(
 						eq(watchlistItem.watchlistId, input.watchlistId),
@@ -568,6 +589,46 @@ export const watchlistRouter = {
 						});
 					}
 				}
+
+				// Evaluate achievements
+				const newAchievements = await evaluateAchievements(
+					ctx.userId,
+					"watched",
+					{
+						tmdbId: input.tmdbId,
+						mediaType: input.mediaType,
+						watchedAt: watchedAtDate ?? undefined,
+						watchlistId: input.watchlistId,
+					},
+				);
+
+				// Notify friends about any new achievements
+				if (newAchievements.length > 0) {
+					const friends = await db.query.friendship.findMany({
+						where: and(
+							sql`(${friendship.requesterId} = ${ctx.userId} OR ${friendship.addresseeId} = ${ctx.userId})`,
+							eq(friendship.status, "accepted"),
+						),
+					});
+					for (const f of friends) {
+						const friendId =
+							f.requesterId === ctx.userId ? f.addresseeId : f.requesterId;
+						for (const achievementId of newAchievements) {
+							const achievementDef = ACHIEVEMENTS_BY_ID.get(achievementId);
+							await createNotification({
+								recipientId: friendId,
+								actorId: ctx.userId,
+								type: "achievement_earned",
+								data: {
+									achievementId,
+									achievementName: achievementDef?.name ?? "",
+								},
+							});
+						}
+					}
+				}
+
+				return { newAchievements };
 			}
 		}),
 
@@ -620,6 +681,8 @@ export const watchlistRouter = {
 					},
 				});
 			}
+
+			await evaluateAchievements(input.userId, "watchlist_joined");
 		}),
 
 	isWatched: protectedProcedure

@@ -34,7 +34,7 @@ function WatchlistsPage() {
 				{/* Watchlist content */}
 				<div className="mt-10">
 					{isLoading ? (
-						<div className="mx-auto flex max-w-4xl flex-col gap-4 px-4 py-16">
+						<div className="mx-auto flex max-w-4xl 2xl:max-w-6xl flex-col gap-4 px-4 py-16">
 							{SKELETON_KEYS.map((key) => (
 								<div
 									key={key}
@@ -47,7 +47,7 @@ function WatchlistsPage() {
 							))}
 						</div>
 					) : watchlists && watchlists.length === 0 ? (
-						<div className="mx-auto flex max-w-4xl flex-col items-center px-4 py-20 text-center">
+						<div className="mx-auto flex max-w-4xl 2xl:max-w-6xl flex-col items-center px-4 py-20 text-center">
 							<p className="text-lg" style={{ color: "rgba(255,255,240,0.5)" }}>
 								No watchlists yet
 							</p>

@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { z } from "zod";
+import { InviteMemberModal } from "#/components/watchlist/invite-member-modal";
 import { WatchlistAtmosphere } from "#/components/watchlist/watchlist-atmosphere";
 import { WatchlistDetailHeader } from "#/components/watchlist/watchlist-detail-header";
 import { WatchlistFilters } from "#/components/watchlist/watchlist-filters";
@@ -23,6 +25,8 @@ function WatchlistDetailPage() {
 	const { watchlistId } = Route.useParams();
 	const { sort, type } = Route.useSearch();
 	const navigate = useNavigate({ from: Route.fullPath });
+
+	const [inviteOpen, setInviteOpen] = useState(false);
 
 	const trpc = useTRPC();
 	const { data: watchlist, isLoading } = useQuery(
@@ -90,7 +94,7 @@ function WatchlistDetailPage() {
 			<>
 				<WatchlistAtmosphere />
 				<div
-					className="relative mx-auto max-w-6xl px-4"
+					className="relative mx-auto max-w-6xl 2xl:max-w-[1600px] px-4"
 					style={{ zIndex: 2, paddingTop: "40px" }}
 				>
 					<div className="space-y-6">
@@ -147,13 +151,11 @@ function WatchlistDetailPage() {
 				<WatchlistDetailHeader
 					watchlist={watchlist}
 					userRole={watchlist.userRole}
-					onInvite={() => {
-						console.log("Invite clicked — dialog comes in Task 9");
-					}}
+					onInvite={() => setInviteOpen(true)}
 				/>
 
 				{/* Filters */}
-				<div className="mx-auto mt-8 max-w-6xl px-4">
+				<div className="mx-auto mt-8 max-w-6xl 2xl:max-w-[1600px] px-4">
 					<WatchlistFilters
 						sort={sort}
 						type={type}
@@ -163,7 +165,7 @@ function WatchlistDetailPage() {
 				</div>
 
 				{/* Item grid */}
-				<div className="mx-auto mt-6 max-w-6xl px-4 pb-16">
+				<div className="mx-auto mt-6 max-w-6xl 2xl:max-w-[1600px] px-4 pb-16">
 					{filteredItems.length > 0 ? (
 						<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 							{filteredItems.map((item) => (
@@ -192,6 +194,15 @@ function WatchlistDetailPage() {
 					)}
 				</div>
 			</div>
+
+			{watchlist && (
+				<InviteMemberModal
+					open={inviteOpen}
+					onOpenChange={setInviteOpen}
+					watchlistId={watchlist.id}
+					watchlistName={watchlist.name}
+				/>
+			)}
 		</>
 	);
 }

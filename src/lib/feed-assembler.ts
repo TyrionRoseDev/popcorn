@@ -6,6 +6,8 @@ export interface FeedItem {
 	overview: string;
 	year: string;
 	rating: number;
+	voteCount: number;
+	popularity: number;
 	genreIds: number[];
 	isTrending: boolean;
 }
