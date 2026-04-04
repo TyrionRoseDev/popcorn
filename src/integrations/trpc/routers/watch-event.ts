@@ -430,6 +430,19 @@ export const watchEventRouter = {
 				limit: input.limit + 1,
 			});
 
+			// Filter review content based on visibility
+			const filteredWatchEvents = watchEvents.map((event) => {
+				if (event.userId === ctx.userId) return event;
+				if (event.visibility === "public") return event;
+				if (event.visibility === "companion") {
+					const isCompanion = event.companions.some(
+						(c) => c.friendId === ctx.userId,
+					);
+					if (isCompanion) return event;
+				}
+				return { ...event, rating: null, note: null };
+			});
+
 			// Fetch public watchlist creations
 			const watchlistCreations = await db.query.watchlist.findMany({
 				where: and(
@@ -512,7 +525,7 @@ export const watchEventRouter = {
 				  };
 
 			const merged: FeedItem[] = [
-				...watchEvents.map((e) => ({
+				...filteredWatchEvents.map((e) => ({
 					type: "watch_event" as const,
 					timestamp: new Date(e.watchedAt ?? e.createdAt),
 					data: e,
