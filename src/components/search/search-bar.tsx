@@ -17,9 +17,12 @@ export function SearchBar({ initialValue }: SearchBarProps) {
 		setValue(initialValue);
 	}, [initialValue]);
 
-	// Autofocus on mount
+	// Autofocus on mount + when Search tab is clicked
 	useEffect(() => {
 		inputRef.current?.focus();
+		const handler = () => inputRef.current?.focus();
+		window.addEventListener("focus-search", handler);
+		return () => window.removeEventListener("focus-search", handler);
 	}, []);
 
 	// Clean up debounce on unmount
