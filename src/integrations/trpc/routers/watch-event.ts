@@ -50,10 +50,6 @@ export const watchEventRouter = {
 				scope: z.enum(["episode", "season", "show"]).optional(),
 				scopeSeasonNumber: z.number().optional(),
 				scopeEpisodeNumber: z.number().optional(),
-				visibility: z
-					.enum(["public", "private", "companion"])
-					.optional()
-					.default("public"),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -203,7 +199,7 @@ export const watchEventRouter = {
 								scopeEpisodeNumber: input.scopeEpisodeNumber ?? null,
 								watchNumber: watchNum,
 								originEventId: event.id,
-								visibility: "public",
+								visibility: input.visibility ?? "public",
 							})
 							.returning();
 
@@ -432,7 +428,7 @@ export const watchEventRouter = {
 								scopeEpisodeNumber: existing.scopeEpisodeNumber,
 								watchNumber: existing.watchNumber,
 								originEventId: input.id,
-								visibility: "public",
+								visibility: existing.visibility ?? "public",
 							})
 							.returning();
 

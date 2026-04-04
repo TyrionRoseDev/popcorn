@@ -96,7 +96,7 @@ export function NowShowingMarquee({
 			</p>
 
 			{/* Title */}
-			<h1 className="font-display text-4xl uppercase text-cream [text-shadow:0_0_30px_rgba(255,255,240,0.2),0_0_60px_rgba(255,255,240,0.05)] mb-1.5">
+			<h1 className="font-display text-4xl uppercase text-cream [text-shadow:0_0_30px_rgba(255,255,240,0.2),0_0_60px_rgba(255,255,240,0.05)] mb-1.5 w-full text-center break-words">
 				{title}
 			</h1>
 

@@ -741,7 +741,7 @@ export const friendRouter = createTRPCRouter({
 			// Total titles watched (distinct watch events)
 			const [watchedCount] = await db
 				.select({
-					count: sql<number>`count(distinct ${watchEvent.tmdbId})::int`,
+					count: sql<number>`count(distinct (${watchEvent.tmdbId}, ${watchEvent.mediaType}))::int`,
 				})
 				.from(watchEvent)
 				.where(eq(watchEvent.userId, input.userId));
@@ -757,6 +757,7 @@ export const friendRouter = createTRPCRouter({
 					and(
 						eq(watchEvent.userId, input.userId),
 						sql`${watchEvent.rating} IS NOT NULL`,
+						...(isSelf ? [] : [eq(watchEvent.visibility, "public")]),
 					),
 				)
 				.groupBy(watchEvent.rating);

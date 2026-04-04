@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
+	type AnyPgColumn,
 	boolean,
 	check,
 	index,
@@ -284,9 +285,10 @@ export const watchEvent = pgTable(
 			.$type<"public" | "companion" | "private">()
 			.default("public")
 			.notNull(),
-		originEventId: text("origin_event_id").references(() => watchEvent.id, {
-			onDelete: "set null",
-		}),
+		originEventId: text("origin_event_id").references(
+			(): AnyPgColumn => watchEvent.id,
+			{ onDelete: "set null" },
+		),
 		title: text("title"),
 		note: text("note"),
 		posterPath: text("poster_path"),

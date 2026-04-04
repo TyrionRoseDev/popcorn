@@ -31,7 +31,7 @@ function FeedPage() {
 	// Fetch target user's username when filtering by userId
 	const { data: filterUser } = useQuery(
 		trpc.friend.profile.queryOptions(
-			{ userId: filterUserId! },
+			{ userId: filterUserId ?? "" },
 			{ enabled: !!filterUserId },
 		),
 	);

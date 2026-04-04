@@ -19,7 +19,7 @@ When a user creates a watch event with linked friend companions, a **reciprocal 
 - Owned by the companion (`userId` = companion's ID)
 - Links back to the original via `originEventId` (nullable FK on `watchEvent`, `SET NULL ON DELETE`)
 - Copies `tmdbId`, `mediaType`, `titleName`, `posterPath`, `scope`, `scopeSeasonNumber`, `scopeEpisodeNumber`, `genreIds`, `watchNumber`, `watchedAt` from the original
-- `rating` and `reviewText` are null (companion hasn't reviewed)
+- `rating` and `note` are null (companion hasn't reviewed)
 - `visibility` defaults to `'public'`
 - Free-text companions (no `friendId`) do not get reciprocal events
 

@@ -379,9 +379,9 @@ export const episodeTrackerRouter = {
 		.input(
 			z.object({
 				tmdbId: z.number(),
-				scope: z.string().nullable(),
-				scopeSeasonNumber: z.number().nullable(),
-				scopeEpisodeNumber: z.number().nullable(),
+				scope: z.enum(["episode", "season"]).nullable(),
+				scopeSeasonNumber: z.number().int().nullable(),
+				scopeEpisodeNumber: z.number().int().nullable(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {

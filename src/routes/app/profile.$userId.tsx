@@ -30,7 +30,6 @@ import { FeedJournalCard } from "#/components/tracker/feed-journal-card";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { useTRPC } from "#/integrations/trpc/react";
 import { ACHIEVEMENTS } from "#/lib/achievements";
-import { authClient } from "#/lib/auth-client";
 import { getUnifiedGenreById } from "#/lib/genre-map";
 import { getTmdbImageUrl } from "#/lib/tmdb";
 
@@ -129,8 +128,6 @@ function ProfilePage() {
 	const { userId } = Route.useParams();
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
-	const { data: session } = authClient.useSession();
-
 	// ── Queries ────────────────────────────────────────────────
 	const {
 		data: profile,
@@ -264,7 +261,6 @@ function ProfilePage() {
 
 	const isSelf = profile.isSelf;
 	const isFriend = profile.isFriend;
-	const isOwnProfile = !!session?.user?.id && session.user.id === userId;
 	const initial = (profile.username ?? "?").charAt(0).toUpperCase();
 	const genreName = profile.favouriteGenreId
 		? (getUnifiedGenreById(profile.favouriteGenreId)?.name ?? null)
@@ -1345,20 +1341,11 @@ function FriendExpandedSections({
 			{/* ══ Left column: achievements, favourite, genres ══ */}
 			<div className="flex flex-col gap-6">
 				{/* ── Achievements ── */}
-				<div>
-					<div className="mb-3 flex items-center gap-2">
-						<Trophy className="h-4 w-4 text-neon-amber/50" />
-						<span className="font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/70">
-							Achievements
-						</span>
-					</div>
-					<div className="flex flex-col items-center rounded-lg border border-drive-in-border py-8">
-						<Trophy className="h-8 w-8 text-cream/15" />
-						<p className="mt-2 font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/35">
-							Coming soon
-						</p>
-					</div>
-				</div>
+				<ProfileAchievements
+					userId={profile.id}
+					isFriend={!isSelf}
+					isOwnProfile={isSelf}
+				/>
 
 				{/* ── Rating Distribution ── */}
 				<div>
@@ -1466,9 +1453,11 @@ function FriendExpandedSections({
 											{starRatings.map((item) => (
 												<Link
 													key={`${item.tmdbId}-${item.mediaType}`}
-													to="/app/tracker/$tmdbId"
-													params={{ tmdbId: String(item.tmdbId) }}
-													search={{ type: item.mediaType as "movie" | "tv" }}
+													to="/app/title/$mediaType/$tmdbId"
+													params={{
+														mediaType: item.mediaType as "movie" | "tv",
+														tmdbId: item.tmdbId,
+													}}
 													onClick={() => setSelectedStar(null)}
 													className="group rounded-lg border border-cream/[0.06] p-3 no-underline transition-colors hover:border-cream/15 hover:bg-cream/[0.03]"
 												>
@@ -1806,21 +1795,6 @@ function ActivityTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 			),
 		);
 
-	const [editModal, setEditModal] = useState<{
-		open: boolean;
-		tmdbId: number;
-		mediaType: "movie" | "tv";
-		titleName: string;
-		event?: {
-			id: string;
-			rating: number | null;
-			note: string | null;
-			watchedAt: string;
-			companions: Array<{ friendId?: string; name: string }>;
-			visibility: "public" | "companion" | "private";
-		};
-	} | null>(null);
-
 	if (isLoading) {
 		return (
 			<div className="flex justify-center py-8">
@@ -1830,8 +1804,14 @@ function ActivityTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 	}
 
 	const items = data?.pages.flatMap((p) => p.items) ?? [];
+	const renderableItems = items.filter(
+		(item) =>
+			item.type === "watch_event" ||
+			item.type === "watchlist_created" ||
+			item.type === "journal_entry",
+	);
 
-	if (items.length === 0) {
+	if (renderableItems.length === 0) {
 		return (
 			<div className="flex flex-col items-center py-8 text-center">
 				<Film className="mb-2 h-6 w-6 text-neon-pink/20" />
@@ -1842,7 +1822,7 @@ function ActivityTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 
 	return (
 		<div className="flex flex-col gap-3">
-			{items.map((item) => {
+			{renderableItems.map((item) => {
 				if (item.type === "watch_event") {
 					const event = item.data;
 					return (
@@ -1894,6 +1874,19 @@ function ActivityTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 
 				return null;
 			})}
+			{hasNextPage && (
+				<button
+					type="button"
+					onClick={() => fetchNextPage()}
+					disabled={isFetchingNextPage}
+					className="mx-auto mt-4 flex items-center gap-2 rounded-lg border border-cream/10 px-4 py-2 font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/40 transition-colors hover:border-cream/20 hover:text-cream/60 disabled:opacity-50"
+				>
+					{isFetchingNextPage ? (
+						<Loader2 className="h-3 w-3 animate-spin" />
+					) : null}
+					{isFetchingNextPage ? "Loading..." : "Load more"}
+				</button>
+			)}
 		</div>
 	);
 }

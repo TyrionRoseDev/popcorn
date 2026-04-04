@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarDays, X, XCircle } from "lucide-react";
+import { CalendarDays, X } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { useEffect, useState } from "react";
 import { Calendar } from "#/components/ui/calendar";

@@ -373,7 +373,8 @@ export function WatchEventCard({
 
 			{/* Reciprocal attribution — original reviewer's review */}
 			{event.originEvent &&
-				event.originEvent.rating != null &&
+				(event.originEvent.rating != null ||
+					(event.originEvent.note && event.originEvent.note.trim() !== "")) &&
 				(() => {
 					const orig = event.originEvent;
 					const canSeeReview =

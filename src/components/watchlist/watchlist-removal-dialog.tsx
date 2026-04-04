@@ -77,14 +77,30 @@ export function WatchlistRemovalDialog({
 				onSuccess: () => {
 					const remaining = watchlists.length - selected.size;
 					if (remaining > 0) {
-						keepInWatchlist.mutate({ tmdbId, mediaType });
+						keepInWatchlist.mutate(
+							{ tmdbId, mediaType },
+							{
+								onSuccess: () => {
+									toast.success(
+										`Removed from ${selected.size} watchlist${selected.size > 1 ? "s" : ""}`,
+									);
+									setSelected(new Set());
+									onOpenChange(false);
+									onDone?.();
+								},
+								onError: () => {
+									toast.error("Failed to keep in remaining watchlists");
+								},
+							},
+						);
+					} else {
+						toast.success(
+							`Removed from ${selected.size} watchlist${selected.size > 1 ? "s" : ""}`,
+						);
+						setSelected(new Set());
+						onOpenChange(false);
+						onDone?.();
 					}
-					toast.success(
-						`Removed from ${selected.size} watchlist${selected.size > 1 ? "s" : ""}`,
-					);
-					setSelected(new Set());
-					onOpenChange(false);
-					onDone?.();
 				},
 			},
 		);
@@ -106,10 +122,19 @@ export function WatchlistRemovalDialog({
 	}
 
 	function handleKeepAll() {
-		keepInWatchlist.mutate({ tmdbId, mediaType });
-		setSelected(new Set());
-		onOpenChange(false);
-		onDone?.();
+		keepInWatchlist.mutate(
+			{ tmdbId, mediaType },
+			{
+				onSuccess: () => {
+					setSelected(new Set());
+					onOpenChange(false);
+					onDone?.();
+				},
+				onError: () => {
+					toast.error("Failed to keep in watchlists");
+				},
+			},
+		);
 	}
 
 	const isPending = removeFromMultiple.isPending || keepInWatchlist.isPending;

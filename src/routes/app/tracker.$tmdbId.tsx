@@ -31,7 +31,6 @@ function ShowTracker() {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	const [reviewOpen, setReviewOpen] = useState(false);
-	const [pendingRemoval, setPendingRemoval] = useState(false);
 	const [showCelebration, setShowCelebration] = useState(false);
 	const [writeAboutOpen, setWriteAboutOpen] = useState(false);
 	const [rewatchOpen, setRewatchOpen] = useState(false);
@@ -1141,20 +1140,28 @@ function ShowTracker() {
 					posterPath={titleData.posterPath ?? null}
 					episodeCount={totalEpisodes}
 					onReview={() => {
-						setPendingRemoval(true);
 						setReviewOpen(true);
 					}}
 					onRemindLater={() => {
-						createReminder.mutate({
-							tmdbId,
-							mediaType: "tv",
-							titleName: titleData.title,
-							posterPath: titleData.posterPath,
-							remindMe: true,
-							scope: "show",
-						});
-						toast.success("We'll remind you to review in 7 days");
-						triggerWatchlistRemoval();
+						createReminder.mutate(
+							{
+								tmdbId,
+								mediaType: "tv",
+								titleName: titleData.title,
+								posterPath: titleData.posterPath,
+								remindMe: true,
+								scope: "show",
+							},
+							{
+								onSuccess: () => {
+									toast.success("We'll remind you to review in 7 days");
+									triggerWatchlistRemoval();
+								},
+								onError: () => {
+									toast.error("Failed to set reminder");
+								},
+							},
+						);
 					}}
 				/>
 			)}
@@ -1163,12 +1170,9 @@ function ShowTracker() {
 			{titleData && (
 				<ReviewModal
 					open={reviewOpen}
-					onOpenChange={(open) => {
-						setReviewOpen(open);
-						if (!open && pendingRemoval) {
-							setPendingRemoval(false);
-							triggerWatchlistRemoval();
-						}
+					onOpenChange={setReviewOpen}
+					onEventCreated={() => {
+						triggerWatchlistRemoval();
 					}}
 					titleName={titleData.title}
 					year={titleData.year || undefined}

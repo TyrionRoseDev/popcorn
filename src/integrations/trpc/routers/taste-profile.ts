@@ -310,7 +310,7 @@ export const tasteProfileRouter = {
 		}),
 
 	updateFavouriteGenre: protectedProcedure
-		.input(z.object({ genreId: z.number().nullable() }))
+		.input(z.object({ genreId: z.number().int().nullable() }))
 		.mutation(async ({ input, ctx }) => {
 			await db
 				.update(user)

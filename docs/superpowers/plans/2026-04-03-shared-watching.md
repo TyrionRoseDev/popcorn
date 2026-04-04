@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: Schema — Replace `reviewPublic` with `visibility` and add `originEventId`
+## Task 1: Schema — Replace `reviewPublic` with `visibility` and add `originEventId`
 
 **Files:**
 - Modify: `src/db/schema.ts:268-312` (watchEvent table)
@@ -64,7 +64,7 @@ git commit -m "feat: replace reviewPublic with visibility enum and add originEve
 
 ---
 
-### Task 2: Update `watchEvent.create` — reciprocal events and adapted notifications
+## Task 2: Update `watchEvent.create` — reciprocal events and adapted notifications
 
 **Files:**
 - Modify: `src/integrations/trpc/routers/watch-event.ts:26-159` (create procedure)
@@ -224,7 +224,7 @@ git commit -m "feat: create reciprocal watch events for companions with adapted 
 
 ---
 
-### Task 3: Update `watchEvent.update` — sync companion additions/removals
+## Task 3: Update `watchEvent.update` — sync companion additions/removals
 
 **Files:**
 - Modify: `src/integrations/trpc/routers/watch-event.ts:161-242` (update procedure)
@@ -401,7 +401,7 @@ git commit -m "feat: sync reciprocal events on companion add/remove during updat
 
 ---
 
-### Task 4: Update `watchEvent.create` — upgrade flow (replace reciprocal with authored event)
+## Task 4: Update `watchEvent.create` — upgrade flow (replace reciprocal with authored event)
 
 **Files:**
 - Modify: `src/integrations/trpc/routers/watch-event.ts:49-93` (inside create, before the insert)
@@ -452,7 +452,7 @@ git commit -m "feat: upgrade reciprocal events when user creates their own autho
 
 ---
 
-### Task 5: Visibility filtering in `getFeed`, `getForTitle`, and `getUserEvents`
+## Task 5: Visibility filtering in `getFeed`, `getForTitle`, and `getUserEvents`
 
 **Files:**
 - Modify: `src/integrations/trpc/routers/watch-event.ts:291-347` (getForTitle, getUserEvents)
@@ -628,7 +628,7 @@ git commit -m "feat: add visibility filtering to feed and profile queries with o
 
 ---
 
-### Task 6: Remove `reviewPublic` references from codebase
+## Task 6: Remove `reviewPublic` references from codebase
 
 **Files:**
 - Search and modify any file referencing `reviewPublic`
@@ -654,7 +654,7 @@ git commit -m "chore: remove all reviewPublic references, replaced by visibility
 
 ---
 
-### Task 7: Review modal — add visibility selector
+## Task 7: Review modal — add visibility selector
 
 **Files:**
 - Modify: `src/components/watched/review-modal.tsx`
@@ -782,7 +782,7 @@ git commit -m "feat: add visibility selector (public/shared/private) to review m
 
 ---
 
-### Task 8: Watch event card — privacy badges and reciprocal attribution
+## Task 8: Watch event card — privacy badges and reciprocal attribution
 
 **Files:**
 - Modify: `src/components/watched/watch-event-card.tsx`
@@ -987,7 +987,7 @@ git commit -m "feat: add privacy badges and reciprocal review attribution to wat
 
 ---
 
-### Task 9: Feed page — pass originEvent data through to cards
+## Task 9: Feed page — pass originEvent data through to cards
 
 **Files:**
 - Modify: `src/routes/app/feed.tsx:134-155`
@@ -1031,7 +1031,7 @@ git commit -m "feat: wire visibility through feed edit flow"
 
 ---
 
-### Task 10: Notification UI — `companion_reviewed` type and tracker prompt
+## Task 10: Notification UI — `companion_reviewed` type and tracker prompt
 
 **Files:**
 - Modify: `src/components/notifications/notification-item.tsx:35-123`
@@ -1146,7 +1146,7 @@ git commit -m "feat: add companion_reviewed notification UI with review and trac
 
 ---
 
-### Task 11: Episode tracker — `markFromNotification` procedure
+## Task 11: Episode tracker — `markFromNotification` procedure
 
 **Files:**
 - Modify: `src/integrations/trpc/routers/episode-tracker.ts`
@@ -1245,7 +1245,7 @@ git commit -m "feat: add markFromNotification procedure for companion tracker ac
 
 ---
 
-### Task 12: Inline episode review prompt (TV only)
+## Task 12: Inline episode review prompt (TV only)
 
 **Files:**
 - Modify: `src/routes/app/tracker.$tmdbId.tsx`
@@ -1377,7 +1377,7 @@ git commit -m "feat: add inline episode review prompt after marking episodes wat
 
 ---
 
-### Task 13: Final verification and cleanup
+## Task 13: Final verification and cleanup
 
 **Files:**
 - All modified files

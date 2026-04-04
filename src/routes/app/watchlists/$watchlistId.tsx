@@ -27,8 +27,6 @@ function WatchlistDetailPage() {
 	const navigate = useNavigate({ from: Route.fullPath });
 	const [inviteOpen, setInviteOpen] = useState(false);
 
-	const [inviteOpen, setInviteOpen] = useState(false);
-
 	const trpc = useTRPC();
 	const { data: watchlist, isLoading } = useQuery(
 		trpc.watchlist.get.queryOptions({ watchlistId }),

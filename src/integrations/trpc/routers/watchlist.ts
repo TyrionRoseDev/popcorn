@@ -235,7 +235,14 @@ export const watchlistRouter = {
 				throw new TRPCError({ code: "FORBIDDEN" });
 			}
 
-			void backfillPosterData(wl.items);
+			void backfillPosterData(
+				wl.items.map((i) => ({
+					tmdbId: i.tmdbId,
+					mediaType: i.mediaType,
+					posterPath: i.posterPath,
+					title: i.title,
+				})),
+			);
 
 			const userRole = membership?.role ?? null;
 			return { ...wl, userRole };
@@ -891,6 +898,7 @@ export const watchlistRouter = {
 						eq(watchlistItem.tmdbId, input.tmdbId),
 						eq(watchlistItem.mediaType, input.mediaType),
 						eq(watchlistItem.watched, false),
+						eq(watchlistItem.keptInWatchlist, false),
 					),
 				);
 
@@ -919,7 +927,12 @@ export const watchlistRouter = {
 				);
 
 			const ownedIds = ownedWatchlists.map((m) => m.watchlistId);
-			if (ownedIds.length === 0) return;
+			if (ownedIds.length !== input.watchlistIds.length) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You do not own all specified watchlists",
+				});
+			}
 
 			await db
 				.delete(watchlistItem)

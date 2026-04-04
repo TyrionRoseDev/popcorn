@@ -60,7 +60,6 @@ export function WatchlistItemCard({
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	const [reviewOpen, setReviewOpen] = useState(false);
-	const [pendingRemoval, setPendingRemoval] = useState(false);
 	const [removalDialogOpen, setRemovalDialogOpen] = useState(false);
 	const [removalWatchlists, setRemovalWatchlists] = useState<
 		Array<{
@@ -77,7 +76,7 @@ export function WatchlistItemCard({
 					trpc.watchlist.get.queryFilter({ watchlistId }),
 				);
 				if (!item.watched) {
-					setPendingRemoval(true);
+					handlePostReview();
 				}
 			},
 		}),
@@ -283,13 +282,7 @@ export function WatchlistItemCard({
 			</div>
 			<ReviewModal
 				open={reviewOpen}
-				onOpenChange={(open) => {
-					setReviewOpen(open);
-					if (!open && pendingRemoval) {
-						setPendingRemoval(false);
-						handlePostReview();
-					}
-				}}
+				onOpenChange={setReviewOpen}
 				tmdbId={item.tmdbId}
 				mediaType={item.mediaType as "movie" | "tv"}
 				titleName={item.title ?? ""}

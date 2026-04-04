@@ -374,7 +374,6 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 							onClick={(e) => {
 								e.preventDefault();
 								e.stopPropagation();
-								setActionTaken.mutate({ id: n.id, action: "review" });
 								navigate({
 									to: "/app/title/$mediaType/$tmdbId",
 									params: {
@@ -382,6 +381,7 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 										tmdbId: Number(data.tmdbId),
 									},
 								});
+								setActionTaken.mutate({ id: n.id, action: "review" });
 							}}
 							className="px-2.5 py-1 rounded text-[11px] font-semibold bg-neon-cyan/10 border border-neon-cyan/25 text-neon-cyan/80 hover:bg-neon-cyan/20 hover:border-neon-cyan/40 transition-all"
 						>
@@ -393,15 +393,25 @@ export function NotificationItem({ notification: n }: NotificationItemProps) {
 								onClick={(e) => {
 									e.preventDefault();
 									e.stopPropagation();
-									setActionTaken.mutate({ id: n.id, action: "tracked" });
-									markInTracker.mutate({
-										tmdbId: Number(data.tmdbId),
-										scope: (data.scope as string) ?? null,
-										scopeSeasonNumber:
-											(data.scopeSeasonNumber as number) ?? null,
-										scopeEpisodeNumber:
-											(data.scopeEpisodeNumber as number) ?? null,
-									});
+									markInTracker.mutate(
+										{
+											tmdbId: Number(data.tmdbId),
+											scope:
+												(data.scope as "episode" | "season" | null) ?? null,
+											scopeSeasonNumber:
+												(data.scopeSeasonNumber as number) ?? null,
+											scopeEpisodeNumber:
+												(data.scopeEpisodeNumber as number) ?? null,
+										},
+										{
+											onSuccess: () => {
+												setActionTaken.mutate({
+													id: n.id,
+													action: "tracked",
+												});
+											},
+										},
+									);
 								}}
 								className="px-2.5 py-1 rounded text-[11px] font-semibold bg-neon-amber/10 border border-neon-amber/25 text-neon-amber/80 hover:bg-neon-amber/20 hover:border-neon-amber/40 transition-all"
 							>

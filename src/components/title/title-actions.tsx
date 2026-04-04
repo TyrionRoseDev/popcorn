@@ -155,7 +155,7 @@ export function TitleActions({
 				queryClient.invalidateQueries(trpc.watchEvent.getFeed.queryFilter());
 				if (data.watched) {
 					toast.success("Marked as watched");
-					if (latestRating === null) {
+					if (latestRating == null) {
 						setPendingRemovalCheck(true);
 						setReviewOpen(true);
 					} else {
