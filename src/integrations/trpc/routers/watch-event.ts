@@ -33,6 +33,10 @@ export const watchEventRouter = {
 				note: z.string().max(1000).optional(),
 				watchedAt: z.string().datetime().optional(),
 				companions: z.array(companionSchema).optional(),
+				visibility: z
+					.enum(["public", "companion", "private"])
+					.optional()
+					.default("public"),
 				titleName: z.string().optional(),
 				posterPath: z.string().nullish(),
 				remindMe: z.boolean().optional(),
@@ -80,6 +84,7 @@ export const watchEventRouter = {
 						? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 						: null,
 					genreIds,
+					visibility: input.visibility,
 					scope: input.scope ?? null,
 					scopeSeasonNumber: input.scopeSeasonNumber ?? null,
 					scopeEpisodeNumber: input.scopeEpisodeNumber ?? null,
@@ -161,6 +166,7 @@ export const watchEventRouter = {
 				note: z.string().max(1000).optional().nullable(),
 				watchedAt: z.string().datetime().optional().nullable(),
 				companions: z.array(companionSchema).optional(),
+				visibility: z.enum(["public", "companion", "private"]).optional(),
 				titleName: z.string().optional(),
 				scope: z.enum(["episode", "season", "show"]).optional().nullable(),
 				scopeSeasonNumber: z.number().optional().nullable(),
@@ -193,6 +199,9 @@ export const watchEventRouter = {
 					...(input.scopeEpisodeNumber !== undefined
 						? { scopeEpisodeNumber: input.scopeEpisodeNumber }
 						: {}),
+					...(input.visibility !== undefined && {
+						visibility: input.visibility,
+					}),
 				})
 				.where(eq(watchEvent.id, input.id))
 				.returning();
