@@ -4,6 +4,7 @@ import { Check, Eye, EyeOff, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ReviewModal } from "#/components/watched/review-modal";
+import { WatchlistRemovalDialog } from "#/components/watchlist/watchlist-removal-dialog";
 import { useTRPC } from "#/integrations/trpc/react";
 import { getTmdbImageUrl } from "#/lib/tmdb";
 
@@ -59,6 +60,14 @@ export function WatchlistItemCard({
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	const [reviewOpen, setReviewOpen] = useState(false);
+	const [removalDialogOpen, setRemovalDialogOpen] = useState(false);
+	const [removalWatchlists, setRemovalWatchlists] = useState<
+		Array<{
+			watchlistId: string;
+			watchlistName: string;
+			watchlistType: string;
+		}>
+	>([]);
 
 	const markWatched = useMutation(
 		trpc.watchlist.markWatched.mutationOptions({
@@ -66,6 +75,9 @@ export function WatchlistItemCard({
 				queryClient.invalidateQueries(
 					trpc.watchlist.get.queryFilter({ watchlistId }),
 				);
+				if (!item.watched) {
+					handlePostReview();
+				}
 			},
 		}),
 	);
@@ -85,19 +97,55 @@ export function WatchlistItemCard({
 				queryClient.invalidateQueries(
 					trpc.watchlist.get.queryFilter({ watchlistId }),
 				);
-			},
-		}),
-	);
-
-	const keepInWatchlist = useMutation(
-		trpc.watchlist.keepInWatchlist.mutationOptions({
-			onSuccess: () => {
 				queryClient.invalidateQueries(
-					trpc.watchlist.get.queryFilter({ watchlistId }),
+					trpc.watchlist.isBookmarked.queryFilter(),
 				);
 			},
 		}),
 	);
+
+	async function handlePostReview() {
+		// For TV shows still airing, don't prompt for removal
+		if (item.mediaType === "tv") {
+			const titleData = await queryClient.fetchQuery(
+				trpc.title.details.queryOptions({
+					tmdbId: item.tmdbId,
+					mediaType: "tv",
+				}),
+			);
+			if (titleData.status !== "Ended" && titleData.status !== "Canceled") {
+				return;
+			}
+		}
+
+		// Check how many watchlists contain this title
+		const watchlists = await queryClient.fetchQuery(
+			trpc.watchlist.getWatchlistsForTitle.queryOptions({
+				tmdbId: item.tmdbId,
+				mediaType: item.mediaType as "movie" | "tv",
+			}),
+		);
+
+		if (watchlists.length === 0) return;
+		if (watchlists.length === 1) {
+			// Auto-remove from the single watchlist
+			removeItem.mutate(
+				{
+					watchlistId: watchlists[0].watchlistId,
+					tmdbId: item.tmdbId,
+					mediaType: item.mediaType as "movie" | "tv",
+				},
+				{
+					onSuccess: () =>
+						toast.success(`Removed from ${watchlists[0].watchlistName}`),
+				},
+			);
+		} else {
+			// Multiple watchlists — show selection dialog
+			setRemovalWatchlists(watchlists);
+			setRemovalDialogOpen(true);
+		}
+	}
 
 	const [imageFailed, setImageFailed] = useState(false);
 	const canToggleWatched = userRole === "owner" || userRole === "member";
@@ -239,27 +287,15 @@ export function WatchlistItemCard({
 				mediaType={item.mediaType as "movie" | "tv"}
 				titleName={item.title ?? ""}
 				onSkip={confirmWatched}
-				onEventCreated={() => {
-					confirmWatched();
-					keepInWatchlist.mutate({
-						tmdbId: item.tmdbId,
-						mediaType: item.mediaType as "movie" | "tv",
-					});
-					if (canRemove) {
-						toast(`Remove ${displayTitle} from this watchlist?`, {
-							duration: 8000,
-							action: {
-								label: "Remove",
-								onClick: () =>
-									removeItem.mutate({
-										watchlistId,
-										tmdbId: item.tmdbId,
-										mediaType: item.mediaType as "movie" | "tv",
-									}),
-							},
-						});
-					}
-				}}
+				onEventCreated={confirmWatched}
+			/>
+			<WatchlistRemovalDialog
+				open={removalDialogOpen}
+				onOpenChange={setRemovalDialogOpen}
+				tmdbId={item.tmdbId}
+				mediaType={item.mediaType as "movie" | "tv"}
+				titleName={displayTitle}
+				watchlists={removalWatchlists}
 			/>
 		</>
 	);

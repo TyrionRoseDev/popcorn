@@ -12,6 +12,7 @@ import { env } from "#/env";
 const resend = new Resend(env.RESEND_API_KEY);
 
 export const auth = betterAuth({
+	baseURL: env.BETTER_AUTH_URL,
 	database: drizzleAdapter(db, {
 		provider: "pg",
 	}),

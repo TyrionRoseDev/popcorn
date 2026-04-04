@@ -5,24 +5,24 @@ interface NowShowingMarqueeProps {
 	contentRating: string;
 }
 
+const BULBS = Array.from({ length: 20 }, (_, i) => ({
+	id: `bulb-${i}`,
+	even: i % 2 === 0,
+}));
+
 export function NowShowingMarquee({
 	title,
 	year,
 	runtime,
 	contentRating,
 }: NowShowingMarqueeProps) {
-	const bulbs = Array.from({ length: 20 }, (_, i) => ({
-		id: `bulb-${i}`,
-		even: i % 2 === 0,
-	}));
-
 	const metaParts = [year, runtime];
 	if (contentRating !== "NR") {
 		metaParts.push(contentRating);
 	}
 
 	return (
-		<div className="max-w-[700px] mx-auto mt-[50px] text-center relative px-10 py-5">
+		<div className="w-[700px] max-w-full min-h-[130px] mx-auto mt-[50px] relative flex flex-col items-center justify-center px-10">
 			{/* Amber border */}
 			<div
 				aria-hidden="true"
@@ -47,7 +47,7 @@ export function NowShowingMarquee({
 					right: "20px",
 				}}
 			>
-				{bulbs.map((bulb) => (
+				{BULBS.map((bulb) => (
 					<div
 						key={bulb.id}
 						className="bg-neon-amber rounded-full"
@@ -74,7 +74,7 @@ export function NowShowingMarquee({
 					right: "20px",
 				}}
 			>
-				{bulbs.map((bulb) => (
+				{BULBS.map((bulb) => (
 					<div
 						key={bulb.id}
 						className="bg-neon-amber rounded-full"
@@ -96,7 +96,7 @@ export function NowShowingMarquee({
 			</p>
 
 			{/* Title */}
-			<h1 className="font-display text-4xl text-cream [text-shadow:0_0_30px_rgba(255,255,240,0.2),0_0_60px_rgba(255,255,240,0.05)] mb-1.5">
+			<h1 className="font-display text-4xl uppercase text-cream [text-shadow:0_0_30px_rgba(255,255,240,0.2),0_0_60px_rgba(255,255,240,0.05)] mb-1.5 w-full text-center break-words">
 				{title}
 			</h1>
 

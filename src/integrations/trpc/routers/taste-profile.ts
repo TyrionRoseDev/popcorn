@@ -1,4 +1,5 @@
 import type { TRPCRouterRecord } from "@trpc/server";
+import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
@@ -269,7 +270,9 @@ export const tasteProfileRouter = {
 		.query(async ({ input }) => {
 			const page = input.cursor ? Number.parseInt(input.cursor, 10) : 1;
 			const res = await searchMulti(input.query, page);
-			const items = deduplicateFeed(res.results.map(mapSearchResultToFeedItem));
+			const items = deduplicateFeed(
+				res.results.map(mapSearchResultToFeedItem),
+			).sort((a, b) => b.rating - a.rating);
 			const nextCursor = page < res.total_pages ? String(page + 1) : null;
 			return { items, nextCursor };
 		}),
@@ -303,6 +306,25 @@ export const tasteProfileRouter = {
 			await db
 				.update(user)
 				.set({ favouriteFilmTmdbId: input.tmdbId })
+				.where(eq(user.id, ctx.userId));
+			return { success: true };
+		}),
+
+	updateFavouriteGenre: protectedProcedure
+		.input(z.object({ genreId: z.number().int().nullable() }))
+		.mutation(async ({ input, ctx }) => {
+			if (
+				input.genreId != null &&
+				!UNIFIED_GENRES.some((g) => g.id === input.genreId)
+			) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Unknown genre ID",
+				});
+			}
+			await db
+				.update(user)
+				.set({ favouriteGenreId: input.genreId })
 				.where(eq(user.id, ctx.userId));
 			return { success: true };
 		}),

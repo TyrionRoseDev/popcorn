@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarDays, X, XCircle } from "lucide-react";
+import { CalendarDays, X } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { useEffect, useState } from "react";
 import { Calendar } from "#/components/ui/calendar";
@@ -29,7 +29,7 @@ interface WatchEventModalProps {
 		id: string;
 		rating: number | null;
 		note: string | null;
-		watchedAt: string;
+		watchedAt: string | null;
 		companions: Companion[];
 		visibility: Visibility;
 	};
@@ -142,9 +142,7 @@ export function ReviewModal({
 	}
 
 	function handleSave() {
-		const watchedAtISO = watchedAt
-			? new Date(watchedAt).toISOString()
-			: undefined;
+		const watchedAtISO = watchedAt ? new Date(watchedAt).toISOString() : null;
 
 		if (editEvent) {
 			updateEvent.mutate({
@@ -162,7 +160,7 @@ export function ReviewModal({
 				mediaType,
 				rating: rating ?? undefined,
 				note: note.trim() || undefined,
-				watchedAt: watchedAtISO,
+				watchedAt: watchedAtISO ?? undefined,
 				companions,
 				titleName,
 				scope,
@@ -174,15 +172,13 @@ export function ReviewModal({
 	}
 
 	function handleRemindMe() {
-		const watchedAtISO = watchedAt
-			? new Date(watchedAt).toISOString()
-			: undefined;
+		const watchedAtISO = watchedAt ? new Date(watchedAt).toISOString() : null;
 
 		createEvent.mutate(
 			{
 				tmdbId,
 				mediaType,
-				watchedAt: watchedAtISO,
+				watchedAt: watchedAtISO ?? undefined,
 				companions,
 				titleName,
 				remindMe: true,
@@ -266,15 +262,20 @@ export function ReviewModal({
 										<div>
 											<div className="font-mono-retro text-[10px] tracking-[3px] uppercase text-cream/30 mb-2">
 												Watched On
+												<span className="text-cream/15 ml-1.5 tracking-[1px] lowercase">
+													optional
+												</span>
 											</div>
-											<Popover>
-												<div className="flex items-center gap-1.5">
+											<div className="flex items-center gap-2">
+												<Popover>
 													<PopoverTrigger asChild>
 														<button
 															type="button"
 															className="flex-1 flex items-center gap-2.5 bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-2.5 text-left hover:border-cream/15 focus:outline-none focus:border-neon-cyan/20 transition-colors duration-200"
 														>
-															<CalendarDays className="w-4 h-4 text-neon-cyan/40 shrink-0" />
+															<CalendarDays
+																className={`w-4 h-4 shrink-0 ${watchedAt ? "text-neon-cyan/40" : "text-cream/15"}`}
+															/>
 															<span
 																className={`font-mono-retro text-sm ${watchedAt ? "text-cream" : "text-cream/25 italic"}`}
 															>
@@ -287,56 +288,57 @@ export function ReviewModal({
 															</span>
 														</button>
 													</PopoverTrigger>
-													{watchedAt && (
-														<button
-															type="button"
-															onClick={() => setWatchedAt("")}
-															className="p-2 text-cream/20 hover:text-cream/50 transition-colors duration-200"
-															title="Clear date"
-														>
-															<XCircle className="w-4 h-4" />
-														</button>
-													)}
-												</div>
-												<PopoverContent
-													className="dark w-auto p-0 z-[60]"
-													align="start"
-												>
-													<Calendar
-														mode="single"
-														selected={
-															watchedAt ? new Date(watchedAt) : undefined
-														}
-														onSelect={(date) => {
-															if (!date) return;
-															const time = watchedAt
-																? watchedAt.slice(11, 16)
-																: `${String(new Date().getHours()).padStart(2, "0")}:${String(new Date().getMinutes()).padStart(2, "0")}`;
-															const pad = (n: number) =>
-																String(n).padStart(2, "0");
-															setWatchedAt(
-																`${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${time}`,
-															);
-														}}
-													/>
-													<label className="border-t border-border px-3 py-2.5 flex items-center gap-2">
-														<span className="font-mono-retro text-[10px] tracking-[2px] uppercase text-muted-foreground">
-															Time
-														</span>
-														<input
-															type="time"
-															value={watchedAt ? watchedAt.slice(11, 16) : ""}
-															onChange={(e) => {
-																const dateStr = watchedAt
-																	? watchedAt.slice(0, 10)
-																	: toLocalDatetime(new Date()).slice(0, 10);
-																setWatchedAt(`${dateStr}T${e.target.value}`);
+													<PopoverContent
+														className="dark w-auto p-0 z-[60]"
+														align="start"
+													>
+														<Calendar
+															mode="single"
+															disabled={{ after: new Date() }}
+															toDate={new Date()}
+															selected={
+																watchedAt ? new Date(watchedAt) : undefined
+															}
+															onSelect={(date) => {
+																if (!date) return;
+																const time = watchedAt
+																	? watchedAt.slice(11, 16)
+																	: `${String(new Date().getHours()).padStart(2, "0")}:${String(new Date().getMinutes()).padStart(2, "0")}`;
+																const pad = (n: number) =>
+																	String(n).padStart(2, "0");
+																setWatchedAt(
+																	`${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${time}`,
+																);
 															}}
-															className="flex-1 bg-transparent border border-border rounded px-2 py-1 font-mono-retro text-sm text-popover-foreground focus:outline-none focus:border-ring [color-scheme:dark]"
 														/>
-													</label>
-												</PopoverContent>
-											</Popover>
+														<label className="border-t border-border px-3 py-2.5 flex items-center gap-2">
+															<span className="font-mono-retro text-[10px] tracking-[2px] uppercase text-muted-foreground">
+																Time
+															</span>
+															<input
+																type="time"
+																value={watchedAt ? watchedAt.slice(11, 16) : ""}
+																onChange={(e) => {
+																	const dateStr = watchedAt
+																		? watchedAt.slice(0, 10)
+																		: toLocalDatetime(new Date()).slice(0, 10);
+																	setWatchedAt(`${dateStr}T${e.target.value}`);
+																}}
+																className="flex-1 bg-transparent border border-border rounded px-2 py-1 font-mono-retro text-sm text-popover-foreground focus:outline-none focus:border-ring [color-scheme:dark]"
+															/>
+														</label>
+													</PopoverContent>
+												</Popover>
+												{watchedAt && (
+													<button
+														type="button"
+														onClick={() => setWatchedAt("")}
+														className="p-2 text-cream/20 hover:text-cream/50 transition-colors duration-200"
+													>
+														<X className="w-3.5 h-3.5" />
+													</button>
+												)}
+											</div>
 										</div>
 
 										<div className="h-px bg-gradient-to-r from-transparent via-cream/[0.06] to-transparent" />

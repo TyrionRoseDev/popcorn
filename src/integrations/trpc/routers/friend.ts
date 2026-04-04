@@ -629,6 +629,7 @@ export const friendRouter = createTRPCRouter({
 					favouriteFilmTmdbId: user.favouriteFilmTmdbId,
 					favouriteFilmMediaType: user.favouriteFilmMediaType,
 					favouriteGenreId: user.favouriteGenreId,
+					createdAt: user.createdAt,
 				})
 				.from(user)
 				.where(eq(user.id, input.userId));
@@ -737,11 +738,42 @@ export const friendRouter = createTRPCRouter({
 
 			const watchTimeMinutes = filmWatchTimeMinutes + tvWatchTimeMinutes;
 
+			// Total titles watched (distinct watch events)
+			const [watchedCount] = await db
+				.select({
+					count: sql<number>`count(distinct (${watchEvent.tmdbId}, ${watchEvent.mediaType}))::int`,
+				})
+				.from(watchEvent)
+				.where(eq(watchEvent.userId, input.userId));
+
+			// Rating distribution (1-5 stars)
+			const ratingRows = await db
+				.select({
+					rating: watchEvent.rating,
+					count: sql<number>`count(*)::int`,
+				})
+				.from(watchEvent)
+				.where(
+					and(
+						eq(watchEvent.userId, input.userId),
+						sql`${watchEvent.rating} IS NOT NULL`,
+						...(isSelf ? [] : [eq(watchEvent.visibility, "public")]),
+					),
+				)
+				.groupBy(watchEvent.rating);
+
+			const ratingDistribution = [1, 2, 3, 4, 5].map((star) => ({
+				star,
+				count: ratingRows.find((r) => r.rating === star)?.count ?? 0,
+			}));
+
 			// Base profile (always returned)
 			const profile = {
 				...targetUser,
 				friendCount: friendCount?.count ?? 0,
 				watchTimeMinutes,
+				totalWatched: watchedCount?.count ?? 0,
+				ratingDistribution,
 				relationshipStatus,
 				friendshipId,
 				isFriend,
@@ -895,5 +927,63 @@ export const friendRouter = createTRPCRouter({
 				);
 
 			return result;
+		}),
+
+	ratingsByStars: protectedProcedure
+		.input(
+			z.object({ userId: z.string(), star: z.number().int().min(1).max(5) }),
+		)
+		.query(async ({ input, ctx }) => {
+			// Only self or friends can see ratings
+			if (ctx.userId !== input.userId) {
+				const existingFriendship = await db.query.friendship.findFirst({
+					where: and(
+						or(
+							and(
+								eq(friendship.requesterId, ctx.userId),
+								eq(friendship.addresseeId, input.userId),
+							),
+							and(
+								eq(friendship.requesterId, input.userId),
+								eq(friendship.addresseeId, ctx.userId),
+							),
+						),
+						eq(friendship.status, "accepted"),
+					),
+				});
+				if (!existingFriendship) return [];
+			}
+
+			const rows = await db
+				.select({
+					tmdbId: watchEvent.tmdbId,
+					mediaType: watchEvent.mediaType,
+					titleName: watchEvent.titleName,
+					reviewText: watchEvent.reviewText,
+				})
+				.from(watchEvent)
+				.where(
+					and(
+						eq(watchEvent.userId, input.userId),
+						eq(watchEvent.rating, input.star),
+						eq(watchEvent.visibility, "public"),
+					),
+				)
+				.orderBy(
+					sql`COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}) desc`,
+				);
+
+			// Deduplicate by tmdbId+mediaType (keep first / most recent)
+			const seen = new Set<string>();
+			const deduped: typeof rows = [];
+			for (const row of rows) {
+				const key = `${row.tmdbId}-${row.mediaType}`;
+				if (!seen.has(key)) {
+					seen.add(key);
+					deduped.push(row);
+				}
+			}
+
+			return deduped;
 		}),
 });

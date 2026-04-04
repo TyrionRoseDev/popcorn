@@ -12,12 +12,13 @@ import {
 	RotateCcw,
 	Trash2,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CompletionCelebration } from "#/components/tracker/completion-celebration";
 import { RewatchConfirmModal } from "#/components/tracker/rewatch-confirm-modal";
 import { WriteAboutModal } from "#/components/tracker/write-about-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
+import { WatchlistRemovalDialog } from "#/components/watchlist/watchlist-removal-dialog";
 import { useTRPC } from "#/integrations/trpc/react";
 
 export const Route = createFileRoute("/app/tracker/$tmdbId")({
@@ -37,6 +38,19 @@ function ShowTracker() {
 	const [selectedWatchNumber, setSelectedWatchNumber] = useState<number | null>(
 		null,
 	);
+	const [removalDialogOpen, setRemovalDialogOpen] = useState(false);
+	const [removalWatchlists, setRemovalWatchlists] = useState<
+		Array<{
+			watchlistId: string;
+			watchlistName: string;
+			watchlistType: string;
+		}>
+	>([]);
+	const [reviewPromptEpisode, setReviewPromptEpisode] = useState<{
+		seasonNumber: number;
+		episodeNumber: number;
+	} | null>(null);
+	const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
 	// Fetch current watch number (needed before getForShow)
 	const { data: watchNumberData } = useQuery(
@@ -157,6 +171,21 @@ function ShowTracker() {
 				if (isNowComplete && !hasShowReview) {
 					setShowCelebration(true);
 				}
+
+				// Prompt for episode review (last episode in batch)
+				if (variables.episodes.length === 1) {
+					const ep = variables.episodes[0];
+					setReviewPromptEpisode({
+						seasonNumber: ep.seasonNumber,
+						episodeNumber: ep.episodeNumber,
+					});
+				} else if (variables.episodes.length > 1) {
+					const lastEp = variables.episodes[variables.episodes.length - 1];
+					setReviewPromptEpisode({
+						seasonNumber: lastEp.seasonNumber,
+						episodeNumber: lastEp.episodeNumber,
+					});
+				}
 			},
 			onError: () => {
 				toast.error("Failed to mark episodes");
@@ -190,6 +219,47 @@ function ShowTracker() {
 			},
 		}),
 	);
+
+	const removeItemMutation = useMutation(
+		trpc.watchlist.removeItem.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(trpc.watchlist.list.queryFilter());
+				queryClient.invalidateQueries(trpc.watchlist.get.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.watchlist.isBookmarked.queryFilter(),
+				);
+			},
+		}),
+	);
+
+	function triggerWatchlistRemoval() {
+		queryClient
+			.fetchQuery(
+				trpc.watchlist.getWatchlistsForTitle.queryOptions({
+					tmdbId,
+					mediaType: "tv",
+				}),
+			)
+			.then((wls) => {
+				if (wls.length === 0) return;
+				if (wls.length === 1) {
+					removeItemMutation.mutate(
+						{
+							watchlistId: wls[0].watchlistId,
+							tmdbId,
+							mediaType: "tv",
+						},
+						{
+							onSuccess: () =>
+								toast.success(`Removed from ${wls[0].watchlistName}`),
+						},
+					);
+				} else {
+					setRemovalWatchlists(wls);
+					setRemovalDialogOpen(true);
+				}
+			});
+	}
 
 	const startRewatchMut = useMutation(
 		trpc.episodeTracker.startRewatch.mutationOptions({
@@ -253,6 +323,13 @@ function ShowTracker() {
 			duration: 5000,
 		});
 	}
+
+	useEffect(() => {
+		if (reviewPromptEpisode && !reviewModalOpen) {
+			const timer = setTimeout(() => setReviewPromptEpisode(null), 8000);
+			return () => clearTimeout(timer);
+		}
+	}, [reviewPromptEpisode, reviewModalOpen]);
 
 	// Upcoming episodes (future air dates for "Returning Series")
 	const upcomingEpisodes = useMemo(() => {
@@ -1062,17 +1139,29 @@ function ShowTracker() {
 					titleName={titleData.title}
 					posterPath={titleData.posterPath ?? null}
 					episodeCount={totalEpisodes}
-					onReview={() => setReviewOpen(true)}
+					onReview={() => {
+						setReviewOpen(true);
+					}}
 					onRemindLater={() => {
-						createReminder.mutate({
-							tmdbId,
-							mediaType: "tv",
-							titleName: titleData.title,
-							posterPath: titleData.posterPath,
-							remindMe: true,
-							scope: "show",
-						});
-						toast.success("We'll remind you to review in 7 days");
+						createReminder.mutate(
+							{
+								tmdbId,
+								mediaType: "tv",
+								titleName: titleData.title,
+								posterPath: titleData.posterPath,
+								remindMe: true,
+								scope: "show",
+							},
+							{
+								onSuccess: () => {
+									toast.success("We'll remind you to review in 7 days");
+									triggerWatchlistRemoval();
+								},
+								onError: () => {
+									toast.error("Failed to set reminder");
+								},
+							},
+						);
 					}}
 				/>
 			)}
@@ -1082,11 +1171,25 @@ function ShowTracker() {
 				<ReviewModal
 					open={reviewOpen}
 					onOpenChange={setReviewOpen}
+					onEventCreated={() => {
+						triggerWatchlistRemoval();
+					}}
 					titleName={titleData.title}
 					year={titleData.year || undefined}
 					tmdbId={tmdbId}
 					mediaType="tv"
-					onEventCreated={() => setReviewOpen(false)}
+				/>
+			)}
+
+			{/* Watchlist removal dialog (after show completion) */}
+			{titleData && (
+				<WatchlistRemovalDialog
+					open={removalDialogOpen}
+					onOpenChange={setRemovalDialogOpen}
+					tmdbId={tmdbId}
+					mediaType="tv"
+					titleName={titleData.title}
+					watchlists={removalWatchlists}
 				/>
 			)}
 
@@ -1125,6 +1228,58 @@ function ShowTracker() {
 				}}
 				isPending={startRewatchMut.isPending}
 			/>
+
+			{/* Episode review prompt */}
+			{reviewPromptEpisode && !reviewModalOpen && (
+				<div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[rgba(15,15,40,0.98)] border border-neon-amber/25 rounded-xl px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.5),0_0_16px_rgba(255,184,0,0.08)] text-center animate-in slide-in-from-bottom-4 duration-300">
+					<div className="text-[13px] text-cream/70 mb-3">
+						Add thoughts on{" "}
+						<span className="text-neon-cyan font-semibold">
+							S{reviewPromptEpisode.seasonNumber}E
+							{reviewPromptEpisode.episodeNumber}
+						</span>
+						?
+					</div>
+					<div className="flex gap-2 justify-center">
+						<button
+							type="button"
+							onClick={() => {
+								setReviewModalOpen(true);
+							}}
+							className="px-4 py-1.5 bg-neon-amber/15 border border-neon-amber/30 rounded-md text-[12px] font-semibold text-neon-amber hover:bg-neon-amber/25 transition-colors"
+						>
+							Yes
+						</button>
+						<button
+							type="button"
+							onClick={() => setReviewPromptEpisode(null)}
+							className="px-4 py-1.5 bg-transparent border border-cream/10 rounded-md text-[12px] text-cream/40 hover:text-cream/60 transition-colors"
+						>
+							Dismiss
+						</button>
+					</div>
+				</div>
+			)}
+
+			{reviewModalOpen && reviewPromptEpisode && (
+				<ReviewModal
+					open={reviewModalOpen}
+					onOpenChange={(open) => {
+						setReviewModalOpen(open);
+						if (!open) setReviewPromptEpisode(null);
+					}}
+					titleName={titleData?.title ?? ""}
+					tmdbId={tmdbId}
+					mediaType="tv"
+					scope="episode"
+					scopeSeasonNumber={reviewPromptEpisode.seasonNumber}
+					scopeEpisodeNumber={reviewPromptEpisode.episodeNumber}
+					onEventCreated={() => {
+						setReviewPromptEpisode(null);
+						setReviewModalOpen(false);
+					}}
+				/>
+			)}
 		</div>
 	);
 }
@@ -1291,8 +1446,8 @@ function NotesAndReviewsSection({
 				className="flex items-center gap-3 mb-4 pb-2"
 				style={{ borderBottom: "1px solid rgba(255,184,0,0.12)" }}
 			>
-				<BookOpen className="h-4 w-4 text-cream/30" />
-				<h2 className="font-display text-base tracking-wide text-cream/50">
+				<BookOpen className="h-4 w-4 text-cream/50" />
+				<h2 className="font-display text-base tracking-wide text-cream/70">
 					Notes & Reviews
 				</h2>
 			</div>
@@ -1306,26 +1461,26 @@ function NotesAndReviewsSection({
 								key={`note-${entry.id}`}
 								className="group relative pl-4 py-3 pr-3 rounded-lg transition-colors duration-200"
 								style={{
-									background: "rgba(0,229,255,0.02)",
-									borderLeft: "2px solid rgba(0,229,255,0.2)",
+									background: "rgba(0,229,255,0.04)",
+									borderLeft: "2px solid rgba(0,229,255,0.35)",
 								}}
 							>
 								{/* Top row: scope badge, time, actions */}
 								<div className="flex items-center justify-between mb-2">
 									<div className="flex items-center gap-2">
-										<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-cyan/[0.06] font-mono-retro text-[9px] tracking-wider text-neon-cyan/50">
+										<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-cyan/[0.12] font-mono-retro text-[9px] tracking-wider text-neon-cyan/70">
 											{formatScopeBadge(
 												entry.scope,
 												entry.seasonNumber,
 												entry.episodeNumber,
 											)}
 										</span>
-										<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-pink/[0.06] font-mono-retro text-[9px] tracking-wider text-neon-pink/40">
+										<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-pink/[0.12] font-mono-retro text-[9px] tracking-wider text-neon-pink/60">
 											{entry.watchNumber === 1
 												? "Watch 1"
 												: `Rewatch ${entry.watchNumber}`}
 										</span>
-										<span className="font-mono-retro text-[9px] text-cream/20">
+										<span className="font-mono-retro text-[9px] text-cream/35">
 											{formatRelativeDate(entry.createdAt)}
 										</span>
 									</div>
@@ -1338,7 +1493,7 @@ function NotesAndReviewsSection({
 									</button>
 								</div>
 								{/* Note text */}
-								<p className="text-sm text-cream/55 leading-relaxed whitespace-pre-wrap">
+								<p className="text-sm text-cream/75 leading-relaxed whitespace-pre-wrap">
 									{entry.note}
 								</p>
 							</div>
@@ -1351,8 +1506,8 @@ function NotesAndReviewsSection({
 							key={`review-${event.id}`}
 							className="group relative pl-4 py-3 pr-3 rounded-lg transition-colors duration-200"
 							style={{
-								background: "rgba(255,184,0,0.02)",
-								borderLeft: "2px solid rgba(255,184,0,0.2)",
+								background: "rgba(255,184,0,0.04)",
+								borderLeft: "2px solid rgba(255,184,0,0.35)",
 							}}
 						>
 							{/* Top row */}
@@ -1363,26 +1518,26 @@ function NotesAndReviewsSection({
 											{Array.from({ length: 5 }).map((_, i) => (
 												<span
 													key={`star-${event.id}-${i.toString()}`}
-													className={`text-[10px] ${event.rating != null && i < event.rating ? "text-neon-amber" : "text-cream/10"}`}
+													className={`text-[10px] ${event.rating != null && i < event.rating ? "text-neon-amber" : "text-cream/15"}`}
 												>
 													★
 												</span>
 											))}
 										</span>
 									)}
-									<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-amber/[0.06] font-mono-retro text-[9px] tracking-wider text-neon-amber/50">
+									<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-amber/[0.12] font-mono-retro text-[9px] tracking-wider text-neon-amber/70">
 										{formatScopeBadge(
 											event.scope,
 											event.scopeSeasonNumber,
 											event.scopeEpisodeNumber,
 										)}
 									</span>
-									<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-pink/[0.06] font-mono-retro text-[9px] tracking-wider text-neon-pink/40">
+									<span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-neon-pink/[0.12] font-mono-retro text-[9px] tracking-wider text-neon-pink/60">
 										{event.watchNumber === 1
 											? "Watch 1"
 											: `Rewatch ${event.watchNumber}`}
 									</span>
-									<span className="font-mono-retro text-[9px] text-cream/20">
+									<span className="font-mono-retro text-[9px] text-cream/35">
 										{formatRelativeDate(event.createdAt)}
 									</span>
 								</div>
@@ -1396,7 +1551,7 @@ function NotesAndReviewsSection({
 							</div>
 							{/* Review text */}
 							{event.note && (
-								<p className="text-sm text-cream/55 leading-relaxed whitespace-pre-wrap">
+								<p className="text-sm text-cream/75 leading-relaxed whitespace-pre-wrap">
 									{event.note}
 								</p>
 							)}

@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
+	type AnyPgColumn,
 	boolean,
 	check,
 	index,
@@ -284,6 +285,10 @@ export const watchEvent = pgTable(
 			.$type<"public" | "companion" | "private">()
 			.default("public")
 			.notNull(),
+		originEventId: text("origin_event_id").references(
+			(): AnyPgColumn => watchEvent.id,
+			{ onDelete: "set null" },
+		),
 		title: text("title"),
 		note: text("note"),
 		posterPath: text("poster_path"),
@@ -700,6 +705,11 @@ export const watchEventRelations = relations(watchEvent, ({ one, many }) => ({
 	user: one(user, {
 		fields: [watchEvent.userId],
 		references: [user.id],
+	}),
+	originEvent: one(watchEvent, {
+		fields: [watchEvent.originEventId],
+		references: [watchEvent.id],
+		relationName: "reciprocal",
 	}),
 	companions: many(watchEventCompanion),
 	episodeWatches: many(episodeWatch),

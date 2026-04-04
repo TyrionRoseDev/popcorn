@@ -13,6 +13,7 @@ import { ChangeUsernameDialog } from "#/components/settings/change-username-dial
 import { DeleteAccountDialog } from "#/components/settings/delete-account-dialog";
 import { EditBioDialog } from "#/components/settings/edit-bio-dialog";
 import { EditFavouriteFilmDialog } from "#/components/settings/edit-favourite-film-dialog";
+import { EditFavouriteGenreDialog } from "#/components/settings/edit-favourite-genre-dialog";
 import { EditGenresDialog } from "#/components/settings/edit-genres-dialog";
 import { useTRPC } from "#/integrations/trpc/react";
 import { authClient } from "#/lib/auth-client";
@@ -46,6 +47,7 @@ function SettingsPage() {
 	const [deleteOpen, setDeleteOpen] = useState(false);
 	const [genresOpen, setGenresOpen] = useState(false);
 	const [filmOpen, setFilmOpen] = useState(false);
+	const [favGenreOpen, setFavGenreOpen] = useState(false);
 	const [bioOpen, setBioOpen] = useState(false);
 
 	// Fetch user genres
@@ -171,7 +173,7 @@ function SettingsPage() {
 				>
 					<div className="mb-1.5 flex items-center justify-between">
 						<span className="text-[9px] font-semibold uppercase tracking-wider text-cream/30">
-							Genres
+							Favourite Genres
 						</span>
 						<Pencil className="h-3.5 w-3.5 text-cream/20" />
 					</div>
@@ -220,6 +222,29 @@ function SettingsPage() {
 								{filmDetails.data.title}
 							</span>
 						</div>
+					) : (
+						<span className="text-sm text-cream/30">Not set</span>
+					)}
+				</button>
+
+				<div className="mb-4 border-t border-cream/[0.04]" />
+
+				{/* Favourite Genre */}
+				<button
+					type="button"
+					onClick={() => setFavGenreOpen(true)}
+					className="mb-4 w-full text-left"
+				>
+					<div className="mb-1.5 flex items-center justify-between">
+						<span className="text-[9px] font-semibold uppercase tracking-wider text-cream/30">
+							Favourite Genre
+						</span>
+						<Pencil className="h-3.5 w-3.5 text-cream/20" />
+					</div>
+					{user.favouriteGenreId ? (
+						<span className="text-sm text-cream/70">
+							{getUnifiedGenreById(user.favouriteGenreId)?.name ?? "Unknown"}
+						</span>
 					) : (
 						<span className="text-sm text-cream/30">Not set</span>
 					)}
@@ -306,6 +331,11 @@ function SettingsPage() {
 				currentTmdbId={user.favouriteFilmTmdbId}
 				currentTitle={filmDetails.data?.title ?? null}
 				currentPosterPath={filmDetails.data?.posterPath ?? null}
+			/>
+			<EditFavouriteGenreDialog
+				open={favGenreOpen}
+				onOpenChange={setFavGenreOpen}
+				currentGenreId={user.favouriteGenreId}
 			/>
 			<EditBioDialog
 				open={bioOpen}

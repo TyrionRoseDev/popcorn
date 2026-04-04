@@ -1,90 +1,87 @@
 const BULBS = Array.from({ length: 20 }, (_, i) => ({
 	id: `bulb-${i}`,
-	leftPercent: `${(i / 19) * 100}%`,
-	delay: i % 2 === 0 ? "0s" : "0.6s",
+	even: i % 2 === 0,
 }));
-
-function ChasingBulbs({ position }: { position: "top" | "bottom" }) {
-	const posStyle = position === "top" ? { top: "-4px" } : { bottom: "-4px" };
-
-	return (
-		<>
-			{BULBS.map((bulb) => (
-				<div
-					key={bulb.id}
-					className="absolute rounded-full"
-					style={{
-						...posStyle,
-						left: bulb.leftPercent,
-						width: "6px",
-						height: "6px",
-						backgroundColor: "#FFB800",
-						transform: "translateX(-50%)",
-						animationName: "bulb-chase",
-						animationDuration: "1.2s",
-						animationTimingFunction: "ease-in-out",
-						animationIterationCount: "infinite",
-						animationDelay: bulb.delay,
-					}}
-				/>
-			))}
-		</>
-	);
-}
 
 export function NowShowingHeader({ title }: { title: string }) {
 	return (
-		<div className="flex justify-center">
+		<div className="w-[700px] max-w-full h-[130px] mx-auto relative flex flex-col items-center justify-center px-10">
+			{/* Amber border */}
 			<div
-				className="relative text-center"
-				style={{ maxWidth: "700px", padding: "20px 40px" }}
+				aria-hidden="true"
+				style={{
+					position: "absolute",
+					inset: 0,
+					border: "2px solid rgba(255,184,0,0.3)",
+					borderRadius: "8px",
+					boxShadow: "0 0 20px rgba(255,184,0,0.08)",
+					pointerEvents: "none",
+				}}
+			/>
+
+			{/* Top chasing bulbs */}
+			<div
+				aria-hidden="true"
+				className="flex gap-3 justify-center"
+				style={{
+					position: "absolute",
+					top: "-4px",
+					left: "20px",
+					right: "20px",
+				}}
 			>
-				{/* Amber border */}
-				<div
-					className="absolute"
-					style={{
-						inset: 0,
-						border: "2px solid rgba(255,184,0,0.3)",
-						borderRadius: "8px",
-						boxShadow: "0 0 20px rgba(255,184,0,0.08)",
-						pointerEvents: "none",
-					}}
-				/>
-
-				{/* Chasing bulbs */}
-				<ChasingBulbs position="top" />
-				<ChasingBulbs position="bottom" />
-
-				{/* NOW SHOWING label */}
-				<p
-					className="font-mono-retro mb-2"
-					style={{
-						fontSize: "10px",
-						letterSpacing: "4px",
-						textTransform: "uppercase",
-						color: "#FFB800",
-						opacity: 0.7,
-						margin: 0,
-						marginBottom: "8px",
-					}}
-				>
-					Now Showing
-				</p>
-
-				{/* Title */}
-				<h1
-					className="font-display"
-					style={{
-						fontSize: "36px",
-						color: "#fffff0",
-						margin: 0,
-						textShadow:
-							"0 0 30px rgba(255,255,240,0.2), 0 0 60px rgba(255,255,240,0.05)",
-					}}
-				>
-					{title}
-				</h1>
+				{BULBS.map((bulb) => (
+					<div
+						key={bulb.id}
+						className="bg-neon-amber rounded-full"
+						style={{
+							width: "6px",
+							height: "6px",
+							flexShrink: 0,
+							animation: bulb.even
+								? "chase 1.2s infinite"
+								: "chase 1.2s infinite 0.6s",
+						}}
+					/>
+				))}
 			</div>
+
+			{/* Bottom chasing bulbs */}
+			<div
+				aria-hidden="true"
+				className="flex gap-3 justify-center"
+				style={{
+					position: "absolute",
+					bottom: "-4px",
+					left: "20px",
+					right: "20px",
+				}}
+			>
+				{BULBS.map((bulb) => (
+					<div
+						key={bulb.id}
+						className="bg-neon-amber rounded-full"
+						style={{
+							width: "6px",
+							height: "6px",
+							flexShrink: 0,
+							animation: bulb.even
+								? "chase 1.2s infinite"
+								: "chase 1.2s infinite 0.6s",
+						}}
+					/>
+				))}
+			</div>
+
+			{/* NOW SHOWING label */}
+			<p className="font-mono-retro text-[10px] tracking-[4px] uppercase text-neon-amber opacity-70 mb-2">
+				NOW SHOWING
+			</p>
+
+			{/* Title */}
+			<h1 className="font-display text-4xl uppercase text-cream [text-shadow:0_0_30px_rgba(255,255,240,0.2),0_0_60px_rgba(255,255,240,0.05)] mb-1.5">
+				{title}
+			</h1>
 		</div>
 	);
 }

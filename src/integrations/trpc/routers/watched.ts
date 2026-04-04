@@ -13,7 +13,13 @@ export const watchedRouter = createTRPCRouter({
 				tmdbId: z.number(),
 				mediaType: z.enum(["movie", "tv"]),
 				titleName: z.string(),
-				watchedAt: z.string().datetime().optional(),
+				watchedAt: z
+					.string()
+					.datetime()
+					.refine((d) => new Date(d) <= new Date(), {
+						message: "Watch date cannot be in the future",
+					})
+					.optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -37,7 +43,14 @@ export const watchedRouter = createTRPCRouter({
 				watchEventId: z.string(),
 				rating: z.number().min(1).max(5).nullable(),
 				reviewText: z.string().nullable(),
-				watchedAt: z.string().datetime().optional(),
+				watchedAt: z
+					.string()
+					.datetime()
+					.refine((d) => new Date(d) <= new Date(), {
+						message: "Watch date cannot be in the future",
+					})
+					.optional()
+					.nullable(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -61,7 +74,9 @@ export const watchedRouter = createTRPCRouter({
 					rating: input.rating,
 					reviewText: input.reviewText,
 					reviewReminderAt: null,
-					...(input.watchedAt && { watchedAt: new Date(input.watchedAt) }),
+					...(input.watchedAt !== undefined
+						? { watchedAt: input.watchedAt ? new Date(input.watchedAt) : null }
+						: {}),
 					updatedAt: new Date(),
 				})
 				.where(

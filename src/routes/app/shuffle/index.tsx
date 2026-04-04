@@ -54,11 +54,11 @@ function ShufflePage() {
 
 			{/* Full-screen immersive layout */}
 			<div
-				className="relative mx-auto flex h-[100dvh] max-w-md flex-col items-center px-3 pt-3 pb-3"
+				className="relative mx-auto flex h-[100dvh] max-w-[700px] flex-col items-center px-3 pt-3 pb-3"
 				style={{ zIndex: 2 }}
 			>
 				{/* TOP: Theater marquee */}
-				<div className="flex shrink-0 justify-center">
+				<div className="flex w-full shrink-0 justify-center">
 					<ShuffleMarquee />
 				</div>
 
@@ -76,7 +76,7 @@ function ShufflePage() {
 				</div>
 
 				{/* CENTER: Card stack or countdown loader */}
-				<div className="flex w-full flex-1 items-center justify-center py-2">
+				<div className="flex w-full max-w-md flex-1 items-center justify-center py-2">
 					{isLoading || !resolvedWatchlistId ? (
 						<div
 							className="w-full max-w-[360px]"

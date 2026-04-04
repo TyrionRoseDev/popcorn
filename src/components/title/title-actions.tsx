@@ -13,6 +13,7 @@ import { RecommendModal } from "#/components/watched/recommend-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { CreateWatchlistDialog } from "#/components/watchlist/create-watchlist-dialog";
+import { WatchlistRemovalDialog } from "#/components/watchlist/watchlist-removal-dialog";
 import { useTRPC } from "#/integrations/trpc/react";
 
 interface TitleActionsProps {
@@ -28,6 +29,7 @@ interface TitleActionsProps {
 		episodeCount: number;
 		name: string;
 	}>;
+	status?: string;
 }
 
 export function TitleActions({
@@ -38,6 +40,7 @@ export function TitleActions({
 	runtime,
 	year,
 	reviewEventId,
+	status,
 }: TitleActionsProps) {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
@@ -49,20 +52,26 @@ export function TitleActions({
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [inviteOpen, setInviteOpen] = useState(false);
 	const [reviewOpen, setReviewOpen] = useState(false);
+	const [removalDialogOpen, setRemovalDialogOpen] = useState(false);
+	const [removalWatchlists, setRemovalWatchlists] = useState<
+		Array<{
+			watchlistId: string;
+			watchlistName: string;
+			watchlistType: string;
+		}>
+	>([]);
 	const [editEvent, setEditEvent] = useState<
 		| {
 				id: string;
 				rating: number | null;
 				note: string | null;
-				watchedAt: string;
+				watchedAt: string | null;
 				companions: Array<{ friendId?: string; name: string }>;
 				visibility: "public" | "companion" | "private";
 		  }
 		| undefined
 	>(undefined);
-	const [pendingWatchlistId, setPendingWatchlistId] = useState<string | null>(
-		null,
-	);
+	const [pendingRemovalCheck, setPendingRemovalCheck] = useState(false);
 
 	// Queries
 	const { data: watchlists, isLoading: watchlistsLoading } = useQuery(
@@ -71,6 +80,10 @@ export function TitleActions({
 
 	const { data: isWatched } = useQuery(
 		trpc.watchlist.isWatched.queryOptions({ tmdbId, mediaType }),
+	);
+
+	const { data: isBookmarked } = useQuery(
+		trpc.watchlist.isBookmarked.queryOptions({ tmdbId, mediaType }),
 	);
 
 	const { data: latestRating } = useQuery(
@@ -91,7 +104,9 @@ export function TitleActions({
 			id: event.id,
 			rating: event.rating,
 			note: event.note,
-			watchedAt: event.watchedAt ? new Date(event.watchedAt).toISOString() : "",
+			watchedAt: event.watchedAt
+				? new Date(event.watchedAt).toISOString()
+				: null,
 			companions: event.companions.map((c) => ({
 				friendId: c.friendId ?? undefined,
 				name: c.name,
@@ -140,11 +155,11 @@ export function TitleActions({
 				queryClient.invalidateQueries(trpc.watchEvent.getFeed.queryFilter());
 				if (data.watched) {
 					toast.success("Marked as watched");
-					if (latestRating === null) {
-						setPendingWatchlistId(data.defaultWatchlistId);
+					if (latestRating == null) {
+						setPendingRemovalCheck(true);
 						setReviewOpen(true);
 					} else {
-						showRemovalToast(data.defaultWatchlistId);
+						triggerWatchlistRemoval();
 					}
 				} else {
 					toast.success("Removed from watched");
@@ -152,15 +167,6 @@ export function TitleActions({
 			},
 			onError: () => {
 				toast.error("Failed to update watched status");
-			},
-		}),
-	);
-
-	const keepInWatchlistMutation = useMutation(
-		trpc.watchlist.keepInWatchlist.mutationOptions({
-			onSuccess: () => {
-				queryClient.invalidateQueries(trpc.watchlist.list.queryFilter());
-				queryClient.invalidateQueries(trpc.watchlist.get.queryFilter());
 			},
 		}),
 	);
@@ -177,17 +183,41 @@ export function TitleActions({
 		}),
 	);
 
-	function showRemovalToast(watchlistId: string) {
-		toast("Remove from watchlist?", {
-			duration: 8000,
-			action: {
-				label: "Remove",
-				onClick: () =>
-					removeItemMutation.mutate({ watchlistId, tmdbId, mediaType }),
-			},
-			onDismiss: () => keepInWatchlistMutation.mutate({ tmdbId, mediaType }),
-			onAutoClose: () => keepInWatchlistMutation.mutate({ tmdbId, mediaType }),
-		});
+	function triggerWatchlistRemoval() {
+		// Don't prompt removal for TV shows still airing
+		if (
+			mediaType === "tv" &&
+			status &&
+			status !== "Ended" &&
+			status !== "Canceled"
+		) {
+			return;
+		}
+
+		const client = trpc.watchlist.getWatchlistsForTitle;
+		queryClient
+			.fetchQuery(client.queryOptions({ tmdbId, mediaType }))
+			.then((wls) => {
+				if (wls.length === 0) return;
+				if (wls.length === 1) {
+					// Auto-remove from the single watchlist
+					removeItemMutation.mutate(
+						{
+							watchlistId: wls[0].watchlistId,
+							tmdbId,
+							mediaType,
+						},
+						{
+							onSuccess: () =>
+								toast.success(`Removed from ${wls[0].watchlistName}`),
+						},
+					);
+				} else {
+					// Multiple watchlists — show selection dialog
+					setRemovalWatchlists(wls);
+					setRemovalDialogOpen(true);
+				}
+			});
 	}
 
 	function handleAddToWatchlist(watchlistId: string, watchlistName: string) {
@@ -267,7 +297,12 @@ export function TitleActions({
 				<Popover open={watchlistOpen} onOpenChange={setWatchlistOpen}>
 					<PopoverTrigger asChild>
 						<div>
-							<ArcadeButton icon={Plus} label="Watchlist" color="pink" />
+							<ArcadeButton
+								icon={Plus}
+								label="Watchlist"
+								color="pink"
+								active={!!isBookmarked}
+							/>
 						</div>
 					</PopoverTrigger>
 					<PopoverContent
@@ -380,7 +415,10 @@ export function TitleActions({
 					setReviewOpen(open);
 					if (!open) {
 						setEditEvent(undefined);
-						setPendingWatchlistId(null);
+						if (pendingRemovalCheck) {
+							setPendingRemovalCheck(false);
+							triggerWatchlistRemoval();
+						}
 					}
 				}}
 				titleName={title}
@@ -388,12 +426,15 @@ export function TitleActions({
 				tmdbId={tmdbId}
 				mediaType={mediaType}
 				editEvent={editEvent}
-				onEventCreated={() => {
-					if (pendingWatchlistId) {
-						showRemovalToast(pendingWatchlistId);
-						setPendingWatchlistId(null);
-					}
-				}}
+			/>
+
+			<WatchlistRemovalDialog
+				open={removalDialogOpen}
+				onOpenChange={setRemovalDialogOpen}
+				tmdbId={tmdbId}
+				mediaType={mediaType}
+				titleName={title}
+				watchlists={removalWatchlists}
 			/>
 
 			<RecommendModal

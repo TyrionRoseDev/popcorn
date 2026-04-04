@@ -1,7 +1,8 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Film, Loader2, Trophy } from "lucide-react";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, Film, Loader2, Trophy } from "lucide-react";
 import { type ReactNode, useState } from "react";
+import { z } from "zod";
 import { FeedAtmosphere } from "#/components/feed/feed-atmosphere";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { FeedJournalCard } from "#/components/tracker/feed-journal-card";
@@ -12,13 +13,29 @@ import { NowShowingHeader } from "#/components/watchlist/now-showing-header";
 import { useTRPC } from "#/integrations/trpc/react";
 import { ACHIEVEMENTS_BY_ID } from "#/lib/achievements";
 
+const feedSearchSchema = z.object({
+	userId: z.string().optional(),
+});
+
 export const Route = createFileRoute("/app/feed")({
 	component: FeedPage,
+	validateSearch: feedSearchSchema,
 });
 
 function FeedPage() {
 	const trpc = useTRPC();
+	const { userId: filterUserId } = Route.useSearch();
+	const navigate = useNavigate();
 	const [filter, setFilter] = useState<"all" | "mine">("all");
+
+	// Fetch target user's username when filtering by userId
+	const { data: filterUser } = useQuery(
+		trpc.friend.profile.queryOptions(
+			{ userId: filterUserId ?? "" },
+			{ enabled: !!filterUserId },
+		),
+	);
+
 	const [editModal, setEditModal] = useState<{
 		open: boolean;
 		tmdbId: number;
@@ -28,7 +45,7 @@ function FeedPage() {
 			id: string;
 			rating: number | null;
 			note: string | null;
-			watchedAt: string;
+			watchedAt: string | null;
 			companions: Companion[];
 			visibility: "public" | "companion" | "private";
 		};
@@ -40,7 +57,11 @@ function FeedPage() {
 	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
 		useInfiniteQuery(
 			trpc.watchEvent.getFeed.infiniteQueryOptions(
-				{ filter, limit: 20 },
+				{
+					filter: filterUserId ? "all" : filter,
+					limit: 20,
+					userId: filterUserId,
+				},
 				{ getNextPageParam: (lastPage) => lastPage.nextCursor },
 			),
 		);
@@ -53,22 +74,38 @@ function FeedPage() {
 			<div className="relative z-[2] mx-auto max-w-2xl 2xl:max-w-3xl px-4 py-8">
 				{/* Car silhouettes + Marquee header */}
 				<CarSilhouettes />
-				<NowShowingHeader title="Feed" />
+				<div className="mt-4">
+					<NowShowingHeader
+						title={filterUser ? `${filterUser.username}'s Feed` : "Feed"}
+					/>
+				</div>
 
-				{/* Filter */}
+				{/* Filter / Back link */}
 				<div className="flex justify-end mt-7 mb-6">
-					<select
-						value={filter}
-						onChange={(e) => setFilter(e.target.value as "all" | "mine")}
-						className="font-mono-retro text-xs tracking-wide text-neon-cyan bg-[rgba(0,229,255,0.06)] border border-[rgba(0,229,255,0.2)] rounded-md px-4 py-2 focus:outline-none focus:border-[rgba(0,229,255,0.35)] [color-scheme:dark] cursor-pointer"
-						style={{
-							textShadow: "0 0 6px rgba(0,229,255,0.2)",
-							boxShadow: "0 0 12px rgba(0,229,255,0.05)",
-						}}
-					>
-						<option value="all">Everyone</option>
-						<option value="mine">Just Me</option>
-					</select>
+					{filterUserId ? (
+						<button
+							type="button"
+							onClick={() => navigate({ to: "/app/feed", search: {} })}
+							className="flex items-center gap-1.5 font-mono-retro text-xs tracking-wide text-neon-cyan hover:text-neon-cyan/80 transition-colors"
+							style={{ textShadow: "0 0 6px rgba(0,229,255,0.2)" }}
+						>
+							<ArrowLeft className="h-3.5 w-3.5" />
+							Back to full feed
+						</button>
+					) : (
+						<select
+							value={filter}
+							onChange={(e) => setFilter(e.target.value as "all" | "mine")}
+							className="font-mono-retro text-xs tracking-wide text-neon-cyan bg-[rgba(0,229,255,0.06)] border border-[rgba(0,229,255,0.2)] rounded-md px-4 py-2 focus:outline-none focus:border-[rgba(0,229,255,0.35)] [color-scheme:dark] cursor-pointer"
+							style={{
+								textShadow: "0 0 6px rgba(0,229,255,0.2)",
+								boxShadow: "0 0 12px rgba(0,229,255,0.05)",
+							}}
+						>
+							<option value="all">Everyone</option>
+							<option value="mine">Just Me</option>
+						</select>
+					)}
 				</div>
 
 				{/* Feed */}
@@ -80,9 +117,11 @@ function FeedPage() {
 					<div className="flex flex-col items-center py-12 text-center">
 						<Film className="mb-3 h-8 w-8 text-cream/15" />
 						<p className="text-sm text-cream/30">
-							{filter === "mine"
-								? "No activity yet. Mark something as watched!"
-								: "No activity yet. Add some friends to see their activity here."}
+							{filterUserId
+								? `${filterUser?.username ?? "This user"} has no activity yet.`
+								: filter === "mine"
+									? "No activity yet. Mark something as watched!"
+									: "No activity yet. Add some friends to see their activity here."}
 						</p>
 					</div>
 				) : (
@@ -405,7 +444,7 @@ function WatchlistCreatedCard({
 function formatTimeAgo(date: Date | string): string {
 	const now = new Date();
 	const d = new Date(date);
-	const diffMs = now.getTime() - d.getTime();
+	const diffMs = Math.max(0, now.getTime() - d.getTime());
 	const diffMin = Math.floor(diffMs / 60000);
 	const diffHr = Math.floor(diffMs / 3600000);
 	const diffDay = Math.floor(diffMs / 86400000);
@@ -435,7 +474,10 @@ function groupByDate(
 	for (const item of items) {
 		const date = new Date(item.timestamp);
 		const now = new Date();
-		const diffDays = Math.floor((now.getTime() - date.getTime()) / 86400000);
+		const diffDays = Math.max(
+			0,
+			Math.floor((now.getTime() - date.getTime()) / 86400000),
+		);
 
 		let label: string;
 		if (diffDays === 0) label = "Today";

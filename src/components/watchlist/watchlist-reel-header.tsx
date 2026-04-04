@@ -1,5 +1,3 @@
-import { Settings } from "lucide-react";
-
 interface WatchlistReelHeaderProps {
 	name: string;
 	itemCount: number;
@@ -59,19 +57,6 @@ export function WatchlistReelHeader({
 						))}
 					</div>
 				)}
-
-				{/* Settings gear */}
-				<button
-					type="button"
-					className="flex h-8 w-8 items-center justify-center rounded-lg border border-cream/8 text-cream/30 transition-colors hover:bg-cream/4 hover:text-cream/60"
-					onClick={(e) => {
-						e.preventDefault();
-						e.stopPropagation();
-						// Settings dialog comes in a later task
-					}}
-				>
-					<Settings className="h-4 w-4" />
-				</button>
 			</div>
 		</div>
 	);

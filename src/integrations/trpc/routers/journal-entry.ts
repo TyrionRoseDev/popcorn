@@ -140,16 +140,21 @@ export const journalEntryRouter = {
 	getAll: protectedProcedure
 		.input(
 			z.object({
+				userId: z.string().optional(),
 				limit: z.number().min(1).max(50).default(20),
 				cursor: z.string().optional(),
 				tmdbId: z.number().optional(),
 			}),
 		)
 		.query(async ({ input, ctx }) => {
+			const targetUserId = input.userId ?? ctx.userId;
+			const isSelf = targetUserId === ctx.userId;
 			const cursorDate = input.cursor ? new Date(input.cursor) : undefined;
 			const entries = await db.query.journalEntry.findMany({
 				where: and(
-					eq(journalEntry.userId, ctx.userId),
+					eq(journalEntry.userId, targetUserId),
+					// Only show public entries when viewing someone else's profile
+					...(!isSelf ? [eq(journalEntry.isPublic, true)] : []),
 					...(input.tmdbId ? [eq(journalEntry.tmdbId, input.tmdbId)] : []),
 					...(cursorDate
 						? [sql`${journalEntry.createdAt} < ${cursorDate}`]
