@@ -51,11 +51,11 @@ export function NotificationBell() {
 			<PopoverTrigger asChild>
 				<button
 					type="button"
-					className="relative rounded-lg p-2 text-cream/50 transition-colors hover:bg-cream/5 hover:text-cream/80 data-[state=open]:text-neon-cyan"
+					className="relative rounded-full p-2.5 text-cream/50 transition-colors hover:bg-cream/5 hover:text-cream/80 data-[state=open]:text-neon-cyan"
 				>
-					<Bell className="h-5 w-5" />
+					<Bell className="h-[22px] w-[22px]" />
 					{unreadCount > 0 && (
-						<span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-neon-pink px-1 text-[10px] font-bold text-white">
+						<span className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-neon-pink px-1 text-[10px] font-bold text-white shadow-[0_0_8px_rgba(255,45,120,0.4)]">
 							{unreadCount > 9 ? "9+" : unreadCount}
 						</span>
 					)}

@@ -75,8 +75,8 @@ function AppLayout() {
 			<RetroOverlays />
 
 			{/* Header */}
-			<header className="sticky top-0 z-50 border-b border-cream/8 bg-drive-in-bg/80 backdrop-blur-lg">
-				{/* Top row — logo centered, actions right */}
+			<header className="relative sticky top-0 z-50 border-b border-cream/8 bg-drive-in-bg/80 backdrop-blur-lg">
+				{/* Top row — logo centered */}
 				<div className="relative mx-auto max-w-6xl px-4 2xl:max-w-[1600px]">
 					{/* Mobile hamburger */}
 					<button
@@ -108,12 +108,12 @@ function AppLayout() {
 							</span>
 						</Link>
 					</div>
+				</div>
 
-					{/* Right-side actions */}
-					<div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-3">
-						<NotificationBell />
-						<BetterAuthHeader />
-					</div>
+				{/* Right-side actions — centered across full header height */}
+				<div className="absolute right-5 top-1/2 flex -translate-y-1/2 items-center gap-3">
+					<NotificationBell />
+					<BetterAuthHeader />
 				</div>
 
 				{/* Bottom row — desktop tab strip */}
@@ -261,7 +261,7 @@ function AppLayout() {
 			</Sheet>
 
 			{/* Page content */}
-			<div className="relative z-10">
+			<div className="relative">
 				<Outlet />
 			</div>
 		</div>
