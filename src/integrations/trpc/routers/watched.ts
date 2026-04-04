@@ -73,7 +73,7 @@ export const watchedRouter = createTRPCRouter({
 
 			// Notify recommenders only on first review (not edits)
 			const hasReview = input.rating != null || !!input.reviewText;
-			if (!hadReview && hasReview && existing.reviewPublic) {
+			if (!hadReview && hasReview && existing.visibility === "public") {
 				const recs = await db.query.recommendation.findMany({
 					where: and(
 						eq(recommendation.recipientId, ctx.userId),
