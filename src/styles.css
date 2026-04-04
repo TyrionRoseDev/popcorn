@@ -570,11 +570,6 @@ a {
   transform: translate3d(0, 0, -1em);
 }
 
-.cta-push:focus-visible {
-  outline: 2px solid rgba(255,45,120,0.7);
-  outline-offset: 3px;
-}
-
 @keyframes fog-crawl {
   0% { transform: translateX(-10%) scaleX(1.1); }
   50% { transform: translateX(10%) scaleX(0.95); }
