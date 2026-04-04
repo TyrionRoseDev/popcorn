@@ -6,6 +6,7 @@ import { db } from "#/db";
 import {
 	shuffleSwipe,
 	userGenre,
+	watchEvent,
 	watchlist,
 	watchlistItem,
 	watchlistMember,
@@ -206,37 +207,63 @@ export const shuffleRouter = {
 				ratio,
 			);
 
-			// Filter out already-swiped items
+			// Filter out already-swiped, watchlisted, and watched items
 			const twoWeeksAgo = new Date();
 			twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-			const swipes = await db.query.shuffleSwipe.findMany({
-				where: and(
-					eq(shuffleSwipe.userId, ctx.userId),
-					eq(shuffleSwipe.watchlistId, input.watchlistId),
-				),
-				columns: {
-					tmdbId: true,
-					mediaType: true,
-					action: true,
-					createdAt: true,
-				},
-			});
+			const [swipes, userWatchlists, watchedTitles] = await Promise.all([
+				db.query.shuffleSwipe.findMany({
+					where: and(
+						eq(shuffleSwipe.userId, ctx.userId),
+						eq(shuffleSwipe.watchlistId, input.watchlistId),
+					),
+					columns: {
+						tmdbId: true,
+						mediaType: true,
+						action: true,
+						createdAt: true,
+					},
+				}),
+				db.query.watchlistMember.findMany({
+					where: eq(watchlistMember.userId, ctx.userId),
+					columns: { watchlistId: true },
+				}),
+				db.query.watchEvent.findMany({
+					where: eq(watchEvent.userId, ctx.userId),
+					columns: { tmdbId: true, mediaType: true },
+				}),
+			]);
 
-			const swipedSet = new Set<string>();
+			const wlIds = userWatchlists.map((m) => m.watchlistId);
+			const existingItems =
+				wlIds.length > 0
+					? await db.query.watchlistItem.findMany({
+							where: inArray(watchlistItem.watchlistId, wlIds),
+							columns: { tmdbId: true, mediaType: true },
+						})
+					: [];
+
+			const excludeSet = new Set<string>();
+
 			for (const s of swipes) {
-				// Always filter: yes swipes and hide swipes (globally)
 				if (s.action === "yes" || s.action === "hide") {
-					swipedSet.add(`${s.tmdbId}-${s.mediaType}`);
+					excludeSet.add(`${s.tmdbId}-${s.mediaType}`);
 				}
-				// Filter no swipes only if within 2 weeks
 				if (s.action === "no" && s.createdAt >= twoWeeksAgo) {
-					swipedSet.add(`${s.tmdbId}-${s.mediaType}`);
+					excludeSet.add(`${s.tmdbId}-${s.mediaType}`);
 				}
 			}
 
+			for (const item of existingItems) {
+				excludeSet.add(`${item.tmdbId}-${item.mediaType}`);
+			}
+
+			for (const item of watchedTitles) {
+				excludeSet.add(`${item.tmdbId}-${item.mediaType}`);
+			}
+
 			const filtered = deduplicateFeed(interleaved).filter(
-				(item) => !swipedSet.has(`${item.tmdbId}-${item.mediaType}`),
+				(item) => !excludeSet.has(`${item.tmdbId}-${item.mediaType}`),
 			);
 
 			const pageItems = filtered.slice(0, BATCH_SIZE);

@@ -40,6 +40,7 @@ export function CardStack({ watchlistId }: CardStackProps) {
 			cursor,
 		}),
 		enabled: cards.length < 5,
+		gcTime: 0,
 	});
 
 	// Merge new items into cards when data arrives
