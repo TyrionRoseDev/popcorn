@@ -280,7 +280,7 @@ export const watchEvent = pgTable(
 		titleName: text("title_name").notNull(),
 		rating: integer("rating"),
 		reviewText: text("review_text"),
-		reviewPublic: boolean("review_public").default(true).notNull(),
+		visibility: text("visibility").default("public").notNull(),
 		title: text("title"),
 		note: text("note"),
 		posterPath: text("poster_path"),

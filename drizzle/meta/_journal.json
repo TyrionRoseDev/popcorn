@@ -15,6 +15,13 @@
       "when": 1775291404070,
       "tag": "0001_sweet_bucky",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775293300974,
+      "tag": "0002_lively_sabretooth",
+      "breakpoints": true
     }
   ]
 }
