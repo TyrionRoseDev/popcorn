@@ -322,7 +322,7 @@ export const watchEventRouter = {
 				cursor: z.string().optional(),
 			}),
 		)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			const events = await db.query.watchEvent.findMany({
 				where: and(
 					eq(watchEvent.userId, input.userId),
@@ -342,7 +342,18 @@ export const watchEventRouter = {
 			});
 
 			const hasMore = events.length > input.limit;
-			const items = hasMore ? events.slice(0, input.limit) : events;
+			const raw = hasMore ? events.slice(0, input.limit) : events;
+			const items = raw.map((event) => {
+				if (event.userId === ctx.userId) return event;
+				if (event.visibility === "public") return event;
+				if (event.visibility === "companion") {
+					const isCompanion = event.companions.some(
+						(c) => c.friendId === ctx.userId,
+					);
+					if (isCompanion) return event;
+				}
+				return { ...event, rating: null, note: null };
+			});
 
 			return {
 				items,
