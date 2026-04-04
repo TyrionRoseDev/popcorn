@@ -88,7 +88,7 @@ function TitlePage() {
 							</button>
 						</div>
 						{/* Smaller screens: above trailer */}
-						<div className="xl:hidden px-6 pt-4 pb-2 flex justify-start max-w-[1100px] mx-auto">
+						<div className="xl:hidden px-6 pt-4 pb-2 flex justify-start max-w-[1100px] 2xl:max-w-[1400px] mx-auto">
 							<button
 								type="button"
 								onClick={() => router.history.back()}
@@ -115,7 +115,7 @@ function TitlePage() {
 				contentRating={data.contentRating}
 			/>
 
-			<div className="max-w-[1060px] mx-auto mt-12 px-8 pb-[120px] flex flex-col md:flex-row gap-12">
+			<div className="max-w-[1060px] 2xl:max-w-[1400px] mx-auto mt-12 px-8 pb-[120px] flex flex-col md:flex-row gap-12">
 				{/* Left column */}
 				<div className="w-full md:w-[280px] flex-shrink-0">
 					<PosterDisplayCase posterPath={data.posterPath} title={data.title} />

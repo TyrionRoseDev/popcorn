@@ -184,7 +184,7 @@ function TrackerDashboard() {
 	] as const;
 
 	return (
-		<div className="relative mx-auto max-w-3xl px-4 pt-8 pb-16">
+		<div className="relative mx-auto max-w-3xl 2xl:max-w-5xl px-4 pt-8 pb-16">
 			{/* Atmospheric background glow */}
 			<div
 				aria-hidden="true"

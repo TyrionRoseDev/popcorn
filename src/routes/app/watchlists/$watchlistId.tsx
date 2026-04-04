@@ -94,7 +94,7 @@ function WatchlistDetailPage() {
 			<>
 				<WatchlistAtmosphere />
 				<div
-					className="relative mx-auto max-w-6xl px-4"
+					className="relative mx-auto max-w-6xl 2xl:max-w-[1600px] px-4"
 					style={{ zIndex: 2, paddingTop: "40px" }}
 				>
 					<div className="space-y-6">
@@ -155,7 +155,7 @@ function WatchlistDetailPage() {
 				/>
 
 				{/* Filters */}
-				<div className="mx-auto mt-8 max-w-6xl px-4">
+				<div className="mx-auto mt-8 max-w-6xl 2xl:max-w-[1600px] px-4">
 					<WatchlistFilters
 						sort={sort}
 						type={type}
@@ -165,7 +165,7 @@ function WatchlistDetailPage() {
 				</div>
 
 				{/* Item grid */}
-				<div className="mx-auto mt-6 max-w-6xl px-4 pb-16">
+				<div className="mx-auto mt-6 max-w-6xl 2xl:max-w-[1600px] px-4 pb-16">
 					{filteredItems.length > 0 ? (
 						<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 							{filteredItems.map((item) => (

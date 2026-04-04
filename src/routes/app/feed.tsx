@@ -50,7 +50,7 @@ function FeedPage() {
 	return (
 		<>
 			<FeedAtmosphere />
-			<div className="relative z-[2] mx-auto max-w-2xl px-4 py-8">
+			<div className="relative z-[2] mx-auto max-w-2xl 2xl:max-w-3xl px-4 py-8">
 				{/* Car silhouettes + Marquee header */}
 				<CarSilhouettes />
 				<NowShowingHeader title="Feed" />

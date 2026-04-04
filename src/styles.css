@@ -255,6 +255,12 @@ pre code {
   margin-inline: auto;
 }
 
+@media (min-width: 1536px) {
+  .page-wrap {
+    width: min(1400px, calc(100% - 4rem));
+  }
+}
+
 .display-title {
   font-family: 'Fraunces', Georgia, serif;
 }
