@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { CardStack } from "#/components/shuffle/card-stack";
 import { CountdownLoader } from "#/components/shuffle/countdown-loader";
-import { ModePill } from "#/components/shuffle/mode-pill";
 import { ShuffleAtmosphere } from "#/components/shuffle/shuffle-atmosphere";
 import { ShuffleMarquee } from "#/components/shuffle/shuffle-marquee";
 import { useTRPC } from "#/integrations/trpc/react";
@@ -12,6 +11,8 @@ import { useTRPC } from "#/integrations/trpc/react";
 const shuffleSearchSchema = z.object({
 	watchlistId: z.string().optional(),
 });
+
+let hasPlayedIntro = false;
 
 export const Route = createFileRoute("/app/shuffle/")({
 	validateSearch: (search) => shuffleSearchSchema.parse(search),
@@ -26,9 +27,20 @@ function ShufflePage() {
 		trpc.shuffle.getOrCreateShuffleWatchlist.queryOptions(),
 	);
 
-	const [activeWatchlistId, setActiveWatchlistId] = useState<string | null>(
+	const [activeWatchlistId, _setActiveWatchlistId] = useState<string | null>(
 		initialWatchlistId ?? null,
 	);
+
+	// Show countdown intro only on first visit per session
+	const [showIntro, setShowIntro] = useState(!hasPlayedIntro);
+	useEffect(() => {
+		if (!showIntro) return;
+		const timer = setTimeout(() => {
+			hasPlayedIntro = true;
+			setShowIntro(false);
+		}, 1800);
+		return () => clearTimeout(timer);
+	}, [showIntro]);
 
 	const resolvedWatchlistId = activeWatchlistId ?? shuffleWatchlist?.id ?? null;
 
@@ -54,7 +66,7 @@ function ShufflePage() {
 
 			{/* Full-screen immersive layout */}
 			<div
-				className="relative mx-auto flex h-[100dvh] max-w-[700px] flex-col items-center px-3 pt-3 pb-3"
+				className="relative mx-auto flex h-[100dvh] max-w-[700px] flex-col items-center px-3 pt-8 pb-3"
 				style={{ zIndex: 2 }}
 			>
 				{/* TOP: Theater marquee */}
@@ -62,22 +74,9 @@ function ShufflePage() {
 					<ShuffleMarquee />
 				</div>
 
-				{/* Mode pill */}
-				<div className="mt-2.5 shrink-0">
-					{shuffleWatchlist && (
-						<ModePill
-							currentWatchlistId={activeWatchlistId}
-							shuffleWatchlistId={
-								shuffleWatchlist.id ?? resolvedWatchlistId ?? ""
-							}
-							onSelect={setActiveWatchlistId}
-						/>
-					)}
-				</div>
-
 				{/* CENTER: Card stack or countdown loader */}
 				<div className="flex w-full max-w-md flex-1 items-center justify-center py-2">
-					{isLoading || !resolvedWatchlistId ? (
+					{showIntro || isLoading || !resolvedWatchlistId ? (
 						<div
 							className="w-full max-w-[360px]"
 							style={{ aspectRatio: "2/3" }}

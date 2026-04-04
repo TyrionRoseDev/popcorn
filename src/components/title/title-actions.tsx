@@ -3,13 +3,13 @@ import { useNavigate } from "@tanstack/react-router";
 import { Check, Loader2, Plus, Send, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { RecommendModal } from "#/components/recommend/recommend-modal";
 import { ArcadeButton } from "#/components/title/arcade-button";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "#/components/ui/popover";
-import { RecommendModal } from "#/components/watched/recommend-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { CreateWatchlistDialog } from "#/components/watchlist/create-watchlist-dialog";
@@ -443,6 +443,8 @@ export function TitleActions({
 				tmdbId={tmdbId}
 				mediaType={mediaType}
 				titleName={title}
+				showMessage
+				variant="marquee"
 			/>
 		</>
 	);

@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { Atmosphere } from "#/components/atmosphere";
 import { CreateWatchlistDialog } from "#/components/watchlist/create-watchlist-dialog";
 import { NewWatchlistButton } from "#/components/watchlist/new-watchlist-button";
 import { NowShowingHeader } from "#/components/watchlist/now-showing-header";
-import { WatchlistAtmosphere } from "#/components/watchlist/watchlist-atmosphere";
 import { WatchlistReel } from "#/components/watchlist/watchlist-reel";
 import { useTRPC } from "#/integrations/trpc/react";
 
@@ -23,7 +23,11 @@ function WatchlistsPage() {
 
 	return (
 		<>
-			<WatchlistAtmosphere />
+			<Atmosphere
+				glowColor="rgba(236,72,153,0.15)"
+				glowHeight="200px"
+				fogHeights={["120px", "100px", "80px"]}
+			/>
 
 			<div className="relative z-[2] pt-8">
 				<NowShowingHeader title="My Watchlists" />

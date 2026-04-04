@@ -14,7 +14,7 @@ export default function BetterAuthHeader() {
 	const navigate = useNavigate();
 
 	if (isPending) {
-		return <div className="h-9 w-9 animate-pulse rounded-full bg-cream/10" />;
+		return <div className="h-10 w-10 animate-pulse rounded-full bg-cream/10" />;
 	}
 
 	if (session?.user) {
@@ -23,16 +23,16 @@ export default function BetterAuthHeader() {
 				<DropdownMenuTrigger asChild>
 					<button
 						type="button"
-						className="rounded-full outline-none transition-all hover:ring-2 hover:ring-neon-cyan/30 focus-visible:ring-2 focus-visible:ring-neon-cyan/30"
+						className="rounded-full outline-none ring-1 ring-cream/10 transition-all hover:ring-2 hover:ring-neon-cyan/30 focus-visible:ring-2 focus-visible:ring-neon-cyan/30"
 					>
 						{session.user.avatarUrl ? (
 							<img
 								src={session.user.avatarUrl}
 								alt=""
-								className="h-9 w-9 rounded-full object-cover"
+								className="h-10 w-10 rounded-full object-cover"
 							/>
 						) : (
-							<div className="flex h-9 w-9 items-center justify-center rounded-full bg-cream/10">
+							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-cream/10">
 								<span className="text-sm font-medium text-cream/60">
 									{session.user.username?.charAt(0).toUpperCase() ||
 										session.user.email?.charAt(0).toUpperCase() ||

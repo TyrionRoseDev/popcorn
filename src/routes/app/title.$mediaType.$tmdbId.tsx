@@ -8,17 +8,17 @@ import {
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
+import { Atmosphere } from "#/components/atmosphere";
+import { RecommendModal } from "#/components/recommend/recommend-modal";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { CastList } from "#/components/title/cast-list";
 import { DriveInScreen } from "#/components/title/drive-in-screen";
 import { NowShowingMarquee } from "#/components/title/now-showing-marquee";
 import { PosterDisplayCase } from "#/components/title/poster-display-case";
-import { RecommendDialog } from "#/components/title/recommend-dialog";
 import { SectionBoard } from "#/components/title/section-board";
 import { Synopsis } from "#/components/title/synopsis";
 import { TitleActions } from "#/components/title/title-actions";
 import { TitleMetadata } from "#/components/title/title-metadata";
-import { TitlePageAtmosphere } from "#/components/title/title-page-atmosphere";
 import { TitlePageSkeleton } from "#/components/title/title-page-skeleton";
 import { useTRPC } from "#/integrations/trpc/react";
 
@@ -71,7 +71,11 @@ function TitlePage() {
 
 	return (
 		<div className="relative z-10">
-			<TitlePageAtmosphere />
+			<Atmosphere
+				glowColor="rgba(236,72,153,0.15)"
+				glowHeight="200px"
+				fog={false}
+			/>
 
 			<div className="relative">
 				{fromShuffle && (
@@ -159,14 +163,13 @@ function TitlePage() {
 				</div>
 			</div>
 
-			{showRecommend && (
-				<RecommendDialog
-					tmdbId={data.tmdbId}
-					mediaType={mediaType}
-					titleName={data.title}
-					onClose={() => setShowRecommend(false)}
-				/>
-			)}
+			<RecommendModal
+				open={showRecommend}
+				onOpenChange={setShowRecommend}
+				tmdbId={data.tmdbId}
+				mediaType={mediaType as "movie" | "tv"}
+				titleName={data.title}
+			/>
 		</div>
 	);
 }

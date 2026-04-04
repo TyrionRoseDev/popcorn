@@ -9,7 +9,7 @@ import { Check, Clock, Search, UserPlus, UserSearch, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { FriendsAtmosphere } from "#/components/friends/friends-atmosphere";
+import { Atmosphere } from "#/components/atmosphere";
 import { NowShowingHeader } from "#/components/watchlist/now-showing-header";
 import { useTRPC } from "#/integrations/trpc/react";
 
@@ -547,7 +547,27 @@ function FriendsPage() {
 
 	return (
 		<>
-			<FriendsAtmosphere />
+			<Atmosphere
+				glowColor="rgba(255,45,120,0.12)"
+				filmStrips
+				orbs={[
+					{
+						position: { top: "20%", left: "8%" },
+						size: "80px",
+						color: "rgba(255,45,120,0.04)",
+					},
+					{
+						position: { top: "55%", right: "6%" },
+						size: "100px",
+						color: "rgba(0,229,255,0.03)",
+					},
+					{
+						position: { bottom: "30%", left: "5%" },
+						size: "60px",
+						color: "rgba(255,184,0,0.03)",
+					},
+				]}
+			/>
 			<div className="relative z-[2] mx-auto max-w-2xl 2xl:max-w-4xl px-4 pt-8 pb-16">
 				<NowShowingHeader title="f.r.i.e.n.d.s" />
 
