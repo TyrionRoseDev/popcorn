@@ -402,6 +402,27 @@ export const block = pgTable(
 	],
 );
 
+export const titleQuote = pgTable(
+	"title_quote",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		tmdbId: integer("tmdb_id").notNull(),
+		mediaType: text("media_type").notNull(),
+		quote: text("quote"),
+		character: text("character"),
+		parserVersion: integer("parser_version").default(1).notNull(),
+		checkedAt: timestamp("checked_at")
+			.defaultNow()
+			.$onUpdate(() => /* @__PURE__ */ new Date())
+			.notNull(),
+	},
+	(table) => [
+		uniqueIndex("title_quote_unique").on(table.tmdbId, table.mediaType),
+	],
+);
+
 export const earnedAchievement = pgTable(
 	"earned_achievement",
 	{

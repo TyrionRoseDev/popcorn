@@ -134,7 +134,11 @@ function TitlePage() {
 				{/* Right column */}
 				<div className="flex-1 min-w-0">
 					<SectionBoard title="Synopsis">
-						<Synopsis overview={data.overview} tagline={data.tagline} />
+						<Synopsis
+							overview={data.overview}
+							featuredLine={data.featuredQuote ?? data.tagline}
+							quoteCharacter={data.quoteCharacter}
+						/>
 					</SectionBoard>
 
 					<TitleMetadata

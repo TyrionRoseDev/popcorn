@@ -2,12 +2,17 @@ import { useState } from "react";
 
 interface SynopsisProps {
 	overview: string;
-	tagline?: string | null;
+	featuredLine?: string | null;
+	quoteCharacter?: string | null;
 }
 
 const MAX_LENGTH = 300;
 
-export function Synopsis({ overview, tagline }: SynopsisProps) {
+export function Synopsis({
+	overview,
+	featuredLine,
+	quoteCharacter,
+}: SynopsisProps) {
 	const [expanded, setExpanded] = useState(false);
 	const needsTruncation = overview.length > MAX_LENGTH;
 	const displayText =
@@ -17,11 +22,17 @@ export function Synopsis({ overview, tagline }: SynopsisProps) {
 
 	return (
 		<div>
-			{tagline && (
+			{featuredLine && (
 				<p className="italic text-base text-cream/50 border-l-[3px] border-neon-pink pl-4 mb-[18px] [box-shadow:-3px_0_15px_rgba(255,45,120,0.15)]">
-					{tagline.startsWith("\u201C") || tagline.startsWith('"')
-						? tagline
-						: `\u201C${tagline}\u201D`}
+					{featuredLine.startsWith("\u201C") || featuredLine.startsWith('"')
+						? featuredLine
+						: `\u201C${featuredLine}\u201D`}
+					{quoteCharacter && (
+						<span className="not-italic text-sm text-cream/35">
+							{" "}
+							— {quoteCharacter}
+						</span>
+					)}
 				</p>
 			)}
 			<p className="text-[15px] leading-[1.9] text-cream/70">{displayText}</p>

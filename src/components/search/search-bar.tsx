@@ -10,11 +10,17 @@ export function SearchBar({ initialValue }: SearchBarProps) {
 	const [value, setValue] = useState(initialValue);
 	const navigate = useNavigate();
 	const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
 
 	// Sync with URL when navigating back/forward
 	useEffect(() => {
 		setValue(initialValue);
 	}, [initialValue]);
+
+	// Autofocus on mount
+	useEffect(() => {
+		inputRef.current?.focus();
+	}, []);
 
 	// Clean up debounce on unmount
 	useEffect(() => {
@@ -88,6 +94,7 @@ export function SearchBar({ initialValue }: SearchBarProps) {
 		<form onSubmit={handleSubmit} className="relative">
 			<Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/30" />
 			<input
+				ref={inputRef}
 				type="text"
 				aria-label="Search movies and TV shows"
 				value={value}

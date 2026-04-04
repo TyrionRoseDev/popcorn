@@ -25,7 +25,9 @@ const {
 	const mockSelect = vi.fn().mockReturnValue({ from: mockFrom });
 	const mockSelectDistinct = vi.fn().mockReturnValue({ from: mockFrom });
 	const mockOnConflictDoNothing = vi.fn();
-	const mockValues = vi.fn().mockReturnValue({ onConflictDoNothing: mockOnConflictDoNothing });
+	const mockValues = vi
+		.fn()
+		.mockReturnValue({ onConflictDoNothing: mockOnConflictDoNothing });
 	const mockInsert = vi.fn().mockReturnValue({ values: mockValues });
 	const mockExecute = vi.fn();
 	const mockQueryWatchlistItemFindMany = vi.fn();
@@ -334,7 +336,10 @@ describe("evaluateAchievements", () => {
 			mockWhere.mockResolvedValueOnce([{ value: 1 }]);
 			mockWhere.mockResolvedValue([{ value: 0 }]);
 
-			const result = await evaluateAchievements(USER_ID, "shuffle_to_watchlist");
+			const result = await evaluateAchievements(
+				USER_ID,
+				"shuffle_to_watchlist",
+			);
 
 			expect(result).toContain("showtime-shuffle");
 		});

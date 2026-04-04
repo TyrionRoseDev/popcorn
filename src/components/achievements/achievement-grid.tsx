@@ -35,9 +35,7 @@ export function AchievementGrid({
 	const myCount = myEarned.length;
 	const theirCount = theirEarned?.length ?? 0;
 	const sharedCount = isComparison
-		? ACHIEVEMENTS.filter(
-				(a) => myMap.has(a.id) && theirMap.has(a.id),
-			).length
+		? ACHIEVEMENTS.filter((a) => myMap.has(a.id) && theirMap.has(a.id)).length
 		: 0;
 
 	const visibleAchievements = ACHIEVEMENTS.filter((a) => {
@@ -55,7 +53,11 @@ export function AchievementGrid({
 				backdropFilter: "blur(10px)",
 				WebkitBackdropFilter: "blur(10px)",
 			}}
+			role="dialog"
 			onClick={onClose}
+			onKeyDown={(e) => {
+				if (e.key === "Escape") onClose();
+			}}
 		>
 			<motion.div
 				className="flex flex-col overflow-hidden rounded-2xl border border-drive-in-border bg-drive-in-card shadow-2xl"
@@ -69,7 +71,10 @@ export function AchievementGrid({
 				{/* Header */}
 				<div className="flex items-center justify-between border-b border-drive-in-border/60 px-5 py-4">
 					<div className="flex items-center gap-2.5">
-						<Trophy className="h-4.5 w-4.5 text-neon-amber" style={{ width: "18px", height: "18px" }} />
+						<Trophy
+							className="h-4.5 w-4.5 text-neon-amber"
+							style={{ width: "18px", height: "18px" }}
+						/>
 						<h2
 							className="font-display text-lg text-cream"
 							style={{
@@ -150,10 +155,7 @@ export function AchievementGrid({
 
 				{/* Grid */}
 				<div className="flex-1 overflow-y-auto px-5 py-5">
-					<motion.div
-						layout
-						className="flex flex-wrap justify-center gap-3"
-					>
+					<motion.div layout className="flex flex-wrap justify-center gap-3">
 						<AnimatePresence mode="popLayout">
 							{visibleAchievements.map((achievement) => {
 								const myDate = myMap.get(achievement.id) ?? null;

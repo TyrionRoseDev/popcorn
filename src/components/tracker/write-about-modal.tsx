@@ -237,6 +237,7 @@ export function WriteAboutModal({
 		if (entryType === "note") {
 			setStep("write-note");
 		} else {
+			// biome-ignore lint/style/noNonNullAssertion: selectedSeason is set before episode selection
 			const { complete } = checkCompletion("episode", selectedSeason!, en);
 			if (!complete) {
 				setStep("completion-check");
@@ -254,6 +255,7 @@ export function WriteAboutModal({
 
 	function handleMarkAsComplete() {
 		const { missing } = checkCompletion(
+			// biome-ignore lint/style/noNonNullAssertion: scope is set before this step is reachable
 			scope!,
 			selectedSeason ?? undefined,
 			selectedEpisode ?? undefined,
@@ -581,6 +583,7 @@ export function WriteAboutModal({
 												<div className="flex items-center justify-center">
 													<span className="inline-flex items-center px-2.5 py-1 rounded-full bg-neon-cyan/[0.06] border border-neon-cyan/15 font-mono-retro text-[10px] tracking-wider text-neon-cyan/60">
 														{scopeLabel(
+															// biome-ignore lint/style/noNonNullAssertion: scope is set before this step renders
 															scope!,
 															selectedSeason ?? undefined,
 															selectedEpisode ?? undefined,
@@ -660,10 +663,12 @@ export function WriteAboutModal({
 														<div className="font-mono-retro text-[10px] text-cream/30 tracking-wide leading-relaxed max-w-[280px]">
 															{(() => {
 																const { missing } = checkCompletion(
+																	// biome-ignore lint/style/noNonNullAssertion: scope is set before this step renders
 																	scope!,
 																	selectedSeason ?? undefined,
 																	selectedEpisode ?? undefined,
 																);
+																// biome-ignore lint/style/noNonNullAssertion: scope is set before this step renders
 																return `${missing.length} episode${missing.length > 1 ? "s" : ""} in ${scopeLabel(scope!, selectedSeason ?? undefined, selectedEpisode ?? undefined, entryType)} haven't been marked as watched yet.`;
 															})()}
 														</div>

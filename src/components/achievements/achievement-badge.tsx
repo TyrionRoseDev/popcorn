@@ -36,9 +36,7 @@ export function AchievementBadge({
 
 	return (
 		<Wrapper
-			{...(onClick
-				? { type: "button" as const, onClick }
-				: {})}
+			{...(onClick ? { type: "button" as const, onClick } : {})}
 			className={[
 				"group relative flex flex-col items-center rounded-xl bg-drive-in-card text-center",
 				"transition-transform duration-200",
@@ -96,9 +94,7 @@ export function AchievementBadge({
 				{comparison && (iEarned || theyEarned) && (
 					<div className="mt-auto flex flex-wrap justify-center gap-1 pt-1">
 						{comparison.myEarnedAt && (
-							<span
-								className="rounded-full border border-neon-amber/30 bg-neon-amber/10 px-1.5 py-0.5 font-mono-retro text-[8px] uppercase tracking-[0.5px] text-neon-amber"
-							>
+							<span className="rounded-full border border-neon-amber/30 bg-neon-amber/10 px-1.5 py-0.5 font-mono-retro text-[8px] uppercase tracking-[0.5px] text-neon-amber">
 								You
 							</span>
 						)}

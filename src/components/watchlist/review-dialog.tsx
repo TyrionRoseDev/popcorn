@@ -1,14 +1,22 @@
-import { AnimatePresence, motion } from "motion/react";
 import { Star, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 
 interface ReviewDialogProps {
 	titleName: string;
-	onSubmit: (data: { rating: number; text?: string; watchedAt?: string }) => void;
+	onSubmit: (data: {
+		rating: number;
+		text?: string;
+		watchedAt?: string;
+	}) => void;
 	onSkip: () => void;
 }
 
-export function ReviewDialog({ titleName, onSubmit, onSkip }: ReviewDialogProps) {
+export function ReviewDialog({
+	titleName,
+	onSubmit,
+	onSkip,
+}: ReviewDialogProps) {
 	const [rating, setRating] = useState(0);
 	const [hoverRating, setHoverRating] = useState(0);
 	const [text, setText] = useState("");
@@ -75,9 +83,7 @@ export function ReviewDialog({ titleName, onSubmit, onSkip }: ReviewDialogProps)
 							/>
 
 							{/* Header strip */}
-							<div
-								className="relative z-10 px-6 pt-6 pb-4 border-b border-cream/8"
-							>
+							<div className="relative z-10 px-6 pt-6 pb-4 border-b border-cream/8">
 								<button
 									type="button"
 									onClick={onSkip}
@@ -99,7 +105,9 @@ export function ReviewDialog({ titleName, onSubmit, onSkip }: ReviewDialogProps)
 								>
 									Rate &amp; Review
 								</h2>
-								<p className="mt-1 text-sm text-cream/45 truncate pr-6">{titleName}</p>
+								<p className="mt-1 text-sm text-cream/45 truncate pr-6">
+									{titleName}
+								</p>
 							</div>
 
 							{/* Body */}
@@ -109,6 +117,7 @@ export function ReviewDialog({ titleName, onSubmit, onSkip }: ReviewDialogProps)
 									<p className="font-mono text-[10px] uppercase tracking-[2px] text-cream/40 mb-3">
 										Your Rating
 									</p>
+									{/* biome-ignore lint/a11y/noStaticElementInteractions: container for star buttons, onMouseLeave resets hover state */}
 									<div
 										className="flex items-center gap-2"
 										onMouseLeave={() => setHoverRating(0)}
@@ -129,7 +138,8 @@ export function ReviewDialog({ titleName, onSubmit, onSkip }: ReviewDialogProps)
 															? {
 																	fill: "#FFB800",
 																	color: "#FFB800",
-																	filter: "drop-shadow(0 0 6px rgba(255,184,0,0.5))",
+																	filter:
+																		"drop-shadow(0 0 6px rgba(255,184,0,0.5))",
 																}
 															: {
 																	fill: "rgba(255,255,255,0.08)",

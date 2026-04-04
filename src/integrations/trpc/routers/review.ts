@@ -8,13 +8,15 @@ import { evaluateAchievements } from "#/lib/evaluate-achievements";
 
 export const reviewRouter = {
 	upsert: protectedProcedure
-		.input(z.object({
-			tmdbId: z.number(),
-			mediaType: z.enum(["movie", "tv"]),
-			rating: z.number().min(1).max(5),
-			text: z.string().optional(),
-			titleName: z.string().optional(),
-		}))
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+				rating: z.number().min(1).max(5),
+				text: z.string().optional(),
+				titleName: z.string().optional(),
+			}),
+		)
 		.mutation(async ({ input, ctx }) => {
 			const [result] = await db
 				.insert(review)
@@ -39,11 +41,13 @@ export const reviewRouter = {
 		}),
 
 	get: protectedProcedure
-		.input(z.object({
-			tmdbId: z.number(),
-			mediaType: z.enum(["movie", "tv"]),
-			userId: z.string().optional(),
-		}))
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+				userId: z.string().optional(),
+			}),
+		)
 		.query(async ({ input, ctx }) => {
 			const targetUserId = input.userId ?? ctx.userId;
 			return db.query.review.findFirst({
