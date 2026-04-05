@@ -689,7 +689,11 @@ export const watchlistRouter = {
 				});
 			}
 
-			await evaluateAchievements(input.userId, "watchlist_joined");
+			const newAchievements = await evaluateAchievements(
+				input.userId,
+				"watchlist_joined",
+			);
+			return { newAchievements };
 		}),
 
 	isWatched: protectedProcedure
