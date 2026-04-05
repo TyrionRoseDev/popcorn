@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
 	createContext,
 	useCallback,
@@ -30,20 +30,26 @@ export function AchievementCelebrationProvider({
 	children: React.ReactNode;
 }) {
 	const [pendingIds, setPendingIds] = useState<string[]>([]);
+	const [earnedTotal, setEarnedTotal] = useState(0);
 	const queryClient = useQueryClient();
 	const trpc = useTRPC();
 
-	const { data: achievementData } = useQuery(
-		trpc.achievement.myAchievements.queryOptions(),
+	const celebrate = useCallback(
+		(ids: string[]) => {
+			const validIds = ids.filter((id) => ACHIEVEMENTS_BY_ID.has(id));
+			if (validIds.length === 0) return;
+
+			setPendingIds((prev) => [...prev, ...validIds]);
+
+			// Estimate earned total from cache or use a reasonable fallback
+			const cached = queryClient.getQueryData<{
+				earned: unknown[];
+				total: number;
+			}>(trpc.achievement.myAchievements.queryKey());
+			setEarnedTotal((cached?.earned.length ?? 0) + ids.length);
+		},
+		[queryClient, trpc],
 	);
-	const earnedTotal = (achievementData?.earned.length ?? 0) + pendingIds.length;
-
-	const celebrate = useCallback((ids: string[]) => {
-		const validIds = ids.filter((id) => ACHIEVEMENTS_BY_ID.has(id));
-		if (validIds.length === 0) return;
-
-		setPendingIds((prev) => [...prev, ...validIds]);
-	}, []);
 
 	useEffect(() => {
 		setOnNewAchievements(celebrate);
