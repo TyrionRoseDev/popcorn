@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
+import { AchievementCelebrationProvider } from "#/components/achievements/achievement-celebration-provider";
 import { Toaster } from "#/components/ui/sonner";
 import { TooltipProvider } from "#/components/ui/tooltip";
 import type { TRPCRouter } from "#/integrations/trpc/router";
@@ -74,7 +75,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
 				<TanStackQueryProvider>
-					<TooltipProvider>{children}</TooltipProvider>
+					<AchievementCelebrationProvider>
+						<TooltipProvider>{children}</TooltipProvider>
+					</AchievementCelebrationProvider>
 					<Toaster />
 					<TanStackDevtools
 						config={{

@@ -1,4 +1,8 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+	MutationCache,
+	QueryClient,
+	QueryClientProvider,
+} from "@tanstack/react-query";
 import { createTRPCClient, httpBatchStreamLink } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import type { ReactNode } from "react";
@@ -23,6 +27,12 @@ export const trpcClient = createTRPCClient<TRPCRouter>({
 	],
 });
 
+// Mutable ref so MutationCache can call into React context without circular deps
+export let onNewAchievements: ((ids: string[]) => void) | null = null;
+export function setOnNewAchievements(fn: ((ids: string[]) => void) | null) {
+	onNewAchievements = fn;
+}
+
 let context:
 	| {
 			queryClient: QueryClient;
@@ -40,6 +50,19 @@ export function getContext() {
 			dehydrate: { serializeData: superjson.serialize },
 			hydrate: { deserializeData: superjson.deserialize },
 		},
+		mutationCache: new MutationCache({
+			onSuccess: (data) => {
+				if (
+					data &&
+					typeof data === "object" &&
+					"newAchievements" in data &&
+					Array.isArray(data.newAchievements) &&
+					data.newAchievements.length > 0
+				) {
+					onNewAchievements?.(data.newAchievements as string[]);
+				}
+			},
+		}),
 	});
 
 	const serverHelpers = createTRPCOptionsProxy({
