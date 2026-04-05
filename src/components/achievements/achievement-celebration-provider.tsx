@@ -46,7 +46,7 @@ export function AchievementCelebrationProvider({
 				earned: unknown[];
 				total: number;
 			}>(trpc.achievement.myAchievements.queryKey());
-			setEarnedTotal((cached?.earned.length ?? 0) + ids.length);
+			setEarnedTotal((cached?.earned.length ?? 0) + validIds.length);
 		},
 		[queryClient, trpc],
 	);
