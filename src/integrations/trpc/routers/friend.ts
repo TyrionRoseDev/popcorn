@@ -461,7 +461,7 @@ export const friendRouter = createTRPCRouter({
 			);
 			await notifyFriendsAboutAchievements(ctx.userId, addresseeAchievements);
 
-			return updated;
+			return { ...updated, newAchievements: addresseeAchievements };
 		}),
 
 	declineRequest: protectedProcedure
