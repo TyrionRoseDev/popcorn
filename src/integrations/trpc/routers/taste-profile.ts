@@ -404,9 +404,9 @@ export const tasteProfileRouter = {
 					.where(eq(user.id, userId));
 			});
 
-			await evaluateAchievements(userId, "onboarding");
+			const newAchievements = await evaluateAchievements(userId, "onboarding");
 
-			return { success: true };
+			return { success: true, newAchievements };
 		}),
 
 	saveProfileExtras: protectedProcedure
@@ -430,8 +430,11 @@ export const tasteProfileRouter = {
 				})
 				.where(eq(user.id, ctx.userId));
 
-			await evaluateAchievements(ctx.userId, "onboarding");
+			const newAchievements = await evaluateAchievements(
+				ctx.userId,
+				"onboarding",
+			);
 
-			return { success: true };
+			return { success: true, newAchievements };
 		}),
 } satisfies TRPCRouterRecord;
