@@ -130,7 +130,11 @@ export const recommendationRouter = {
 				});
 			}
 
-			await evaluateAchievements(ctx.userId, "recommendation_sent");
+			const newAchievements = await evaluateAchievements(
+				ctx.userId,
+				"recommendation_sent",
+			);
+			return { newAchievements };
 		}),
 
 	accept: protectedProcedure
