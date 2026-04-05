@@ -312,7 +312,7 @@ export const shuffleRouter = {
 					set: { action: input.action },
 				});
 
-			await evaluateAchievements(ctx.userId, "swipe");
+			const swipeAchievements = await evaluateAchievements(ctx.userId, "swipe");
 
 			// Check watchlist type to determine solo vs group behavior
 			const wl = await db.query.watchlist.findFirst({
@@ -343,9 +343,15 @@ export const shuffleRouter = {
 						})
 						.onConflictDoNothing();
 
-					await evaluateAchievements(ctx.userId, "shuffle_to_watchlist");
+					const shuffleAchievements = await evaluateAchievements(
+						ctx.userId,
+						"shuffle_to_watchlist",
+					);
 
-					return { match: false };
+					return {
+						match: false,
+						newAchievements: [...swipeAchievements, ...shuffleAchievements],
+					};
 				}
 
 				const yesSwipes = await db.query.shuffleSwipe.findMany({
@@ -371,6 +377,7 @@ export const shuffleRouter = {
 						.returning({ id: watchlistItem.id });
 
 					// Only notify if the item was actually added (not a duplicate)
+					let shuffleAchievements: string[] = [];
 					if (inserted.length > 0) {
 						for (const swipe of yesSwipes) {
 							await createNotification({
@@ -386,7 +393,10 @@ export const shuffleRouter = {
 							});
 						}
 
-						await evaluateAchievements(ctx.userId, "shuffle_to_watchlist");
+						shuffleAchievements = await evaluateAchievements(
+							ctx.userId,
+							"shuffle_to_watchlist",
+						);
 					}
 
 					return {
@@ -394,13 +404,14 @@ export const shuffleRouter = {
 						watchlistName: wl.name,
 						tmdbId: input.tmdbId,
 						mediaType: input.mediaType,
+						newAchievements: [...swipeAchievements, ...shuffleAchievements],
 					};
 				}
 
-				return { match: false };
+				return { match: false, newAchievements: swipeAchievements };
 			}
 
-			return { match: false };
+			return { match: false, newAchievements: swipeAchievements };
 		}),
 
 	undoSwipe: protectedProcedure
