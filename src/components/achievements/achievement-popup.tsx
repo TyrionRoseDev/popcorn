@@ -1,11 +1,10 @@
 import { motion } from "motion/react";
 import { useMemo } from "react";
 import { Dialog, DialogContent, DialogTitle } from "#/components/ui/dialog";
-import { ACHIEVEMENTS_BY_ID } from "#/lib/achievements";
+import { ACHIEVEMENTS_BY_ID, TOTAL_ACHIEVEMENTS } from "#/lib/achievements";
 
 interface AchievementPopupProps {
 	achievementIds: string[];
-	currentIndex: number;
 	earnedTotal: number;
 	onDismiss: () => void;
 }
@@ -29,19 +28,21 @@ const PARTICLES = Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
 
 export function AchievementPopup({
 	achievementIds,
-	currentIndex,
 	earnedTotal,
 	onDismiss,
 }: AchievementPopupProps) {
-	const achievement = useMemo(
-		() => ACHIEVEMENTS_BY_ID.get(achievementIds[currentIndex] ?? ""),
-		[achievementIds, currentIndex],
+	const achievements = useMemo(
+		() =>
+			achievementIds
+				.map((id) => ACHIEVEMENTS_BY_ID.get(id))
+				.filter((a) => a !== undefined),
+		[achievementIds],
 	);
 
-	if (!achievement) return null;
+	if (achievements.length === 0) return null;
 
-	const hasMore = currentIndex < achievementIds.length - 1;
-	const totalAchievements = 30; // matches TOTAL_ACHIEVEMENTS
+	const isSingle = achievements.length === 1;
+	const totalAchievements = TOTAL_ACHIEVEMENTS;
 
 	return (
 		<>
@@ -62,23 +63,6 @@ export function AchievementPopup({
 					0% { transform: rotate(-25deg); opacity: 0.12; }
 					50% { transform: rotate(25deg); opacity: 0.18; }
 					100% { transform: rotate(-25deg); opacity: 0.12; }
-				}
-				@keyframes ach-badge-flip {
-					0% {
-						transform: rotateY(90deg) scale(0.85);
-						opacity: 0;
-					}
-					60% {
-						transform: rotateY(-8deg) scale(1.04);
-						opacity: 1;
-					}
-					80% {
-						transform: rotateY(4deg) scale(0.99);
-					}
-					100% {
-						transform: rotateY(0deg) scale(1);
-						opacity: 1;
-					}
 				}
 				@keyframes ach-icon-glow-pulse {
 					0%, 100% {
@@ -112,7 +96,9 @@ export function AchievementPopup({
 					aria-describedby={undefined}
 					onOpenAutoFocus={(e) => e.preventDefault()}
 				>
-					<DialogTitle className="sr-only">Achievement Unlocked</DialogTitle>
+					<DialogTitle className="sr-only">
+						{isSingle ? "Achievement Unlocked" : "Achievements Unlocked"}
+					</DialogTitle>
 
 					{/* Projector sweep beam */}
 					<div className="flex items-center justify-center overflow-hidden w-full h-full">
@@ -154,15 +140,14 @@ export function AchievementPopup({
 
 						{/* Modal card */}
 						<motion.div
-							key={`popup-card-${achievementIds[currentIndex]}`}
-							className="relative z-10 flex flex-col items-center gap-6 px-8 py-10 text-center"
-							style={{ maxWidth: "420px", width: "100%" }}
+							className="relative z-10 flex flex-col items-center gap-6 px-8 py-10 text-center overflow-y-auto max-h-screen"
+							style={{ maxWidth: "600px", width: "100%" }}
 							initial={{ scale: 0.9, y: 20, opacity: 0 }}
 							animate={{ scale: 1, y: 0, opacity: 1 }}
 							exit={{ scale: 0.9, y: -20, opacity: 0 }}
 							transition={{ type: "spring", damping: 18, stiffness: 220 }}
 						>
-							{/* "Achievement Unlocked" label */}
+							{/* "Achievement(s) Unlocked" label */}
 							<p
 								className="font-mono-retro text-xs uppercase tracking-[4px] text-neon-amber/80"
 								style={{
@@ -170,86 +155,80 @@ export function AchievementPopup({
 										"0 0 12px rgba(255,184,0,0.5), 0 0 30px rgba(255,184,0,0.2)",
 								}}
 							>
-								Achievement Unlocked
+								{isSingle ? "Achievement Unlocked" : "Achievements Unlocked"}
 							</p>
 
-							{/* Badge */}
+							{/* Badge grid */}
 							<div
-								style={{
-									perspective: "600px",
-									animation:
-										"ach-badge-flip 0.7s cubic-bezier(0.16,1,0.3,1) both",
-								}}
+								className="flex flex-wrap justify-center gap-4"
+								style={{ perspective: "800px" }}
 							>
-								<div
-									className="relative flex flex-col items-center justify-center gap-3 rounded-2xl"
-									style={{
-										width: "180px",
-										height: "210px",
-										background: "#0a0a1e",
-										padding: "3px",
-										backgroundImage:
-											"conic-gradient(from var(--ach-angle), #FF2D78 0%, #FFB800 33%, #00E5FF 66%, #FF2D78 100%)",
-										animation:
-											"ach-badge-flip 0.7s cubic-bezier(0.16,1,0.3,1) both, ach-conic-spin 3s linear infinite",
-									}}
-								>
-									{/* Inner card fill */}
-									<div
-										className="absolute inset-[3px] rounded-2xl"
-										style={{ background: "#0a0a1e" }}
-									/>
-
-									{/* Icon */}
-									<div
-										className="relative z-10 text-6xl leading-none"
-										style={{
-											animation: "ach-icon-glow-pulse 2s ease-in-out infinite",
-											textShadow:
-												"0 0 12px rgba(255,184,0,0.7), 0 0 30px rgba(255,184,0,0.4)",
+								{achievements.map((achievement, i) => (
+									<motion.div
+										key={achievement.id}
+										initial={{ rotateY: 90, scale: 0.85, opacity: 0 }}
+										animate={{ rotateY: 0, scale: 1, opacity: 1 }}
+										transition={{
+											delay: 0.15 * i,
+											duration: 0.7,
+											ease: [0.16, 1, 0.3, 1],
 										}}
 									>
-										{achievement.icon}
-									</div>
+										<div
+											className="relative flex flex-col items-center justify-center gap-3 rounded-2xl"
+											style={{
+												width: "120px",
+												height: "150px",
+												padding: "3px",
+												backgroundImage:
+													"conic-gradient(from var(--ach-angle), #FF2D78 0%, #FFB800 33%, #00E5FF 66%, #FF2D78 100%)",
+												animation: "ach-conic-spin 3s linear infinite",
+											}}
+										>
+											{/* Inner card fill */}
+											<div
+												className="absolute inset-[3px] rounded-2xl"
+												style={{ background: "#0a0a1e" }}
+											/>
 
-									{/* Name on badge */}
-									<p
-										className="relative z-10 font-display text-sm text-cream/90 px-3 text-center leading-tight"
-										style={{
-											textShadow: "0 0 8px rgba(255,184,0,0.3)",
-										}}
-									>
-										{achievement.name}
-									</p>
-								</div>
+											{/* Icon */}
+											<div
+												className="relative z-10 text-4xl leading-none"
+												style={{
+													animation:
+														"ach-icon-glow-pulse 2s ease-in-out infinite",
+													textShadow:
+														"0 0 12px rgba(255,184,0,0.7), 0 0 30px rgba(255,184,0,0.4)",
+												}}
+											>
+												{achievement.icon}
+											</div>
+
+											{/* Name on badge */}
+											<p
+												className="relative z-10 font-display text-xs text-cream/90 px-2 text-center leading-tight"
+												style={{
+													textShadow: "0 0 8px rgba(255,184,0,0.3)",
+												}}
+											>
+												{achievement.name}
+											</p>
+										</div>
+									</motion.div>
+								))}
 							</div>
 
-							{/* Achievement name (big gradient) */}
-							<motion.h2
-								className="font-display text-3xl leading-tight"
-								style={{
-									background:
-										"linear-gradient(135deg, #FF2D78 0%, #FFB800 50%, #00E5FF 100%)",
-									WebkitBackgroundClip: "text",
-									WebkitTextFillColor: "transparent",
-									backgroundClip: "text",
-								}}
-								initial={{ opacity: 0, y: 8 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: 0.25, duration: 0.4 }}
-							>
-								{achievement.name}
-							</motion.h2>
-
-							{/* Description */}
-							<motion.p
-								className="text-sm leading-relaxed text-cream/55"
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								transition={{ delay: 0.35, duration: 0.4 }}
-							>
-								{achievement.description}
-							</motion.p>
+							{/* Single achievement description */}
+							{isSingle && (
+								<motion.p
+									className="text-sm leading-relaxed text-cream/55"
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									transition={{ delay: 0.35, duration: 0.4 }}
+								>
+									{achievements[0].description}
+								</motion.p>
+							)}
 
 							{/* Progress count */}
 							<motion.p
@@ -261,7 +240,7 @@ export function AchievementPopup({
 								{earnedTotal} / {totalAchievements} Achievements
 							</motion.p>
 
-							{/* Continue / Next button */}
+							{/* Continue button */}
 							<motion.button
 								type="button"
 								onClick={onDismiss}
@@ -270,7 +249,7 @@ export function AchievementPopup({
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ delay: 0.5, duration: 0.35 }}
 							>
-								{hasMore ? "Next" : "Continue"}
+								Continue
 							</motion.button>
 						</motion.div>
 					</div>
