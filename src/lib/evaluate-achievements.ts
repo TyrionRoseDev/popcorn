@@ -499,9 +499,7 @@ async function checkCondition(
 					AND we.genre_ids IS NOT NULL
 				WHERE r.user_id = ${userId}
 			`);
-			const tmdbGenreIds = (result.rows ?? []).map(
-				(r: { genre_id: number }) => r.genre_id,
-			);
+			const tmdbGenreIds = (result.rows ?? []).map((r) => Number(r.genre_id));
 			const coveredUnifiedIds = new Set<number>();
 			for (const genreId of tmdbGenreIds) {
 				for (const genre of UNIFIED_GENRES) {
