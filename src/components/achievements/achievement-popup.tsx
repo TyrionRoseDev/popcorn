@@ -90,7 +90,7 @@ export function AchievementPopup({
 			>
 				<DialogContent
 					className="!inset-0 !top-0 !left-0 !max-w-none !w-screen !h-screen !translate-x-0 !translate-y-0 !rounded-none !border-none !bg-transparent !p-0 !gap-0 !shadow-none !z-[60]"
-					overlayClassName="bg-[rgba(5,5,8,0.88)] backdrop-blur-[12px] !z-[60]"
+					overlayClassName="bg-[rgba(5,5,8,0.55)] backdrop-blur-[6px] !z-[60]"
 					showCloseButton={false}
 					aria-describedby={undefined}
 					onOpenAutoFocus={(e) => e.preventDefault()}
