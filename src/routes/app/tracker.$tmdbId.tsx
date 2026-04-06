@@ -1123,6 +1123,8 @@ function ShowTracker() {
 
 					{/* Notes & Reviews Section */}
 					<NotesAndReviewsSection
+						tmdbId={tmdbId}
+						titleName={titleData.title}
 						journalEntries={journalEntries ?? []}
 						watchEvents={(existingWatchEvents ?? []).filter(
 							(e) => e.rating != null || e.note,
@@ -1287,6 +1289,8 @@ function ShowTracker() {
 /* ─── Notes & Reviews Section ─── */
 
 interface NotesAndReviewsSectionProps {
+	tmdbId: number;
+	titleName: string;
 	journalEntries: Array<{
 		id: string;
 		scope: string;
@@ -1307,6 +1311,8 @@ interface NotesAndReviewsSectionProps {
 		watchedAt: Date | null;
 		createdAt: Date;
 		watchNumber: number;
+		visibility: string | null;
+		companions: Array<{ friendId: string | null; name: string }>;
 	}>;
 }
 
@@ -1342,6 +1348,8 @@ function formatRelativeDate(date: Date): string {
 }
 
 function NotesAndReviewsSection({
+	tmdbId: _tmdbId,
+	titleName: _titleName,
 	journalEntries,
 	watchEvents,
 }: NotesAndReviewsSectionProps) {
