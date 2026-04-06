@@ -22,7 +22,7 @@ export const episodeTrackerRouter = {
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
-			await db
+			const inserted = await db
 				.insert(userTitle)
 				.values({
 					userId: ctx.userId,
@@ -32,12 +32,13 @@ export const episodeTrackerRouter = {
 						seasonEpisodeCounts: input.seasonEpisodeCounts,
 					}),
 				})
-				.onConflictDoNothing();
+				.onConflictDoNothing()
+				.returning({ id: userTitle.id });
 
-			const newAchievements = await evaluateAchievements(
-				ctx.userId,
-				"show_tracked",
-			);
+			const newAchievements =
+				inserted.length > 0
+					? await evaluateAchievements(ctx.userId, "show_tracked")
+					: [];
 			return { success: true, newAchievements };
 		}),
 
