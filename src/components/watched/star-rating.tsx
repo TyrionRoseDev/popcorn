@@ -33,7 +33,7 @@ export function StarRating({
 	const displayValue = hovered ?? value ?? 0;
 
 	return (
-		<div className={className ?? "text-center"}>
+		<div className={`text-center ${className ?? ""}`}>
 			{showLabel && (
 				<div className="font-mono-retro text-[10px] tracking-[3px] uppercase text-cream/70 mb-3">
 					How was it?
