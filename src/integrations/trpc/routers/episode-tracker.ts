@@ -6,7 +6,11 @@ import { db } from "#/db";
 import { episodeWatch, journalEntry, userTitle, watchEvent } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
 import { evaluateAchievements } from "#/lib/evaluate-achievements";
-import { fetchAllSeasons, fetchSeasonDetails } from "#/lib/tmdb-title";
+import {
+	fetchAllSeasons,
+	fetchSeasonDetails,
+	fetchTitleDetails,
+} from "#/lib/tmdb-title";
 
 export const episodeTrackerRouter = {
 	/** Add a show to the tracker (creates a userTitle record) */
@@ -141,7 +145,7 @@ export const episodeTrackerRouter = {
 
 			const newAchievements = await evaluateAchievements(
 				ctx.userId,
-				"watched",
+				"episode_marked",
 				{
 					tmdbId: input.tmdbId,
 					mediaType: "tv",
