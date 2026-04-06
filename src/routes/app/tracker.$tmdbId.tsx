@@ -1420,8 +1420,8 @@ function formatRelativeDate(date: Date): string {
 }
 
 function NotesAndReviewsSection({
-	tmdbId: _tmdbId,
-	titleName: _titleName,
+	tmdbId,
+	titleName,
 	journalEntries,
 	watchEvents,
 }: NotesAndReviewsSectionProps) {
