@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Check, Loader2, Plus, Send, Star } from "lucide-react";
+import { Check, EyeOff, Loader2, Plus, Send, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { RecommendModal } from "#/components/recommend/recommend-modal";
@@ -85,6 +85,10 @@ export function TitleActions({
 
 	const { data: isBookmarked } = useQuery(
 		trpc.watchlist.isBookmarked.queryOptions({ tmdbId, mediaType }),
+	);
+
+	const { data: isHidden } = useQuery(
+		trpc.shuffle.isHidden.queryOptions({ tmdbId, mediaType }),
 	);
 
 	const { data: latestRating } = useQuery(
@@ -180,6 +184,21 @@ export function TitleActions({
 				queryClient.invalidateQueries(
 					trpc.watchlist.isBookmarked.queryFilter(),
 				);
+			},
+		}),
+	);
+
+	const toggleHideMutation = useMutation(
+		trpc.shuffle.toggleHide.mutationOptions({
+			onSuccess: (data) => {
+				queryClient.invalidateQueries(trpc.shuffle.isHidden.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.shuffle.getHiddenTitles.queryFilter(),
+				);
+				toast.success(data.hidden ? "Hidden from Shuffle" : "Unhidden");
+			},
+			onError: () => {
+				toast.error("Failed to update hidden status");
 			},
 		}),
 	);
@@ -378,6 +397,26 @@ export function TitleActions({
 					color="amber"
 					onClick={() => setInviteOpen(true)}
 				/>
+			</div>
+
+			{/* Hide from Shuffle */}
+			<div className="flex justify-center mt-3">
+				<button
+					type="button"
+					onClick={() => toggleHideMutation.mutate({ tmdbId, mediaType })}
+					disabled={toggleHideMutation.isPending}
+					className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase transition-all duration-200 cursor-pointer disabled:opacity-50"
+					style={{
+						color: isHidden ? "rgba(255,45,120,0.85)" : "rgba(255,255,240,0.3)",
+						background: isHidden ? "rgba(255,45,120,0.1)" : "transparent",
+						border: isHidden
+							? "1px solid rgba(255,45,120,0.2)"
+							: "1px solid rgba(255,255,240,0.08)",
+					}}
+				>
+					<EyeOff className="h-3.5 w-3.5" />
+					{isHidden ? "Hidden" : "Hide"}
+				</button>
 			</div>
 
 			{watchEvents && watchEvents.length > 0 && (

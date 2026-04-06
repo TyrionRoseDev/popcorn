@@ -545,6 +545,95 @@ export const shuffleRouter = {
 				);
 		}),
 
+	isHidden: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+			}),
+		)
+		.query(async ({ input, ctx }) => {
+			const row = await db.query.shuffleSwipe.findFirst({
+				where: and(
+					eq(shuffleSwipe.userId, ctx.userId),
+					eq(shuffleSwipe.tmdbId, input.tmdbId),
+					eq(shuffleSwipe.mediaType, input.mediaType),
+					eq(shuffleSwipe.action, "hide"),
+				),
+				columns: { id: true },
+			});
+			return !!row;
+		}),
+
+	toggleHide: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			// Check if already hidden
+			const existing = await db.query.shuffleSwipe.findFirst({
+				where: and(
+					eq(shuffleSwipe.userId, ctx.userId),
+					eq(shuffleSwipe.tmdbId, input.tmdbId),
+					eq(shuffleSwipe.mediaType, input.mediaType),
+					eq(shuffleSwipe.action, "hide"),
+				),
+				columns: { id: true },
+			});
+
+			if (existing) {
+				// Unhide — delete all hide swipes for this title
+				await db
+					.delete(shuffleSwipe)
+					.where(
+						and(
+							eq(shuffleSwipe.userId, ctx.userId),
+							eq(shuffleSwipe.tmdbId, input.tmdbId),
+							eq(shuffleSwipe.mediaType, input.mediaType),
+							eq(shuffleSwipe.action, "hide"),
+						),
+					);
+				return { hidden: false };
+			}
+
+			// Hide — get the user's default watchlist
+			const defaultWl = await db.query.watchlist.findFirst({
+				where: and(
+					eq(watchlist.ownerId, ctx.userId),
+					eq(watchlist.type, "default"),
+				),
+				columns: { id: true },
+			});
+			if (!defaultWl)
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "No default watchlist found",
+				});
+
+			await db
+				.insert(shuffleSwipe)
+				.values({
+					userId: ctx.userId,
+					watchlistId: defaultWl.id,
+					tmdbId: input.tmdbId,
+					mediaType: input.mediaType,
+					action: "hide",
+				})
+				.onConflictDoUpdate({
+					target: [
+						shuffleSwipe.userId,
+						shuffleSwipe.tmdbId,
+						shuffleSwipe.mediaType,
+						shuffleSwipe.watchlistId,
+					],
+					set: { action: "hide" },
+				});
+			return { hidden: true };
+		}),
+
 	getRecentMatches: protectedProcedure
 		.input(z.object({ watchlistId: z.string() }))
 		.query(async ({ ctx, input }) => {

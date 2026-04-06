@@ -7,6 +7,7 @@ import {
 	Check,
 	CheckCheck,
 	ChevronDown,
+	EyeOff,
 	Loader2,
 	Pen,
 	Pencil,
@@ -97,6 +98,11 @@ function ShowTracker() {
 	// Fetch journal entries for this show
 	const { data: journalEntries } = useQuery(
 		trpc.journalEntry.getForShow.queryOptions({ tmdbId }),
+	);
+
+	// Hidden state
+	const { data: isHidden } = useQuery(
+		trpc.shuffle.isHidden.queryOptions({ tmdbId, mediaType: "tv" }),
 	);
 
 	// Build watched set for quick lookup
@@ -262,6 +268,21 @@ function ShowTracker() {
 				}
 			});
 	}
+
+	const toggleHideMutation = useMutation(
+		trpc.shuffle.toggleHide.mutationOptions({
+			onSuccess: (data) => {
+				queryClient.invalidateQueries(trpc.shuffle.isHidden.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.shuffle.getHiddenTitles.queryFilter(),
+				);
+				toast.success(data.hidden ? "Hidden from Shuffle" : "Unhidden");
+			},
+			onError: () => {
+				toast.error("Failed to update hidden status");
+			},
+		}),
+	);
 
 	const startRewatchMut = useMutation(
 		trpc.episodeTracker.startRewatch.mutationOptions({
@@ -754,6 +775,45 @@ function ShowTracker() {
 									style={{ color: "rgba(0,229,255,0.75)" }}
 								>
 									Rewatch
+								</span>
+							</button>
+
+							{/* Hide */}
+							<button
+								type="button"
+								onClick={() =>
+									toggleHideMutation.mutate({
+										tmdbId,
+										mediaType: "tv",
+									})
+								}
+								disabled={toggleHideMutation.isPending}
+								className="flex flex-1 flex-col items-center gap-1 rounded-lg py-2.5 px-3 transition-all duration-200 hover:bg-cream/[0.04] disabled:opacity-50"
+								style={{
+									background: isHidden
+										? "rgba(255,45,120,0.08)"
+										: "rgba(12,12,28,0.5)",
+									border: isHidden
+										? "1px solid rgba(255,45,120,0.2)"
+										: "1px solid rgba(255,255,240,0.06)",
+								}}
+							>
+								<EyeOff
+									className="h-4 w-4"
+									style={{
+										color: isHidden ? "#FF2D78" : "rgba(255,255,240,0.5)",
+										opacity: 0.9,
+									}}
+								/>
+								<span
+									className="text-[7px] tracking-[2px] uppercase"
+									style={{
+										color: isHidden
+											? "rgba(255,45,120,0.75)"
+											: "rgba(255,255,240,0.4)",
+									}}
+								>
+									{isHidden ? "Hidden" : "Hide"}
 								</span>
 							</button>
 						</div>
