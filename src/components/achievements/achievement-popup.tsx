@@ -93,7 +93,6 @@ export function AchievementPopup({
 					overlayClassName="bg-[rgba(5,5,8,0.55)] backdrop-blur-[6px] !z-[60]"
 					showCloseButton={false}
 					aria-describedby={undefined}
-					onOpenAutoFocus={(e) => e.preventDefault()}
 				>
 					<DialogTitle className="sr-only">
 						{isSingle ? "Achievement Unlocked" : "Achievements Unlocked"}
