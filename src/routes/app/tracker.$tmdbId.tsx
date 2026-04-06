@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { HideConfirmDialog } from "#/components/shuffle/hide-confirm-dialog";
 import { CompletionCelebration } from "#/components/tracker/completion-celebration";
 import { EditNoteModal } from "#/components/tracker/edit-note-modal";
 import { RewatchConfirmModal } from "#/components/tracker/rewatch-confirm-modal";
@@ -54,6 +55,7 @@ function ShowTracker() {
 		episodeNumber: number;
 	} | null>(null);
 	const [reviewModalOpen, setReviewModalOpen] = useState(false);
+	const [hideConfirmOpen, setHideConfirmOpen] = useState(false);
 
 	// Fetch current watch number (needed before getForShow)
 	const { data: watchNumberData } = useQuery(
@@ -782,10 +784,12 @@ function ShowTracker() {
 							<button
 								type="button"
 								onClick={() =>
-									toggleHideMutation.mutate({
-										tmdbId,
-										mediaType: "tv",
-									})
+									isHidden
+										? toggleHideMutation.mutate({
+												tmdbId,
+												mediaType: "tv",
+											})
+										: setHideConfirmOpen(true)
 								}
 								disabled={toggleHideMutation.isPending}
 								className="flex flex-1 flex-col items-center gap-1 rounded-lg py-2.5 px-3 transition-all duration-200 hover:bg-cream/[0.04] disabled:opacity-50"
@@ -1291,6 +1295,12 @@ function ShowTracker() {
 					startRewatchMut.mutate({ tmdbId });
 				}}
 				isPending={startRewatchMut.isPending}
+			/>
+
+			<HideConfirmDialog
+				open={hideConfirmOpen}
+				onOpenChange={setHideConfirmOpen}
+				onConfirm={() => toggleHideMutation.mutate({ tmdbId, mediaType: "tv" })}
 			/>
 
 			{/* Episode review prompt */}
