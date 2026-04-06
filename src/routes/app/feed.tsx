@@ -75,16 +75,19 @@ function FeedPage() {
 				filmStrips
 				orbs={[
 					{
+						id: "feed-tl",
 						position: { top: "20%", left: "8%" },
 						size: "80px",
 						color: "rgba(255,184,0,0.04)",
 					},
 					{
+						id: "feed-mr",
 						position: { top: "55%", right: "6%" },
 						size: "100px",
 						color: "rgba(0,229,255,0.03)",
 					},
 					{
+						id: "feed-bl",
 						position: { bottom: "30%", left: "5%" },
 						size: "60px",
 						color: "rgba(255,45,120,0.03)",

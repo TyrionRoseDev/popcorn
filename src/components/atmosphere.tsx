@@ -1,4 +1,5 @@
 interface LightOrb {
+	id: string;
 	position: { top?: string; bottom?: string; left?: string; right?: string };
 	size: string;
 	color: string;
@@ -130,7 +131,7 @@ export function Atmosphere({
 			{/* Light orbs */}
 			{orbs?.map((orb) => (
 				<div
-					key={`${orb.size}-${orb.color}`}
+					key={orb.id}
 					className="fixed"
 					style={{
 						...orb.position,
