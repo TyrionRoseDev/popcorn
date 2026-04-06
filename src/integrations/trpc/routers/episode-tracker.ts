@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "#/db";
 import { episodeWatch, journalEntry, userTitle, watchEvent } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
+import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import { fetchAllSeasons, fetchSeasonDetails } from "#/lib/tmdb-title";
 
 export const episodeTrackerRouter = {
@@ -117,7 +118,18 @@ export const episodeTrackerRouter = {
 				watchNumber: watchNum,
 			}));
 			await db.insert(episodeWatch).values(values).onConflictDoNothing();
-			return { marked: input.episodes.length };
+
+			const newAchievements = await evaluateAchievements(
+				ctx.userId,
+				"watched",
+				{
+					tmdbId: input.tmdbId,
+					mediaType: "tv",
+					watchedAt: new Date(),
+				},
+			);
+
+			return { marked: input.episodes.length, newAchievements };
 		}),
 
 	/** Unmark a single episode */
