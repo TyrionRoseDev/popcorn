@@ -2,11 +2,15 @@ import { and, count, eq, gte, sql } from "drizzle-orm";
 import { db } from "#/db";
 import {
 	earnedAchievement,
+	episodeWatch,
 	friendship,
+	journalEntry,
 	recommendation,
 	review,
 	shuffleSwipe,
 	user,
+	userTitle,
+	watchEvent,
 	watchlist,
 	watchlistItem,
 	watchlistMember,
@@ -19,6 +23,7 @@ import {
 	type ActionContext,
 	TOTAL_ACHIEVEMENTS,
 } from "./achievements";
+import { UNIFIED_GENRES } from "./genre-map";
 
 export async function evaluateAchievements(
 	userId: string,
@@ -347,6 +352,165 @@ async function checkCondition(
 
 		case "achievementCountAll": {
 			return earnedIds.size >= TOTAL_ACHIEVEMENTS - 1;
+		}
+
+		case "trackedShowCount": {
+			const result = await db
+				.select({ value: count() })
+				.from(userTitle)
+				.where(
+					and(eq(userTitle.userId, userId), eq(userTitle.mediaType, "tv")),
+				);
+			return (result[0]?.value ?? 0) >= condition.threshold;
+		}
+
+		case "episodeWatchCount": {
+			const result = await db
+				.select({ value: count() })
+				.from(episodeWatch)
+				.where(eq(episodeWatch.userId, userId));
+			return (result[0]?.value ?? 0) >= condition.threshold;
+		}
+
+		case "completedSeriesCount": {
+			const shows = await db
+				.select({
+					tmdbId: userTitle.tmdbId,
+					currentWatchNumber: userTitle.currentWatchNumber,
+					seasonEpisodeCounts: userTitle.seasonEpisodeCounts,
+				})
+				.from(userTitle)
+				.where(
+					and(eq(userTitle.userId, userId), eq(userTitle.mediaType, "tv")),
+				);
+
+			let completedCount = 0;
+			for (const show of shows) {
+				if (!show.seasonEpisodeCounts) continue;
+				const totalEpisodes = Object.values(
+					show.seasonEpisodeCounts as Record<string, number>,
+				).reduce((sum, c) => sum + c, 0);
+				if (totalEpisodes === 0) continue;
+
+				const [watched] = await db
+					.select({ value: count() })
+					.from(episodeWatch)
+					.where(
+						and(
+							eq(episodeWatch.userId, userId),
+							eq(episodeWatch.tmdbId, show.tmdbId),
+							eq(episodeWatch.watchNumber, show.currentWatchNumber),
+						),
+					);
+				if ((watched?.value ?? 0) >= totalEpisodes) {
+					completedCount++;
+				}
+			}
+			return completedCount >= condition.threshold;
+		}
+
+		case "startedRewatch": {
+			const result = await db
+				.select({ value: count() })
+				.from(userTitle)
+				.where(
+					and(
+						eq(userTitle.userId, userId),
+						eq(userTitle.mediaType, "tv"),
+						gte(userTitle.currentWatchNumber, 2),
+					),
+				);
+			return (result[0]?.value ?? 0) >= 1;
+		}
+
+		case "bingeWatchSeason": {
+			const shows = await db
+				.select({
+					tmdbId: userTitle.tmdbId,
+					currentWatchNumber: userTitle.currentWatchNumber,
+					seasonEpisodeCounts: userTitle.seasonEpisodeCounts,
+				})
+				.from(userTitle)
+				.where(
+					and(eq(userTitle.userId, userId), eq(userTitle.mediaType, "tv")),
+				);
+
+			for (const show of shows) {
+				if (!show.seasonEpisodeCounts) continue;
+				const counts = show.seasonEpisodeCounts as Record<string, number>;
+
+				for (const [seasonStr, expectedCount] of Object.entries(counts)) {
+					if (expectedCount === 0) continue;
+					const seasonNum = Number(seasonStr);
+
+					const result = await db
+						.select({
+							watchDate: sql<string>`DATE(${episodeWatch.watchedAt})`,
+							episodeCount: sql<number>`count(*)::int`,
+						})
+						.from(episodeWatch)
+						.where(
+							and(
+								eq(episodeWatch.userId, userId),
+								eq(episodeWatch.tmdbId, show.tmdbId),
+								eq(episodeWatch.seasonNumber, seasonNum),
+								eq(episodeWatch.watchNumber, show.currentWatchNumber),
+							),
+						)
+						.groupBy(sql`DATE(${episodeWatch.watchedAt})`);
+
+					if (result.some((r) => r.episodeCount >= expectedCount)) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		case "journalEntryCount": {
+			const result = await db
+				.select({ value: count() })
+				.from(journalEntry)
+				.where(eq(journalEntry.userId, userId));
+			return (result[0]?.value ?? 0) >= condition.threshold;
+		}
+
+		case "journalAllScopes": {
+			const scopes = await db
+				.selectDistinct({ scope: journalEntry.scope })
+				.from(journalEntry)
+				.where(eq(journalEntry.userId, userId));
+			const scopeSet = new Set(scopes.map((s) => s.scope));
+			return (
+				scopeSet.has("episode") &&
+				scopeSet.has("season") &&
+				scopeSet.has("show")
+			);
+		}
+
+		case "reviewGenreCountAll": {
+			const result = await db.execute(sql`
+				SELECT DISTINCT jsonb_array_elements(we.genre_ids)::int AS genre_id
+				FROM ${review} r
+				JOIN ${watchEvent} we
+					ON we.tmdb_id = r.tmdb_id
+					AND we.media_type = r.media_type
+					AND we.user_id = r.user_id
+					AND we.genre_ids IS NOT NULL
+				WHERE r.user_id = ${userId}
+			`);
+			const tmdbGenreIds = (result.rows ?? []).map(
+				(r: { genre_id: number }) => r.genre_id,
+			);
+			const coveredUnifiedIds = new Set<number>();
+			for (const genreId of tmdbGenreIds) {
+				for (const genre of UNIFIED_GENRES) {
+					if (genre.movieGenreId === genreId || genre.tvGenreId === genreId) {
+						coveredUnifiedIds.add(genre.id);
+					}
+				}
+			}
+			return coveredUnifiedIds.size >= UNIFIED_GENRES.length;
 		}
 
 		default: {
