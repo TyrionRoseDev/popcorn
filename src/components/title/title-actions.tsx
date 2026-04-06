@@ -40,6 +40,7 @@ export function TitleActions({
 	runtime,
 	year,
 	reviewEventId,
+	seasonList,
 	status,
 }: TitleActionsProps) {
 	const trpc = useTRPC();
@@ -263,8 +264,16 @@ export function TitleActions({
 	function handleWatched() {
 		// For TV shows, add to tracker and redirect
 		if (mediaType === "tv") {
+			const seasonEpisodeCounts: Record<string, number> = {};
+			if (seasonList) {
+				for (const s of seasonList) {
+					if (s.seasonNumber > 0) {
+						seasonEpisodeCounts[String(s.seasonNumber)] = s.episodeCount;
+					}
+				}
+			}
 			addToTracker.mutate(
-				{ tmdbId },
+				{ tmdbId, seasonEpisodeCounts },
 				{
 					onSuccess: () => {
 						navigate({
