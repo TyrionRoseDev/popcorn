@@ -404,11 +404,7 @@ export function TitleActions({
 			<div className="flex justify-center mt-3">
 				<button
 					type="button"
-					onClick={() =>
-						isHidden
-							? toggleHideMutation.mutate({ tmdbId, mediaType })
-							: setHideConfirmOpen(true)
-					}
+					onClick={() => toggleHideMutation.mutate({ tmdbId, mediaType })}
 					disabled={toggleHideMutation.isPending}
 					className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase transition-all duration-200 cursor-pointer disabled:opacity-50"
 					style={{
