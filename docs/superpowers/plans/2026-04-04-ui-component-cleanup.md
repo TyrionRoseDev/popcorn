@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: Replace inline star rating with shared StarRating component
+## Task 1: Replace inline star rating with shared StarRating component
 
 **Files:**
 - Modify: `src/components/watched/star-rating.tsx` (add optional props for layout/label customization)
@@ -159,7 +159,7 @@ git commit -m "refactor: use shared StarRating component in watchlist review dia
 
 ---
 
-### Task 2: Consolidate atmosphere components
+## Task 2: Consolidate atmosphere components
 
 **Files:**
 - Create: `src/components/atmosphere.tsx`
@@ -445,7 +445,7 @@ git commit -m "refactor: consolidate 4 atmosphere components into single configu
 
 ---
 
-### Task 3: Consolidate recommend modals into composable component
+## Task 3: Consolidate recommend modals into composable component
 
 **Files:**
 - Create: `src/components/recommend/recommend-modal.tsx`
@@ -1073,7 +1073,7 @@ git commit -m "refactor: consolidate 3 recommend modals into single composable R
 
 ---
 
-### Task 4: Verify full app and clean up
+## Task 4: Verify full app and clean up
 
 - [ ] **Step 1: Run type check**
 

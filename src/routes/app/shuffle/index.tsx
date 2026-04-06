@@ -27,10 +27,6 @@ function ShufflePage() {
 		trpc.shuffle.getOrCreateShuffleWatchlist.queryOptions(),
 	);
 
-	const [activeWatchlistId, _setActiveWatchlistId] = useState<string | null>(
-		initialWatchlistId ?? null,
-	);
-
 	// Show countdown intro only on first visit per session
 	const [showIntro, setShowIntro] = useState(
 		() => sessionStorage.getItem(SHUFFLE_INTRO_KEY) === null,
@@ -44,7 +40,8 @@ function ShufflePage() {
 		return () => clearTimeout(timer);
 	}, [showIntro]);
 
-	const resolvedWatchlistId = activeWatchlistId ?? shuffleWatchlist?.id ?? null;
+	const resolvedWatchlistId =
+		initialWatchlistId ?? shuffleWatchlist?.id ?? null;
 
 	if (!resolvedWatchlistId && !isLoading) {
 		return (
