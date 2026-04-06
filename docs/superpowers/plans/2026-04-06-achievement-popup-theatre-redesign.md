@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: Restyle AchievementPopup with theatre theme
+## Task 1: Restyle AchievementPopup with theatre theme
 
 **Files:**
 - Modify: `src/components/achievements/achievement-popup.tsx`
