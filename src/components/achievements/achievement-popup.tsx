@@ -87,8 +87,8 @@ export function AchievementPopup({
 				}}
 			>
 				<DialogContent
-					className="inset-0 top-0 left-0 max-w-none w-screen h-screen translate-x-0 translate-y-0 rounded-none border-none bg-transparent p-0 gap-0 shadow-none"
-					overlayClassName="bg-[rgba(5,5,8,0.88)] backdrop-blur-[12px]"
+					className="!inset-0 !top-0 !left-0 !max-w-none !w-screen !h-screen !translate-x-0 !translate-y-0 !rounded-none !border-none !bg-transparent !p-0 !gap-0 !shadow-none !z-[60]"
+					overlayClassName="bg-[rgba(5,5,8,0.88)] backdrop-blur-[12px] !z-[60]"
 					showCloseButton={false}
 					aria-describedby={undefined}
 					onOpenAutoFocus={(e) => e.preventDefault()}
@@ -120,14 +120,15 @@ export function AchievementPopup({
 							{PARTICLES.map((p) => (
 								<div
 									key={p.id}
-									className="absolute bottom-0 rounded-full"
+									className="absolute bottom-0 rounded-[1px]"
 									style={
 										{
 											left: p.left,
-											width: `${p.size}px`,
-											height: `${p.size}px`,
+											width: `${p.width}px`,
+											height: `${p.height}px`,
 											background: p.color,
 											"--drift": p.drift,
+											"--rot": `${p.initialRotate}deg`,
 											animation: `ach-particle-rise ${p.duration} ${p.delay} ease-out infinite`,
 										} as React.CSSProperties
 									}
@@ -172,10 +173,10 @@ export function AchievementPopup({
 										}}
 									>
 										<div
-											className="relative flex flex-col items-center justify-center gap-3 rounded-2xl"
+											className="relative flex flex-col items-center justify-center gap-2 rounded-2xl"
 											style={{
-												width: "120px",
-												height: "150px",
+												width: "160px",
+												height: "220px",
 												padding: "3px",
 												backgroundImage:
 													"conic-gradient(from var(--ach-angle), #FF2D78 0%, #FFB800 33%, #00E5FF 66%, #FF2D78 100%)",
@@ -190,7 +191,7 @@ export function AchievementPopup({
 
 											{/* Icon */}
 											<div
-												className="relative z-10 text-4xl leading-none"
+												className="relative z-10 text-5xl leading-none"
 												style={{
 													animation:
 														"ach-icon-glow-pulse 2s ease-in-out infinite",
@@ -203,29 +204,22 @@ export function AchievementPopup({
 
 											{/* Name on badge */}
 											<p
-												className="relative z-10 font-display text-xs text-cream/90 px-2 text-center leading-tight"
+												className="relative z-10 font-display text-sm text-cream/90 px-3 text-center leading-tight"
 												style={{
 													textShadow: "0 0 8px rgba(255,184,0,0.3)",
 												}}
 											>
 												{achievement.name}
 											</p>
+
+											{/* Description on badge */}
+											<p className="relative z-10 font-sans text-[10px] text-cream/40 px-3 text-center leading-snug">
+												{achievement.description}
+											</p>
 										</div>
 									</motion.div>
 								))}
 							</div>
-
-							{/* Single achievement description */}
-							{isSingle && (
-								<motion.p
-									className="text-sm leading-relaxed text-cream/55"
-									initial={{ opacity: 0 }}
-									animate={{ opacity: 1 }}
-									transition={{ delay: 0.35, duration: 0.4 }}
-								>
-									{achievements[0].description}
-								</motion.p>
-							)}
 
 							{/* Progress count */}
 							<motion.p
