@@ -72,7 +72,7 @@ export function AchievementBadge({
 	comparison,
 }: AchievementBadgeProps) {
 	const iEarned = comparison ? comparison.myEarnedAt !== null : earned;
-	const theyEarned = comparison?.theirEarnedAt !== null;
+	const theyEarned = comparison?.theirEarnedAt != null;
 	const isRevealed = comparison ? iEarned || theyEarned : iEarned;
 	const bothEarned = comparison ? iEarned && theyEarned : false;
 
