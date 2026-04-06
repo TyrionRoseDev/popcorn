@@ -406,6 +406,95 @@ describe("evaluateAchievements", () => {
 		});
 	});
 
+	describe("trackedShowCount condition", () => {
+		it("returns now-showing when user tracks their first show", async () => {
+			mockWhere.mockResolvedValueOnce([]); // earned
+			mockWhere.mockResolvedValueOnce([{ value: 1 }]); // trackedShowCount
+			mockWhere.mockResolvedValue([{ value: 0 }]);
+
+			const result = await evaluateAchievements(USER_ID, "show_tracked");
+			expect(result).toContain("now-showing");
+		});
+
+		it("does not return now-showing when no shows tracked", async () => {
+			mockWhere.mockResolvedValueOnce([]); // earned
+			mockWhere.mockResolvedValue([{ value: 0 }]);
+
+			const result = await evaluateAchievements(USER_ID, "show_tracked");
+			expect(result).not.toContain("now-showing");
+		});
+	});
+
+	describe("startedRewatch condition", () => {
+		it("returns rerun when a rewatch has been started", async () => {
+			mockWhere.mockResolvedValueOnce([]); // earned
+			mockWhere.mockResolvedValueOnce([{ value: 1 }]); // startedRewatch (count of userTitles with watchNumber >= 2)
+			mockWhere.mockResolvedValue([{ value: 0 }]);
+
+			const result = await evaluateAchievements(USER_ID, "rewatch_started");
+			expect(result).toContain("rerun");
+		});
+
+		it("does not return rerun when no rewatches started", async () => {
+			mockWhere.mockResolvedValueOnce([]); // earned
+			mockWhere.mockResolvedValue([{ value: 0 }]);
+
+			const result = await evaluateAchievements(USER_ID, "rewatch_started");
+			expect(result).not.toContain("rerun");
+		});
+	});
+
+	describe("journalEntryCount condition", () => {
+		it("returns dear-diary when first journal entry is written", async () => {
+			mockWhere.mockResolvedValueOnce([]); // earned
+			mockWhere.mockResolvedValueOnce([{ value: 1 }]); // journalEntryCount for dear-diary
+			mockWhere.mockResolvedValue([{ value: 0 }]);
+
+			const result = await evaluateAchievements(USER_ID, "journal_entry");
+			expect(result).toContain("dear-diary");
+		});
+
+		it("does not return dear-diary with zero entries", async () => {
+			mockWhere.mockResolvedValueOnce([]); // earned
+			mockWhere.mockResolvedValue([{ value: 0 }]);
+
+			const result = await evaluateAchievements(USER_ID, "journal_entry");
+			expect(result).not.toContain("dear-diary");
+		});
+	});
+
+	describe("journalAllScopes condition", () => {
+		it("returns triple-take when all three scopes exist", async () => {
+			mockWhere.mockResolvedValueOnce([]); // earned
+			mockWhere.mockResolvedValueOnce([{ value: 3 }]); // journalEntryCount (dear-diary threshold=1)
+			mockWhere.mockResolvedValueOnce([{ value: 3 }]); // journalEntryCount (frequent-writer threshold=10) - not met
+			// journalAllScopes uses selectDistinct → from → where
+			mockWhere.mockResolvedValueOnce([
+				{ scope: "episode" },
+				{ scope: "season" },
+				{ scope: "show" },
+			]);
+			mockWhere.mockResolvedValue([{ value: 0 }]);
+
+			const result = await evaluateAchievements(USER_ID, "journal_entry");
+			expect(result).toContain("triple-take");
+		});
+
+		it("does not return triple-take when missing a scope", async () => {
+			mockWhere.mockResolvedValueOnce([]); // earned
+			mockWhere.mockResolvedValueOnce([{ value: 3 }]); // journalEntryCount (dear-diary)
+			mockWhere.mockResolvedValueOnce([{ value: 3 }]); // journalEntryCount (frequent-writer)
+			mockWhere.mockResolvedValueOnce([
+				{ scope: "episode" },
+				{ scope: "season" },
+			]); // missing "show"
+			mockWhere.mockResolvedValue([{ value: 0 }]);
+
+			const result = await evaluateAchievements(USER_ID, "journal_entry");
+			expect(result).not.toContain("triple-take");
+		});
+	});
+
 	describe("insert is called for newly earned achievements", () => {
 		it("calls db.insert with earnedAchievement data when condition is met", async () => {
 			mockWhere.mockResolvedValueOnce([]);
