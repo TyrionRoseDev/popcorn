@@ -42,7 +42,11 @@ export function AchievementCelebrationProvider({
 		const validIds = ids.filter((id) => ACHIEVEMENTS_BY_ID.has(id));
 		if (validIds.length === 0) return;
 
-		setPendingIds((prev) => [...prev, ...validIds]);
+		setPendingIds((prev) => {
+			const existing = new Set(prev);
+			const newIds = validIds.filter((id) => !existing.has(id));
+			return newIds.length > 0 ? [...prev, ...newIds] : prev;
+		});
 	}, []);
 
 	useEffect(() => {

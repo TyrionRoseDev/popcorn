@@ -384,6 +384,20 @@ async function checkCondition(
 					and(eq(userTitle.userId, userId), eq(userTitle.mediaType, "tv")),
 				);
 
+			const watchedCounts = await db
+				.select({
+					tmdbId: episodeWatch.tmdbId,
+					watchNumber: episodeWatch.watchNumber,
+					value: count(),
+				})
+				.from(episodeWatch)
+				.where(eq(episodeWatch.userId, userId))
+				.groupBy(episodeWatch.tmdbId, episodeWatch.watchNumber);
+
+			const watchedMap = new Map(
+				watchedCounts.map((r) => [`${r.tmdbId}-${r.watchNumber}`, r.value]),
+			);
+
 			let completedCount = 0;
 			for (const show of shows) {
 				if (!show.seasonEpisodeCounts) continue;
@@ -392,17 +406,9 @@ async function checkCondition(
 				).reduce((sum, c) => sum + c, 0);
 				if (totalEpisodes === 0) continue;
 
-				const [watched] = await db
-					.select({ value: count() })
-					.from(episodeWatch)
-					.where(
-						and(
-							eq(episodeWatch.userId, userId),
-							eq(episodeWatch.tmdbId, show.tmdbId),
-							eq(episodeWatch.watchNumber, show.currentWatchNumber),
-						),
-					);
-				if ((watched?.value ?? 0) >= totalEpisodes) {
+				const watched =
+					watchedMap.get(`${show.tmdbId}-${show.currentWatchNumber}`) ?? 0;
+				if (watched >= totalEpisodes) {
 					completedCount++;
 				}
 			}
