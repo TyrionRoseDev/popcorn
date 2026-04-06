@@ -9,12 +9,14 @@ import {
 	ChevronDown,
 	Loader2,
 	Pen,
+	Pencil,
 	RotateCcw,
 	Trash2,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CompletionCelebration } from "#/components/tracker/completion-celebration";
+import { EditNoteModal } from "#/components/tracker/edit-note-modal";
 import { RewatchConfirmModal } from "#/components/tracker/rewatch-confirm-modal";
 import { WriteAboutModal } from "#/components/tracker/write-about-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
@@ -1348,8 +1350,8 @@ function formatRelativeDate(date: Date): string {
 }
 
 function NotesAndReviewsSection({
-	tmdbId: _tmdbId,
-	titleName: _titleName,
+	tmdbId,
+	titleName,
 	journalEntries,
 	watchEvents,
 }: NotesAndReviewsSectionProps) {
@@ -1389,6 +1391,24 @@ function NotesAndReviewsSection({
 			},
 		}),
 	);
+
+	const [editingNote, setEditingNote] = useState<{
+		id: string;
+		note: string;
+		isPublic: boolean;
+		scope: string;
+		seasonNumber: number | null;
+		episodeNumber: number | null;
+	} | null>(null);
+
+	const [editingReview, setEditingReview] = useState<{
+		id: string;
+		rating: number | null;
+		note: string | null;
+		watchedAt: Date | null;
+		companions: Array<{ friendId: string | null; name: string }>;
+		visibility: string | null;
+	} | null>(null);
 
 	// Merge and sort entries chronologically (newest first)
 	type TimelineItem =
@@ -1492,13 +1512,31 @@ function NotesAndReviewsSection({
 											{formatRelativeDate(entry.createdAt)}
 										</span>
 									</div>
-									<button
-										type="button"
-										onClick={() => handleDeleteNote(entry.id)}
-										className="p-1 text-cream/10 opacity-0 group-hover:opacity-100 hover:text-red-400/60 transition-all duration-200"
-									>
-										<Trash2 className="w-3 h-3" />
-									</button>
+									<div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200">
+										<button
+											type="button"
+											onClick={() =>
+												setEditingNote({
+													id: entry.id,
+													note: entry.note,
+													isPublic: entry.isPublic ?? false,
+													scope: entry.scope,
+													seasonNumber: entry.seasonNumber,
+													episodeNumber: entry.episodeNumber,
+												})
+											}
+											className="p-1 text-cream/10 hover:text-neon-cyan/60 transition-all duration-200"
+										>
+											<Pencil className="w-3 h-3" />
+										</button>
+										<button
+											type="button"
+											onClick={() => handleDeleteNote(entry.id)}
+											className="p-1 text-cream/10 hover:text-red-400/60 transition-all duration-200"
+										>
+											<Trash2 className="w-3 h-3" />
+										</button>
+									</div>
 								</div>
 								{/* Note text */}
 								<p className="text-sm text-cream/75 leading-relaxed whitespace-pre-wrap">
@@ -1549,13 +1587,31 @@ function NotesAndReviewsSection({
 										{formatRelativeDate(event.createdAt)}
 									</span>
 								</div>
-								<button
-									type="button"
-									onClick={() => handleDeleteReview(event.id)}
-									className="p-1 text-cream/10 opacity-0 group-hover:opacity-100 hover:text-red-400/60 transition-all duration-200"
-								>
-									<Trash2 className="w-3 h-3" />
-								</button>
+								<div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200">
+									<button
+										type="button"
+										onClick={() =>
+											setEditingReview({
+												id: event.id,
+												rating: event.rating,
+												note: event.note,
+												watchedAt: event.watchedAt,
+												companions: event.companions,
+												visibility: event.visibility,
+											})
+										}
+										className="p-1 text-cream/10 hover:text-neon-cyan/60 transition-all duration-200"
+									>
+										<Pencil className="w-3 h-3" />
+									</button>
+									<button
+										type="button"
+										onClick={() => handleDeleteReview(event.id)}
+										className="p-1 text-cream/10 hover:text-red-400/60 transition-all duration-200"
+									>
+										<Trash2 className="w-3 h-3" />
+									</button>
+								</div>
 							</div>
 							{/* Review text */}
 							{event.note && (
@@ -1567,6 +1623,45 @@ function NotesAndReviewsSection({
 					);
 				})}
 			</div>
+
+			{/* Edit note modal */}
+			<EditNoteModal
+				open={editingNote !== null}
+				onOpenChange={(open) => {
+					if (!open) setEditingNote(null);
+				}}
+				entry={editingNote}
+			/>
+
+			{/* Edit review modal */}
+			<ReviewModal
+				open={editingReview !== null}
+				onOpenChange={(open) => {
+					if (!open) setEditingReview(null);
+				}}
+				titleName={titleName}
+				tmdbId={tmdbId}
+				mediaType="tv"
+				editEvent={
+					editingReview
+						? {
+								id: editingReview.id,
+								rating: editingReview.rating,
+								note: editingReview.note,
+								watchedAt: editingReview.watchedAt?.toISOString() ?? null,
+								companions: editingReview.companions.map((c) => ({
+									friendId: c.friendId ?? undefined,
+									name: c.name,
+								})),
+								visibility:
+									(editingReview.visibility as
+										| "public"
+										| "companion"
+										| "private") ?? "public",
+							}
+						: undefined
+				}
+			/>
 		</div>
 	);
 }
