@@ -4,6 +4,7 @@ import { Check, EyeOff, Loader2, Plus, Send, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { RecommendModal } from "#/components/recommend/recommend-modal";
+import { HideConfirmDialog } from "#/components/shuffle/hide-confirm-dialog";
 import { ArcadeButton } from "#/components/title/arcade-button";
 import {
 	Popover,
@@ -404,7 +405,11 @@ export function TitleActions({
 			<div className="flex justify-center mt-3">
 				<button
 					type="button"
-					onClick={() => toggleHideMutation.mutate({ tmdbId, mediaType })}
+					onClick={() =>
+						isHidden
+							? toggleHideMutation.mutate({ tmdbId, mediaType })
+							: setHideConfirmOpen(true)
+					}
 					disabled={toggleHideMutation.isPending}
 					className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase transition-all duration-200 cursor-pointer disabled:opacity-50"
 					style={{
@@ -494,6 +499,12 @@ export function TitleActions({
 				titleName={title}
 				showMessage
 				variant="marquee"
+			/>
+
+			<HideConfirmDialog
+				open={hideConfirmOpen}
+				onOpenChange={setHideConfirmOpen}
+				onConfirm={() => toggleHideMutation.mutate({ tmdbId, mediaType })}
 			/>
 		</>
 	);

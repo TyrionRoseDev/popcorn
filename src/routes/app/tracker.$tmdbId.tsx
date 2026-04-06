@@ -784,10 +784,12 @@ function ShowTracker() {
 							<button
 								type="button"
 								onClick={() =>
-									toggleHideMutation.mutate({
-										tmdbId,
-										mediaType: "tv",
-									})
+									isHidden
+										? toggleHideMutation.mutate({
+												tmdbId,
+												mediaType: "tv",
+											})
+										: setHideConfirmOpen(true)
 								}
 								disabled={toggleHideMutation.isPending}
 								className="flex flex-1 flex-col items-center gap-1 rounded-lg py-2.5 px-3 transition-all duration-200 hover:bg-cream/[0.04] disabled:opacity-50"
