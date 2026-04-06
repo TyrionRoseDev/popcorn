@@ -12,6 +12,7 @@ import { Atmosphere } from "#/components/atmosphere";
 import { RecommendModal } from "#/components/recommend/recommend-modal";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { CastList } from "#/components/title/cast-list";
+import { ContentWarningsLink } from "#/components/title/content-warnings-link";
 import { DriveInScreen } from "#/components/title/drive-in-screen";
 import { NowShowingMarquee } from "#/components/title/now-showing-marquee";
 import { PosterDisplayCase } from "#/components/title/poster-display-case";
@@ -144,6 +145,7 @@ function TitlePage() {
 							featuredLine={data.featuredQuote ?? data.tagline}
 							quoteCharacter={data.quoteCharacter}
 						/>
+						<ContentWarningsLink title={data.title} dtddUrl={data.dtddUrl} />
 					</SectionBoard>
 
 					<TitleMetadata
