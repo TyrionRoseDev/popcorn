@@ -7,14 +7,18 @@ import {
 	Check,
 	CheckCheck,
 	ChevronDown,
+	EyeOff,
 	Loader2,
 	Pen,
+	Pencil,
 	RotateCcw,
 	Trash2,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { HideConfirmDialog } from "#/components/shuffle/hide-confirm-dialog";
 import { CompletionCelebration } from "#/components/tracker/completion-celebration";
+import { EditNoteModal } from "#/components/tracker/edit-note-modal";
 import { RewatchConfirmModal } from "#/components/tracker/rewatch-confirm-modal";
 import { WriteAboutModal } from "#/components/tracker/write-about-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
@@ -51,6 +55,7 @@ function ShowTracker() {
 		episodeNumber: number;
 	} | null>(null);
 	const [reviewModalOpen, setReviewModalOpen] = useState(false);
+	const [hideConfirmOpen, setHideConfirmOpen] = useState(false);
 
 	// Fetch current watch number (needed before getForShow)
 	const { data: watchNumberData } = useQuery(
@@ -95,6 +100,11 @@ function ShowTracker() {
 	// Fetch journal entries for this show
 	const { data: journalEntries } = useQuery(
 		trpc.journalEntry.getForShow.queryOptions({ tmdbId }),
+	);
+
+	// Hidden state
+	const { data: isHidden } = useQuery(
+		trpc.shuffle.isHidden.queryOptions({ tmdbId, mediaType: "tv" }),
 	);
 
 	// Build watched set for quick lookup
@@ -260,6 +270,21 @@ function ShowTracker() {
 				}
 			});
 	}
+
+	const toggleHideMutation = useMutation(
+		trpc.shuffle.toggleHide.mutationOptions({
+			onSuccess: (data) => {
+				queryClient.invalidateQueries(trpc.shuffle.isHidden.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.shuffle.getHiddenTitles.queryFilter(),
+				);
+				toast.success(data.hidden ? "Hidden from Shuffle" : "Unhidden");
+			},
+			onError: () => {
+				toast.error("Failed to update hidden status");
+			},
+		}),
+	);
 
 	const startRewatchMut = useMutation(
 		trpc.episodeTracker.startRewatch.mutationOptions({
@@ -754,6 +779,47 @@ function ShowTracker() {
 									Rewatch
 								</span>
 							</button>
+
+							{/* Hide */}
+							<button
+								type="button"
+								onClick={() =>
+									isHidden
+										? toggleHideMutation.mutate({
+												tmdbId,
+												mediaType: "tv",
+											})
+										: setHideConfirmOpen(true)
+								}
+								disabled={toggleHideMutation.isPending}
+								className="flex flex-1 flex-col items-center gap-1 rounded-lg py-2.5 px-3 transition-all duration-200 hover:bg-cream/[0.04] disabled:opacity-50"
+								style={{
+									background: isHidden
+										? "rgba(255,45,120,0.08)"
+										: "rgba(12,12,28,0.5)",
+									border: isHidden
+										? "1px solid rgba(255,45,120,0.2)"
+										: "1px solid rgba(255,255,240,0.06)",
+								}}
+							>
+								<EyeOff
+									className="h-4 w-4"
+									style={{
+										color: isHidden ? "#FF2D78" : "rgba(255,255,240,0.5)",
+										opacity: 0.9,
+									}}
+								/>
+								<span
+									className="text-[7px] tracking-[2px] uppercase"
+									style={{
+										color: isHidden
+											? "rgba(255,45,120,0.75)"
+											: "rgba(255,255,240,0.4)",
+									}}
+								>
+									{isHidden ? "Hidden" : "Hide"}
+								</span>
+							</button>
 						</div>
 					)}
 
@@ -1123,6 +1189,8 @@ function ShowTracker() {
 
 					{/* Notes & Reviews Section */}
 					<NotesAndReviewsSection
+						tmdbId={tmdbId}
+						titleName={titleData.title}
 						journalEntries={journalEntries ?? []}
 						watchEvents={(existingWatchEvents ?? []).filter(
 							(e) => e.rating != null || e.note,
@@ -1229,6 +1297,12 @@ function ShowTracker() {
 				isPending={startRewatchMut.isPending}
 			/>
 
+			<HideConfirmDialog
+				open={hideConfirmOpen}
+				onOpenChange={setHideConfirmOpen}
+				onConfirm={() => toggleHideMutation.mutate({ tmdbId, mediaType: "tv" })}
+			/>
+
 			{/* Episode review prompt */}
 			{reviewPromptEpisode && !reviewModalOpen && (
 				<div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[rgba(15,15,40,0.98)] border border-neon-amber/25 rounded-xl px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.5),0_0_16px_rgba(255,184,0,0.08)] text-center animate-in slide-in-from-bottom-4 duration-300">
@@ -1287,6 +1361,8 @@ function ShowTracker() {
 /* ─── Notes & Reviews Section ─── */
 
 interface NotesAndReviewsSectionProps {
+	tmdbId: number;
+	titleName: string;
 	journalEntries: Array<{
 		id: string;
 		scope: string;
@@ -1307,6 +1383,8 @@ interface NotesAndReviewsSectionProps {
 		watchedAt: Date | null;
 		createdAt: Date;
 		watchNumber: number;
+		visibility: string | null;
+		companions: Array<{ friendId: string | null; name: string }>;
 	}>;
 }
 
@@ -1342,6 +1420,8 @@ function formatRelativeDate(date: Date): string {
 }
 
 function NotesAndReviewsSection({
+	tmdbId,
+	titleName,
 	journalEntries,
 	watchEvents,
 }: NotesAndReviewsSectionProps) {
@@ -1381,6 +1461,24 @@ function NotesAndReviewsSection({
 			},
 		}),
 	);
+
+	const [editingNote, setEditingNote] = useState<{
+		id: string;
+		note: string;
+		isPublic: boolean;
+		scope: string;
+		seasonNumber: number | null;
+		episodeNumber: number | null;
+	} | null>(null);
+
+	const [editingReview, setEditingReview] = useState<{
+		id: string;
+		rating: number | null;
+		note: string | null;
+		watchedAt: Date | null;
+		companions: Array<{ friendId: string | null; name: string }>;
+		visibility: string | null;
+	} | null>(null);
 
 	// Merge and sort entries chronologically (newest first)
 	type TimelineItem =
@@ -1484,13 +1582,31 @@ function NotesAndReviewsSection({
 											{formatRelativeDate(entry.createdAt)}
 										</span>
 									</div>
-									<button
-										type="button"
-										onClick={() => handleDeleteNote(entry.id)}
-										className="p-1 text-cream/10 opacity-0 group-hover:opacity-100 hover:text-red-400/60 transition-all duration-200"
-									>
-										<Trash2 className="w-3 h-3" />
-									</button>
+									<div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200">
+										<button
+											type="button"
+											onClick={() =>
+												setEditingNote({
+													id: entry.id,
+													note: entry.note,
+													isPublic: entry.isPublic ?? false,
+													scope: entry.scope,
+													seasonNumber: entry.seasonNumber,
+													episodeNumber: entry.episodeNumber,
+												})
+											}
+											className="p-1 text-cream/10 hover:text-neon-cyan/60 transition-all duration-200"
+										>
+											<Pencil className="w-3 h-3" />
+										</button>
+										<button
+											type="button"
+											onClick={() => handleDeleteNote(entry.id)}
+											className="p-1 text-cream/10 hover:text-red-400/60 transition-all duration-200"
+										>
+											<Trash2 className="w-3 h-3" />
+										</button>
+									</div>
 								</div>
 								{/* Note text */}
 								<p className="text-sm text-cream/75 leading-relaxed whitespace-pre-wrap">
@@ -1541,13 +1657,31 @@ function NotesAndReviewsSection({
 										{formatRelativeDate(event.createdAt)}
 									</span>
 								</div>
-								<button
-									type="button"
-									onClick={() => handleDeleteReview(event.id)}
-									className="p-1 text-cream/10 opacity-0 group-hover:opacity-100 hover:text-red-400/60 transition-all duration-200"
-								>
-									<Trash2 className="w-3 h-3" />
-								</button>
+								<div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200">
+									<button
+										type="button"
+										onClick={() =>
+											setEditingReview({
+												id: event.id,
+												rating: event.rating,
+												note: event.note,
+												watchedAt: event.watchedAt,
+												companions: event.companions,
+												visibility: event.visibility,
+											})
+										}
+										className="p-1 text-cream/10 hover:text-neon-cyan/60 transition-all duration-200"
+									>
+										<Pencil className="w-3 h-3" />
+									</button>
+									<button
+										type="button"
+										onClick={() => handleDeleteReview(event.id)}
+										className="p-1 text-cream/10 hover:text-red-400/60 transition-all duration-200"
+									>
+										<Trash2 className="w-3 h-3" />
+									</button>
+								</div>
 							</div>
 							{/* Review text */}
 							{event.note && (
@@ -1559,6 +1693,45 @@ function NotesAndReviewsSection({
 					);
 				})}
 			</div>
+
+			{/* Edit note modal */}
+			<EditNoteModal
+				open={editingNote !== null}
+				onOpenChange={(open) => {
+					if (!open) setEditingNote(null);
+				}}
+				entry={editingNote}
+			/>
+
+			{/* Edit review modal */}
+			<ReviewModal
+				open={editingReview !== null}
+				onOpenChange={(open) => {
+					if (!open) setEditingReview(null);
+				}}
+				titleName={titleName}
+				tmdbId={tmdbId}
+				mediaType="tv"
+				editEvent={
+					editingReview
+						? {
+								id: editingReview.id,
+								rating: editingReview.rating,
+								note: editingReview.note,
+								watchedAt: editingReview.watchedAt?.toISOString() ?? null,
+								companions: editingReview.companions.map((c) => ({
+									friendId: c.friendId ?? undefined,
+									name: c.name,
+								})),
+								visibility:
+									(editingReview.visibility as
+										| "public"
+										| "companion"
+										| "private") ?? "public",
+							}
+						: undefined
+				}
+			/>
 		</div>
 	);
 }

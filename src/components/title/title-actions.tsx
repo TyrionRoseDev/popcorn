@@ -1,15 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Check, Loader2, Plus, Send, Star } from "lucide-react";
+import { Check, EyeOff, Loader2, Plus, Send, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { RecommendModal } from "#/components/recommend/recommend-modal";
+import { HideConfirmDialog } from "#/components/shuffle/hide-confirm-dialog";
 import { ArcadeButton } from "#/components/title/arcade-button";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "#/components/ui/popover";
-import { RecommendModal } from "#/components/watched/recommend-modal";
 import { ReviewModal } from "#/components/watched/review-modal";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { CreateWatchlistDialog } from "#/components/watchlist/create-watchlist-dialog";
@@ -40,6 +41,7 @@ export function TitleActions({
 	runtime,
 	year,
 	reviewEventId,
+	seasonList,
 	status,
 }: TitleActionsProps) {
 	const trpc = useTRPC();
@@ -72,6 +74,7 @@ export function TitleActions({
 		| undefined
 	>(undefined);
 	const [pendingRemovalCheck, setPendingRemovalCheck] = useState(false);
+	const [hideConfirmOpen, setHideConfirmOpen] = useState(false);
 
 	// Queries
 	const { data: watchlists, isLoading: watchlistsLoading } = useQuery(
@@ -84,6 +87,10 @@ export function TitleActions({
 
 	const { data: isBookmarked } = useQuery(
 		trpc.watchlist.isBookmarked.queryOptions({ tmdbId, mediaType }),
+	);
+
+	const { data: isHidden } = useQuery(
+		trpc.shuffle.isHidden.queryOptions({ tmdbId, mediaType }),
 	);
 
 	const { data: latestRating } = useQuery(
@@ -183,6 +190,21 @@ export function TitleActions({
 		}),
 	);
 
+	const toggleHideMutation = useMutation(
+		trpc.shuffle.toggleHide.mutationOptions({
+			onSuccess: (data) => {
+				queryClient.invalidateQueries(trpc.shuffle.isHidden.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.shuffle.getHiddenTitles.queryFilter(),
+				);
+				toast.success(data.hidden ? "Hidden from Shuffle" : "Unhidden");
+			},
+			onError: () => {
+				toast.error("Failed to update hidden status");
+			},
+		}),
+	);
+
 	function triggerWatchlistRemoval() {
 		// Don't prompt removal for TV shows still airing
 		if (
@@ -263,8 +285,16 @@ export function TitleActions({
 	function handleWatched() {
 		// For TV shows, add to tracker and redirect
 		if (mediaType === "tv") {
+			const seasonEpisodeCounts: Record<string, number> = {};
+			if (seasonList) {
+				for (const s of seasonList) {
+					if (s.seasonNumber > 0) {
+						seasonEpisodeCounts[String(s.seasonNumber)] = s.episodeCount;
+					}
+				}
+			}
 			addToTracker.mutate(
-				{ tmdbId },
+				{ tmdbId, seasonEpisodeCounts },
 				{
 					onSuccess: () => {
 						navigate({
@@ -371,6 +401,30 @@ export function TitleActions({
 				/>
 			</div>
 
+			{/* Hide from Shuffle */}
+			<div className="flex justify-center mt-3">
+				<button
+					type="button"
+					onClick={() =>
+						isHidden
+							? toggleHideMutation.mutate({ tmdbId, mediaType })
+							: setHideConfirmOpen(true)
+					}
+					disabled={toggleHideMutation.isPending}
+					className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-mono-retro tracking-wider uppercase transition-all duration-200 cursor-pointer disabled:opacity-50"
+					style={{
+						color: isHidden ? "rgba(255,45,120,0.85)" : "rgba(255,255,240,0.3)",
+						background: isHidden ? "rgba(255,45,120,0.1)" : "transparent",
+						border: isHidden
+							? "1px solid rgba(255,45,120,0.2)"
+							: "1px solid rgba(255,255,240,0.08)",
+					}}
+				>
+					<EyeOff className="h-3.5 w-3.5" />
+					{isHidden ? "Hidden" : "Hide"}
+				</button>
+			</div>
+
 			{watchEvents && watchEvents.length > 0 && (
 				<div className="mt-6 mx-auto max-w-sm">
 					<div className="font-mono-retro text-[10px] tracking-[3px] uppercase text-cream/30 mb-3 text-center">
@@ -443,6 +497,14 @@ export function TitleActions({
 				tmdbId={tmdbId}
 				mediaType={mediaType}
 				titleName={title}
+				showMessage
+				variant="marquee"
+			/>
+
+			<HideConfirmDialog
+				open={hideConfirmOpen}
+				onOpenChange={setHideConfirmOpen}
+				onConfirm={() => toggleHideMutation.mutate({ tmdbId, mediaType })}
 			/>
 		</>
 	);

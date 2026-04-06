@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import type { AchievementDefinition } from "#/lib/achievements";
 
 interface ComparisonData {
@@ -11,7 +12,6 @@ interface AchievementBadgeProps {
 	earned: boolean;
 	earnedAt?: Date | null;
 	comparison?: ComparisonData;
-	onClick?: () => void;
 }
 
 function formatShortDate(date: Date): string {
@@ -22,103 +22,137 @@ function formatShortDate(date: Date): string {
 	});
 }
 
+function EarnedDot({
+	earned,
+	date,
+	color,
+}: {
+	earned: boolean;
+	date: Date | null;
+	color: "amber" | "cyan";
+}) {
+	if (!earned) {
+		return (
+			<div className="flex items-center justify-center w-16">
+				<div className="h-2 w-2 rounded-full bg-cream/10" />
+			</div>
+		);
+	}
+
+	const colorClass =
+		color === "amber"
+			? "bg-neon-amber text-neon-amber shadow-[0_0_8px_rgba(255,184,0,0.5)]"
+			: "bg-neon-cyan text-neon-cyan shadow-[0_0_8px_rgba(0,229,255,0.5)]";
+
+	const dateColor =
+		color === "amber" ? "text-neon-amber/50" : "text-neon-cyan/50";
+
+	return (
+		<div className="flex flex-col items-center gap-0.5 w-16">
+			<div
+				className={`flex items-center justify-center h-5 w-5 rounded-full ${colorClass}`}
+			>
+				<Check className="h-3 w-3 text-drive-in-card" strokeWidth={3} />
+			</div>
+			{date && (
+				<span
+					className={`font-mono-retro text-[8px] tracking-[0.5px] ${dateColor}`}
+				>
+					{formatShortDate(date)}
+				</span>
+			)}
+		</div>
+	);
+}
+
 export function AchievementBadge({
 	achievement,
 	earned,
 	earnedAt,
 	comparison,
-	onClick,
 }: AchievementBadgeProps) {
 	const iEarned = comparison ? comparison.myEarnedAt !== null : earned;
-	const theyEarned = comparison ? comparison.theirEarnedAt !== null : false;
+	const theyEarned = comparison?.theirEarnedAt !== null;
+	const isRevealed = comparison ? iEarned || theyEarned : iEarned;
+	const bothEarned = comparison ? iEarned && theyEarned : false;
 
-	const Wrapper = onClick ? "button" : "div";
+	// Row highlight based on status
+	const rowBg = bothEarned
+		? "bg-cream/[0.03]"
+		: isRevealed
+			? "bg-cream/[0.015]"
+			: "";
+
+	// Left border accent
+	const borderColor = !isRevealed
+		? "border-l-cream/5"
+		: bothEarned
+			? "border-l-neon-amber/60"
+			: iEarned
+				? "border-l-neon-amber/40"
+				: "border-l-neon-cyan/40";
 
 	return (
-		<Wrapper
-			{...(onClick ? { type: "button" as const, onClick } : {})}
-			className={[
-				"group relative flex flex-col items-center rounded-xl bg-drive-in-card text-center",
-				"transition-transform duration-200",
-				iEarned && onClick ? "cursor-pointer hover:scale-105" : "",
-				!iEarned ? "opacity-30 grayscale" : "",
-			]
-				.filter(Boolean)
-				.join(" ")}
-			style={{
-				width: "140px",
-				minHeight: "170px",
-				padding: "3px",
-				backgroundImage: iEarned
-					? "conic-gradient(from 0deg, rgba(255,45,120,0.6) 0%, rgba(255,184,0,0.6) 33%, rgba(0,229,255,0.6) 66%, rgba(255,45,120,0.6) 100%)"
-					: undefined,
-				background: iEarned ? undefined : "#0a0a1e",
-			}}
+		<div
+			className={`flex items-center gap-3 px-4 py-3 border-l-2 rounded-r-lg transition-colors ${rowBg} ${borderColor} ${!isRevealed ? "opacity-35" : ""}`}
 		>
-			{/* Inner fill */}
-			<div
-				className="absolute inset-[3px] rounded-[calc(0.75rem-2px)] bg-drive-in-card"
-				aria-hidden="true"
-			/>
+			{/* Left indicator: You */}
+			{comparison ? (
+				<EarnedDot
+					earned={iEarned}
+					date={comparison.myEarnedAt}
+					color="amber"
+				/>
+			) : null}
 
-			{/* Card content */}
-			<div className="relative z-10 flex w-full flex-1 flex-col items-center gap-2 px-3 pb-3 pt-4">
-				{/* Icon */}
+			{/* Achievement info — center */}
+			<div className="flex items-center gap-3 flex-1 min-w-0">
 				<div
-					className="text-4xl leading-none"
+					className="text-2xl leading-none shrink-0"
 					style={
-						iEarned
+						isRevealed
 							? {
 									textShadow:
-										"0 0 10px rgba(255,184,0,0.6), 0 0 24px rgba(255,184,0,0.35)",
+										"0 0 8px rgba(255,184,0,0.4), 0 0 16px rgba(255,184,0,0.2)",
 								}
-							: undefined
+							: { filter: "grayscale(1)" }
 					}
 				>
-					{iEarned ? achievement.icon : "?"}
+					{isRevealed ? achievement.icon : "🔒"}
 				</div>
-
-				{/* Name */}
-				<p className="font-display text-xs leading-snug text-cream/85">
-					{iEarned ? achievement.name : "???"}
-				</p>
-
-				{/* Date earned */}
-				{iEarned && earnedAt && (
-					<p className="font-mono-retro text-[9px] tracking-[1px] text-neon-amber/50">
-						{formatShortDate(earnedAt)}
+				<div className="flex flex-col gap-0.5 min-w-0">
+					<p
+						className={`font-display text-sm leading-snug ${isRevealed ? "text-cream/90" : "text-cream/30"}`}
+					>
+						{isRevealed ? achievement.name : "???"}
 					</p>
-				)}
-
-				{/* Comparison indicators */}
-				{comparison && (iEarned || theyEarned) && (
-					<div className="mt-auto flex flex-wrap justify-center gap-1 pt-1">
-						{comparison.myEarnedAt && (
-							<span className="rounded-full border border-neon-amber/30 bg-neon-amber/10 px-1.5 py-0.5 font-mono-retro text-[8px] uppercase tracking-[0.5px] text-neon-amber">
-								You
-							</span>
-						)}
-						{comparison.theirEarnedAt && (
-							<span
-								className="rounded-full border border-neon-cyan/30 bg-neon-cyan/10 px-1.5 py-0.5 font-mono-retro text-[8px] uppercase tracking-[0.5px] text-neon-cyan truncate max-w-[70px]"
-								title={comparison.theirName}
-							>
-								{comparison.theirName}
-							</span>
-						)}
-					</div>
-				)}
+					{isRevealed && (
+						<p className="font-sans text-[11px] leading-snug text-cream/40 truncate">
+							{achievement.description}
+						</p>
+					)}
+				</div>
 			</div>
 
-			{/* Locked overlay */}
-			{!iEarned && (
-				<div
-					className="absolute inset-[3px] z-20 flex items-center justify-center rounded-[calc(0.75rem-2px)]"
-					aria-hidden="true"
-				>
-					<span className="text-2xl">🔒</span>
+			{/* Right indicator */}
+			{comparison ? (
+				<EarnedDot
+					earned={theyEarned}
+					date={comparison.theirEarnedAt}
+					color="cyan"
+				/>
+			) : (
+				/* Solo mode: just show date */
+				<div className="flex items-center shrink-0">
+					{iEarned && earnedAt ? (
+						<span className="font-mono-retro text-[10px] tracking-[0.5px] text-neon-amber/50">
+							{formatShortDate(earnedAt)}
+						</span>
+					) : (
+						<div className="h-2 w-2 rounded-full bg-cream/10" />
+					)}
 				</div>
 			)}
-		</Wrapper>
+		</div>
 	);
 }

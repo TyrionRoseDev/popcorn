@@ -121,7 +121,7 @@ export function CarSilhouettes() {
 	return (
 		<div
 			aria-hidden="true"
-			className="flex items-end justify-center gap-[30px] max-w-[1100px] mx-auto px-6 h-[90px] -mt-[5px]"
+			className="flex items-end justify-center gap-[30px] max-w-[1100px] mx-auto px-6 h-[90px] -mt-[10px]"
 		>
 			{CARS.map((car) => (
 				<Car key={car.id} transform={car.transform} opacity={car.opacity} />

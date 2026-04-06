@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "#/db";
 import { journalEntry, userTitle } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
+import { evaluateAchievements } from "#/lib/evaluate-achievements";
 
 export const journalEntryRouter = {
 	create: protectedProcedure
@@ -68,7 +69,11 @@ export const journalEntryRouter = {
 					watchNumber: watchNum,
 				})
 				.returning();
-			return entry;
+			const newAchievements = await evaluateAchievements(
+				ctx.userId,
+				"journal_entry",
+			);
+			return { ...entry, newAchievements };
 		}),
 
 	update: protectedProcedure

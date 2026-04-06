@@ -6,6 +6,7 @@ import { useTRPC } from "#/integrations/trpc/react";
 import type { FeedItem } from "#/lib/feed-assembler";
 import { ActionButtons } from "./action-buttons";
 import { CardDetailModal } from "./card-detail-modal";
+import { HideConfirmDialog } from "./hide-confirm-dialog";
 import { MatchCelebration } from "./match-celebration";
 import { SwipeCard } from "./swipe-card";
 
@@ -28,6 +29,7 @@ export function CardStack({ watchlistId }: CardStackProps) {
 		watchlistName: string;
 	} | null>(null);
 	const [detailItem, setDetailItem] = useState<FeedItem | null>(null);
+	const [hideConfirmOpen, setHideConfirmOpen] = useState(false);
 
 	// Pending button action — triggers stamp flash before card exits
 	const [pendingAction, setPendingAction] = useState<"left" | "right" | null>(
@@ -40,6 +42,7 @@ export function CardStack({ watchlistId }: CardStackProps) {
 			cursor,
 		}),
 		enabled: cards.length < 5,
+		gcTime: 0,
 	});
 
 	// Merge new items into cards when data arrives
@@ -235,7 +238,7 @@ export function CardStack({ watchlistId }: CardStackProps) {
 				onNo={() => handleButtonSwipe("left")}
 				onYes={() => handleButtonSwipe("right")}
 				onUndo={handleUndo}
-				onHide={handleHide}
+				onHide={() => setHideConfirmOpen(true)}
 				canUndo={lastSwiped !== null}
 			/>
 
@@ -250,6 +253,13 @@ export function CardStack({ watchlistId }: CardStackProps) {
 
 			{/* Card detail modal */}
 			<CardDetailModal item={detailItem} onClose={() => setDetailItem(null)} />
+
+			{/* Hide confirmation */}
+			<HideConfirmDialog
+				open={hideConfirmOpen}
+				onOpenChange={setHideConfirmOpen}
+				onConfirm={handleHide}
+			/>
 		</div>
 	);
 }

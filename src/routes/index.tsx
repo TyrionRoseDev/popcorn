@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { MarqueeBadge } from "#/components/auth/marquee-badge";
 import { FilmStrip } from "#/components/film-strip";
 import { MarqueeBoard, MarqueeBoardRow } from "#/components/marquee-board";
 import { RetroOverlays } from "#/components/retro-overlays";
@@ -21,11 +20,16 @@ export const Route = createFileRoute("/")({
 });
 
 const FEATURES = [
-	"Film Diary",
-	"Watchlist",
-	"Smart Picks",
-	"Stats & Wrapped",
-	"Social Reviews",
+	{ label: "Film Diary", status: "Now Showing" },
+	{ label: "Episode Tracker", status: "Now Showing" },
+	{ label: "Watchlists", status: "Now Showing" },
+	{ label: "Showtime Shuffle", status: "Now Showing" },
+	{ label: "Reviews", status: "Now Showing" },
+	{ label: "Friends & Feed", status: "Now Showing" },
+	{ label: "Achievements", status: "Now Showing" },
+	{ label: "Journal", status: "Now Showing" },
+	{ label: "Discovery", status: "Now Showing" },
+	{ label: "Stats & Wrapped", status: "Now Showing" },
 ] as const;
 
 function LandingPage() {
@@ -68,14 +72,9 @@ function LandingPage() {
 					}}
 				/>
 
-				{/* NOW SHOWING marquee */}
-				<div className="relative z-10">
-					<MarqueeBadge text="Now Showing" />
-				</div>
-
 				{/* POPCORN logo */}
 				<h1
-					className="relative z-10 font-logo text-[clamp(3rem,12vw,6rem)] leading-none"
+					className="relative z-10 font-logo text-[clamp(4rem,16vw,10rem)] leading-none"
 					style={{
 						animationName: "neon-cycle",
 						animationDuration: "6s",
@@ -87,13 +86,11 @@ function LandingPage() {
 				</h1>
 
 				{/* CTA */}
-				<div className="relative z-10 mt-14">
+				<div className="relative z-10 mt-20">
 					<Link
 						to="/login"
-						className="rounded border-[1.5px] border-neon-pink/50 px-10 py-3.5 font-display text-[15px] tracking-wide text-neon-pink no-underline transition-all duration-300 hover:bg-neon-pink/8 hover:shadow-[0_0_25px_rgba(255,45,120,0.3)]"
-						style={{
-							boxShadow: "0 0 12px rgba(255,45,120,0.15)",
-						}}
+						className="cta-push font-display text-sm tracking-wider text-neon-pink"
+						style={{ textShadow: "0 0 10px rgba(255,45,120,0.4)" }}
 					>
 						Get Started
 					</Link>
@@ -112,13 +109,21 @@ function LandingPage() {
 					</div>
 
 					{/* Programme board — scrolls up OVER the ticket */}
-					<div className="relative z-20 mx-auto max-w-[700px] pb-24 pt-8">
+					<div className="relative z-20 mx-auto max-w-[700px] bg-[#0a0a1e] pb-24 pt-8">
+						{/* Fade zone — dissolves the ticket as it approaches the board */}
+						<div
+							className="pointer-events-none absolute inset-x-0 bottom-full h-48"
+							style={{
+								background:
+									"linear-gradient(to bottom, transparent 30%, #0a0a1e 100%)",
+							}}
+						/>
 						<MarqueeBoard title="Tonight's Programme">
 							{FEATURES.map((feature, i) => (
 								<MarqueeBoardRow
-									key={feature}
-									label={feature}
-									status="Coming Soon"
+									key={feature.label}
+									label={feature.label}
+									status={feature.status}
 									index={i}
 								/>
 							))}

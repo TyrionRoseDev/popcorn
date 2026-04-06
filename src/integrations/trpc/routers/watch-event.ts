@@ -16,6 +16,7 @@ import {
 	watchlistMember,
 } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
+import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import { fetchTitleDetails } from "#/lib/tmdb-title";
 import { createNotification } from "./notification";
 
@@ -266,7 +267,33 @@ export const watchEventRouter = {
 				}
 			}
 
-			return event;
+			const watchedAtDate = input.watchedAt
+				? new Date(input.watchedAt)
+				: new Date();
+			const newAchievements = await evaluateAchievements(
+				ctx.userId,
+				"watched",
+				{
+					tmdbId: input.tmdbId,
+					mediaType: input.mediaType,
+					watchedAt: watchedAtDate,
+				},
+			);
+
+			// Also check review achievements if a rating was provided
+			if (input.rating) {
+				const reviewAchievements = await evaluateAchievements(
+					ctx.userId,
+					"review",
+					{
+						tmdbId: input.tmdbId,
+						mediaType: input.mediaType,
+					},
+				);
+				newAchievements.push(...reviewAchievements);
+			}
+
+			return { ...event, newAchievements };
 		}),
 
 	update: protectedProcedure

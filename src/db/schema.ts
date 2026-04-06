@@ -122,6 +122,9 @@ export const userTitle = pgTable(
 		mediaType: text("media_type").notNull(), // 'movie' | 'tv'
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		currentWatchNumber: integer("current_watch_number").default(1).notNull(),
+		seasonEpisodeCounts: jsonb("season_episode_counts").$type<
+			Record<string, number>
+		>(),
 	},
 	(table) => [
 		uniqueIndex("user_title_unique").on(

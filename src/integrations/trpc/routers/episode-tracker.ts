@@ -5,12 +5,22 @@ import { z } from "zod";
 import { db } from "#/db";
 import { episodeWatch, journalEntry, userTitle, watchEvent } from "#/db/schema";
 import { protectedProcedure } from "#/integrations/trpc/init";
-import { fetchAllSeasons, fetchSeasonDetails } from "#/lib/tmdb-title";
+import { evaluateAchievements } from "#/lib/evaluate-achievements";
+import {
+	fetchAllSeasons,
+	fetchSeasonDetails,
+	fetchTitleDetails,
+} from "#/lib/tmdb-title";
 
 export const episodeTrackerRouter = {
 	/** Add a show to the tracker (creates a userTitle record) */
 	addShow: protectedProcedure
-		.input(z.object({ tmdbId: z.number() }))
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				seasonEpisodeCounts: z.record(z.string(), z.number()).optional(),
+			}),
+		)
 		.mutation(async ({ input, ctx }) => {
 			await db
 				.insert(userTitle)
@@ -18,9 +28,17 @@ export const episodeTrackerRouter = {
 					userId: ctx.userId,
 					tmdbId: input.tmdbId,
 					mediaType: "tv",
+					...(input.seasonEpisodeCounts && {
+						seasonEpisodeCounts: input.seasonEpisodeCounts,
+					}),
 				})
 				.onConflictDoNothing();
-			return { success: true };
+
+			const newAchievements = await evaluateAchievements(
+				ctx.userId,
+				"show_tracked",
+			);
+			return { success: true, newAchievements };
 		}),
 
 	/** Increment currentWatchNumber to start a new rewatch */
@@ -46,7 +64,14 @@ export const episodeTrackerRouter = {
 					message: "Show not found in tracker",
 				});
 			}
-			return { currentWatchNumber: updated.currentWatchNumber };
+			const newAchievements = await evaluateAchievements(
+				ctx.userId,
+				"rewatch_started",
+			);
+			return {
+				currentWatchNumber: updated.currentWatchNumber,
+				newAchievements,
+			};
 		}),
 
 	/** Get the current watch number for a show */
@@ -117,7 +142,18 @@ export const episodeTrackerRouter = {
 				watchNumber: watchNum,
 			}));
 			await db.insert(episodeWatch).values(values).onConflictDoNothing();
-			return { marked: input.episodes.length };
+
+			const newAchievements = await evaluateAchievements(
+				ctx.userId,
+				"episode_marked",
+				{
+					tmdbId: input.tmdbId,
+					mediaType: "tv",
+					watchedAt: new Date(),
+				},
+			);
+
+			return { marked: input.episodes.length, newAchievements };
 		}),
 
 	/** Unmark a single episode */
@@ -395,6 +431,38 @@ export const episodeTrackerRouter = {
 				})
 				.onConflictDoNothing();
 
+			// Populate seasonEpisodeCounts if not already set
+			const existingTitle = await db.query.userTitle.findFirst({
+				where: and(
+					eq(userTitle.userId, ctx.userId),
+					eq(userTitle.tmdbId, input.tmdbId),
+					eq(userTitle.mediaType, "tv"),
+				),
+				columns: { currentWatchNumber: true, seasonEpisodeCounts: true },
+			});
+
+			if (existingTitle && !existingTitle.seasonEpisodeCounts) {
+				const titleData = await fetchTitleDetails("tv", input.tmdbId);
+				if (titleData.seasonList) {
+					const counts: Record<string, number> = {};
+					for (const s of titleData.seasonList) {
+						if (s.seasonNumber > 0) {
+							counts[String(s.seasonNumber)] = s.episodeCount;
+						}
+					}
+					await db
+						.update(userTitle)
+						.set({ seasonEpisodeCounts: counts })
+						.where(
+							and(
+								eq(userTitle.userId, ctx.userId),
+								eq(userTitle.tmdbId, input.tmdbId),
+								eq(userTitle.mediaType, "tv"),
+							),
+						);
+				}
+			}
+
 			const title = await db.query.userTitle.findFirst({
 				where: and(
 					eq(userTitle.userId, ctx.userId),
@@ -465,6 +533,15 @@ export const episodeTrackerRouter = {
 					.onConflictDoNothing();
 			}
 
-			return { success: true };
+			const newAchievements = await evaluateAchievements(
+				ctx.userId,
+				"episode_marked",
+				{
+					tmdbId: input.tmdbId,
+					mediaType: "tv",
+					watchedAt: new Date(),
+				},
+			);
+			return { success: true, newAchievements };
 		}),
 } satisfies TRPCRouterRecord;

@@ -6,6 +6,7 @@ import { db } from "#/db";
 import {
 	shuffleSwipe,
 	userGenre,
+	watchEvent,
 	watchlist,
 	watchlistItem,
 	watchlistMember,
@@ -206,37 +207,63 @@ export const shuffleRouter = {
 				ratio,
 			);
 
-			// Filter out already-swiped items
+			// Filter out already-swiped, watchlisted, and watched items
 			const twoWeeksAgo = new Date();
 			twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-			const swipes = await db.query.shuffleSwipe.findMany({
-				where: and(
-					eq(shuffleSwipe.userId, ctx.userId),
-					eq(shuffleSwipe.watchlistId, input.watchlistId),
-				),
-				columns: {
-					tmdbId: true,
-					mediaType: true,
-					action: true,
-					createdAt: true,
-				},
-			});
+			const [swipes, userWatchlists, watchedTitles] = await Promise.all([
+				db.query.shuffleSwipe.findMany({
+					where: and(
+						eq(shuffleSwipe.userId, ctx.userId),
+						eq(shuffleSwipe.watchlistId, input.watchlistId),
+					),
+					columns: {
+						tmdbId: true,
+						mediaType: true,
+						action: true,
+						createdAt: true,
+					},
+				}),
+				db.query.watchlistMember.findMany({
+					where: eq(watchlistMember.userId, ctx.userId),
+					columns: { watchlistId: true },
+				}),
+				db.query.watchEvent.findMany({
+					where: eq(watchEvent.userId, ctx.userId),
+					columns: { tmdbId: true, mediaType: true },
+				}),
+			]);
 
-			const swipedSet = new Set<string>();
+			const wlIds = userWatchlists.map((m) => m.watchlistId);
+			const existingItems =
+				wlIds.length > 0
+					? await db.query.watchlistItem.findMany({
+							where: inArray(watchlistItem.watchlistId, wlIds),
+							columns: { tmdbId: true, mediaType: true },
+						})
+					: [];
+
+			const excludeSet = new Set<string>();
+
 			for (const s of swipes) {
-				// Always filter: yes swipes and hide swipes (globally)
 				if (s.action === "yes" || s.action === "hide") {
-					swipedSet.add(`${s.tmdbId}-${s.mediaType}`);
+					excludeSet.add(`${s.tmdbId}-${s.mediaType}`);
 				}
-				// Filter no swipes only if within 2 weeks
 				if (s.action === "no" && s.createdAt >= twoWeeksAgo) {
-					swipedSet.add(`${s.tmdbId}-${s.mediaType}`);
+					excludeSet.add(`${s.tmdbId}-${s.mediaType}`);
 				}
 			}
 
+			for (const item of existingItems) {
+				excludeSet.add(`${item.tmdbId}-${item.mediaType}`);
+			}
+
+			for (const item of watchedTitles) {
+				excludeSet.add(`${item.tmdbId}-${item.mediaType}`);
+			}
+
 			const filtered = deduplicateFeed(interleaved).filter(
-				(item) => !swipedSet.has(`${item.tmdbId}-${item.mediaType}`),
+				(item) => !excludeSet.has(`${item.tmdbId}-${item.mediaType}`),
 			);
 
 			const pageItems = filtered.slice(0, BATCH_SIZE);
@@ -285,7 +312,7 @@ export const shuffleRouter = {
 					set: { action: input.action },
 				});
 
-			await evaluateAchievements(ctx.userId, "swipe");
+			const swipeAchievements = await evaluateAchievements(ctx.userId, "swipe");
 
 			// Check watchlist type to determine solo vs group behavior
 			const wl = await db.query.watchlist.findFirst({
@@ -316,9 +343,15 @@ export const shuffleRouter = {
 						})
 						.onConflictDoNothing();
 
-					await evaluateAchievements(ctx.userId, "shuffle_to_watchlist");
+					const shuffleAchievements = await evaluateAchievements(
+						ctx.userId,
+						"shuffle_to_watchlist",
+					);
 
-					return { match: false };
+					return {
+						match: false,
+						newAchievements: [...swipeAchievements, ...shuffleAchievements],
+					};
 				}
 
 				const yesSwipes = await db.query.shuffleSwipe.findMany({
@@ -344,6 +377,7 @@ export const shuffleRouter = {
 						.returning({ id: watchlistItem.id });
 
 					// Only notify if the item was actually added (not a duplicate)
+					let shuffleAchievements: string[] = [];
 					if (inserted.length > 0) {
 						for (const swipe of yesSwipes) {
 							await createNotification({
@@ -359,7 +393,10 @@ export const shuffleRouter = {
 							});
 						}
 
-						await evaluateAchievements(ctx.userId, "shuffle_to_watchlist");
+						shuffleAchievements = await evaluateAchievements(
+							ctx.userId,
+							"shuffle_to_watchlist",
+						);
 					}
 
 					return {
@@ -367,13 +404,14 @@ export const shuffleRouter = {
 						watchlistName: wl.name,
 						tmdbId: input.tmdbId,
 						mediaType: input.mediaType,
+						newAchievements: [...swipeAchievements, ...shuffleAchievements],
 					};
 				}
 
-				return { match: false };
+				return { match: false, newAchievements: swipeAchievements };
 			}
 
-			return { match: false };
+			return { match: false, newAchievements: swipeAchievements };
 		}),
 
 	undoSwipe: protectedProcedure
@@ -505,6 +543,95 @@ export const shuffleRouter = {
 						eq(shuffleSwipe.action, "hide"),
 					),
 				);
+		}),
+
+	isHidden: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+			}),
+		)
+		.query(async ({ input, ctx }) => {
+			const row = await db.query.shuffleSwipe.findFirst({
+				where: and(
+					eq(shuffleSwipe.userId, ctx.userId),
+					eq(shuffleSwipe.tmdbId, input.tmdbId),
+					eq(shuffleSwipe.mediaType, input.mediaType),
+					eq(shuffleSwipe.action, "hide"),
+				),
+				columns: { id: true },
+			});
+			return !!row;
+		}),
+
+	toggleHide: protectedProcedure
+		.input(
+			z.object({
+				tmdbId: z.number(),
+				mediaType: z.enum(["movie", "tv"]),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			// Check if already hidden
+			const existing = await db.query.shuffleSwipe.findFirst({
+				where: and(
+					eq(shuffleSwipe.userId, ctx.userId),
+					eq(shuffleSwipe.tmdbId, input.tmdbId),
+					eq(shuffleSwipe.mediaType, input.mediaType),
+					eq(shuffleSwipe.action, "hide"),
+				),
+				columns: { id: true },
+			});
+
+			if (existing) {
+				// Unhide — delete all hide swipes for this title
+				await db
+					.delete(shuffleSwipe)
+					.where(
+						and(
+							eq(shuffleSwipe.userId, ctx.userId),
+							eq(shuffleSwipe.tmdbId, input.tmdbId),
+							eq(shuffleSwipe.mediaType, input.mediaType),
+							eq(shuffleSwipe.action, "hide"),
+						),
+					);
+				return { hidden: false };
+			}
+
+			// Hide — get the user's default watchlist
+			const defaultWl = await db.query.watchlist.findFirst({
+				where: and(
+					eq(watchlist.ownerId, ctx.userId),
+					eq(watchlist.type, "default"),
+				),
+				columns: { id: true },
+			});
+			if (!defaultWl)
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "No default watchlist found",
+				});
+
+			await db
+				.insert(shuffleSwipe)
+				.values({
+					userId: ctx.userId,
+					watchlistId: defaultWl.id,
+					tmdbId: input.tmdbId,
+					mediaType: input.mediaType,
+					action: "hide",
+				})
+				.onConflictDoUpdate({
+					target: [
+						shuffleSwipe.userId,
+						shuffleSwipe.tmdbId,
+						shuffleSwipe.mediaType,
+						shuffleSwipe.watchlistId,
+					],
+					set: { action: "hide" },
+				});
+			return { hidden: true };
 		}),
 
 	getRecentMatches: protectedProcedure

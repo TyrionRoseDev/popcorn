@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { AnimatePresence, motion } from "motion/react";
+import { Dialog, DialogContent, DialogTitle } from "#/components/ui/dialog";
 import type { FeedItem } from "#/lib/feed-assembler";
 import { getGenreNameByTmdbId } from "#/lib/genre-map";
 import { getTmdbImageUrl } from "#/lib/tmdb";
@@ -13,26 +13,23 @@ export function CardDetailModal({ item, onClose }: CardDetailModalProps) {
 	const posterUrl = item ? getTmdbImageUrl(item.posterPath, "w500") : null;
 
 	return (
-		<AnimatePresence>
-			{item && (
-				<>
-					{/* Backdrop */}
-					<motion.div
-						className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						onClick={onClose}
-					/>
-
-					{/* Modal panel — slides up from bottom */}
-					<motion.div
-						className="fixed inset-x-0 bottom-0 z-50 max-h-[90dvh] overflow-y-auto rounded-t-2xl border-t border-cream/10 bg-drive-in-bg"
-						initial={{ y: "100%" }}
-						animate={{ y: 0 }}
-						exit={{ y: "100%" }}
-						transition={{ type: "spring", damping: 30, stiffness: 300 }}
-					>
+		<Dialog
+			open={!!item}
+			onOpenChange={(v) => {
+				if (!v) onClose();
+			}}
+		>
+			<DialogContent
+				className="inset-x-0 bottom-0 top-auto max-w-lg max-h-[90dvh] translate-x-0 translate-y-0 overflow-y-auto rounded-t-2xl rounded-b-none border-t border-cream/10 bg-drive-in-bg p-0 gap-0"
+				overlayClassName="bg-black/70 backdrop-blur-sm"
+				showCloseButton={false}
+				aria-describedby={undefined}
+			>
+				<DialogTitle className="sr-only">
+					{item?.title ?? "Details"}
+				</DialogTitle>
+				{item && (
+					<>
 						{/* Drag handle */}
 						<div className="flex justify-center pt-3 pb-1">
 							<div className="h-1 w-10 rounded-full bg-cream/20" />
@@ -114,7 +111,7 @@ export function CardDetailModal({ item, onClose }: CardDetailModalProps) {
 										mediaType: item.mediaType,
 										tmdbId: item.tmdbId,
 									}}
-									className="block w-full rounded-xl bg-neon-pink/15 border border-neon-pink/30 py-3 text-center text-sm font-medium text-neon-pink no-underline transition-colors hover:bg-neon-pink/25 hover:border-neon-pink/50"
+									className="inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-neon-pink/45 bg-neon-pink/10 px-5 py-2 text-sm font-bold text-neon-pink no-underline transition-colors hover:bg-neon-pink/18"
 									onClick={onClose}
 								>
 									View Full Details
@@ -122,15 +119,15 @@ export function CardDetailModal({ item, onClose }: CardDetailModalProps) {
 								<button
 									type="button"
 									onClick={onClose}
-									className="w-full rounded-xl border border-cream/10 py-3 text-sm font-medium text-cream/50 transition-colors hover:border-cream/20 hover:text-cream/80"
+									className="rounded-lg px-4 py-2 text-sm text-cream/50 transition-colors hover:bg-cream/5 hover:text-cream/80"
 								>
 									Close
 								</button>
 							</div>
 						</div>
-					</motion.div>
-				</>
-			)}
-		</AnimatePresence>
+					</>
+				)}
+			</DialogContent>
+		</Dialog>
 	);
 }

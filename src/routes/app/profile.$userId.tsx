@@ -27,6 +27,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { AchievementGrid } from "#/components/achievements/achievement-grid";
 import { FeedJournalCard } from "#/components/tracker/feed-journal-card";
+import { Dialog, DialogContent, DialogTitle } from "#/components/ui/dialog";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
 import { useTRPC } from "#/integrations/trpc/react";
 import { ACHIEVEMENTS } from "#/lib/achievements";
@@ -1207,68 +1208,63 @@ function WatchActivityHeatmap({ data }: { data: HeatmapData }) {
 			</div>
 
 			{/* History modal */}
-			<AnimatePresence>
-				{showHistory && (
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-						onClick={() => setShowHistory(false)}
-					>
-						<motion.div
-							initial={{ opacity: 0, scale: 0.95 }}
-							animate={{ opacity: 1, scale: 1 }}
-							exit={{ opacity: 0, scale: 0.95 }}
-							onClick={(e) => e.stopPropagation()}
-							className="max-h-[80vh] w-full max-w-[600px] overflow-y-auto rounded-xl border border-drive-in-border bg-[#0a0a1e] p-5 shadow-2xl"
+			<Dialog
+				open={showHistory}
+				onOpenChange={(v) => {
+					if (!v) setShowHistory(false);
+				}}
+			>
+				<DialogContent
+					className="max-w-[600px] max-h-[80vh] overflow-y-auto rounded-xl border-drive-in-border bg-[#0a0a1e] p-5 gap-0 shadow-2xl"
+					overlayClassName="bg-black/60 backdrop-blur-sm"
+					showCloseButton={false}
+				>
+					<DialogTitle className="sr-only">Watch History</DialogTitle>
+					<div className="mb-4 flex items-center justify-between">
+						<h3 className="font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/70">
+							Watch History
+						</h3>
+						<button
+							type="button"
+							onClick={() => setShowHistory(false)}
+							className="text-cream/30 transition-colors hover:text-cream/60"
+							aria-label="Close"
 						>
-							<div className="mb-4 flex items-center justify-between">
-								<h3 className="font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/70">
-									Watch History
-								</h3>
-								<button
-									type="button"
-									onClick={() => setShowHistory(false)}
-									className="text-cream/30 transition-colors hover:text-cream/60"
-								>
-									<X className="h-4 w-4" />
-								</button>
-							</div>
-							<div className="flex flex-col gap-5">
-								{pastYears.map((year, i) => {
-									const yearCells = buildYearGrid(
-										Number.parseInt(year, 10),
-										dataMap,
-									);
-									const color = YEAR_COLORS[i % YEAR_COLORS.length];
-									return (
-										<div key={year}>
-											<p
-												className="mb-1.5 font-mono-retro text-[10px] tracking-[1px]"
-												style={{
-													color: `rgb(${color.r}, ${color.g}, ${color.b})`,
-												}}
-											>
-												{year}
-											</p>
-											<div className="rounded-lg border border-drive-in-border p-3">
-												<HeatmapGrid
-													cells={yearCells}
-													dataMap={dataMap}
-													maxCount={maxCount}
-													todayStr={todayStr}
-													color={color}
-												/>
-											</div>
-										</div>
-									);
-								})}
-							</div>
-						</motion.div>
-					</motion.div>
-				)}
-			</AnimatePresence>
+							<X className="h-4 w-4" />
+						</button>
+					</div>
+					<div className="flex flex-col gap-5">
+						{pastYears.map((year, i) => {
+							const yearCells = buildYearGrid(
+								Number.parseInt(year, 10),
+								dataMap,
+							);
+							const color = YEAR_COLORS[i % YEAR_COLORS.length];
+							return (
+								<div key={year}>
+									<p
+										className="mb-1.5 font-mono-retro text-[10px] tracking-[1px]"
+										style={{
+											color: `rgb(${color.r}, ${color.g}, ${color.b})`,
+										}}
+									>
+										{year}
+									</p>
+									<div className="rounded-lg border border-drive-in-border p-3">
+										<HeatmapGrid
+											cells={yearCells}
+											dataMap={dataMap}
+											maxCount={maxCount}
+											todayStr={todayStr}
+											color={color}
+										/>
+									</div>
+								</div>
+							);
+						})}
+					</div>
+				</DialogContent>
+			</Dialog>
 		</>
 	);
 }
@@ -1402,81 +1398,76 @@ function FriendExpandedSections({
 					)}
 
 					{/* Star ratings modal */}
-					<AnimatePresence>
-						{selectedStar && (
-							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0 }}
-								className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-								onClick={() => setSelectedStar(null)}
-							>
-								<motion.div
-									initial={{ opacity: 0, scale: 0.95 }}
-									animate={{ opacity: 1, scale: 1 }}
-									exit={{ opacity: 0, scale: 0.95 }}
-									onClick={(e) => e.stopPropagation()}
-									className="max-h-[70vh] w-full max-w-md overflow-y-auto rounded-xl border border-drive-in-border bg-[#0a0a1e] p-5 shadow-2xl"
-								>
-									<div className="mb-4 flex items-center justify-between">
-										<div className="flex items-center gap-2">
-											<h3 className="font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/70">
-												{selectedStar} Star Ratings
-											</h3>
-											<div className="flex items-center gap-0.5">
-												{[1, 2, 3, 4, 5].slice(0, selectedStar).map((n) => (
-													<Star
-														key={n}
-														className="h-3 w-3 fill-neon-amber/60 text-neon-amber/60"
-													/>
-												))}
-											</div>
-										</div>
-										<button
-											type="button"
-											onClick={() => setSelectedStar(null)}
-											className="text-cream/30 transition-colors hover:text-cream/60"
-										>
-											<X className="h-4 w-4" />
-										</button>
+					<Dialog
+						open={!!selectedStar}
+						onOpenChange={(v) => {
+							if (!v) setSelectedStar(null);
+						}}
+					>
+						<DialogContent
+							className="max-w-md max-h-[70vh] overflow-y-auto rounded-xl border-drive-in-border bg-[#0a0a1e] p-5 gap-0 shadow-2xl"
+							overlayClassName="bg-black/60 backdrop-blur-sm"
+							showCloseButton={false}
+						>
+							<DialogTitle className="sr-only">Star Ratings</DialogTitle>
+							<div className="mb-4 flex items-center justify-between">
+								<div className="flex items-center gap-2">
+									<h3 className="font-mono-retro text-[11px] uppercase tracking-[2px] text-cream/70">
+										{selectedStar} Star Ratings
+									</h3>
+									<div className="flex items-center gap-0.5">
+										{[1, 2, 3, 4, 5].slice(0, selectedStar ?? 0).map((n) => (
+											<Star
+												key={n}
+												className="h-3 w-3 fill-neon-amber/60 text-neon-amber/60"
+											/>
+										))}
 									</div>
-									{!starRatings ? (
-										<div className="flex justify-center py-8">
-											<Loader2 className="h-5 w-5 animate-spin text-cream/30" />
-										</div>
-									) : starRatings.length === 0 ? (
-										<p className="py-8 text-center font-mono-retro text-[11px] text-cream/30">
-											No public ratings
-										</p>
-									) : (
-										<div className="flex flex-col gap-2">
-											{starRatings.map((item) => (
-												<Link
-													key={`${item.tmdbId}-${item.mediaType}`}
-													to="/app/title/$mediaType/$tmdbId"
-													params={{
-														mediaType: item.mediaType as "movie" | "tv",
-														tmdbId: item.tmdbId,
-													}}
-													onClick={() => setSelectedStar(null)}
-													className="group rounded-lg border border-cream/[0.06] p-3 no-underline transition-colors hover:border-cream/15 hover:bg-cream/[0.03]"
-												>
-													<p className="text-sm font-medium text-cream/80 group-hover:text-cream">
-														{item.titleName}
-													</p>
-													{item.reviewText && (
-														<p className="mt-1 line-clamp-2 text-xs text-cream/40">
-															{item.reviewText}
-														</p>
-													)}
-												</Link>
-											))}
-										</div>
-									)}
-								</motion.div>
-							</motion.div>
-						)}
-					</AnimatePresence>
+								</div>
+								<button
+									type="button"
+									onClick={() => setSelectedStar(null)}
+									className="text-cream/30 transition-colors hover:text-cream/60"
+									aria-label="Close"
+								>
+									<X className="h-4 w-4" />
+								</button>
+							</div>
+							{!starRatings ? (
+								<div className="flex justify-center py-8">
+									<Loader2 className="h-5 w-5 animate-spin text-cream/30" />
+								</div>
+							) : starRatings.length === 0 ? (
+								<p className="py-8 text-center font-mono-retro text-[11px] text-cream/30">
+									No public ratings
+								</p>
+							) : (
+								<div className="flex flex-col gap-2">
+									{starRatings.map((item) => (
+										<Link
+											key={`${item.tmdbId}-${item.mediaType}`}
+											to="/app/title/$mediaType/$tmdbId"
+											params={{
+												mediaType: item.mediaType as "movie" | "tv",
+												tmdbId: item.tmdbId,
+											}}
+											onClick={() => setSelectedStar(null)}
+											className="group rounded-lg border border-cream/[0.06] p-3 no-underline transition-colors hover:border-cream/15 hover:bg-cream/[0.03]"
+										>
+											<p className="text-sm font-medium text-cream/80 group-hover:text-cream">
+												{item.titleName}
+											</p>
+											{item.reviewText && (
+												<p className="mt-1 line-clamp-2 text-xs text-cream/40">
+													{item.reviewText}
+												</p>
+											)}
+										</Link>
+									))}
+								</div>
+							)}
+						</DialogContent>
+					</Dialog>
 				</div>
 
 				{/* ── Favourite film ── */}

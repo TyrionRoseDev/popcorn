@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Film, Loader2, Trophy } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { z } from "zod";
-import { FeedAtmosphere } from "#/components/feed/feed-atmosphere";
+import { Atmosphere } from "#/components/atmosphere";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { FeedJournalCard } from "#/components/tracker/feed-journal-card";
 import { ReviewModal } from "#/components/watched/review-modal";
@@ -70,15 +70,36 @@ function FeedPage() {
 
 	return (
 		<>
-			<FeedAtmosphere />
+			<Atmosphere
+				glowColor="rgba(255,184,0,0.12)"
+				filmStrips
+				orbs={[
+					{
+						id: "feed-tl",
+						position: { top: "20%", left: "8%" },
+						size: "80px",
+						color: "rgba(255,184,0,0.04)",
+					},
+					{
+						id: "feed-mr",
+						position: { top: "55%", right: "6%" },
+						size: "100px",
+						color: "rgba(0,229,255,0.03)",
+					},
+					{
+						id: "feed-bl",
+						position: { bottom: "30%", left: "5%" },
+						size: "60px",
+						color: "rgba(255,45,120,0.03)",
+					},
+				]}
+			/>
 			<div className="relative z-[2] mx-auto max-w-2xl 2xl:max-w-3xl px-4 py-8">
-				{/* Car silhouettes + Marquee header */}
+				{/* Marquee header + Car silhouettes */}
+				<NowShowingHeader
+					title={filterUser ? `${filterUser.username}'s Feed` : "Feed"}
+				/>
 				<CarSilhouettes />
-				<div className="mt-4">
-					<NowShowingHeader
-						title={filterUser ? `${filterUser.username}'s Feed` : "Feed"}
-					/>
-				</div>
 
 				{/* Filter / Back link */}
 				<div className="flex justify-end mt-7 mb-6">

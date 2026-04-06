@@ -6,6 +6,8 @@ export const ACHIEVEMENT_CATEGORIES = [
 	"watchlists",
 	"recommendations",
 	"reviews",
+	"tracker",
+	"journal",
 	"profile",
 	"meta",
 ] as const;
@@ -32,6 +34,14 @@ export type AchievementCondition =
 	| { type: "reviewCount"; threshold: number }
 	| { type: "onboardingCompleted" }
 	| { type: "achievementCount"; threshold: number }
+	| { type: "trackedShowCount"; threshold: number }
+	| { type: "episodeWatchCount"; threshold: number }
+	| { type: "completedSeriesCount"; threshold: number }
+	| { type: "startedRewatch" }
+	| { type: "bingeWatchSeason" }
+	| { type: "journalEntryCount"; threshold: number }
+	| { type: "journalAllScopes" }
+	| { type: "reviewGenreCountAll" }
 	| { type: "achievementCountAll" };
 
 export interface AchievementDefinition {
@@ -86,12 +96,33 @@ export const ACTION_CONTEXT_MAP: Record<
 	review: [
 		"firstReview",
 		"reviewCount",
+		"reviewGenreCountAll",
 		"recRatedHighly",
 		"achievementCount",
 		"achievementCountAll",
 	],
 	onboarding: [
 		"onboardingCompleted",
+		"achievementCount",
+		"achievementCountAll",
+	],
+	episode_marked: [
+		"trackedShowCount",
+		"episodeWatchCount",
+		"completedSeriesCount",
+		"bingeWatchSeason",
+		"achievementCount",
+		"achievementCountAll",
+	],
+	show_tracked: ["trackedShowCount", "achievementCount", "achievementCountAll"],
+	rewatch_started: [
+		"startedRewatch",
+		"achievementCount",
+		"achievementCountAll",
+	],
+	journal_entry: [
+		"journalEntryCount",
+		"journalAllScopes",
 		"achievementCount",
 		"achievementCountAll",
 	],
@@ -319,6 +350,130 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
 		icon: "⭐",
 		category: "reviews",
 		condition: { type: "reviewCount", threshold: 10 },
+	},
+	{
+		id: "seasoned-critic",
+		name: "Seasoned Critic",
+		description: "Leave 25 reviews",
+		icon: "🎙️",
+		category: "reviews",
+		condition: { type: "reviewCount", threshold: 25 },
+	},
+	{
+		id: "review-machine",
+		name: "Review Machine",
+		description: "Leave 50 reviews",
+		icon: "⌨️",
+		category: "reviews",
+		condition: { type: "reviewCount", threshold: 50 },
+	},
+	{
+		id: "genre-critic",
+		name: "Genre Critic",
+		description: "Leave a review for every genre",
+		icon: "📰",
+		category: "reviews",
+		condition: { type: "reviewGenreCountAll" },
+	},
+
+	// Tracker (9)
+	{
+		id: "now-showing",
+		name: "Now Showing",
+		description: "Add your first show to the tracker",
+		icon: "📡",
+		category: "tracker",
+		condition: { type: "trackedShowCount", threshold: 1 },
+	},
+	{
+		id: "episode-one",
+		name: "Episode One",
+		description: "Watch 50 episodes",
+		icon: "▶️",
+		category: "tracker",
+		condition: { type: "episodeWatchCount", threshold: 50 },
+	},
+	{
+		id: "season-pass",
+		name: "Season Pass",
+		description: "Watch 200 episodes",
+		icon: "📺",
+		category: "tracker",
+		condition: { type: "episodeWatchCount", threshold: 200 },
+	},
+	{
+		id: "marathon-runner",
+		name: "Marathon Runner",
+		description: "Watch 500 episodes",
+		icon: "🏃",
+		category: "tracker",
+		condition: { type: "episodeWatchCount", threshold: 500 },
+	},
+	{
+		id: "series-finale",
+		name: "Series Finale",
+		description: "Complete a full series",
+		icon: "🔚",
+		category: "tracker",
+		condition: { type: "completedSeriesCount", threshold: 1 },
+	},
+	{
+		id: "serial-finisher",
+		name: "Serial Finisher",
+		description: "Complete 5 series",
+		icon: "📚",
+		category: "tracker",
+		condition: { type: "completedSeriesCount", threshold: 5 },
+	},
+	{
+		id: "series-sweep",
+		name: "Series Sweep",
+		description: "Complete 10 series",
+		icon: "🧹",
+		category: "tracker",
+		condition: { type: "completedSeriesCount", threshold: 10 },
+	},
+	{
+		id: "binge-watch",
+		name: "Binge Watch",
+		description: "Watch an entire season in one day",
+		icon: "⏭️",
+		category: "tracker",
+		condition: { type: "bingeWatchSeason" },
+	},
+	{
+		id: "rerun",
+		name: "Rerun",
+		description: "Start a rewatch of a series",
+		icon: "🔄",
+		category: "tracker",
+		condition: { type: "startedRewatch" },
+	},
+
+	// Journal (3)
+	{
+		id: "dear-diary",
+		name: "Dear Diary",
+		description: "Write your first journal entry",
+		icon: "📝",
+		category: "journal",
+		condition: { type: "journalEntryCount", threshold: 1 },
+	},
+	{
+		id: "frequent-writer",
+		name: "Frequent Writer",
+		description: "Write 10 journal entries",
+		icon: "🖊️",
+		category: "journal",
+		condition: { type: "journalEntryCount", threshold: 10 },
+	},
+	{
+		id: "triple-take",
+		name: "Triple Take",
+		description: "Write an episode, season, and show journal entry",
+		icon: "🎯",
+		category: "journal",
+		condition: { type: "journalAllScopes" },
 	},
 
 	// Profile (1)
