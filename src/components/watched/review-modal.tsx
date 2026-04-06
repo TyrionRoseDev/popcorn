@@ -215,6 +215,7 @@ export function ReviewModal({
 								type="button"
 								onClick={handleClose}
 								className="absolute top-2.5 right-3 p-1 text-cream/25 hover:text-cream/60 transition-colors duration-200"
+								aria-label="Close"
 							>
 								<X className="w-4 h-4" />
 							</button>
@@ -333,6 +334,7 @@ export function ReviewModal({
 											type="button"
 											onClick={() => setWatchedAt("")}
 											className="p-1.5 text-cream/20 hover:text-cream/50 transition-colors duration-200"
+											aria-label="Clear watched date"
 										>
 											<X className="w-3 h-3" />
 										</button>

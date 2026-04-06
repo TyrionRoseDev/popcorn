@@ -65,6 +65,9 @@ export function RecommendModal({
 					setTimeout(handleClose, 1400);
 				}
 			},
+			onError: (error) => {
+				toast.error(error.message || "Failed to send recommendation");
+			},
 		}),
 	);
 
@@ -245,7 +248,8 @@ export function RecommendModal({
 										</div>
 										<textarea
 											value={message}
-											onChange={(e) => setMessage(e.target.value)}
+											onChange={(e) => setMessage(e.target.value.slice(0, 150))}
+											maxLength={150}
 											placeholder="You have to see this one…"
 											className="w-full bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-2.5 min-h-14 font-sans text-sm text-cream placeholder:text-cream/25 placeholder:italic leading-relaxed shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] focus:outline-none focus:border-neon-pink/20 resize-none transition-colors duration-200"
 										/>
@@ -450,7 +454,8 @@ export function RecommendModal({
 								</p>
 								<textarea
 									value={message}
-									onChange={(e) => setMessage(e.target.value)}
+									onChange={(e) => setMessage(e.target.value.slice(0, 150))}
+									maxLength={150}
 									placeholder="You have to see this one…"
 									className="w-full bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-2.5 min-h-14 font-sans text-sm text-cream placeholder:text-cream/25 placeholder:italic leading-relaxed shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] focus:outline-none focus:border-neon-amber/20 resize-none transition-colors duration-200"
 								/>

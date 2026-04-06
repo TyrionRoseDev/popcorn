@@ -24,6 +24,7 @@ export default function BetterAuthHeader() {
 					<button
 						type="button"
 						className="rounded-full outline-none ring-1 ring-cream/10 transition-all hover:ring-2 hover:ring-neon-cyan/30 focus-visible:ring-2 focus-visible:ring-neon-cyan/30"
+						aria-label="Open user menu"
 					>
 						{session.user.avatarUrl ? (
 							<img

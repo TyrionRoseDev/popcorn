@@ -220,7 +220,6 @@ export function AchievementPopup({
 							style={{ maxWidth: "700px", width: "100%" }}
 							initial={{ scale: 0.9, y: 20, opacity: 0 }}
 							animate={{ scale: 1, y: 0, opacity: 1 }}
-							exit={{ scale: 0.9, y: -20, opacity: 0 }}
 							transition={{ type: "spring", damping: 18, stiffness: 220 }}
 						>
 							{/* "Achievement(s) Unlocked" label */}

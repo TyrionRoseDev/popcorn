@@ -20,7 +20,7 @@ export function CardDetailModal({ item, onClose }: CardDetailModalProps) {
 			}}
 		>
 			<DialogContent
-				className="inset-x-0 bottom-0 top-auto left-auto max-w-lg max-h-[90dvh] translate-x-0 translate-y-0 overflow-y-auto rounded-t-2xl rounded-b-none border-t border-cream/10 bg-drive-in-bg p-0 gap-0"
+				className="inset-x-0 bottom-0 top-auto max-w-lg max-h-[90dvh] translate-x-0 translate-y-0 overflow-y-auto rounded-t-2xl rounded-b-none border-t border-cream/10 bg-drive-in-bg p-0 gap-0"
 				overlayClassName="bg-black/70 backdrop-blur-sm"
 				showCloseButton={false}
 				aria-describedby={undefined}
