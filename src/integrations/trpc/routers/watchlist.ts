@@ -689,11 +689,8 @@ export const watchlistRouter = {
 				});
 			}
 
-			const newAchievements = await evaluateAchievements(
-				input.userId,
-				"watchlist_joined",
-			);
-			return { newAchievements };
+			// Evaluate achievements for the joined user (not the caller/owner)
+			await evaluateAchievements(input.userId, "watchlist_joined");
 		}),
 
 	isWatched: protectedProcedure
