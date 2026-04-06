@@ -12,7 +12,7 @@ const shuffleSearchSchema = z.object({
 	watchlistId: z.string().optional(),
 });
 
-let hasPlayedIntro = false;
+const SHUFFLE_INTRO_KEY = "shufflePlayedIntro";
 
 export const Route = createFileRoute("/app/shuffle/")({
 	validateSearch: (search) => shuffleSearchSchema.parse(search),
@@ -32,11 +32,13 @@ function ShufflePage() {
 	);
 
 	// Show countdown intro only on first visit per session
-	const [showIntro, setShowIntro] = useState(!hasPlayedIntro);
+	const [showIntro, setShowIntro] = useState(
+		() => sessionStorage.getItem(SHUFFLE_INTRO_KEY) === null,
+	);
 	useEffect(() => {
 		if (!showIntro) return;
 		const timer = setTimeout(() => {
-			hasPlayedIntro = true;
+			sessionStorage.setItem(SHUFFLE_INTRO_KEY, "true");
 			setShowIntro(false);
 		}, 1800);
 		return () => clearTimeout(timer);
