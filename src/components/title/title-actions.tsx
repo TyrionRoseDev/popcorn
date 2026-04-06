@@ -160,6 +160,9 @@ export function TitleActions({
 					trpc.watchEvent.getLatestRating.queryFilter(),
 				);
 				queryClient.invalidateQueries(trpc.watchEvent.getFeed.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.watchEvent.getFeed.infiniteQueryFilter(),
+				);
 				if (data.watched) {
 					toast.success("Marked as watched");
 					if (latestRating == null) {
