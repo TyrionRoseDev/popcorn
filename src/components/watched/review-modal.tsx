@@ -250,14 +250,14 @@ export function ReviewModal({
 
 								{/* Note */}
 								<div>
-									<div className="font-mono-retro text-[10px] tracking-[3px] uppercase text-cream/30 mb-2">
+									<div className="font-mono-retro text-[10px] tracking-[3px] uppercase text-cream/70 mb-2">
 										Your Review
 									</div>
 									<textarea
 										value={note}
 										onChange={(e) => setNote(e.target.value)}
 										placeholder="Share your thoughts…"
-										className="w-full bg-black/30 border border-cream/[0.06] rounded-md px-3.5 py-3 min-h-16 font-sans text-sm text-cream placeholder:text-cream/25 placeholder:italic leading-relaxed shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] focus:outline-none focus:border-neon-cyan/20 resize-none transition-colors duration-200"
+										className="w-full bg-black/30 border border-cream/[0.08] rounded-md px-3.5 py-3 min-h-16 font-sans text-sm text-cream placeholder:text-cream/55 placeholder:italic leading-relaxed shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] focus:outline-none focus:border-neon-cyan/20 resize-none transition-colors duration-200"
 									/>
 								</div>
 
@@ -281,7 +281,7 @@ export function ReviewModal({
 											) : (
 												<button
 													type="button"
-													className="flex items-center gap-2 text-cream/30 hover:text-cream/50 transition-colors duration-200"
+													className="flex items-center justify-center gap-2 w-full text-cream/70 hover:text-cream/90 transition-colors duration-200"
 												>
 													<CalendarDays className="w-3.5 h-3.5 shrink-0" />
 													<span className="font-mono-retro text-[11px] tracking-[1px]">
@@ -350,10 +350,10 @@ export function ReviewModal({
 									<div className="w-7 h-7 rounded-full bg-neon-pink/10 border border-neon-pink/20 flex items-center justify-center text-sm shrink-0">
 										📽️
 									</div>
-									<span className="flex-1 text-left text-sm font-semibold text-neon-pink/75">
+									<span className="flex-1 text-left text-sm font-semibold text-neon-pink/90">
 										Recommend to a friend
 									</span>
-									<span className="text-base text-neon-pink/30">›</span>
+									<span className="text-base text-neon-pink/50">›</span>
 								</button>
 
 								{/* Watched with */}
@@ -365,12 +365,12 @@ export function ReviewModal({
 									<div className="w-7 h-7 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 flex items-center justify-center text-sm shrink-0">
 										👥
 									</div>
-									<span className="flex-1 text-left text-sm font-semibold text-neon-cyan/75">
+									<span className="flex-1 text-left text-sm font-semibold text-neon-cyan/90">
 										{companions.length > 0
 											? `Watched with ${companions.map((c) => c.name).join(", ")}`
 											: "Watched with…"}
 									</span>
-									<span className="text-base text-neon-cyan/30">›</span>
+									<span className="text-base text-neon-cyan/50">›</span>
 								</button>
 
 								<VisibilitySelector
@@ -399,16 +399,16 @@ export function ReviewModal({
 												handleClose();
 											}}
 											disabled={isPending}
-											className="font-mono-retro text-[10px] tracking-[2px] uppercase text-cream/25 hover:text-cream/50 transition-colors duration-200 py-1.5"
+											className="font-mono-retro text-[10px] tracking-[2px] uppercase text-cream/60 hover:text-cream/80 transition-colors duration-200 py-1.5"
 										>
 											skip
 										</button>
-										<span className="text-cream/15 text-[10px]">·</span>
+										<span className="text-cream/30 text-[10px]">·</span>
 										<button
 											type="button"
 											onClick={handleRemindMe}
 											disabled={isPending}
-											className="font-mono-retro text-[10px] tracking-[2px] uppercase text-neon-amber/40 hover:text-neon-amber/70 transition-colors duration-200 py-1.5"
+											className="font-mono-retro text-[10px] tracking-[2px] uppercase text-neon-amber/65 hover:text-neon-amber/90 transition-colors duration-200 py-1.5"
 										>
 											remind me later
 										</button>
