@@ -28,7 +28,9 @@ import { useEffect, useRef, useState } from "react";
 import { AchievementGrid } from "#/components/achievements/achievement-grid";
 import { FeedJournalCard } from "#/components/tracker/feed-journal-card";
 import { Dialog, DialogContent, DialogTitle } from "#/components/ui/dialog";
+import { ReviewModal } from "#/components/watched/review-modal";
 import { WatchEventCard } from "#/components/watched/watch-event-card";
+import type { Companion } from "#/components/watched/watched-with-modal";
 import { useTRPC } from "#/integrations/trpc/react";
 import { ACHIEVEMENTS } from "#/lib/achievements";
 import { getUnifiedGenreById } from "#/lib/genre-map";
@@ -1776,6 +1778,21 @@ function formatJournalScope(
 function ActivityTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 	const trpc = useTRPC();
 
+	const [editModal, setEditModal] = useState<{
+		open: boolean;
+		tmdbId: number;
+		mediaType: "movie" | "tv";
+		titleName: string;
+		event?: {
+			id: string;
+			rating: number | null;
+			note: string | null;
+			watchedAt: string | null;
+			companions: Companion[];
+			visibility: "public" | "companion" | "private";
+		};
+	} | null>(null);
+
 	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
 		useInfiniteQuery(
 			trpc.watchEvent.getFeed.infiniteQueryOptions(
@@ -1822,6 +1839,18 @@ function ActivityTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 								name: event.title ?? `Title #${event.tmdbId}`,
 							}}
 							isOwn={isOwn}
+							onEdit={(e) =>
+								setEditModal({
+									open: true,
+									tmdbId: event.tmdbId,
+									mediaType: event.mediaType as "movie" | "tv",
+									titleName: event.title ?? `Title #${event.tmdbId}`,
+									event: {
+										...e,
+										visibility: event.visibility ?? "public",
+									},
+								})
+							}
 						/>
 					);
 				}
@@ -1875,6 +1904,19 @@ function ActivityTab({ userId, isOwn }: { userId: string; isOwn: boolean }) {
 					) : null}
 					{isFetchingNextPage ? "Loading..." : "Load more"}
 				</button>
+			)}
+
+			{editModal && (
+				<ReviewModal
+					open={editModal.open}
+					onOpenChange={(open) => {
+						if (!open) setEditModal(null);
+					}}
+					tmdbId={editModal.tmdbId}
+					mediaType={editModal.mediaType}
+					titleName={editModal.titleName}
+					editEvent={editModal.event}
+				/>
 			)}
 		</div>
 	);

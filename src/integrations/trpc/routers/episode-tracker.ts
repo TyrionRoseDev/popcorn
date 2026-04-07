@@ -22,7 +22,7 @@ export const episodeTrackerRouter = {
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
-			await db
+			const inserted = await db
 				.insert(userTitle)
 				.values({
 					userId: ctx.userId,
@@ -32,12 +32,13 @@ export const episodeTrackerRouter = {
 						seasonEpisodeCounts: input.seasonEpisodeCounts,
 					}),
 				})
-				.onConflictDoNothing();
+				.onConflictDoNothing()
+				.returning({ id: userTitle.id });
 
-			const newAchievements = await evaluateAchievements(
-				ctx.userId,
-				"show_tracked",
-			);
+			const newAchievements =
+				inserted.length > 0
+					? await evaluateAchievements(ctx.userId, "show_tracked")
+					: [];
 			return { success: true, newAchievements };
 		}),
 
@@ -473,6 +474,8 @@ export const episodeTrackerRouter = {
 			});
 			const watchNum = title?.currentWatchNumber ?? 1;
 
+			let episodesMarked = 0;
+
 			// Mark specific episode if scoped
 			if (
 				input.scope === "episode" &&
@@ -493,7 +496,7 @@ export const episodeTrackerRouter = {
 						message: "Requested episode not found",
 					});
 				}
-				await db
+				const inserted = await db
 					.insert(episodeWatch)
 					.values({
 						userId: ctx.userId,
@@ -503,7 +506,9 @@ export const episodeTrackerRouter = {
 						runtime: episode.runtime ?? 0,
 						watchNumber: watchNum,
 					})
-					.onConflictDoNothing();
+					.onConflictDoNothing()
+					.returning({ id: episodeWatch.id });
+				episodesMarked = inserted.length;
 			} else if (input.scope === "season" && input.scopeSeasonNumber != null) {
 				// Mark entire season
 				const episodes = await fetchSeasonDetails(
@@ -516,7 +521,7 @@ export const episodeTrackerRouter = {
 						message: "Requested season not found",
 					});
 				}
-				await db
+				const inserted = await db
 					.insert(episodeWatch)
 					.values(
 						episodes.map(
@@ -530,18 +535,19 @@ export const episodeTrackerRouter = {
 							}),
 						),
 					)
-					.onConflictDoNothing();
+					.onConflictDoNothing()
+					.returning({ id: episodeWatch.id });
+				episodesMarked = inserted.length;
 			}
 
-			const newAchievements = await evaluateAchievements(
-				ctx.userId,
-				"episode_marked",
-				{
-					tmdbId: input.tmdbId,
-					mediaType: "tv",
-					watchedAt: new Date(),
-				},
-			);
+			const newAchievements =
+				episodesMarked > 0
+					? await evaluateAchievements(ctx.userId, "episode_marked", {
+							tmdbId: input.tmdbId,
+							mediaType: "tv",
+							watchedAt: new Date(),
+						})
+					: [];
 			return { success: true, newAchievements };
 		}),
 } satisfies TRPCRouterRecord;

@@ -384,6 +384,20 @@ async function checkCondition(
 					and(eq(userTitle.userId, userId), eq(userTitle.mediaType, "tv")),
 				);
 
+			const watchedCounts = await db
+				.select({
+					tmdbId: episodeWatch.tmdbId,
+					watchNumber: episodeWatch.watchNumber,
+					value: count(),
+				})
+				.from(episodeWatch)
+				.where(eq(episodeWatch.userId, userId))
+				.groupBy(episodeWatch.tmdbId, episodeWatch.watchNumber);
+
+			const watchedMap = new Map(
+				watchedCounts.map((r) => [`${r.tmdbId}-${r.watchNumber}`, r.value]),
+			);
+
 			let completedCount = 0;
 			for (const show of shows) {
 				if (!show.seasonEpisodeCounts) continue;
@@ -392,17 +406,9 @@ async function checkCondition(
 				).reduce((sum, c) => sum + c, 0);
 				if (totalEpisodes === 0) continue;
 
-				const [watched] = await db
-					.select({ value: count() })
-					.from(episodeWatch)
-					.where(
-						and(
-							eq(episodeWatch.userId, userId),
-							eq(episodeWatch.tmdbId, show.tmdbId),
-							eq(episodeWatch.watchNumber, show.currentWatchNumber),
-						),
-					);
-				if ((watched?.value ?? 0) >= totalEpisodes) {
+				const watched =
+					watchedMap.get(`${show.tmdbId}-${show.currentWatchNumber}`) ?? 0;
+				if (watched >= totalEpisodes) {
 					completedCount++;
 				}
 			}
@@ -435,33 +441,44 @@ async function checkCondition(
 					and(eq(userTitle.userId, userId), eq(userTitle.mediaType, "tv")),
 				);
 
+			// Build lookup of expected episode counts per (tmdbId, seasonNumber, watchNumber)
+			const expectedMap = new Map<string, number>();
 			for (const show of shows) {
 				if (!show.seasonEpisodeCounts) continue;
 				const counts = show.seasonEpisodeCounts as Record<string, number>;
-
 				for (const [seasonStr, expectedCount] of Object.entries(counts)) {
 					if (expectedCount === 0) continue;
-					const seasonNum = Number(seasonStr);
+					expectedMap.set(
+						`${show.tmdbId}-${seasonStr}-${show.currentWatchNumber}`,
+						expectedCount,
+					);
+				}
+			}
 
-					const result = await db
-						.select({
-							watchDate: sql<string>`DATE(${episodeWatch.watchedAt})`,
-							episodeCount: sql<number>`count(*)::int`,
-						})
-						.from(episodeWatch)
-						.where(
-							and(
-								eq(episodeWatch.userId, userId),
-								eq(episodeWatch.tmdbId, show.tmdbId),
-								eq(episodeWatch.seasonNumber, seasonNum),
-								eq(episodeWatch.watchNumber, show.currentWatchNumber),
-							),
-						)
-						.groupBy(sql`DATE(${episodeWatch.watchedAt})`);
+			if (expectedMap.size === 0) return false;
 
-					if (result.some((r) => r.episodeCount >= expectedCount)) {
-						return true;
-					}
+			// Single batch query: count episodes per (tmdbId, seasonNumber, watchNumber, date)
+			const grouped = await db
+				.select({
+					tmdbId: episodeWatch.tmdbId,
+					seasonNumber: episodeWatch.seasonNumber,
+					watchNumber: episodeWatch.watchNumber,
+					episodeCount: sql<number>`count(*)::int`,
+				})
+				.from(episodeWatch)
+				.where(eq(episodeWatch.userId, userId))
+				.groupBy(
+					episodeWatch.tmdbId,
+					episodeWatch.seasonNumber,
+					episodeWatch.watchNumber,
+					sql`DATE(${episodeWatch.watchedAt})`,
+				);
+
+			for (const row of grouped) {
+				const key = `${row.tmdbId}-${row.seasonNumber}-${row.watchNumber}`;
+				const expected = expectedMap.get(key);
+				if (expected !== undefined && row.episodeCount >= expected) {
+					return true;
 				}
 			}
 			return false;

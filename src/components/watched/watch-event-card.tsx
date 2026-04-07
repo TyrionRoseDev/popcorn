@@ -130,14 +130,21 @@ export function WatchEventCard({
 					trpc.watchEvent.getLatestRating.queryFilter(),
 				);
 				queryClient.invalidateQueries(trpc.watchEvent.getFeed.queryFilter());
+				queryClient.invalidateQueries(
+					trpc.watchEvent.getFeed.infiniteQueryFilter(),
+				);
 				queryClient.invalidateQueries(trpc.watchlist.isWatched.queryFilter());
 				queryClient.invalidateQueries(trpc.friend.genreStats.queryFilter());
 				queryClient.invalidateQueries(trpc.friend.watchActivity.queryFilter());
 				queryClient.invalidateQueries(trpc.friend.profile.queryFilter());
 				toast.success("Watch event deleted");
 			},
-			onError: () => {
-				toast.error("Failed to delete");
+			onError: (error) => {
+				toast.error(
+					error.data?.code === "UNAUTHORIZED"
+						? "Please sign in to delete"
+						: "Failed to delete",
+				);
 			},
 		}),
 	);

@@ -29,8 +29,14 @@ export function AchievementGrid({
 
 	const isComparison = theirEarned !== undefined && theirName !== undefined;
 
-	const myMap = new Map(myEarned.map((e) => [e.id, e.earnedAt]));
-	const theirMap = new Map((theirEarned ?? []).map((e) => [e.id, e.earnedAt]));
+	const myMap = useMemo(
+		() => new Map(myEarned.map((e) => [e.id, e.earnedAt])),
+		[myEarned],
+	);
+	const theirMap = useMemo(
+		() => new Map((theirEarned ?? []).map((e) => [e.id, e.earnedAt])),
+		[theirEarned],
+	);
 
 	const total = ACHIEVEMENTS.length;
 	const myCount = myEarned.length;

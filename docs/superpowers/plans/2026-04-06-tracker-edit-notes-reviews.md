@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: Expand `NotesAndReviewsSection` watch event type to include edit-required fields
+## Task 1: Expand `NotesAndReviewsSection` watch event type to include edit-required fields
 
 The `NotesAndReviewsSection` currently receives a subset of watch event fields that doesn't include `visibility` or `companions`. The `ReviewModal` `editEvent` prop needs `{ id, rating, note, watchedAt, companions, visibility }`.
 
@@ -51,7 +51,7 @@ git commit -m "feat: expand NotesAndReviewsSection watchEvent type for edit supp
 
 ---
 
-### Task 2: Create `EditNoteModal` component
+## Task 2: Create `EditNoteModal` component
 
 A lightweight modal for editing an existing journal entry. Pre-fills note text and visibility toggle. Calls `journalEntry.update`.
 
@@ -247,7 +247,7 @@ git commit -m "feat: add EditNoteModal component for editing journal entries"
 
 ---
 
-### Task 3: Add edit buttons and wire up modals in `NotesAndReviewsSection`
+## Task 3: Add edit buttons and wire up modals in `NotesAndReviewsSection`
 
 Add pencil icons next to trash icons for both notes and reviews. Wire up `EditNoteModal` for notes and `ReviewModal` (with `editEvent` prop) for reviews.
 
@@ -525,7 +525,7 @@ git commit -m "feat: add edit buttons for notes and reviews in tracker detail"
 
 ---
 
-### Task 4: Verify and fix build
+## Task 4: Verify and fix build
 
 - [ ] **Step 1: Run type check**
 
