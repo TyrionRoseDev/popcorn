@@ -95,11 +95,13 @@ function FeedPage() {
 				]}
 			/>
 			<div className="relative z-[2] mx-auto max-w-2xl 2xl:max-w-3xl px-4 py-8">
-				{/* Marquee header + Car silhouettes */}
-				<NowShowingHeader
-					title={filterUser ? `${filterUser.username}'s Feed` : "Feed"}
-				/>
+				{/* Car silhouettes + Marquee header */}
 				<CarSilhouettes />
+				<div className="mt-4">
+					<NowShowingHeader
+						title={filterUser ? `${filterUser.username}'s Feed` : "Feed"}
+					/>
+				</div>
 
 				{/* Filter / Back link */}
 				<div className="flex justify-end mt-7 mb-6">

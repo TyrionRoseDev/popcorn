@@ -161,8 +161,25 @@ export const watchlistRouter = {
 		const watchlistIds = memberships.map((m) => m.watchlistId);
 		if (watchlistIds.length === 0) return [];
 
+		// Get accurate total item counts per watchlist
+		const itemCounts = await db
+			.select({
+				watchlistId: watchlistItem.watchlistId,
+				count: sql<number>`count(*)::int`,
+			})
+			.from(watchlistItem)
+			.where(inArray(watchlistItem.watchlistId, watchlistIds))
+			.groupBy(watchlistItem.watchlistId);
+
+		const countMap = new Map(itemCounts.map((c) => [c.watchlistId, c.count]));
+
+		// Filter out shuffle watchlists and empty watchlists (0 items total)
+		const visibleIds = watchlistIds.filter((id) => (countMap.get(id) ?? 0) > 0);
+		if (visibleIds.length === 0) return [];
+
 		const watchlists = await db.query.watchlist.findMany({
-			where: (wl, { inArray }) => inArray(wl.id, watchlistIds),
+			where: (wl, { inArray, and, ne }) =>
+				and(inArray(wl.id, visibleIds), ne(wl.type, "shuffle")),
 			with: {
 				items: {
 					columns: {
@@ -180,7 +197,7 @@ export const watchlistRouter = {
 				},
 			},
 			orderBy: (wl, { desc }) => [
-				sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'recommendations' THEN 2 WHEN 'custom' THEN 3 WHEN 'shuffle' THEN 4 ELSE 99 END`,
+				sql`CASE ${wl.type} WHEN 'default' THEN 1 WHEN 'recommendations' THEN 2 WHEN 'custom' THEN 3 ELSE 99 END`,
 				desc(wl.updatedAt),
 			],
 		});
@@ -191,7 +208,7 @@ export const watchlistRouter = {
 
 		return watchlists.map((wl) => ({
 			...wl,
-			itemCount: wl.items.length,
+			itemCount: countMap.get(wl.id) ?? wl.items.length,
 			memberCount: wl.members.length,
 		}));
 	}),
