@@ -16,7 +16,7 @@ const { mockSelect, mockWhere, mockInsert, mockUpdate, mockDelete, query } =
 		mockUpdate: vi.fn(),
 		mockDelete: vi.fn(),
 		query: {
-			watchEvent: { findFirst: vi.fn() },
+			watchEvent: { findFirst: vi.fn(), findMany: vi.fn() },
 			watchEventCompanion: { findMany: vi.fn() },
 			userTitle: { findFirst: vi.fn() },
 			user: { findFirst: vi.fn() },
@@ -105,5 +105,47 @@ describe("watchEvent companions", () => {
 			}),
 		);
 		expectNothingWritten();
+	});
+});
+
+describe("watchEvent origin review visibility", () => {
+	const reciprocal = {
+		id: "hugo-copy",
+		userId: "hugo",
+		visibility: "public",
+		rating: null,
+		note: null,
+		companions: [],
+		originEventId: "vera-original",
+		originEvent: {
+			id: "vera-original",
+			rating: 5,
+			note: "SECRET-ORIGIN-NOTE",
+			visibility: "private",
+			userId: "vera",
+			user: { id: "vera", username: "vera", avatarUrl: null },
+		},
+	};
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockSelect.mockReturnValue({ from: () => ({ where: mockWhere }) });
+		query.watchEvent.findMany.mockResolvedValue([reciprocal]);
+	});
+
+	it("drops the origin entry the viewer cannot see", async () => {
+		mockWhere.mockResolvedValue([]);
+		const events = await caller.watchEvent.getForTitle({
+			tmdbId: 550,
+			mediaType: "movie",
+			userId: "hugo",
+		});
+		expect(events[0]?.originEvent).toBeNull();
+	});
+
+	it("keeps the origin entry the viewer can see", async () => {
+		mockWhere.mockResolvedValue([{ id: "vera-original" }]);
+		const { items } = await caller.watchEvent.getUserEvents({ userId: "hugo" });
+		expect(items[0]?.originEvent?.note).toBe("SECRET-ORIGIN-NOTE");
 	});
 });
