@@ -1,0 +1,10 @@
+{
+	"_comment": "Violations the current code really has (findings, reported to the user, not fixed). run.sh passes only if the violations seen equal this list exactly. Remove an entry only after the fix lands and the run reports it as no longer reproducing. Never add an entry to make a new violation go away without reporting it as a finding.",
+	"known": [
+		"two-first-watches/reportOnce",
+		"two-swipes-cascade/reportOnce",
+		"three-swipes-cascade/reportOnce",
+		"swipe-vs-sync/reportOnce",
+		"swipe-vs-review/sameOutcomeAsSerial"
+	]
+}
