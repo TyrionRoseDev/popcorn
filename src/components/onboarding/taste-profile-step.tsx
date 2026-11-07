@@ -157,6 +157,8 @@ export function TasteProfileStep({ onNext }: { onNext: () => void }) {
 			titles: Array.from(selectedTitles.values()).map((item) => ({
 				tmdbId: item.tmdbId,
 				mediaType: item.mediaType,
+				title: item.title,
+				posterPath: item.posterPath,
 			})),
 		};
 		console.log("[TasteProfile] Saving:", payload);

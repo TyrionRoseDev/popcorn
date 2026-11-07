@@ -1,6 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import {
@@ -348,6 +348,8 @@ export const tasteProfileRouter = {
 						z.object({
 							tmdbId: z.number(),
 							mediaType: z.enum(["movie", "tv"]),
+							title: z.string().nullable().optional(),
+							posterPath: z.string().nullable().optional(),
 						}),
 					)
 					.min(3)
@@ -358,10 +360,10 @@ export const tasteProfileRouter = {
 			const userId = ctx.userId;
 
 			await db.transaction(async (tx) => {
+				await tx.delete(userGenre).where(eq(userGenre.userId, userId));
 				await tx
 					.insert(userGenre)
-					.values(input.genreIds.map((genreId) => ({ userId, genreId })))
-					.onConflictDoNothing();
+					.values(input.genreIds.map((genreId) => ({ userId, genreId })));
 				await tx
 					.insert(userTitle)
 					.values(
@@ -373,40 +375,43 @@ export const tasteProfileRouter = {
 					)
 					.onConflictDoNothing();
 
-				// Create default watchlist seeded with onboarding picks
-				const [defaultWatchlist] = await tx
-					.insert(watchlist)
-					.values({
-						name: "My Picks",
-						ownerId: userId,
-						type: "default",
-					})
-					.returning();
-
-				await tx.insert(watchlistMember).values({
-					watchlistId: defaultWatchlist.id,
-					userId,
-					role: "owner",
+				const existing = await tx.query.watchlist.findFirst({
+					where: and(
+						eq(watchlist.ownerId, userId),
+						eq(watchlist.type, "default"),
+					),
+					columns: { id: true },
 				});
-
-				await tx.insert(watchlistItem).values(
-					input.titles.map((t) => ({
-						watchlistId: defaultWatchlist.id,
-						tmdbId: t.tmdbId,
-						mediaType: t.mediaType,
-						addedBy: userId,
-					})),
-				);
+				let defaultWatchlistId = existing?.id;
+				if (!defaultWatchlistId) {
+					const [created] = await tx
+						.insert(watchlist)
+						.values({ name: "My Picks", ownerId: userId, type: "default" })
+						.returning({ id: watchlist.id });
+					await tx.insert(watchlistMember).values({
+						watchlistId: created.id,
+						userId,
+						role: "owner",
+					});
+					defaultWatchlistId = created.id;
+				}
 
 				await tx
-					.update(user)
-					.set({ onboardingCompleted: true })
-					.where(eq(user.id, userId));
+					.insert(watchlistItem)
+					.values(
+						input.titles.map((t) => ({
+							watchlistId: defaultWatchlistId,
+							tmdbId: t.tmdbId,
+							mediaType: t.mediaType,
+							title: t.title ?? null,
+							posterPath: t.posterPath ?? null,
+							addedBy: userId,
+						})),
+					)
+					.onConflictDoNothing();
 			});
 
-			const newAchievements = await evaluateAchievements(userId, "onboarding");
-
-			return { success: true, newAchievements };
+			return { success: true };
 		}),
 
 	saveProfileExtras: protectedProcedure
