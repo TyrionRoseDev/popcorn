@@ -1,0 +1,427 @@
+{
+	"status": 200,
+	"body": {
+		"page": 1,
+		"results": [
+			{
+				"adult": false,
+				"backdrop_path": "/caBIySpwuFi2i7ynvHIlnxJLOdN.jpg",
+				"genre_ids": [
+					16,
+					28,
+					12,
+					18
+				],
+				"id": 1560520,
+				"title": "Batman: Knightfall Part 1: Knightfall",
+				"original_language": "en",
+				"original_title": "Batman: Knightfall Part 1: Knightfall",
+				"overview": "Arkham Asylum has been destroyed, and all its inmates have been unleashed upon Gotham City. As Batman races to round up some of his greatest enemies, he is pushed to his physical and mental limits and into a final confrontation with a new threat: the man called Bane!",
+				"popularity": 29.1526,
+				"poster_path": "/360qdtu2hLnqMu8SVHMywn420w1.jpg",
+				"release_date": "2026-06-23",
+				"softcore": false,
+				"video": false,
+				"vote_average": 9.1,
+				"vote_count": 503
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/ezbrL1dMymKQZw7mDEWa2ZTzN7d.jpg",
+				"genre_ids": [
+					16,
+					12,
+					14,
+					28
+				],
+				"id": 980431,
+				"title": "Avatar Aang: The Last Airbender",
+				"original_language": "en",
+				"original_title": "Avatar Aang: The Last Airbender",
+				"overview": "Avatar Aang, the world's last Airbender, learns of an ancient power that could save his culture from extinction. With the help of his friends, he embarks on a global quest to find it before it falls into the wrong hands and threatens to upend the peace they sacrificed everything to achieve.",
+				"popularity": 49.0358,
+				"poster_path": "/3sgnSfNT27Bx5O5ukr7B26mhEQq.jpg",
+				"release_date": "2026-07-24",
+				"softcore": false,
+				"video": false,
+				"vote_average": 9.021,
+				"vote_count": 1420
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/zMwhWailP1WY7sb6AoE6b8ugoy.jpg",
+				"genre_ids": [
+					12,
+					16,
+					10751,
+					14
+				],
+				"id": 1007757,
+				"title": "Swapped",
+				"original_language": "en",
+				"original_title": "Swapped",
+				"overview": "A small woodland creature and a majestic bird, two natural sworn enemies of the Valley, magically trade places and set off on an adventure of a lifetime to switch back. Their journey soon uncovers a greater threat—one that could endanger not only their species, but the entire valley they call home.",
+				"popularity": 29.6319,
+				"poster_path": "/tHhxWxge06goXU6ZQH1hj7vK8Hd.jpg",
+				"release_date": "2026-05-01",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.84,
+				"vote_count": 2288
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/1RgPyOhN4DRs225BGTlHJqCudII.jpg",
+				"genre_ids": [
+					16,
+					28,
+					14
+				],
+				"id": 1311031,
+				"title": "Demon Slayer: Kimetsu no Yaiba Infinity Castle",
+				"original_language": "ja",
+				"original_title": "劇場版「鬼滅の刃」無限城編 第一章 猗窩座再来",
+				"overview": "The Demon Slayer Corps are drawn into the Infinity Castle, where Tanjiro, Nezuko, and the Hashira face terrifying Upper Rank demons in a desperate fight as the final battle against Muzan Kibutsuji begins.",
+				"popularity": 35.3823,
+				"poster_path": "/fWVSwgjpT2D78VUh6X8UBd2rorW.jpg",
+				"release_date": "2025-07-18",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.8,
+				"vote_count": 2376
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/c4U96GrPRfnNrS01mBtqnocvlLJ.jpg",
+				"genre_ids": [
+					80,
+					28,
+					53
+				],
+				"id": 1621552,
+				"title": "Facing El Chapo",
+				"original_language": "es",
+				"original_title": "La captura",
+				"overview": "Two Mexican officers must survive the final hours of their shift after crossing a ruthless cartel boss.",
+				"popularity": 24.0213,
+				"poster_path": "/alpf5v4UqSFawPmG9RX03Or4BDk.jpg",
+				"release_date": "2026-08-21",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.776,
+				"vote_count": 976
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/pNjh59JSxChQktamG3LMp9ZoQzp.jpg",
+				"genre_ids": [
+					18,
+					80
+				],
+				"id": 278,
+				"title": "The Shawshank Redemption",
+				"original_language": "en",
+				"original_title": "The Shawshank Redemption",
+				"overview": "Imprisoned in the 1940s for the double murder of his wife and her lover, upstanding banker Andy Dufresne begins a new life at the Shawshank prison, where he puts his accounting skills to work for an amoral warden. During his long stretch in prison, Dufresne comes to be admired by the other inmates -- including an older prisoner named Red -- for his integrity and unquenchable sense of hope.",
+				"popularity": 50.3363,
+				"poster_path": "/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg",
+				"release_date": "1994-09-23",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.735,
+				"vote_count": 31785
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/ejdD20cdHNFAYAN2DlqPToXKyzx.jpg",
+				"genre_ids": [
+					18,
+					80
+				],
+				"id": 238,
+				"title": "The Godfather",
+				"original_language": "en",
+				"original_title": "The Godfather",
+				"overview": "Spanning the years 1945 to 1955, a chronicle of the fictional Italian-American Corleone crime family. When organized crime family patriarch, Vito Corleone barely survives an attempt on his life, his youngest son, Michael steps in to take care of the would-be killers, launching a campaign of bloody revenge.",
+				"popularity": 47.6674,
+				"poster_path": "/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
+				"release_date": "1972-03-14",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.689,
+				"vote_count": 23927
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/8Tfys3mDZVp4tNoH2ktm06a0Tau.jpg",
+				"genre_ids": [
+					878,
+					12
+				],
+				"id": 687163,
+				"title": "Project Hail Mary",
+				"original_language": "en",
+				"original_title": "Project Hail Mary",
+				"overview": "Science teacher Ryland Grace wakes up on a spaceship light years from home with no recollection of who he is or how he got there. As his memory returns, he begins to uncover his mission: solve the riddle of the mysterious substance causing the sun to die out. He must call on his scientific knowledge and unorthodox ideas to save everything on Earth from extinction.",
+				"popularity": 2152.7727,
+				"poster_path": "/iOb2fjXLbpJgyQXe46n1WtGCnaa.jpg",
+				"release_date": "2026-03-15",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.631,
+				"vote_count": 8705
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/ufSwlnECLoUbBjPrFqEQcWBzHwc.jpg",
+				"genre_ids": [
+					10402,
+					18
+				],
+				"id": 936075,
+				"title": "Michael",
+				"original_language": "en",
+				"original_title": "Michael",
+				"overview": "The story of Michael Jackson, one of the most influential artists the world has ever known, and his life beyond the music. His journey from the discovery of his extraordinary talent as the lead of the Jackson Five, to the visionary artist whose creative ambition fueled a relentless pursuit to become the biggest entertainer in the world, highlighting both his life off-stage and some of the most iconic performances from his early solo career.",
+				"popularity": 37.2902,
+				"poster_path": "/dueFqKLvjftnELZaGYwY7xinfaI.jpg",
+				"release_date": "2026-04-22",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.588,
+				"vote_count": 4682
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/qqHQsStV6exghCM7zbObuYBiYxw.jpg",
+				"genre_ids": [
+					18
+				],
+				"id": 389,
+				"title": "12 Angry Men",
+				"original_language": "en",
+				"original_title": "12 Angry Men",
+				"overview": "The defense and the prosecution have rested and the jury is filing into the jury room to decide if a young Spanish-American is guilty or innocent of murdering his father. What begins as an open and shut case soon becomes a mini-drama of each of the jurors' prejudices and preconceptions about the trial, the accused, and each other.",
+				"popularity": 23.7174,
+				"poster_path": "/zhG3vKWyDRaZYoaww1UVAi29T9h.jpg",
+				"release_date": "1957-04-10",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.577,
+				"vote_count": 10569
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/pGzqRKrYeK4LogoysNro0vG8d8N.jpg",
+				"genre_ids": [
+					18,
+					80
+				],
+				"id": 240,
+				"title": "The Godfather Part II",
+				"original_language": "en",
+				"original_title": "The Godfather Part II",
+				"overview": "In the continuing saga of the Corleone crime family, a young Vito Corleone grows up in Sicily and in 1910s New York. In the 1950s, Michael Corleone attempts to expand the family business into Las Vegas, Hollywood and Cuba.",
+				"popularity": 28.127,
+				"poster_path": "/8a1lJs7mFyGhGhZZDT1azJUoQiZ.jpg",
+				"release_date": "1974-12-20",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.572,
+				"vote_count": 14576
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/zb6fM1CX41D9rF9hdgclu0peUmy.jpg",
+				"genre_ids": [
+					18,
+					36,
+					10752
+				],
+				"id": 424,
+				"title": "Schindler's List",
+				"original_language": "en",
+				"original_title": "Schindler's List",
+				"overview": "The true story of how businessman Oskar Schindler saved over a thousand Jewish lives from the Nazis while they worked as slaves in his factory during World War II.",
+				"popularity": 25.9907,
+				"poster_path": "/sF1U4EUQS8YHUYjNl3pMGNIQyr0.jpg",
+				"release_date": "1993-12-15",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.57,
+				"vote_count": 18151
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/gqTz24ZRsCP6AKjARmEivY7m0cK.jpg",
+				"genre_ids": [
+					16,
+					28,
+					10749,
+					14
+				],
+				"id": 1218925,
+				"title": "Chainsaw Man - The Movie: Reze Arc",
+				"original_language": "ja",
+				"original_title": "劇場版 チェンソーマン レゼ篇",
+				"overview": "In a brutal war between devils, hunters, and secret enemies, a mysterious girl named Reze has stepped into Denji's world, and he faces his deadliest battle yet, fueled by love in a world where survival knows no rules.",
+				"popularity": 24.0364,
+				"poster_path": "/i69jR67amezdJ3sx6OOvOGn7HAR.jpg",
+				"release_date": "2025-09-19",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.544,
+				"vote_count": 1280
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/cfT29Im5VDvjE0RpyKOSdCKZal7.jpg",
+				"genre_ids": [
+					28,
+					53,
+					80
+				],
+				"id": 155,
+				"title": "The Dark Knight",
+				"original_language": "en",
+				"original_title": "The Dark Knight",
+				"overview": "Batman raises the stakes in his war on crime. With the help of Lt. Jim Gordon and District Attorney Harvey Dent, Batman sets out to dismantle the remaining criminal organizations that plague the streets. The partnership proves to be effective, but they soon find themselves prey to a reign of chaos unleashed by a rising criminal mastermind known to the terrified citizens of Gotham as the Joker.",
+				"popularity": 1443.0044,
+				"poster_path": "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+				"release_date": "2008-07-16",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.5,
+				"vote_count": 37250
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/m4TUa2ciEWSlk37rOsjiSIvZDXE.jpg",
+				"genre_ids": [
+					16,
+					10751,
+					14
+				],
+				"id": 129,
+				"title": "Spirited Away",
+				"original_language": "ja",
+				"original_title": "千と千尋の神隠し",
+				"overview": "A young girl, Chihiro, becomes trapped in a strange new world of spirits. When her parents undergo a mysterious transformation, she must call upon the courage she never knew she had to free her family.",
+				"popularity": 38.906,
+				"poster_path": "/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg",
+				"release_date": "2001-07-20",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.537,
+				"vote_count": 19189
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/ctiw6FZK4N36LmkjSklWEbuvlq9.jpg",
+				"genre_ids": [
+					12,
+					14,
+					28
+				],
+				"id": 122,
+				"title": "The Lord of the Rings: The Return of the King",
+				"original_language": "en",
+				"original_title": "The Lord of the Rings: The Return of the King",
+				"overview": "As armies mass for a final battle that will decide the fate of the world--and powerful, ancient forces of Light and Dark compete to determine the outcome--one member of the Fellowship of the Ring is revealed as the noble heir to the throne of the Kings of Men. Yet, the sole hope for triumph over evil lies with a brave hobbit, Frodo, who, accompanied by his loyal friend Sam and the hideous, wretched Gollum, ventures deep into the very dark heart of Mordor on his seemingly impossible quest to destroy the Ring of Power.​",
+				"popularity": 37.6078,
+				"poster_path": "/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg",
+				"release_date": "2003-12-17",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.506,
+				"vote_count": 27766
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/amZavErrjrdgDwhsIdpWxHNenIx.jpg",
+				"genre_ids": [
+					14,
+					18,
+					80
+				],
+				"id": 497,
+				"title": "The Green Mile",
+				"original_language": "en",
+				"original_title": "The Green Mile",
+				"overview": "A supernatural tale set on death row in a Southern prison, where gentle giant John Coffey possesses the mysterious power to heal people's ailments. When the cell block's head guard, Paul Edgecomb, recognizes Coffey's miraculous gift, he tries desperately to help stave off the condemned man's execution.",
+				"popularity": 26.1426,
+				"poster_path": "/8VG8fDNiy50H4FedGwdSVUPoaJe.jpg",
+				"release_date": "1999-12-10",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.505,
+				"vote_count": 20094
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/7VDLEHli74eLsYLNcq9djn1Gw76.jpg",
+				"genre_ids": [
+					35,
+					18,
+					10749
+				],
+				"id": 19404,
+				"title": "Dilwale Dulhania Le Jayenge",
+				"original_language": "hi",
+				"original_title": "दिलवाले दुल्हनिया ले जायेंगे",
+				"overview": "Raj is a rich, carefree, happy-go-lucky second generation NRI. Simran is the daughter of Chaudhary Baldev Singh, who in spite of being an NRI is very strict about adherence to Indian values. Simran has left for India to be married to her childhood fiancé. Raj leaves for India with a mission at his hands, to claim his lady love under the noses of her whole family. Thus begins a saga.",
+				"popularity": 9.2978,
+				"poster_path": "/lfRkUr7DYdHldAqi3PwdQGBRBPM.jpg",
+				"release_date": "1995-10-20",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.501,
+				"vote_count": 4646
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/8sNiAPPYU14PUepFNeSNGUTiHW.jpg",
+				"genre_ids": [
+					12,
+					18,
+					878
+				],
+				"id": 157336,
+				"title": "Interstellar",
+				"original_language": "en",
+				"original_title": "Interstellar",
+				"overview": "The adventures of a group of explorers who make use of a newly discovered wormhole to surpass the limitations on human space travel and conquer the vast distances involved in an interstellar voyage.",
+				"popularity": 55.1497,
+				"poster_path": "/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg",
+				"release_date": "2014-11-04",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.493,
+				"vote_count": 41798
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/mMtUybQ6hL24FXo0F3Z4j2KG7kZ.jpg",
+				"genre_ids": [
+					16,
+					10749,
+					18
+				],
+				"id": 372058,
+				"title": "Your Name.",
+				"original_language": "ja",
+				"original_title": "君の名は。",
+				"overview": "High schoolers Mitsuha and Taki are complete strangers living separate lives. But one night, they suddenly switch places. Mitsuha wakes up in Taki’s body, and he in hers. This bizarre occurrence continues to happen randomly, and the two must adjust their lives around each other.",
+				"popularity": 25.8383,
+				"poster_path": "/vfJFJPepRKapMd5G2ro7klIRysq.jpg",
+				"release_date": "2016-07-01",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.492,
+				"vote_count": 13181
+			}
+		],
+		"total_pages": 411,
+		"total_results": 8209
+	}
+}

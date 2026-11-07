@@ -115,8 +115,24 @@ Proof standards:
 - Drive the real user path: UI clicks and the real magic link. Do not insert sessions or call internal setters.
 - Capture both the action and the resulting state. Then prove persistence from a second view, either a reload or another page.
 - **Always** check the side effect in the DB with `vp.sql`.
-- The only mocked boundary is Resend: the app already isolates it behind `RESEND_BASE_URL`. TMDB is real.
+- The only mocked boundary is Resend: the app already isolates it behind `RESEND_BASE_URL`. TMDB is real unless you pick `VP_TMDB=stub`.
 - When a journey reports FAIL, report the failure. Do not weaken the assertion to make it pass.
+
+## CI and recorded TMDB
+
+CI has no TMDB token, so it replays recorded responses. Three `up` settings make this work, and each one also works locally:
+
+- `VP_TMDB=stub` starts `scripts/tmdb-stub.ts` and points the app's `TMDB_BASE_URL` at it. The stub serves `tests/fixtures/tmdb/<path>/<sorted query>.json`, with any `YYYY-MM-DD` value keyed as `DATE`. A request with no fixture gets a 404 and a `MISS` line in `vp logs tmdb`.
+- `VP_TMDB=record` runs the same stub as a proxy to the real API and saves each response. It needs the token, so run it locally only. `run-journeys` prints any `MISS` lines when it finishes.
+- `VP_DATABASE_URL=postgresql://...@127.0.0.1:<port>/<db>` uses an empty local postgres, such as a CI service, in place of the container. It needs `psql`.
+- `VP_SERVER=build` runs `vite build` and serves `.output` as production does. A cold `vite dev` compiles routes on first request and can time out on a loaded machine.
+
+`scripts/run-journeys <journey>...` brings up one run, drives the journeys in order, prints each `RESULT` line and tears the run down. CI calls it from `.github/workflows/ci.yml`. To add fixtures for a new journey, record it, then replay it and check that no `MISS` lines appear:
+
+```bash
+VP_TMDB=record scripts/run-journeys my-journey
+VP_TMDB=stub VP_SERVER=build scripts/run-journeys my-journey
+```
 
 ## Cleanup
 
@@ -139,6 +155,8 @@ Evidence is never deleted. Run `vp down` after **every** run, including failed i
 | `scripts/drive.ts`, `scripts/lib/vp.ts` | Journey runner and the `vp` API |
 | `scripts/mail-sink.ts` | Fake Resend `POST /emails`. Run by `up`. |
 | `scripts/seed.sql` | Baseline users and friendship |
+| `scripts/tmdb-stub.ts` | TMDB replay stub and recorder. Run by `up` when `VP_TMDB` is `stub` or `record`. |
+| `scripts/run-journeys` | Fresh run, the given journeys, RESULT lines, teardown. Used by CI. |
 | `journeys/sign-in.ts`, `journeys/mark-watched.ts` | Proven journeys |
 
 The other feature files list exact steps, but they do not have proven journey scripts yet. Write `journeys/<feature>.ts` modelled on `mark-watched.ts`, run it, and update the feature file.

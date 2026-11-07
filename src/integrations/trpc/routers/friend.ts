@@ -12,6 +12,7 @@ import {
 	watchlistItem,
 	watchlistMember,
 } from "#/db/schema";
+import { watchEventVisibleTo } from "#/integrations/trpc/access";
 import { createTRPCRouter, protectedProcedure } from "#/integrations/trpc/init";
 import { createNotification } from "#/integrations/trpc/routers/notification";
 import { ACHIEVEMENTS_BY_ID } from "#/lib/achievements";
@@ -918,7 +919,12 @@ export const friendRouter = createTRPCRouter({
 					titles: sql<string[]>`array_agg(${watchEvent.titleName})`,
 				})
 				.from(watchEvent)
-				.where(eq(watchEvent.userId, input.userId))
+				.where(
+					and(
+						eq(watchEvent.userId, input.userId),
+						watchEventVisibleTo(ctx.userId),
+					),
+				)
 				.groupBy(
 					sql`to_char(COALESCE(${watchEvent.watchedAt}, ${watchEvent.createdAt}), 'YYYY-MM-DD')`,
 				)

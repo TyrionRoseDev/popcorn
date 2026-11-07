@@ -1,6 +1,6 @@
 import { env } from "#/env";
 
-const BASE_URL = "https://api.themoviedb.org/3";
+const DEFAULT_BASE_URL = "https://api.themoviedb.org/3";
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 
 export type ImageSize =
@@ -25,7 +25,7 @@ export async function tmdbFetch<T>(
 	path: string,
 	params: Record<string, string> = {},
 ): Promise<T> {
-	const url = new URL(`${BASE_URL}${path}`);
+	const url = new URL(`${env.TMDB_BASE_URL ?? DEFAULT_BASE_URL}${path}`);
 	for (const [key, value] of Object.entries(params)) {
 		url.searchParams.set(key, value);
 	}

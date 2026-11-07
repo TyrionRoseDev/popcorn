@@ -1,0 +1,423 @@
+{
+	"status": 200,
+	"body": {
+		"page": 1,
+		"results": [
+			{
+				"adult": false,
+				"backdrop_path": "/sl5NJ1vtyhP9Vr88bB4blULsJYp.jpg",
+				"genre_ids": [
+					16,
+					12,
+					14
+				],
+				"id": 791523,
+				"title": "Wildwood",
+				"original_language": "en",
+				"original_title": "Wildwood",
+				"overview": "Prue and her classmate Curtis are drawn into a magical forest filled with enchanted creatures, loyal allies, and formidable adversaries as they embark on a desperate quest to rescue Prue's abducted baby brother from a murder of crows led by a mysterious woman named Alexandra.",
+				"popularity": 441.8871,
+				"poster_path": "/snFM00mpNAfUzUtkdEW0uDEvXA0.jpg",
+				"release_date": "2026-10-19",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.486,
+				"vote_count": 208
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/o3XwuDUj0n8qnK91p6q8LKfr6rj.jpg",
+				"genre_ids": [
+					28,
+					53,
+					27
+				],
+				"id": 1507696,
+				"title": "Apocalypse Z: New World",
+				"original_language": "es",
+				"original_title": "Apocalipsis Z: Nuevo mundo",
+				"overview": "The Canary Islands have become Europe’s last refuge following the outbreak of the TSJ virus. When a special mission sets out for the mainland in search of vital supplies, Roberto joins the team with questionable intentions. The dangerous operation turns into a desperate race for survival, and Roberto and his companions find themselves caught between hordes of infected and divided loyalties.",
+				"popularity": 381.6851,
+				"poster_path": "/wXln4DUrwcyjcFPwgQxFPYTlG1Z.jpg",
+				"release_date": "2026-10-09",
+				"softcore": false,
+				"video": false,
+				"vote_average": 6.13,
+				"vote_count": 135
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/hw3d1wDXTsEVyViubbTgHsMIvX0.jpg",
+				"genre_ids": [
+					18,
+					27,
+					9648
+				],
+				"id": 1813355,
+				"title": "A Story of Derry",
+				"original_language": "en",
+				"original_title": "A Story of Derry",
+				"overview": "Hundreds of years before Pennywise, three youngsters venture into the Western Wood...where they encounter a terrifying ancient spirit.",
+				"popularity": 256.3091,
+				"poster_path": "/4PtzGcegF5Po1NmDAW9IklyvAUh.jpg",
+				"release_date": "2026-10-31",
+				"softcore": false,
+				"video": false,
+				"vote_average": 6.942,
+				"vote_count": 78
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/bySCyjQXNPgsnLTlgJpSMnRazPD.jpg",
+				"genre_ids": [
+					28,
+					53
+				],
+				"id": 1294189,
+				"title": "The Mongoose",
+				"original_language": "en",
+				"original_title": "The Mongoose",
+				"overview": "A falsely accused war hero with nothing to lose leads police on an epic televised cross-country car chase, helped by members of his former Special Forces Army battalion and closely monitored by a fascinated public rooting for his safe getaway.",
+				"popularity": 197.9624,
+				"poster_path": "/eSS5mvSG84UUuvtbHel5Yu3Wik4.jpg",
+				"release_date": "2026-10-29",
+				"softcore": false,
+				"video": false,
+				"vote_average": 5.9,
+				"vote_count": 63
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/hbz4aeVsjnKb2HRoFbbr46Egh8y.jpg",
+				"genre_ids": [
+					10749,
+					53
+				],
+				"id": 1596275,
+				"title": "Drive - The Pretenders",
+				"original_language": "de",
+				"original_title": "Drive – The Pretenders",
+				"overview": "A young mechanic fakes an engagement with racing's most scandalous star — officially for his reputation, secretly for her own shot behind the wheel. But soon the lie threatens to destroy everything — including what's already become so much more than just a deal.",
+				"popularity": 171.4507,
+				"poster_path": "/s9syckECnUYhKePQ1A0DC0mFVZ9.jpg",
+				"release_date": "2026-10-27",
+				"softcore": false,
+				"video": false,
+				"vote_average": 7.7,
+				"vote_count": 131
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/4pYKqctQvvdyhuGjiK4szH9jEv9.jpg",
+				"genre_ids": [
+					27,
+					28,
+					10752,
+					14,
+					53
+				],
+				"id": 1657630,
+				"title": "The Awakening",
+				"original_language": "es",
+				"original_title": "El despertar",
+				"overview": "An elite military unit on a mission in the South American jungle encounters a deadly supernatural force revealing an ancient presence that continues to claim anyone who dares enter its domain.",
+				"popularity": 188.0604,
+				"poster_path": "/7pUGiRg9Gq1JqmmNSJLLSonOKum.jpg",
+				"release_date": "2026-10-29",
+				"softcore": false,
+				"video": false,
+				"vote_average": 6.4,
+				"vote_count": 102
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/uI3kWI7kGW5E0F8WduewgQYPt34.jpg",
+				"genre_ids": [
+					53,
+					18,
+					80
+				],
+				"id": 1571955,
+				"title": "Collision Course",
+				"original_language": "es",
+				"original_title": "Colisión",
+				"overview": "Spain, 2013. After robbing a bank, a getaway crash reveals the hidden side of each thief, exposing betrayals and lies that began long before the heist.",
+				"popularity": 139.7562,
+				"poster_path": "/s2eAK0uiODjlNUSIiOBwdp3at2u.jpg",
+				"release_date": "2026-10-30",
+				"softcore": false,
+				"video": false,
+				"vote_average": 6.475,
+				"vote_count": 60
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/oqrYIDH4tvfEzPe1yqT4jzmAWHQ.jpg",
+				"genre_ids": [
+					878,
+					27,
+					28
+				],
+				"id": 1381071,
+				"title": "Godzilla Minus Zero",
+				"original_language": "ja",
+				"original_title": "ゴジラ-0.0",
+				"overview": "War reduced Japan to zero, and Godzilla plunged it into minus. Two years have passed since then, and the country has faced agonizing struggles to achieve recovery and finally reclaim its daily life. Just as humanity managed to cling to a hard-won peace, a new threat strikes, crushing hope in an instant. There is no third time. Everything ends here.",
+				"popularity": 145.9052,
+				"poster_path": "/hSmIJluOJmTWvJs4d7kHRxjc8s8.jpg",
+				"release_date": "2026-11-03",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.132,
+				"vote_count": 57
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/yHVZncPRZr63mezRX20IyKLrSkv.jpg",
+				"genre_ids": [
+					14,
+					28,
+					12
+				],
+				"id": 656908,
+				"title": "Ramayana: Rise of a Legend",
+				"original_language": "hi",
+				"original_title": "रामायणम्",
+				"overview": "An ancient epic follows a young prince and princess whose marriage and subsequent exile mark the beginning of a legendary journey. Their story of love, duty and destiny sets the stage for greater challenges ahead.",
+				"popularity": 126.1499,
+				"poster_path": "/hz2Hv8tPToHvQ7HaxzqeLvahmcJ.jpg",
+				"release_date": "2026-11-05",
+				"softcore": false,
+				"video": false,
+				"vote_average": 7.5,
+				"vote_count": 14
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/cpNMIRCrDl0sxDL1tHBzfWi0UZC.jpg",
+				"genre_ids": [
+					18
+				],
+				"id": 1780005,
+				"title": "Surviving Hurricane Otis",
+				"original_language": "es",
+				"original_title": "Contra el huracán",
+				"overview": "Two estranged brothers struggle to survive Hurricane Otis in Acapulco, where their bond and courage turn adversity into hope.",
+				"popularity": 98.7481,
+				"poster_path": "/chZa8Jd9kSDj11bekGjwwotFPEw.jpg",
+				"release_date": "2026-10-23",
+				"softcore": false,
+				"video": false,
+				"vote_average": 7.5,
+				"vote_count": 123
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/rObL4of4eFA8yWaN9pRFo9aOVNi.jpg",
+				"genre_ids": [
+					878,
+					28,
+					12
+				],
+				"id": 1003596,
+				"title": "Avengers: Doomsday",
+				"original_language": "en",
+				"original_title": "Avengers: Doomsday",
+				"overview": "Beloved heroes from three distinct universes are set on a deadly collision course and face an existential threat unlike anything they've ever encountered.",
+				"popularity": 96.5429,
+				"poster_path": "/9jlZ59UALLLOE279HMT19rP9XQs.jpg",
+				"release_date": "2026-12-16",
+				"softcore": false,
+				"video": false,
+				"vote_average": 0,
+				"vote_count": 0
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/xSDoxv4pHvs4xZjvTb0Iqg1A6ro.jpg",
+				"genre_ids": [
+					27,
+					53,
+					878
+				],
+				"id": 1400940,
+				"title": "Clayface",
+				"original_language": "en",
+				"original_title": "Clayface",
+				"overview": "Matt Hagen's meteoric rise from Gotham street kid to Hollywood leading man is tragically cut short when a local crime boss's actions leave him horribly disfigured. Abandoned by his team and with nothing left, Matt seeks out a cutting edge treatment that miraculously returns him to his former self… but also unexpectedly affects his grip on reality, spiraling him down a destructive path of all-consuming revenge.",
+				"popularity": 97.8805,
+				"poster_path": "/9l1NuFjel2j89hiuiJbsxfblqjy.jpg",
+				"release_date": "2026-10-19",
+				"softcore": false,
+				"video": false,
+				"vote_average": 7.4,
+				"vote_count": 400
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/hhQT0TySg3LXCE8BEPpfPJ5zJA2.jpg",
+				"genre_ids": [
+					35,
+					18
+				],
+				"id": 1570488,
+				"title": "A Dog's Perfect Christmas",
+				"original_language": "en",
+				"original_title": "A Dog's Perfect Christmas",
+				"overview": "When a medical emergency pulls the Goss family apart, determined dog Winstead will do all he can to bring his humans back together before Christmas Eve.",
+				"popularity": 96.5412,
+				"poster_path": "/zvsNAohDHRWcGvbPSD7r3WojpKb.jpg",
+				"release_date": "2026-11-04",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.1,
+				"vote_count": 18
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/8I4YFWgi9IZW4VUi398A0BqLnm.jpg",
+				"genre_ids": [
+					53,
+					80
+				],
+				"id": 1453407,
+				"title": "Gajab Raat",
+				"original_language": "hi",
+				"original_title": "ग़ज़ब रात",
+				"overview": "A corrupt, troubled cop's night spirals out of control when a reluctant act of mercy toward an injured girl pulls him into a deadly web of crime.",
+				"popularity": 76.405,
+				"poster_path": "/e4N7M52cBbyi24xLga8yI6yt1u1.jpg",
+				"release_date": "2026-10-23",
+				"softcore": false,
+				"video": false,
+				"vote_average": 5.7,
+				"vote_count": 17
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/h7gas4rrcaSitLgF2ODry3Wz9KZ.jpg",
+				"genre_ids": [
+					35
+				],
+				"id": 1727734,
+				"title": "Ali G: Who Iz I?",
+				"original_language": "en",
+				"original_title": "Ali G: Who Iz I?",
+				"overview": "After twenty years spent \"chillin', tokin' and bonin'\", Ali G is shocked to discover that his long-term girlfriend, Julie, is 8 months pregnant. Faced with an extra mouth to feed, he gets off his batty and heads to America to reclaim his former glory… but soon encounters adversaries who will ultimately threaten his and his child's very existence.",
+				"popularity": 61.4732,
+				"poster_path": "/uTyVxPeWX8Ai30IQoyDDQONNcq.jpg",
+				"release_date": "2026-10-22",
+				"softcore": false,
+				"video": false,
+				"vote_average": 5.74,
+				"vote_count": 152
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/nhIL3O4W9h5V5JbNQm7yjoDk3So.jpg",
+				"genre_ids": [
+					99
+				],
+				"id": 1765072,
+				"title": "You Can See Everything",
+				"original_language": "en",
+				"original_title": "You Can See Everything",
+				"overview": "Thirty-four days before she's sent to prison, notorious Silicon Valley founder Elizabeth Holmes invites a skeptical film crew to document her every move. What begins as an intimate portrait of an enigmatic felon becomes a mind-bending three-year journey into the abyss.",
+				"popularity": 65.1665,
+				"poster_path": "/Ap8QwmKfSjYbWC4XIP8w9pdn72O.jpg",
+				"release_date": "2026-10-16",
+				"softcore": false,
+				"video": false,
+				"vote_average": 8.903,
+				"vote_count": 93
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/qRN8eqYwG6HPSy0i3fKzuLrUOhp.jpg",
+				"genre_ids": [
+					28,
+					14
+				],
+				"id": 1153576,
+				"title": "Street Fighter",
+				"original_language": "en",
+				"original_title": "Street Fighter",
+				"overview": "In 1993, estranged Street Fighters Ryu and Ken Masters are thrown back into combat when the mysterious Chun-Li recruits them for the next World Warrior Tournament: a brutal clash of fists, fate, and fury. But behind this battle royale lies a deadly conspiracy that forces them to face off against each other and the demons of their past. And if they don't, it's GAME OVER!",
+				"popularity": 63.9123,
+				"poster_path": "/ccxdepKqORLwccbzvO4eAGkN0IC.jpg",
+				"release_date": "2026-10-13",
+				"softcore": false,
+				"video": false,
+				"vote_average": 6.3,
+				"vote_count": 220
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/tzoarEu7TsG959upiELyYPm5kO9.jpg",
+				"genre_ids": [
+					53,
+					18,
+					28,
+					80
+				],
+				"id": 1236045,
+				"title": "Animals",
+				"original_language": "en",
+				"original_title": "Animals",
+				"overview": "When the son of an L.A. mayoral candidate is kidnapped, he and his wife have a few hours to come up with the ransom payment. With most of their money spent on his political campaign, they have to get their hands dirty and expose a side of their lives they never intended to see the light of day.",
+				"popularity": 57.1595,
+				"poster_path": "/iISM36voS1E8gX9BM0DVK0kgi3E.jpg",
+				"release_date": "2026-10-09",
+				"softcore": false,
+				"video": false,
+				"vote_average": 6.929,
+				"vote_count": 709
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/fAlQZsCOCvxOj0PmFmt4i8IWR2u.jpg",
+				"genre_ids": [
+					28,
+					53
+				],
+				"id": 1561726,
+				"title": "Masterplan",
+				"original_language": "en",
+				"original_title": "Masterplan",
+				"overview": "When a legendary thief sets his sights on the Mona Lisa, he recruits two young strangers to help him before revealing they are long-lost siblings… and oh yes, by the way, he is their father. Thrown into a chaotic reunion they never asked for, this new family must learn to work together — and try not to kill each other — if they want any chance at pulling off the heist of the century.",
+				"popularity": 56.4095,
+				"poster_path": "/5xmXVd7nCK3tAo34XkO58SxUCip.jpg",
+				"release_date": "2026-10-16",
+				"softcore": false,
+				"video": false,
+				"vote_average": 6.834,
+				"vote_count": 232
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/9y9o686DsQg0KzPtERzcW7Cf8IE.jpg",
+				"genre_ids": [
+					16,
+					14,
+					12,
+					10751,
+					35
+				],
+				"id": 1117898,
+				"title": "The Cat in the Hat",
+				"original_language": "en",
+				"original_title": "The Cat in the Hat",
+				"overview": "Assigned his toughest mission yet, the Cat must cheer up siblings Gabby and Sebastian as they adjust to life in a new town. Known for pushing boundaries, this agent of chaos must prove himself or risk losing his magical hat forever.",
+				"popularity": 56.4038,
+				"poster_path": "/mWN6knIVJ2o7eGwSm7mOgSCwNUc.jpg",
+				"release_date": "2026-10-31",
+				"softcore": false,
+				"video": false,
+				"vote_average": 7,
+				"vote_count": 13
+			}
+		],
+		"total_pages": 428,
+		"total_results": 8553
+	}
+}

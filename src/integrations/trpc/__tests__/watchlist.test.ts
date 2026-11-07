@@ -180,10 +180,13 @@ describe("watchlist.create", () => {
 // ── list ───────────────────────────────────────────────────────────────
 describe("watchlist.list", () => {
 	it("returns watchlists the user is a member of", async () => {
-		// select().from().where() returns membership rows
 		mockWhere.mockResolvedValueOnce([{ watchlistId: WATCHLIST_ID }]);
+		mockWhere.mockReturnValueOnce({
+			groupBy: vi
+				.fn()
+				.mockResolvedValue([{ watchlistId: WATCHLIST_ID, count: 42 }]),
+		});
 
-		// query.watchlist.findMany returns watchlists with items/members
 		mockQueryWatchlistFindMany.mockResolvedValueOnce([
 			{
 				id: WATCHLIST_ID,
@@ -191,7 +194,14 @@ describe("watchlist.list", () => {
 				ownerId: OWNER_ID,
 				isPublic: false,
 				type: "custom",
-				items: [{ tmdbId: 550, mediaType: "movie" }],
+				items: [
+					{
+						tmdbId: 550,
+						mediaType: "movie",
+						posterPath: "/fc.jpg",
+						title: "Fight Club",
+					},
+				],
 				members: [
 					{
 						user: {
@@ -207,10 +217,14 @@ describe("watchlist.list", () => {
 		const caller = createCaller(OWNER_ID);
 		const result = await caller.watchlist.list();
 
-		expect(result).toHaveLength(1);
-		expect(result[0].id).toBe(WATCHLIST_ID);
-		expect(result[0].itemCount).toBe(1);
-		expect(result[0].memberCount).toBe(1);
+		expect(result).toEqual([
+			expect.objectContaining({
+				id: WATCHLIST_ID,
+				name: "My List",
+				itemCount: 42,
+				memberCount: 1,
+			}),
+		]);
 	});
 
 	it("returns empty array when user has no watchlists", async () => {
