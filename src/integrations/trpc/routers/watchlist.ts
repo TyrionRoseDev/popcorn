@@ -1,15 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import {
-	and,
-	eq,
-	ilike,
-	inArray,
-	isNull,
-	notInArray,
-	or,
-	sql,
-} from "drizzle-orm";
+import { and, eq, ilike, inArray, isNull, notInArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import {
@@ -20,6 +11,7 @@ import {
 	watchlistItem,
 	watchlistMember,
 } from "#/db/schema";
+import { ensureAreFriends } from "#/integrations/trpc/access";
 import { protectedProcedure } from "#/integrations/trpc/init";
 import { ACHIEVEMENTS_BY_ID } from "#/lib/achievements";
 import { evaluateAchievements } from "#/lib/evaluate-achievements";
@@ -95,33 +87,7 @@ async function assertMember(watchlistId: string, userId: string) {
 	if (!membership) throw new TRPCError({ code: "FORBIDDEN" });
 }
 
-async function ensureAreFriends(userId: string, candidateIds: string[]) {
-	if (candidateIds.length === 0) return;
-	const friends = await db
-		.select({ id: friendship.id })
-		.from(friendship)
-		.where(
-			and(
-				eq(friendship.status, "accepted"),
-				or(
-					and(
-						eq(friendship.requesterId, userId),
-						inArray(friendship.addresseeId, candidateIds),
-					),
-					and(
-						eq(friendship.addresseeId, userId),
-						inArray(friendship.requesterId, candidateIds),
-					),
-				),
-			),
-		);
-	if (friends.length !== candidateIds.length) {
-		throw new TRPCError({
-			code: "FORBIDDEN",
-			message: "You can only invite friends to watchlists",
-		});
-	}
-}
+const INVITE_FRIENDS_ONLY = "You can only invite friends to watchlists";
 
 async function getOrCreateDefaultWatchlist(userId: string) {
 	const existing = await db.query.watchlist.findFirst({
@@ -356,7 +322,7 @@ export const watchlistRouter = {
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
-			await ensureAreFriends(ctx.userId, input.memberIds);
+			await ensureAreFriends(ctx.userId, input.memberIds, INVITE_FRIENDS_ONLY);
 
 			return db
 				.transaction(async (tx) => {
@@ -675,7 +641,7 @@ export const watchlistRouter = {
 					message: "Cannot invite members to the Recommendations watchlist",
 				});
 			}
-			await ensureAreFriends(ctx.userId, [input.userId]);
+			await ensureAreFriends(ctx.userId, [input.userId], INVITE_FRIENDS_ONLY);
 
 			const inserted = await db
 				.insert(watchlistMember)
@@ -862,7 +828,7 @@ export const watchlistRouter = {
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
-			await ensureAreFriends(ctx.userId, input.friendIds);
+			await ensureAreFriends(ctx.userId, input.friendIds, INVITE_FRIENDS_ONLY);
 
 			for (const friendId of input.friendIds) {
 				await createNotification({
