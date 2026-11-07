@@ -1,11 +1,21 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { FilmStrip } from "#/components/film-strip";
 import { MarqueeBoard, MarqueeBoardRow } from "#/components/marquee-board";
 import { RetroOverlays } from "#/components/retro-overlays";
 import { Spotlights } from "#/components/spotlight";
 import { TicketStub } from "#/components/ticket-stub";
+import { getSession } from "#/lib/auth-session";
 
 export const Route = createFileRoute("/")({
+	beforeLoad: async () => {
+		const session = await getSession();
+		if (session?.user) {
+			throw redirect({
+				to: "/app/search",
+				search: { q: "", type: "all", sort: "relevance", page: 1 },
+			});
+		}
+	},
 	component: LandingPage,
 	head: () => ({
 		meta: [
