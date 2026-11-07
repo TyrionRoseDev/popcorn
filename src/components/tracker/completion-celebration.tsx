@@ -61,7 +61,7 @@ export function CompletionCelebration({
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent
-				className="inset-0 top-0 left-0 max-w-none w-screen h-screen translate-x-0 translate-y-0 rounded-none border-none bg-transparent p-0 gap-0 shadow-none"
+				className="inset-0 top-0 left-0 max-w-none w-screen h-screen translate-x-0 translate-y-0 rounded-none border-none bg-transparent p-0 gap-0 shadow-none place-items-center"
 				overlayClassName="bg-black/80 backdrop-blur-sm"
 				showCloseButton={false}
 				onOpenAutoFocus={(e) => e.preventDefault()}
@@ -76,7 +76,7 @@ export function CompletionCelebration({
 					}}
 				/>
 
-				<div className="relative flex flex-col items-center gap-6 px-6 py-10 text-center celebration-fade-in mx-auto my-auto">
+				<div className="relative flex flex-col items-center gap-6 px-6 py-10 text-center celebration-fade-in">
 					{/* "SHOW COMPLETE" marquee label */}
 					<div className="flex items-center gap-2">
 						<Sparkles
