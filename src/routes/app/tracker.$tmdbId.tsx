@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import {
 	ArrowLeft,
 	BookOpen,
@@ -16,6 +16,12 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
+import {
+	NotFoundState,
+	notFoundLinkClass,
+	orNotFound,
+} from "#/components/not-found";
 import { HideConfirmDialog } from "#/components/shuffle/hide-confirm-dialog";
 import { CompletionCelebration } from "#/components/tracker/completion-celebration";
 import { EditNoteModal } from "#/components/tracker/edit-note-modal";
@@ -25,9 +31,37 @@ import { ReviewModal } from "#/components/watched/review-modal";
 import { WatchlistRemovalDialog } from "#/components/watchlist/watchlist-removal-dialog";
 import { useTRPC } from "#/integrations/trpc/react";
 
+const showIdSchema = z.coerce.number().int().positive();
+
 export const Route = createFileRoute("/app/tracker/$tmdbId")({
+	loader: ({ context: { queryClient, trpc }, params }) => {
+		const tmdbId = showIdSchema.safeParse(params.tmdbId);
+		if (!tmdbId.success) throw notFound();
+		return orNotFound(() =>
+			queryClient.ensureQueryData(
+				trpc.title.details.queryOptions({
+					tmdbId: tmdbId.data,
+					mediaType: "tv",
+				}),
+			),
+		);
+	},
+	notFoundComponent: ShowNotFound,
 	component: ShowTracker,
 });
+
+function ShowNotFound() {
+	return (
+		<NotFoundState
+			title="Show not found"
+			message="There's no TV show with this id. It may have been removed, or the link points at a film."
+		>
+			<Link to="/app/tracker" className={notFoundLinkClass}>
+				Back to Tracker
+			</Link>
+		</NotFoundState>
+	);
+}
 
 function ShowTracker() {
 	const { tmdbId: tmdbIdRaw } = Route.useParams();
@@ -68,8 +102,11 @@ function ShowTracker() {
 	const isViewingOldWatch = activeWatchNumber < currentWatchNumber;
 
 	// Fetch show details
-	const { data: titleData, isLoading: isLoadingTitle } = useQuery(
-		trpc.title.details.queryOptions({ tmdbId, mediaType: "tv" }),
+	const { data: titleData } = useQuery(
+		trpc.title.details.queryOptions(
+			{ tmdbId, mediaType: "tv" },
+			{ initialData: Route.useLoaderData() },
+		),
 	);
 
 	// Fetch watched episodes
@@ -441,7 +478,7 @@ function ShowTracker() {
 			`${titleData.seasonList.length} season${titleData.seasonList.length !== 1 ? "s" : ""}`,
 		);
 
-	const isLoading = isLoadingTitle || isLoadingWatched || isLoadingEpisodes;
+	const isLoading = isLoadingWatched || isLoadingEpisodes;
 
 	// Selected season data
 	const selectedSeasonGroup = airedSeasonGroups.find(
@@ -480,10 +517,6 @@ function ShowTracker() {
 			{isLoading ? (
 				<div className="flex justify-center py-20">
 					<Loader2 className="h-5 w-5 animate-spin text-cream/30" />
-				</div>
-			) : !titleData ? (
-				<div className="py-20 text-center text-sm text-cream/30">
-					Show not found
 				</div>
 			) : (
 				<div>
