@@ -19,6 +19,7 @@
     "check": "biome check",
     "check:fix": "biome check --write --unsafe",
     "typecheck": "tsc --noEmit",
+    "tokens:check": "bun scripts/token-budget.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:migrate:drop": "drizzle-kit drop",

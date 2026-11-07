@@ -47,6 +47,21 @@ jobs:
       - name: Run tests
         run: bun run test
 
+  token-budget:
+    name: Design-token budget
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check the design-token budget
+        run: bun run tokens:check
+
   e2e:
     name: E2E ${{ matrix.suite }}${{ matrix.allow-failure && ' (allowed to fail)' || '' }}
     runs-on: ubuntu-latest
