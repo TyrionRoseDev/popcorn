@@ -13,3 +13,7 @@ __unconfig*
 todos.json
 .superpowers
 .superpowers/
+
+# local agent state
+.claude/settings.local.json
+.claude/worktrees/

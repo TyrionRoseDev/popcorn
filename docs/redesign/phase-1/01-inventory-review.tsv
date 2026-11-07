@@ -1,0 +1,173 @@
+# Human review of the screenshots. pattern<TAB>class<TAB>note. Last match wins. A pattern with no * that matches no raw cell becomes a synthetic row.
+empty/*	designed	
+empty/watchlists@*	generic	Plain two-line text. The New Watchlist button sits above it, with no link from the message.
+empty/feed@*	generic	Icon and one faint line. It says add some friends although Vera already has one friend (src/routes/app/feed.tsx:147).
+empty/search@*	designed	Landing rails do not depend on user data.
+empty/search-results@*	designed	Results do not depend on user data.
+empty/search-no-results@*	generic	Two lines of faint text and no suggested action.
+empty/shuffle@390	designed	Deck renders. Page overflows to 415 from the card glow.
+empty/shuffle@1440	designed	Deck renders.
+empty/shuffle-hidden@*	generic	Two lines of faint text.
+empty/tracker@*	designed	Icon, copy and Browse TV Shows button.
+empty/tracker-journal@*	generic	Icon and copy with no action. Copy says visit any show page.
+empty/tracker-detail@*	generic	An untracked show opens as if tracked, at 0 of 62, with no explanation or Track action.
+empty/title-movie@390	designed	Designed page. Horizontal overflow to 426 shows a pale strip on the right.
+empty/title-tv@390	designed	Designed page. Horizontal overflow to 426 shows a pale strip on the right.
+empty/profile-self@390	broken	The first visit fires a 4-card popup that covers the empty state. Continue sits at y=952 in an 844 viewport and needs a scroll. Two cards are unearned.
+empty/profile-self@1440	designed	Empty panels under each heading. The popup did not show in this capture.
+empty/profile-stranger@*	designed	Locked panel with Add Friend.
+empty/watchlist-detail@*	generic	Two lines of text and no Add action. The Invite label wraps as Invit / e at 390.
+empty/watchlists-after-visits@390	not reached	Screenshot timed out under host load. A retry cannot reproduce it because Empty List was then created. See findings/race-duplicate-my-picks@390.png from the first pass.
+empty/watchlists-after-visits@1440	not reached	Caught on skeletons under host load, so the settled state was not seen. It cannot be retried, because Empty List was then created.
+first-run/*	designed	
+first-run/onboarding-1-username-taken@*	generic	Inline error reads Username may be taken, a hedge. The real cause is a unique constraint.
+first-run/onboarding-2-avatar-upload-attempt@*	broken	A raw token parser error shows to the user and the preview is a blank circle. The placeholder UPLOADTHING_TOKEN causes the failure, so this depends on the test environment, but the raw message path is real (src/routes/onboarding/index.tsx:193).
+first-run/after-onboarding-first-landing@*	broken	The first screen after onboarding is covered by a full-screen achievement popup for finishing onboarding.
+first-run/after-onboarding-watchlists@*	designed	My Picks is pre-filled from the taste step, without saying so.
+first-run/after-onboarding-feed@*	generic	The only row is the user's own achievement, with no guidance on what to do next.
+first-run/after-onboarding-shuffle@390	designed	Deck renders. Overflow to 415.
+first-run/after-onboarding-tracker@*	generic	Shows picked as loved in onboarding appear as In Progress at 0 episodes, with no explanation.
+first-run/after-onboarding-tracker-journal@*	generic	Same as the empty journal.
+first-run/after-onboarding-friends@*	designed	Icon, heading and guidance.
+first-run/after-onboarding-profile-self@390	broken	A second popup with three more cards, one unearned (Shared Popcorn), 7 of 45 before the user has logged anything.
+first-run/after-onboarding-profile-self@1440	broken	Same popup as 390.
+populated/*	designed	
+populated/title-movie-no-review@*	generic	Watched is lit, but the page has no history and no way to add a review without un-watching first.
+populated/profile-self@390	broken	Journal and Watchlists tabs sit at x=404 and x=768 inside an overflow-hidden card. Genre bars and the heatmap are clipped.
+populated/profile-friend@390	broken	Same clipped tab row as self.
+populated/profile-self-watchlists@390	broken	Only reachable by programmatic scroll. The card is left-shifted and the tab panel looks empty.
+populated/profile-friend-watchlists@390	broken	Same as self.
+populated/profile-blocked@*	generic	No Unblock action. Still says Add Friend to see activity, with no Add Friend button.
+populated/profile-blocked-by@*	generic	Blake sees Vera's watch time and counts, and the same Add Friend prompt with no button. The blocked page says blocked users cannot see the full profile.
+populated/title-movie@390	designed	Designed. Overflow to 426.
+populated/shuffle-hidden@*	designed	Poster grid with Unhide.
+loading/*	designed	
+loading/feed@*	generic	A single small spinner.
+loading/tracker-detail@*	generic	A single small spinner on an empty page.
+loading/tracker@*	generic	Spinner and Loading shows label.
+loading/settings@*	broken	No loading state. Shows Not set for data still in flight, so a false empty. Confirmed on retry.
+loading/watchlist-detail@390	designed	Skeleton. The 384px title bar overflows the page while loading (src/routes/app/watchlists/$watchlistId.tsx:112).
+error-500/watchlist-detail@*	broken	False state. A 500 reads as Watchlist not found, deleted or no access (src/routes/app/watchlists/$watchlistId.tsx:143).
+error-500/feed@*	broken	False state. A 500 reads as No activity yet, add friends (src/routes/app/feed.tsx:147).
+error-500/title-movie@*	designed	Designed error with Retry and Back to Search on client nav.
+error-500/title-tv@*	designed	Designed error with Retry and Back to Search on client nav.
+error-500/tracker@*	broken	False state. A 500 reads as No shows tracked yet (src/routes/app/tracker.index.tsx:373).
+error-500/tracker-journal@*	broken	False state. A 500 reads as No journal entries yet.
+error-500/tracker-detail@*	broken	False state. A 500 reads as Show not found (src/routes/app/tracker.$tmdbId.tsx:486).
+error-500/friends@*	broken	False state. A 500 reads as No friends yet (src/routes/app/friends.tsx:738).
+error-500/profile-self@*	designed	Designed error card. The only exit is Back to Friends and there is no Retry, and the same card shows on your own profile.
+error-500/profile-friend@*	designed	Designed error card, no Retry.
+error-500/profile-stranger@*	designed	Designed error card, no Retry.
+error-500/settings@*	broken	False state. Taste profile reads Not set although Vera has data, and the edit pencils still work. SSR also throws window is not defined.
+error-500/settings-blocked@*	generic	In-theme error card but the message is the fallback Unknown error, with no Retry.
+error-tmdb/onboarding-3-taste@*	designed	Pills do not depend on TMDB. Picking genres under failure is covered in the onboarding-faults cells.
+error-tmdb/watchlists@*	generic	Rows and counts render. Poster cells fall back to flat colour with no titles or label.
+error-tmdb/watchlist-detail@*	generic	Page works and titles show from stored data, posters fall back to flat colour. Invite wraps at 390.
+error-tmdb/feed@*	designed	Feed works from stored data with poster gaps.
+error-tmdb/shuffle-hidden@*	generic	Tile shows No Poster and Loading for the title forever, Unhide still works.
+error-tmdb/title-tv@*	designed	Designed error with Retry and Back to Search.
+error-tmdb/tracker@*	broken	False state. TMDB failure reads as No shows tracked yet while Vera has four shows.
+error-tmdb/tracker-detail@*	broken	False state. TMDB failure reads as Show not found.
+bad-url/title-movie-unknown-id@*	generic	HTTP 500 for a missing title. Message says try again and offers Retry for a page that will never exist. The designed 404 only shows on client nav.
+bad-url/title-tv-unknown-id@*	generic	Same as the unknown film: HTTP 500 and a retry prompt.
+bad-url/title-movie-non-numeric@*	generic	Same: HTTP 500 and a retry prompt for a malformed URL.
+bad-url/title-bad-media-type@*	generic	Same: HTTP 500 and a retry prompt for a malformed URL.
+bad-url/title-unknown-client-nav@*	designed	Designed 404 with Back to Search. Only reached by client navigation.
+bad-url/tracker-movie-id@*	broken	A film id opens a different show. /app/tracker/603 is Veronica's Closet because TMDB ids are per media type. Nothing in the URL or page says so.
+bad-url/search-bad-params@*	designed	In-theme message and Reset, although the response is HTTP 500.
+bad-url/unknown-root-path@*	broken	Unstyled black text Not Found on a pale page. No shell, no link home. No notFoundComponent is configured.
+bad-url/unknown-app-path@*	blank	Shell and a near-invisible Not Found. No link back. No notFoundComponent is configured.
+bad-url/onboarding-when-complete@*	designed	Redirects to Search.
+bad-url/login-when-signed-in@*	generic	A signed-in user sees Sign In. No redirect to the app.
+bad-url/landing-when-signed-in@*	generic	A signed-in user sees the marketing page and Get Started. The wordmark breaks as POPCOR / N at 390.
+signed-out/landing@390	broken	Brand wordmark breaks as POPCOR / N on the first public screen. Full-page capture at rest, so the scroll-driven ticket reveal is not shown.
+signed-out/landing@1440	designed	Wordmark and Get Started. Full-page capture at rest, so the scroll-driven ticket reveal is not shown. There is no statement of what the app is above the fold.
+bad-url/landing-when-signed-in@390	broken	A signed-in user sees the marketing page and Get Started. The wordmark breaks as POPCOR / N.
+signed-out/login@*	designed	
+signed-out/login-invalid-email-blocked@*	generic	Native browser validation only. Nothing in the theme shows what is wrong.
+signed-out/onboarding-signed-out@*	designed	Redirects to Sign In.
+signed-out/public-title-deep-link@*	generic	A shared title link goes to Sign In, with no film shown and no sign that the link will be honoured. The page copy is Welcome Back, also to a first-time visitor.
+signed-out/redirect-*@*	generic	Redirects to /login with no return path, so the destination is lost after sign-in. Copy is Welcome Back.
+loading/login-submitting@*	designed	Button reads Sending and is disabled.
+error-500/login-send-failed@*	generic	In-theme inline error, email kept. Message is the bare Something went wrong, with no next step.
+overlay/*	designed	
+overlay/achievement-popup@*	designed	Curtains, card and Continue. Blocks the page on every award. Adds to the popup load described under Achievements.
+overlay/completion-celebration-stacked-under-achievement@*	broken	Two full-screen dialogs at once, achievement over Show Complete. Dialogs measured as Achievement Unlocked and Show Complete. The review prompt is hidden until Continue.
+overlay/match-celebration@*	broken	The Match celebration is covered by an achievement popup. Dialogs measured as Achievement Unlocked and Match.
+overlay/film-rewatch-press-1@*	broken	Pressing Watched on a rated film removes it, with only a toast. There is no way to log a rewatch.
+overlay/film-rewatch-press-2@*	broken	Second press marks it watched with no modal, and watch_event rows stay at 1. The rewatch is not recorded.
+overlay/review-watched-with@*	generic	A second dialog stacked on the review dialog, both titled with the word Watched. At 390 the review form shows behind it.
+overlay/review-modal-show-scope@*	generic	Save and Done stays disabled until a visibility option is picked. No default, no hint (src/components/watched/review-modal.tsx:75, :392).
+overlay/episode-review-prompt@390	generic	The Add thoughts prompt sits under the white toast near the bottom edge.
+overlay/watchlist-delete-confirm@390	broken	Inline confirm is squeezed into the header row, so the text stacks as Dele / te? and Y / e / s. Invite also wraps.
+overlay/watchlist-delete-confirm@1440	generic	Inline Delete? Yes No with no statement of what is lost.
+overlay/watchlist-rename@*	generic	Inline edit with only an underline. No Save or Cancel shown.
+overlay/watch-history-dialog@1440	designed	Reached only after one row was moved to 2024 by SQL.
+overlay/settings-genres@*	generic	Shows 0 selected and Favorite Genres in US spelling, while the row outside says Favourite Genres. Works.
+overlay/settings-favourite-film@*	generic	US spelling, while the rest of the app uses Favourite. Works.
+overlay/settings-avatar@*	generic	A plain dashed circle. The upload itself cannot complete in this environment because UPLOADTHING_TOKEN is a placeholder.
+overlay/user-menu@*	designed	
+overlay/watch-event-menu@*	generic	Trigger is an unlabelled, faint ellipsis. This is the only route to edit a review on a title page.
+overlay/title-trailer@*	designed	Plays inside the drive-in screen.
+overlay/friend-block-confirm@390	generic	Inline Block? YES NO. Stats below show TITL / ES and FRIEN / DS.
+overlay/friend-block-confirm@1440	generic	Inline Block? YES NO with no statement of what blocking does.
+error-500/onboarding-3-taste@*	blank	No genre pills, no error, no retry, no Skip or Continue, after 19 seconds on retry. A dead end: the step asks for genres that are not on screen.
+loading/onboarding-3-taste@*	blank	No genre pills and no spinner. It asks the user to pick genres that are not on screen. Same on retry.
+error-500/onboarding-3-taste-save-failed@*	broken	The white error toast lands on top of Continue and shows raw text, signal is aborted without reason. Playwright could not click Continue for 30 seconds while hovering, because hover pauses the toast.
+error-500/onboarding-4-favourite-search@*	broken	False state. A 500 reads as No results for Aliens.
+loading/onboarding-4-favourite-search@*	generic	Plain Searching text.
+error-500/onboarding-6-bio-save-failed@*	generic	Toast with the raw text signal is aborted without reason. The step stays usable.
+error-500/watchlists@*	broken	No error at any wait. Blank under the header at 9 seconds, skeleton rows again at 19 seconds on retry. The first-pass capture was blank.
+error-500/search@*	blank	Rails disappear after their skeletons and leave three headings with nothing under them, no error. Confirmed on retry.
+error-500/search-results@*	designed	Something went wrong and Retry, in place, with filters kept. First pass was still on skeletons, the retry showed the real state.
+error-500/shuffle@*	generic	Faint one-line Unable to load shuffle, no Retry, marquee gone. First pass was still on the countdown. SSR also throws sessionStorage is not defined.
+error-500/shuffle-hidden@*	broken	False state. A 500 reads as No hidden titles. First pass was still on skeletons.
+error-500/title-movie-hard-load@*	broken	Stuck on the title skeleton with no error after 19 seconds on retry. The designed error only shows on client navigation.
+error-tmdb/search@*	blank	Three rail headings with nothing under them and no error. Reads as an app with no films. Confirmed on retry.
+error-tmdb/search-results@*	designed	Something went wrong and Retry. First pass 390 lost its page context, 1440 was on skeletons. Retry shows the real state.
+error-tmdb/shuffle@*	broken	Stuck on Loading your next picks with the action buttons live and no error, confirmed on retry (src/components/shuffle/card-stack.tsx:229).
+error-tmdb/title-movie@*	designed	Designed error with Retry and Back to Search. First pass was still on skeleton.
+bad-url/tracker-unknown-id@*	generic	Faint Show not found and a small Tracker back link. First pass was still spinning.
+bad-url/tracker-non-numeric@*	generic	Same as the unknown id. First pass was still spinning.
+bad-url/profile-unknown@*	designed	User not found card with Back to Friends. First pass was still on skeleton.
+bad-url/watchlist-unknown@*	generic	Two faint lines, no way back. First pass was still on skeleton.
+bad-url/watchlist-other-private@*	generic	Two faint lines, no way back. Truthful and does not leak the list. First pass was still on skeleton.
+bad-url/shuffle-unknown-watchlist@*	broken	Stuck on Loading your next picks with live action buttons and no error. Confirmed on retry.
+bad-url/shuffle-other-private@*	broken	Stuck on Loading your next picks, no error. First pass was a pale empty page, not seen again on retry, so that part is a load or hydration artifact.
+populated/profile-self-journal@390	broken	Tab sits off-screen. Playwright reached it by scrolling the hidden overflow, which a touch swipe does not do (measured in findings/probe-profile-tabs-swipe.ts).
+overlay/watch-history-dialog@390	broken	The 2024 heatmap is cut off at the dialog edge, and the one logged day is out of view. Inner scroll was not measured. Reached only after one row was moved to 2024 by SQL.
+overlay/shuffle-card-detail@1440	broken	A mobile bottom sheet pinned to the left edge of a desktop screen (src/components/shuffle/card-detail-modal.tsx:23).
+overlay/watchlist-removal-dialog@*	generic	Works, but three exits sit in one dialog: Select watchlists above, Remove from all, Keep in all. At 390 it opens over the film page with the toast below it.
+overlay/edit-note-modal@*	designed	
+overlay/tracker-rewatching@*	designed	Rewatch state with watch switcher.
+overlay/star-ratings-dialog@*	designed	Lists titles at that rating.
+overlay/search-filters@390	designed	Full-height filter drawer.
+overlay/mobile-nav-drawer@390	designed	
+loading/tracker-journal@*	generic	Tabs and a spinner.
+loading/landing@390	not applicable	Static page with no server read.
+loading/landing@1440	not applicable	Static page with no server read.
+error-500/landing@390	not applicable	Static page with no server read.
+error-500/landing@1440	not applicable	Static page with no server read.
+loading/onboarding-1-username@390	not applicable	No read on this step. Save failure not driven.
+loading/onboarding-1-username@1440	not applicable	No read on this step. Save failure not driven.
+loading/onboarding-2-avatar@390	not applicable	No read on this step. The upload attempt is a first-run cell.
+loading/onboarding-2-avatar@1440	not applicable	No read on this step. The upload attempt is a first-run cell.
+loading/onboarding-5-genre@390	not applicable	No read on this step.
+loading/onboarding-5-genre@1440	not applicable	No read on this step.
+loading/onboarding-6-bio@390	not applicable	No read on this step. Save failure is in error-500.
+loading/onboarding-6-bio@1440	not applicable	No read on this step. Save failure is in error-500.
+empty/profile-blocked@390	not applicable	A block needs two users with a history. Covered in populated.
+empty/profile-blocked@1440	not applicable	A block needs two users with a history. Covered in populated.
+loading/search-no-results@390	not applicable	Same component as loading/search-results.
+loading/search-no-results@1440	not applicable	Same component as loading/search-results.
+error-500/search-no-results@390	not applicable	Same component as error-500/search-results.
+error-500/search-no-results@1440	not applicable	Same component as error-500/search-results.
+error-tmdb/friends@390	not applicable	No TMDB read expected. Inferred from the data shown, not measured.
+error-tmdb/friends@1440	not applicable	No TMDB read expected. Inferred from the data shown, not measured.
+error-tmdb/settings@390	not applicable	No TMDB read on load. Inferred.
+error-tmdb/settings@1440	not applicable	No TMDB read on load. Inferred.
+error-tmdb/settings-blocked@390	not applicable	No TMDB read. Inferred.
+error-tmdb/settings-blocked@1440	not applicable	No TMDB read. Inferred.
+error-tmdb/profile-self@390	broken	TMDB failure has no visible effect here, but the tab row is clipped as in populated.
+error-tmdb/profile-self@1440	generic	Stored data renders, so TMDB failure has no visible effect. Same empty heatmap as populated.
+populated/profile-self@1440	generic	Watch Activity is empty although 5 titles are logged. 4 of 5 watch_event rows have NULL watched_at. Captured after the past-year SQL update, so See previous years shows.

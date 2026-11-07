@@ -1,0 +1,2054 @@
+{
+	"summary": {
+		"log": {
+			"total": 38,
+			"distinct": 30,
+			"strings": [
+				"Clear watched date",
+				"Failed to update watched status",
+				"Mark watched",
+				"Marked as watched",
+				"Marked … episode… as watched",
+				"No activity yet. Mark something as watched!",
+				"No films logged",
+				"Not all episodes watched",
+				"Only you & who you watched with",
+				"Removed from watched",
+				"Seasons Watched",
+				"This action is permanent and cannot be undone. All your data including watchlists, swipe history, and preferences will be deleted.",
+				"Watch History",
+				"Watch event deleted",
+				"Watched",
+				"Watched With",
+				"Watched with …",
+				"Watched with…",
+				"You haven't finished this show yet — you've watched",
+				"Your Watch History",
+				"episodes watched!",
+				"logged",
+				"logged on",
+				"logged …",
+				"marked … as watched in …",
+				"shared their thoughts on … that you watched together",
+				"watched",
+				"watched on",
+				"watched … that you recommended",
+				"watched … with you"
+			]
+		},
+		"rating": {
+			"total": 17,
+			"distinct": 14,
+			"strings": [
+				"Content Rating",
+				"Min Rating",
+				"Minimum rating filter",
+				"No public ratings",
+				"No ratings yet",
+				"Rate &amp; Review",
+				"Rate &amp; review",
+				"Rate … star…",
+				"Rating",
+				"Ratings",
+				"Star Ratings",
+				"Star rating",
+				"Top Rated",
+				"Your Rating"
+			]
+		},
+		"review": {
+			"total": 23,
+			"distinct": 19,
+			"strings": [
+				"&apos;s review",
+				"Delete this review?",
+				"Failed to delete review",
+				"Failed to save review",
+				"Leave a Review",
+				"Notes & Reviews",
+				"Rate &amp; Review",
+				"Rate &amp; review",
+				"Review",
+				"Review deleted",
+				"Review now",
+				"Reviewed",
+				"Reviews",
+				"Submit Review",
+				"Time to review …!",
+				"We'll remind you to review in 7 days",
+				"Your Review",
+				"review",
+				"reviewed … you recommended"
+			]
+		},
+		"thoughts": {
+			"total": 6,
+			"distinct": 5,
+			"strings": [
+				"Add thoughts on",
+				"Journal your thoughts",
+				"Share your thoughts...",
+				"Share your thoughts…",
+				"shared their thoughts on … that you watched together"
+			]
+		},
+		"note": {
+			"total": 18,
+			"distinct": 16,
+			"strings": [
+				"All episode progress and notes will be deleted",
+				"Delete this note?",
+				"Edit Note",
+				"Failed to delete note",
+				"Failed to save note",
+				"Failed to update note",
+				"Note",
+				"Note deleted",
+				"Note saved",
+				"Note updated",
+				"Notes & Reviews",
+				"Save Note",
+				"Your Note",
+				"Your progress and notes from",
+				"note",
+				"write-note"
+			]
+		},
+		"journal": {
+			"total": 11,
+			"distinct": 7,
+			"strings": [
+				"Journal",
+				"Journal Entry",
+				"Journal entry deleted",
+				"Journal your thoughts",
+				"Loading journal...",
+				"No journal entries yet",
+				"journal"
+			]
+		},
+		"diary": {
+			"total": 2,
+			"distinct": 2,
+			"strings": [
+				"Film Diary",
+				"Popcorn — Your Drive-In Film Diary"
+			]
+		},
+		"progress": {
+			"total": 48,
+			"distinct": 42,
+			"strings": [
+				"Achievement progress",
+				"All episode progress and notes will be deleted",
+				"All episodes already marked!",
+				"Completed",
+				"Episode Tracker",
+				"Episodes",
+				"Failed to add show to tracker",
+				"Failed to mark episodes",
+				"Failed to mark in tracker",
+				"Failed to unmark episode",
+				"Mark as Complete",
+				"Mark in tracker",
+				"Marked in tracker",
+				"Marked in your tracker",
+				"Marked … episode… as watched",
+				"No episode data available",
+				"No shows tracked yet",
+				"Not all episodes watched",
+				"Pick an episode from",
+				"Progress",
+				"Remove from tracker",
+				"Remove this episode",
+				"Remove … from tracker?",
+				"Series Tracker",
+				"Show Complete",
+				"Show removed from tracker",
+				"Specific Episode",
+				"Start tracking a TV show to see your episode progress here. Visit any show page to begin.",
+				"Tracker",
+				"Unmarked episode…",
+				"Watching",
+				"Watching With",
+				"What do you love watching?",
+				"Write about episodes or seasons as you watch. Visit any show page to add your first entry.",
+				"Your progress and notes from",
+				"are saved. You'll start fresh tracking episodes again.",
+				"before watching.",
+				"episodes",
+				"episodes watched!",
+				"episodes. Your progress is saved but you'll be starting a fresh watch-through.",
+				"pick-episode",
+				"tracked"
+			]
+		},
+		"rewatch": {
+			"total": 19,
+			"distinct": 9,
+			"strings": [
+				"Failed to start rewatch",
+				"Rewatch",
+				"Rewatch started — you're on Watch …",
+				"Rewatch this show",
+				"Rewatch …",
+				"Start Rewatch",
+				"Start Rewatch Anyway",
+				"Start rewatching",
+				"Watch 1"
+			]
+		},
+		"watchlist": {
+			"total": 39,
+			"distinct": 31,
+			"strings": [
+				"A new pick was added to the watchlist.",
+				"Add to Watchlist",
+				"Add to watchlist",
+				"Back to Watchlists",
+				"Create New Watchlist",
+				"Delete watchlist",
+				"Empty watchlist",
+				"Failed to keep in remaining watchlists",
+				"Failed to keep in watchlists",
+				"Give your watchlist a name, choose its visibility, and add members.",
+				"In watchlist",
+				"My Watchlists",
+				"No public watchlists",
+				"No watchlists yet",
+				"Remove from Watchlists",
+				"Remove from Watchlists?",
+				"Remove from watchlist",
+				"Removed from all watchlists",
+				"Removed from … watchlist…",
+				"Rename watchlist",
+				"Select watchlists above",
+				"Shuffle watchlist",
+				"This action is permanent and cannot be undone. All your data including watchlists, swipe history, and preferences will be deleted.",
+				"Watchlist",
+				"Watchlist deleted",
+				"Watchlist not found",
+				"Watchlist updated",
+				"Watchlists",
+				"Yes — add to watchlist",
+				"created a watchlist",
+				"watchlists"
+			]
+		},
+		"savedTitle": {
+			"total": 34,
+			"distinct": 28,
+			"strings": [
+				"A new pick was added to the watchlist.",
+				"Add to Watchlist",
+				"Add to watchlist",
+				"Couldn't save your profile details.",
+				"Couldn't save your taste profile.",
+				"Failed to save changes",
+				"Failed to save note",
+				"Failed to save review",
+				"Loading your next picks...",
+				"Note saved",
+				"Pick",
+				"Pick 3-5 genres, then choose 3-10 movies or shows you love",
+				"Pick a season",
+				"Pick a username",
+				"Pick an episode from",
+				"Pick at least 3 genres to continue.",
+				"Pick at least 3 titles to continue.",
+				"Pick the one genre you love most",
+				"Pick the one genre you love most.",
+				"Save",
+				"Save & Done",
+				"Save Changes",
+				"Save Note",
+				"Yes — add to watchlist",
+				"are saved. You'll start fresh tracking episodes again.",
+				"episodes. Your progress is saved but you'll be starting a fresh watch-through.",
+				"pick-episode",
+				"pick-season"
+			]
+		},
+		"recommendation": {
+			"total": 22,
+			"distinct": 16,
+			"strings": [
+				"Added to your Recommendations",
+				"Failed to accept recommendation",
+				"Failed to decline recommendation",
+				"Failed to send recommendation",
+				"Invite",
+				"Invite to",
+				"Invited @… to …",
+				"Recommend",
+				"Recommend to a friend",
+				"Recommendation sent!",
+				"Recommended by @",
+				"Send Recommendation",
+				"invited you to …",
+				"recommended … for you…",
+				"reviewed … you recommended",
+				"watched … that you recommended"
+			]
+		},
+		"friend": {
+			"total": 37,
+			"distinct": 30,
+			"strings": [
+				"@friend or a name…",
+				"Accept friend request",
+				"Add Friend",
+				"Add friend to see activity",
+				"Back to friends",
+				"Decline friend request",
+				"Friend",
+				"Friend Requests",
+				"Friend request sent to @…!",
+				"Friends",
+				"Friends & Feed",
+				"Mutual",
+				"No activity yet. Add some friends to see their activity here.",
+				"No friends match &ldquo;",
+				"No friends yet",
+				"Recommend to a friend",
+				"Search Friends or Type a Name",
+				"Search by username above to find people and send friend requests",
+				"Search friends or find new people",
+				"Search friends or find new people...",
+				"Select friends",
+				"Send to … friend…",
+				"Users you've blocked can't send you friend requests or see your full profile.",
+				"Visible to all your friends",
+				"Your Friends",
+				"accepted your friend request",
+				"friend",
+				"member",
+				"sent you a friend request",
+				"to your friends"
+			]
+		},
+		"notification": {
+			"total": 4,
+			"distinct": 4,
+			"strings": [
+				"Delete all notifications",
+				"No notifications",
+				"Notifications",
+				"sent you a notification"
+			]
+		},
+		"achievement": {
+			"total": 15,
+			"distinct": 8,
+			"strings": [
+				"Achievement",
+				"Achievement Unlocked",
+				"Achievement progress",
+				"Achievements",
+				"Achievements Unlocked",
+				"Compare Achievements",
+				"earned an achievement",
+				"earned the … achievement"
+			]
+		},
+		"companion": {
+			"total": 10,
+			"distinct": 7,
+			"strings": [
+				"Companion",
+				"Only you & who you watched with",
+				"Shared",
+				"Watched With",
+				"Watched with …",
+				"Watched with…",
+				"shared their thoughts on … that you watched together"
+			]
+		},
+		"visibility": {
+			"total": 36,
+			"distinct": 19,
+			"strings": [
+				"Failed to update hidden status",
+				"Give your watchlist a name, choose its visibility, and add members.",
+				"Hidden",
+				"Hidden Titles",
+				"Hidden from Shuffle",
+				"Hide",
+				"Hide this title?",
+				"Make private",
+				"Make public",
+				"No hidden titles",
+				"No public ratings",
+				"No public watchlists",
+				"Only visible to you",
+				"Private",
+				"Public",
+				"Titles you've hidden. Unhide them to see them again.",
+				"Visible to all your friends",
+				"When you hide titles, they'll appear here.",
+				"Who can see this?"
+			]
+		},
+		"shuffle": {
+			"total": 21,
+			"distinct": 17,
+			"strings": [
+				"Back to Shuffle",
+				"Curtain Call",
+				"Hidden from Shuffle",
+				"MATCH!",
+				"Match",
+				"No friends match &ldquo;",
+				"No items match your filters",
+				"Return to Shuffle",
+				"SHOWTIME SHUFFLE",
+				"Setting up Showtime Shuffle...",
+				"Showtime Shuffle",
+				"Shuffle",
+				"Shuffle feed",
+				"Shuffle watchlist",
+				"This action is permanent and cannot be undone. All your data including watchlists, swipe history, and preferences will be deleted.",
+				"Unable to load shuffle. Please try again.",
+				"page in Shuffle settings, or from the title's detail page."
+			]
+		}
+	},
+	"hits": {
+		"log": [
+			{
+				"text": "No activity yet. Mark something as watched!",
+				"at": "src/routes/app/feed.tsx:146"
+			},
+			{
+				"text": "Watched",
+				"at": "src/routes/app/friends.tsx:179"
+			},
+			{
+				"text": "Watched",
+				"at": "src/routes/app/profile.$userId.tsx:620"
+			},
+			{
+				"text": "No films logged",
+				"at": "src/routes/app/profile.$userId.tsx:1140"
+			},
+			{
+				"text": "Watch History",
+				"at": "src/routes/app/profile.$userId.tsx:1224"
+			},
+			{
+				"text": "Watch History",
+				"at": "src/routes/app/profile.$userId.tsx:1227"
+			},
+			{
+				"text": "Marked … episode… as watched",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:165"
+			},
+			{
+				"text": "watched",
+				"at": "src/routes/app/tracker.index.tsx:267"
+			},
+			{
+				"text": "marked … as watched in …",
+				"at": "src/components/notifications/notification-item.tsx:61"
+			},
+			{
+				"text": "watched … that you recommended",
+				"at": "src/components/notifications/notification-item.tsx:110"
+			},
+			{
+				"text": "shared their thoughts on … that you watched together",
+				"at": "src/components/notifications/notification-item.tsx:117"
+			},
+			{
+				"text": "watched … with you",
+				"at": "src/components/notifications/notification-item.tsx:124"
+			},
+			{
+				"text": "This action is permanent and cannot be undone. All your data including watchlists, swipe history, and preferences will be deleted.",
+				"at": "src/components/settings/delete-account-dialog.tsx:62"
+			},
+			{
+				"text": "Marked as watched",
+				"at": "src/components/title/title-actions.tsx:167"
+			},
+			{
+				"text": "Removed from watched",
+				"at": "src/components/title/title-actions.tsx:175"
+			},
+			{
+				"text": "Failed to update watched status",
+				"at": "src/components/title/title-actions.tsx:179"
+			},
+			{
+				"text": "Watched",
+				"at": "src/components/title/title-actions.tsx:392"
+			},
+			{
+				"text": "Your Watch History",
+				"at": "src/components/title/title-actions.tsx:434"
+			},
+			{
+				"text": "episodes watched!",
+				"at": "src/components/tracker/completion-celebration.tsx:152"
+			},
+			{
+				"text": "You haven't finished this show yet — you've watched",
+				"at": "src/components/tracker/rewatch-confirm-modal.tsx:80"
+			},
+			{
+				"text": "Marked … episode… as watched",
+				"at": "src/components/tracker/write-about-modal.tsx:275"
+			},
+			{
+				"text": "Not all episodes watched",
+				"at": "src/components/tracker/write-about-modal.tsx:645"
+			},
+			{
+				"text": "Watched",
+				"at": "src/components/watched/review-modal.tsx:237"
+			},
+			{
+				"text": "Clear watched date",
+				"at": "src/components/watched/review-modal.tsx:341"
+			},
+			{
+				"text": "Watched with …",
+				"at": "src/components/watched/review-modal.tsx:376"
+			},
+			{
+				"text": "Watched with…",
+				"at": "src/components/watched/review-modal.tsx:377"
+			},
+			{
+				"text": "Seasons Watched",
+				"at": "src/components/watched/season-picker-modal.tsx:79"
+			},
+			{
+				"text": "Seasons Watched",
+				"at": "src/components/watched/season-picker-modal.tsx:100"
+			},
+			{
+				"text": "Only you & who you watched with",
+				"at": "src/components/watched/visibility-selector.tsx:28"
+			},
+			{
+				"text": "Watch event deleted",
+				"at": "src/components/watched/watch-event-card.tsx:140"
+			},
+			{
+				"text": "watched",
+				"at": "src/components/watched/watch-event-card.tsx:245"
+			},
+			{
+				"text": "logged",
+				"at": "src/components/watched/watch-event-card.tsx:245"
+			},
+			{
+				"text": "watched on",
+				"at": "src/components/watched/watch-event-card.tsx:274"
+			},
+			{
+				"text": "logged on",
+				"at": "src/components/watched/watch-event-card.tsx:280"
+			},
+			{
+				"text": "logged …",
+				"at": "src/components/watched/watch-event-card.tsx:289"
+			},
+			{
+				"text": "Watched With",
+				"at": "src/components/watched/watched-with-modal.tsx:67"
+			},
+			{
+				"text": "Watched With",
+				"at": "src/components/watched/watched-with-modal.tsx:81"
+			},
+			{
+				"text": "Mark watched",
+				"at": "src/components/watchlist/watchlist-item-card.tsx:241"
+			}
+		],
+		"rating": [
+			{
+				"text": "Ratings",
+				"at": "src/routes/app/profile.$userId.tsx:1355"
+			},
+			{
+				"text": "No ratings yet",
+				"at": "src/routes/app/profile.$userId.tsx:1400"
+			},
+			{
+				"text": "Star Ratings",
+				"at": "src/routes/app/profile.$userId.tsx:1416"
+			},
+			{
+				"text": "Star Ratings",
+				"at": "src/routes/app/profile.$userId.tsx:1420"
+			},
+			{
+				"text": "No public ratings",
+				"at": "src/routes/app/profile.$userId.tsx:1446"
+			},
+			{
+				"text": "Minimum rating filter",
+				"at": "src/components/search/filter-sidebar.tsx:200"
+			},
+			{
+				"text": "Min Rating",
+				"at": "src/components/search/filter-sidebar.tsx:202"
+			},
+			{
+				"text": "Top Rated",
+				"at": "src/components/search/search-landing.tsx:84"
+			},
+			{
+				"text": "Rating",
+				"at": "src/components/search/search-results.tsx:24"
+			},
+			{
+				"text": "Content Rating",
+				"at": "src/components/title/title-metadata.tsx:45"
+			},
+			{
+				"text": "Rate &amp; review",
+				"at": "src/components/tracker/write-about-modal.tsx:450"
+			},
+			{
+				"text": "Star rating",
+				"at": "src/components/watched/star-rating.tsx:45"
+			},
+			{
+				"text": "Rate … star…",
+				"at": "src/components/watched/star-rating.tsx:53"
+			},
+			{
+				"text": "Rate &amp; Review",
+				"at": "src/components/watchlist/review-dialog.tsx:47"
+			},
+			{
+				"text": "Rate &amp; Review",
+				"at": "src/components/watchlist/review-dialog.tsx:93"
+			},
+			{
+				"text": "Your Rating",
+				"at": "src/components/watchlist/review-dialog.tsx:105"
+			},
+			{
+				"text": "Rating",
+				"at": "src/components/watchlist/watchlist-filters.tsx:12"
+			}
+		],
+		"review": [
+			{
+				"text": "We'll remind you to review in 7 days",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1221"
+			},
+			{
+				"text": "Review deleted",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1453"
+			},
+			{
+				"text": "Failed to delete review",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1456"
+			},
+			{
+				"text": "Delete this review?",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1527"
+			},
+			{
+				"text": "Notes & Reviews",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1545"
+			},
+			{
+				"text": "Reviews",
+				"at": "src/routes/index.tsx:27"
+			},
+			{
+				"text": "reviewed … you recommended",
+				"at": "src/components/notifications/notification-item.tsx:81"
+			},
+			{
+				"text": "reviewed … you recommended",
+				"at": "src/components/notifications/notification-item.tsx:103"
+			},
+			{
+				"text": "Time to review …!",
+				"at": "src/components/notifications/notification-item.tsx:131"
+			},
+			{
+				"text": "Review now",
+				"at": "src/components/notifications/notification-item.tsx:354"
+			},
+			{
+				"text": "review",
+				"at": "src/components/notifications/notification-item.tsx:423"
+			},
+			{
+				"text": "Reviewed",
+				"at": "src/components/notifications/notification-item.tsx:425"
+			},
+			{
+				"text": "Leave a Review",
+				"at": "src/components/tracker/completion-celebration.tsx:175"
+			},
+			{
+				"text": "Review",
+				"at": "src/components/tracker/write-about-modal.tsx:447"
+			},
+			{
+				"text": "Rate &amp; review",
+				"at": "src/components/tracker/write-about-modal.tsx:450"
+			},
+			{
+				"text": "Failed to save review",
+				"at": "src/components/watched/review-modal.tsx:128"
+			},
+			{
+				"text": "Review",
+				"at": "src/components/watched/review-modal.tsx:213"
+			},
+			{
+				"text": "Your Review",
+				"at": "src/components/watched/review-modal.tsx:258"
+			},
+			{
+				"text": "&apos;s review",
+				"at": "src/components/watched/watch-event-card.tsx:405"
+			},
+			{
+				"text": "Rate &amp; Review",
+				"at": "src/components/watchlist/review-dialog.tsx:47"
+			},
+			{
+				"text": "Rate &amp; Review",
+				"at": "src/components/watchlist/review-dialog.tsx:93"
+			},
+			{
+				"text": "Your Review",
+				"at": "src/components/watchlist/review-dialog.tsx:122"
+			},
+			{
+				"text": "Submit Review",
+				"at": "src/components/watchlist/review-dialog.tsx:186"
+			}
+		],
+		"thoughts": [
+			{
+				"text": "Add thoughts on",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1306"
+			},
+			{
+				"text": "shared their thoughts on … that you watched together",
+				"at": "src/components/notifications/notification-item.tsx:117"
+			},
+			{
+				"text": "Share your thoughts...",
+				"at": "src/components/tracker/edit-note-modal.tsx:130"
+			},
+			{
+				"text": "Journal your thoughts",
+				"at": "src/components/tracker/write-about-modal.tsx:432"
+			},
+			{
+				"text": "Share your thoughts...",
+				"at": "src/components/tracker/write-about-modal.tsx:592"
+			},
+			{
+				"text": "Share your thoughts…",
+				"at": "src/components/watched/review-modal.tsx:263"
+			}
+		],
+		"note": [
+			{
+				"text": "Note deleted",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1433"
+			},
+			{
+				"text": "Failed to delete note",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1436"
+			},
+			{
+				"text": "Delete this note?",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1517"
+			},
+			{
+				"text": "Notes & Reviews",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1545"
+			},
+			{
+				"text": "All episode progress and notes will be deleted",
+				"at": "src/routes/app/tracker.index.tsx:201"
+			},
+			{
+				"text": "Note updated",
+				"at": "src/components/tracker/edit-note-modal.tsx:60"
+			},
+			{
+				"text": "Failed to update note",
+				"at": "src/components/tracker/edit-note-modal.tsx:64"
+			},
+			{
+				"text": "Edit Note",
+				"at": "src/components/tracker/edit-note-modal.tsx:86"
+			},
+			{
+				"text": "Edit Note",
+				"at": "src/components/tracker/edit-note-modal.tsx:98"
+			},
+			{
+				"text": "Your Note",
+				"at": "src/components/tracker/edit-note-modal.tsx:125"
+			},
+			{
+				"text": "Your progress and notes from",
+				"at": "src/components/tracker/rewatch-confirm-modal.tsx:75"
+			},
+			{
+				"text": "Note saved",
+				"at": "src/components/tracker/write-about-modal.tsx:166"
+			},
+			{
+				"text": "Failed to save note",
+				"at": "src/components/tracker/write-about-modal.tsx:170"
+			},
+			{
+				"text": "Note",
+				"at": "src/components/tracker/write-about-modal.tsx:429"
+			},
+			{
+				"text": "note",
+				"at": "src/components/tracker/write-about-modal.tsx:478"
+			},
+			{
+				"text": "write-note",
+				"at": "src/components/tracker/write-about-modal.tsx:570"
+			},
+			{
+				"text": "Your Note",
+				"at": "src/components/tracker/write-about-modal.tsx:587"
+			},
+			{
+				"text": "Save Note",
+				"at": "src/components/tracker/write-about-modal.tsx:631"
+			}
+		],
+		"journal": [
+			{
+				"text": "Journal",
+				"at": "src/routes/app/profile.$userId.tsx:72"
+			},
+			{
+				"text": "journal",
+				"at": "src/routes/app/profile.$userId.tsx:1573"
+			},
+			{
+				"text": "No journal entries yet",
+				"at": "src/routes/app/profile.$userId.tsx:1705"
+			},
+			{
+				"text": "Journal",
+				"at": "src/routes/app/tracker.index.tsx:212"
+			},
+			{
+				"text": "journal",
+				"at": "src/routes/app/tracker.index.tsx:539"
+			},
+			{
+				"text": "Loading journal...",
+				"at": "src/routes/app/tracker.index.tsx:558"
+			},
+			{
+				"text": "No journal entries yet",
+				"at": "src/routes/app/tracker.index.tsx:582"
+			},
+			{
+				"text": "Journal",
+				"at": "src/routes/index.tsx:30"
+			},
+			{
+				"text": "Journal entry deleted",
+				"at": "src/components/tracker/journal-entry-card.tsx:86"
+			},
+			{
+				"text": "Journal Entry",
+				"at": "src/components/tracker/journal-entry-card.tsx:163"
+			},
+			{
+				"text": "Journal your thoughts",
+				"at": "src/components/tracker/write-about-modal.tsx:432"
+			}
+		],
+		"diary": [
+			{
+				"text": "Popcorn — Your Drive-In Film Diary",
+				"at": "src/routes/index.tsx:12"
+			},
+			{
+				"text": "Film Diary",
+				"at": "src/routes/index.tsx:23"
+			}
+		],
+		"progress": [
+			{
+				"text": "Achievement progress",
+				"at": "src/routes/app/profile.$userId.tsx:824"
+			},
+			{
+				"text": "Tracker",
+				"at": "src/routes/app/route.tsx:146"
+			},
+			{
+				"text": "Tracker",
+				"at": "src/routes/app/route.tsx:221"
+			},
+			{
+				"text": "Marked … episode… as watched",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:165"
+			},
+			{
+				"text": "Failed to mark episodes",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:197"
+			},
+			{
+				"text": "Unmarked episode…",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:212"
+			},
+			{
+				"text": "Failed to unmark episode",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:216"
+			},
+			{
+				"text": "Remove this episode",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:333"
+			},
+			{
+				"text": "All episodes already marked!",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:378"
+			},
+			{
+				"text": "Tracker",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:477"
+			},
+			{
+				"text": "Progress",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:627"
+			},
+			{
+				"text": "No episode data available",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1134"
+			},
+			{
+				"text": "Show removed from tracker",
+				"at": "src/routes/app/tracker.index.tsx:155"
+			},
+			{
+				"text": "Remove … from tracker?",
+				"at": "src/routes/app/tracker.index.tsx:200"
+			},
+			{
+				"text": "All episode progress and notes will be deleted",
+				"at": "src/routes/app/tracker.index.tsx:201"
+			},
+			{
+				"text": "Series Tracker",
+				"at": "src/routes/app/tracker.index.tsx:229"
+			},
+			{
+				"text": "No shows tracked yet",
+				"at": "src/routes/app/tracker.index.tsx:373"
+			},
+			{
+				"text": "Start tracking a TV show to see your episode progress here. Visit any show page to begin.",
+				"at": "src/routes/app/tracker.index.tsx:376"
+			},
+			{
+				"text": "Watching",
+				"at": "src/routes/app/tracker.index.tsx:416"
+			},
+			{
+				"text": "Completed",
+				"at": "src/routes/app/tracker.index.tsx:483"
+			},
+			{
+				"text": "Write about episodes or seasons as you watch. Visit any show page to add your first entry.",
+				"at": "src/routes/app/tracker.index.tsx:585"
+			},
+			{
+				"text": "Episode Tracker",
+				"at": "src/routes/index.tsx:24"
+			},
+			{
+				"text": "Marked in your tracker",
+				"at": "src/components/notifications/notification-item.tsx:211"
+			},
+			{
+				"text": "Failed to mark in tracker",
+				"at": "src/components/notifications/notification-item.tsx:220"
+			},
+			{
+				"text": "Mark in tracker",
+				"at": "src/components/notifications/notification-item.tsx:418"
+			},
+			{
+				"text": "tracked",
+				"at": "src/components/notifications/notification-item.tsx:428"
+			},
+			{
+				"text": "Marked in tracker",
+				"at": "src/components/notifications/notification-item.tsx:430"
+			},
+			{
+				"text": "What do you love watching?",
+				"at": "src/components/onboarding/taste-profile-step.tsx:189"
+			},
+			{
+				"text": "before watching.",
+				"at": "src/components/title/content-warnings-link.tsx:39"
+			},
+			{
+				"text": "Failed to add show to tracker",
+				"at": "src/components/title/title-actions.tsx:309"
+			},
+			{
+				"text": "Episodes",
+				"at": "src/components/title/title-metadata.tsx:38"
+			},
+			{
+				"text": "Show Complete",
+				"at": "src/components/tracker/completion-celebration.tsx:69"
+			},
+			{
+				"text": "Show Complete",
+				"at": "src/components/tracker/completion-celebration.tsx:97"
+			},
+			{
+				"text": "episodes watched!",
+				"at": "src/components/tracker/completion-celebration.tsx:152"
+			},
+			{
+				"text": "Your progress and notes from",
+				"at": "src/components/tracker/rewatch-confirm-modal.tsx:75"
+			},
+			{
+				"text": "are saved. You'll start fresh tracking episodes again.",
+				"at": "src/components/tracker/rewatch-confirm-modal.tsx:75"
+			},
+			{
+				"text": "episodes. Your progress is saved but you'll be starting a fresh watch-through.",
+				"at": "src/components/tracker/rewatch-confirm-modal.tsx:82"
+			},
+			{
+				"text": "Remove from tracker",
+				"at": "src/components/tracker/tracker-reel-card.tsx:191"
+			},
+			{
+				"text": "Remove from tracker",
+				"at": "src/components/tracker/tracker-show-card.tsx:260"
+			},
+			{
+				"text": "Failed to mark episodes",
+				"at": "src/components/tracker/write-about-modal.tsx:186"
+			},
+			{
+				"text": "Marked … episode… as watched",
+				"at": "src/components/tracker/write-about-modal.tsx:275"
+			},
+			{
+				"text": "Specific Episode",
+				"at": "src/components/tracker/write-about-modal.tsx:466"
+			},
+			{
+				"text": "pick-episode",
+				"at": "src/components/tracker/write-about-modal.tsx:526"
+			},
+			{
+				"text": "Pick an episode from",
+				"at": "src/components/tracker/write-about-modal.tsx:529"
+			},
+			{
+				"text": "Not all episodes watched",
+				"at": "src/components/tracker/write-about-modal.tsx:645"
+			},
+			{
+				"text": "Mark as Complete",
+				"at": "src/components/tracker/write-about-modal.tsx:671"
+			},
+			{
+				"text": "episodes",
+				"at": "src/components/watched/season-picker-modal.tsx:147"
+			},
+			{
+				"text": "Watching With",
+				"at": "src/components/watched/watched-with-modal.tsx:178"
+			}
+		],
+		"rewatch": [
+			{
+				"text": "Rewatch started — you're on Watch …",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:300"
+			},
+			{
+				"text": "Failed to start rewatch",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:304"
+			},
+			{
+				"text": "Rewatch",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:775"
+			},
+			{
+				"text": "Watch 1",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:878"
+			},
+			{
+				"text": "Rewatch …",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:878"
+			},
+			{
+				"text": "Watch 1",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:887"
+			},
+			{
+				"text": "Rewatch …",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:888"
+			},
+			{
+				"text": "Watch 1",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1574"
+			},
+			{
+				"text": "Rewatch …",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1575"
+			},
+			{
+				"text": "Watch 1",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1649"
+			},
+			{
+				"text": "Rewatch …",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:1650"
+			},
+			{
+				"text": "Rewatch started — you're on Watch …",
+				"at": "src/routes/app/tracker.index.tsx:179"
+			},
+			{
+				"text": "Failed to start rewatch",
+				"at": "src/routes/app/tracker.index.tsx:183"
+			},
+			{
+				"text": "Start Rewatch",
+				"at": "src/components/tracker/rewatch-confirm-modal.tsx:38"
+			},
+			{
+				"text": "Start rewatching",
+				"at": "src/components/tracker/rewatch-confirm-modal.tsx:68"
+			},
+			{
+				"text": "Start Rewatch",
+				"at": "src/components/tracker/rewatch-confirm-modal.tsx:107"
+			},
+			{
+				"text": "Start Rewatch Anyway",
+				"at": "src/components/tracker/rewatch-confirm-modal.tsx:107"
+			},
+			{
+				"text": "Rewatch this show",
+				"at": "src/components/tracker/tracker-show-card.tsx:297"
+			},
+			{
+				"text": "Rewatch",
+				"at": "src/components/tracker/tracker-show-card.tsx:300"
+			}
+		],
+		"watchlist": [
+			{
+				"text": "created a watchlist",
+				"at": "src/routes/app/feed.tsx:440"
+			},
+			{
+				"text": "Watchlists",
+				"at": "src/routes/app/profile.$userId.tsx:78"
+			},
+			{
+				"text": "watchlists",
+				"at": "src/routes/app/profile.$userId.tsx:1574"
+			},
+			{
+				"text": "No public watchlists",
+				"at": "src/routes/app/profile.$userId.tsx:1641"
+			},
+			{
+				"text": "Watchlists",
+				"at": "src/routes/app/route.tsx:137"
+			},
+			{
+				"text": "Watchlists",
+				"at": "src/routes/app/route.tsx:197"
+			},
+			{
+				"text": "Watchlist not found",
+				"at": "src/routes/app/watchlists/$watchlistId.tsx:143"
+			},
+			{
+				"text": "My Watchlists",
+				"at": "src/routes/app/watchlists/index.tsx:33"
+			},
+			{
+				"text": "No watchlists yet",
+				"at": "src/routes/app/watchlists/index.tsx:56"
+			},
+			{
+				"text": "Watchlists",
+				"at": "src/routes/index.tsx:25"
+			},
+			{
+				"text": "This action is permanent and cannot be undone. All your data including watchlists, swipe history, and preferences will be deleted.",
+				"at": "src/components/settings/delete-account-dialog.tsx:62"
+			},
+			{
+				"text": "Yes — add to watchlist",
+				"at": "src/components/shuffle/action-buttons.tsx:143"
+			},
+			{
+				"text": "A new pick was added to the watchlist.",
+				"at": "src/components/shuffle/card-stack.tsx:166"
+			},
+			{
+				"text": "Shuffle watchlist",
+				"at": "src/components/shuffle/mode-pill.tsx:39"
+			},
+			{
+				"text": "Watchlist",
+				"at": "src/components/title/title-actions.tsx:335"
+			},
+			{
+				"text": "Add to Watchlist",
+				"at": "src/components/title/title-actions.tsx:347"
+			},
+			{
+				"text": "Create New Watchlist",
+				"at": "src/components/title/title-actions.tsx:384"
+			},
+			{
+				"text": "In watchlist",
+				"at": "src/components/watchlist/add-to-watchlist-dropdown.tsx:86"
+			},
+			{
+				"text": "Add to watchlist",
+				"at": "src/components/watchlist/add-to-watchlist-dropdown.tsx:86"
+			},
+			{
+				"text": "Add to Watchlist",
+				"at": "src/components/watchlist/add-to-watchlist-dropdown.tsx:100"
+			},
+			{
+				"text": "Create New Watchlist",
+				"at": "src/components/watchlist/add-to-watchlist-dropdown.tsx:138"
+			},
+			{
+				"text": "Create New Watchlist",
+				"at": "src/components/watchlist/create-watchlist-dialog.tsx:180"
+			},
+			{
+				"text": "Give your watchlist a name, choose its visibility, and add members.",
+				"at": "src/components/watchlist/create-watchlist-dialog.tsx:183"
+			},
+			{
+				"text": "Empty watchlist",
+				"at": "src/components/watchlist/film-strip.tsx:100"
+			},
+			{
+				"text": "Watchlist updated",
+				"at": "src/components/watchlist/watchlist-detail-header.tsx:49"
+			},
+			{
+				"text": "Watchlist deleted",
+				"at": "src/components/watchlist/watchlist-detail-header.tsx:58"
+			},
+			{
+				"text": "Back to Watchlists",
+				"at": "src/components/watchlist/watchlist-detail-header.tsx:103"
+			},
+			{
+				"text": "Rename watchlist",
+				"at": "src/components/watchlist/watchlist-detail-header.tsx:133"
+			},
+			{
+				"text": "Delete watchlist",
+				"at": "src/components/watchlist/watchlist-detail-header.tsx:208"
+			},
+			{
+				"text": "Remove from watchlist",
+				"at": "src/components/watchlist/watchlist-item-card.tsx:263"
+			},
+			{
+				"text": "Removed from … watchlist…",
+				"at": "src/components/watchlist/watchlist-removal-dialog.tsx:84"
+			},
+			{
+				"text": "Failed to keep in remaining watchlists",
+				"at": "src/components/watchlist/watchlist-removal-dialog.tsx:90"
+			},
+			{
+				"text": "Removed from … watchlist…",
+				"at": "src/components/watchlist/watchlist-removal-dialog.tsx:96"
+			},
+			{
+				"text": "Removed from all watchlists",
+				"at": "src/components/watchlist/watchlist-removal-dialog.tsx:112"
+			},
+			{
+				"text": "Failed to keep in watchlists",
+				"at": "src/components/watchlist/watchlist-removal-dialog.tsx:129"
+			},
+			{
+				"text": "Remove from Watchlists",
+				"at": "src/components/watchlist/watchlist-removal-dialog.tsx:152"
+			},
+			{
+				"text": "Remove from Watchlists?",
+				"at": "src/components/watchlist/watchlist-removal-dialog.tsx:173"
+			},
+			{
+				"text": "watchlists",
+				"at": "src/components/watchlist/watchlist-removal-dialog.tsx:186"
+			},
+			{
+				"text": "Select watchlists above",
+				"at": "src/components/watchlist/watchlist-removal-dialog.tsx:244"
+			}
+		],
+		"savedTitle": [
+			{
+				"text": "Pick a username",
+				"at": "src/routes/onboarding/index.tsx:138"
+			},
+			{
+				"text": "Couldn't save your profile details.",
+				"at": "src/components/onboarding/bio-step.tsx:30"
+			},
+			{
+				"text": "Pick the one genre you love most",
+				"at": "src/components/onboarding/favourite-genre-step.tsx:45"
+			},
+			{
+				"text": "Couldn't save your taste profile.",
+				"at": "src/components/onboarding/taste-profile-step.tsx:77"
+			},
+			{
+				"text": "Pick at least 3 genres to continue.",
+				"at": "src/components/onboarding/taste-profile-step.tsx:146"
+			},
+			{
+				"text": "Pick at least 3 titles to continue.",
+				"at": "src/components/onboarding/taste-profile-step.tsx:151"
+			},
+			{
+				"text": "Pick 3-5 genres, then choose 3-10 movies or shows you love",
+				"at": "src/components/onboarding/taste-profile-step.tsx:192"
+			},
+			{
+				"text": "Save",
+				"at": "src/components/settings/change-username-dialog.tsx:106"
+			},
+			{
+				"text": "Save",
+				"at": "src/components/settings/edit-bio-dialog.tsx:107"
+			},
+			{
+				"text": "Save",
+				"at": "src/components/settings/edit-favourite-film-dialog.tsx:219"
+			},
+			{
+				"text": "Pick the one genre you love most.",
+				"at": "src/components/settings/edit-favourite-genre-dialog.tsx:65"
+			},
+			{
+				"text": "Save",
+				"at": "src/components/settings/edit-favourite-genre-dialog.tsx:113"
+			},
+			{
+				"text": "Pick",
+				"at": "src/components/settings/edit-genres-dialog.tsx:82"
+			},
+			{
+				"text": "Save",
+				"at": "src/components/settings/edit-genres-dialog.tsx:126"
+			},
+			{
+				"text": "Yes — add to watchlist",
+				"at": "src/components/shuffle/action-buttons.tsx:143"
+			},
+			{
+				"text": "A new pick was added to the watchlist.",
+				"at": "src/components/shuffle/card-stack.tsx:166"
+			},
+			{
+				"text": "Loading your next picks...",
+				"at": "src/components/shuffle/card-stack.tsx:229"
+			},
+			{
+				"text": "Add to Watchlist",
+				"at": "src/components/title/title-actions.tsx:347"
+			},
+			{
+				"text": "Save Changes",
+				"at": "src/components/tracker/edit-note-modal.tsx:169"
+			},
+			{
+				"text": "are saved. You'll start fresh tracking episodes again.",
+				"at": "src/components/tracker/rewatch-confirm-modal.tsx:75"
+			},
+			{
+				"text": "episodes. Your progress is saved but you'll be starting a fresh watch-through.",
+				"at": "src/components/tracker/rewatch-confirm-modal.tsx:82"
+			},
+			{
+				"text": "Note saved",
+				"at": "src/components/tracker/write-about-modal.tsx:166"
+			},
+			{
+				"text": "Failed to save note",
+				"at": "src/components/tracker/write-about-modal.tsx:170"
+			},
+			{
+				"text": "pick-season",
+				"at": "src/components/tracker/write-about-modal.tsx:492"
+			},
+			{
+				"text": "Pick a season",
+				"at": "src/components/tracker/write-about-modal.tsx:495"
+			},
+			{
+				"text": "pick-episode",
+				"at": "src/components/tracker/write-about-modal.tsx:526"
+			},
+			{
+				"text": "Pick an episode from",
+				"at": "src/components/tracker/write-about-modal.tsx:529"
+			},
+			{
+				"text": "Save Note",
+				"at": "src/components/tracker/write-about-modal.tsx:631"
+			},
+			{
+				"text": "Failed to save review",
+				"at": "src/components/watched/review-modal.tsx:128"
+			},
+			{
+				"text": "Failed to save changes",
+				"at": "src/components/watched/review-modal.tsx:140"
+			},
+			{
+				"text": "Save Changes",
+				"at": "src/components/watched/review-modal.tsx:395"
+			},
+			{
+				"text": "Save & Done",
+				"at": "src/components/watched/review-modal.tsx:395"
+			},
+			{
+				"text": "Add to watchlist",
+				"at": "src/components/watchlist/add-to-watchlist-dropdown.tsx:86"
+			},
+			{
+				"text": "Add to Watchlist",
+				"at": "src/components/watchlist/add-to-watchlist-dropdown.tsx:100"
+			}
+		],
+		"recommendation": [
+			{
+				"text": "invited you to …",
+				"at": "src/components/notifications/notification-item.tsx:66"
+			},
+			{
+				"text": "reviewed … you recommended",
+				"at": "src/components/notifications/notification-item.tsx:81"
+			},
+			{
+				"text": "recommended … for you…",
+				"at": "src/components/notifications/notification-item.tsx:89"
+			},
+			{
+				"text": "reviewed … you recommended",
+				"at": "src/components/notifications/notification-item.tsx:103"
+			},
+			{
+				"text": "watched … that you recommended",
+				"at": "src/components/notifications/notification-item.tsx:110"
+			},
+			{
+				"text": "Failed to accept recommendation",
+				"at": "src/components/notifications/notification-item.tsx:176"
+			},
+			{
+				"text": "Failed to decline recommendation",
+				"at": "src/components/notifications/notification-item.tsx:190"
+			},
+			{
+				"text": "Added to your Recommendations",
+				"at": "src/components/notifications/notification-item.tsx:325"
+			},
+			{
+				"text": "Recommendation sent!",
+				"at": "src/components/recommend/recommend-modal.tsx:61"
+			},
+			{
+				"text": "Failed to send recommendation",
+				"at": "src/components/recommend/recommend-modal.tsx:69"
+			},
+			{
+				"text": "Recommend",
+				"at": "src/components/recommend/recommend-modal.tsx:143"
+			},
+			{
+				"text": "Recommend",
+				"at": "src/components/recommend/recommend-modal.tsx:157"
+			},
+			{
+				"text": "Send Recommendation",
+				"at": "src/components/recommend/recommend-modal.tsx:266"
+			},
+			{
+				"text": "Recommend",
+				"at": "src/components/recommend/recommend-modal.tsx:292"
+			},
+			{
+				"text": "Recommend",
+				"at": "src/components/recommend/recommend-modal.tsx:337"
+			},
+			{
+				"text": "Invite",
+				"at": "src/components/title/title-actions.tsx:401"
+			},
+			{
+				"text": "Recommend to a friend",
+				"at": "src/components/watched/review-modal.tsx:360"
+			},
+			{
+				"text": "Invited @… to …",
+				"at": "src/components/watchlist/invite-member-modal.tsx:61"
+			},
+			{
+				"text": "Invite to",
+				"at": "src/components/watchlist/invite-member-modal.tsx:107"
+			},
+			{
+				"text": "Invite",
+				"at": "src/components/watchlist/invite-member-modal.tsx:133"
+			},
+			{
+				"text": "Invite",
+				"at": "src/components/watchlist/watchlist-detail-header.tsx:164"
+			},
+			{
+				"text": "Recommended by @",
+				"at": "src/components/watchlist/watchlist-item-card.tsx:275"
+			}
+		],
+		"friend": [
+			{
+				"text": "No activity yet. Add some friends to see their activity here.",
+				"at": "src/routes/app/feed.tsx:147"
+			},
+			{
+				"text": "Accept friend request",
+				"at": "src/routes/app/friends.tsx:345"
+			},
+			{
+				"text": "Decline friend request",
+				"at": "src/routes/app/friends.tsx:358"
+			},
+			{
+				"text": "Friend request sent to @…!",
+				"at": "src/routes/app/friends.tsx:408"
+			},
+			{
+				"text": "Friends",
+				"at": "src/routes/app/friends.tsx:476"
+			},
+			{
+				"text": "Add Friend",
+				"at": "src/routes/app/friends.tsx:491"
+			},
+			{
+				"text": "Search friends or find new people",
+				"at": "src/routes/app/friends.tsx:582"
+			},
+			{
+				"text": "Search friends or find new people...",
+				"at": "src/routes/app/friends.tsx:583"
+			},
+			{
+				"text": "Friend Requests",
+				"at": "src/routes/app/friends.tsx:604"
+			},
+			{
+				"text": "Your Friends",
+				"at": "src/routes/app/friends.tsx:634"
+			},
+			{
+				"text": "No friends match &ldquo;",
+				"at": "src/routes/app/friends.tsx:695"
+			},
+			{
+				"text": "No friends yet",
+				"at": "src/routes/app/friends.tsx:738"
+			},
+			{
+				"text": "Search by username above to find people and send friend requests",
+				"at": "src/routes/app/friends.tsx:741"
+			},
+			{
+				"text": "Back to friends",
+				"at": "src/routes/app/profile.$userId.tsx:257"
+			},
+			{
+				"text": "Add Friend",
+				"at": "src/routes/app/profile.$userId.tsx:483"
+			},
+			{
+				"text": "Friends",
+				"at": "src/routes/app/profile.$userId.tsx:650"
+			},
+			{
+				"text": "Mutual",
+				"at": "src/routes/app/profile.$userId.tsx:680"
+			},
+			{
+				"text": "Add friend to see activity",
+				"at": "src/routes/app/profile.$userId.tsx:977"
+			},
+			{
+				"text": "member",
+				"at": "src/routes/app/profile.$userId.tsx:1669"
+			},
+			{
+				"text": "Friends",
+				"at": "src/routes/app/route.tsx:140"
+			},
+			{
+				"text": "Friends",
+				"at": "src/routes/app/route.tsx:205"
+			},
+			{
+				"text": "Users you've blocked can't send you friend requests or see your full profile.",
+				"at": "src/routes/app/settings/blocked.tsx:71"
+			},
+			{
+				"text": "Friends & Feed",
+				"at": "src/routes/index.tsx:28"
+			},
+			{
+				"text": "sent you a friend request",
+				"at": "src/components/notifications/notification-item.tsx:71"
+			},
+			{
+				"text": "accepted your friend request",
+				"at": "src/components/notifications/notification-item.tsx:76"
+			},
+			{
+				"text": "to your friends",
+				"at": "src/components/recommend/recommend-modal.tsx:340"
+			},
+			{
+				"text": "No friends yet",
+				"at": "src/components/recommend/recommend-modal.tsx:355"
+			},
+			{
+				"text": "Friend",
+				"at": "src/components/recommend/recommend-modal.tsx:387"
+			},
+			{
+				"text": "Send to … friend…",
+				"at": "src/components/recommend/recommend-modal.tsx:501"
+			},
+			{
+				"text": "Select friends",
+				"at": "src/components/recommend/recommend-modal.tsx:502"
+			},
+			{
+				"text": "Recommend to a friend",
+				"at": "src/components/watched/review-modal.tsx:360"
+			},
+			{
+				"text": "Visible to all your friends",
+				"at": "src/components/watched/visibility-selector.tsx:21"
+			},
+			{
+				"text": "Search Friends or Type a Name",
+				"at": "src/components/watched/watched-with-modal.tsx:107"
+			},
+			{
+				"text": "@friend or a name…",
+				"at": "src/components/watched/watched-with-modal.tsx:127"
+			},
+			{
+				"text": "friend",
+				"at": "src/components/watched/watched-with-modal.tsx:148"
+			},
+			{
+				"text": "Friends",
+				"at": "src/components/watchlist/create-watchlist-dialog.tsx:286"
+			},
+			{
+				"text": "member",
+				"at": "src/components/watchlist/watchlist-detail-header.tsx:223"
+			}
+		],
+		"notification": [
+			{
+				"text": "Notifications",
+				"at": "src/components/notifications/notification-bell.tsx:71"
+			},
+			{
+				"text": "No notifications",
+				"at": "src/components/notifications/notification-bell.tsx:92"
+			},
+			{
+				"text": "Delete all notifications",
+				"at": "src/components/notifications/notification-bell.tsx:109"
+			},
+			{
+				"text": "sent you a notification",
+				"at": "src/components/notifications/notification-item.tsx:136"
+			}
+		],
+		"achievement": [
+			{
+				"text": "earned an achievement",
+				"at": "src/routes/app/feed.tsx:359"
+			},
+			{
+				"text": "Achievement",
+				"at": "src/routes/app/feed.tsx:381"
+			},
+			{
+				"text": "Achievement progress",
+				"at": "src/routes/app/profile.$userId.tsx:824"
+			},
+			{
+				"text": "Achievements",
+				"at": "src/routes/app/profile.$userId.tsx:857"
+			},
+			{
+				"text": "Achievements",
+				"at": "src/routes/index.tsx:29"
+			},
+			{
+				"text": "Compare Achievements",
+				"at": "src/components/achievements/achievement-grid.tsx:107"
+			},
+			{
+				"text": "Achievements",
+				"at": "src/components/achievements/achievement-grid.tsx:107"
+			},
+			{
+				"text": "Compare Achievements",
+				"at": "src/components/achievements/achievement-grid.tsx:129"
+			},
+			{
+				"text": "Achievements",
+				"at": "src/components/achievements/achievement-grid.tsx:129"
+			},
+			{
+				"text": "Achievement Unlocked",
+				"at": "src/components/achievements/achievement-popup.tsx:98"
+			},
+			{
+				"text": "Achievements Unlocked",
+				"at": "src/components/achievements/achievement-popup.tsx:98"
+			},
+			{
+				"text": "Achievement Unlocked",
+				"at": "src/components/achievements/achievement-popup.tsx:234"
+			},
+			{
+				"text": "Achievements Unlocked",
+				"at": "src/components/achievements/achievement-popup.tsx:234"
+			},
+			{
+				"text": "Achievements",
+				"at": "src/components/achievements/achievement-popup.tsx:367"
+			},
+			{
+				"text": "earned the … achievement",
+				"at": "src/components/notifications/notification-item.tsx:97"
+			}
+		],
+		"companion": [
+			{
+				"text": "Shared",
+				"at": "src/components/achievements/achievement-grid.tsx:87"
+			},
+			{
+				"text": "shared their thoughts on … that you watched together",
+				"at": "src/components/notifications/notification-item.tsx:117"
+			},
+			{
+				"text": "Watched with …",
+				"at": "src/components/watched/review-modal.tsx:376"
+			},
+			{
+				"text": "Watched with…",
+				"at": "src/components/watched/review-modal.tsx:377"
+			},
+			{
+				"text": "Companion",
+				"at": "src/components/watched/visibility-selector.tsx:27"
+			},
+			{
+				"text": "Only you & who you watched with",
+				"at": "src/components/watched/visibility-selector.tsx:28"
+			},
+			{
+				"text": "Shared",
+				"at": "src/components/watched/watch-event-card.tsx:216"
+			},
+			{
+				"text": "Watched With",
+				"at": "src/components/watched/watched-with-modal.tsx:67"
+			},
+			{
+				"text": "Watched With",
+				"at": "src/components/watched/watched-with-modal.tsx:81"
+			},
+			{
+				"text": "Shared",
+				"at": "src/components/watchlist/watchlist-reel-header.tsx:33"
+			}
+		],
+		"visibility": [
+			{
+				"text": "No public ratings",
+				"at": "src/routes/app/profile.$userId.tsx:1446"
+			},
+			{
+				"text": "No public watchlists",
+				"at": "src/routes/app/profile.$userId.tsx:1641"
+			},
+			{
+				"text": "Hidden Titles",
+				"at": "src/routes/app/shuffle/hidden.tsx:43"
+			},
+			{
+				"text": "Titles you've hidden. Unhide them to see them again.",
+				"at": "src/routes/app/shuffle/hidden.tsx:45"
+			},
+			{
+				"text": "No hidden titles",
+				"at": "src/routes/app/shuffle/hidden.tsx:63"
+			},
+			{
+				"text": "When you hide titles, they'll appear here.",
+				"at": "src/routes/app/shuffle/hidden.tsx:65"
+			},
+			{
+				"text": "Hidden from Shuffle",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:277"
+			},
+			{
+				"text": "Failed to update hidden status",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:280"
+			},
+			{
+				"text": "Hidden",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:816"
+			},
+			{
+				"text": "Hide",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:816"
+			},
+			{
+				"text": "Hide",
+				"at": "src/components/shuffle/action-buttons.tsx:117"
+			},
+			{
+				"text": "Hide",
+				"at": "src/components/shuffle/action-buttons.tsx:122"
+			},
+			{
+				"text": "Hide this title?",
+				"at": "src/components/shuffle/hide-confirm-dialog.tsx:58"
+			},
+			{
+				"text": "Hidden Titles",
+				"at": "src/components/shuffle/hide-confirm-dialog.tsx:70"
+			},
+			{
+				"text": "Hide",
+				"at": "src/components/shuffle/hide-confirm-dialog.tsx:102"
+			},
+			{
+				"text": "Hidden from Shuffle",
+				"at": "src/components/title/title-actions.tsx:203"
+			},
+			{
+				"text": "Failed to update hidden status",
+				"at": "src/components/title/title-actions.tsx:206"
+			},
+			{
+				"text": "Hidden",
+				"at": "src/components/title/title-actions.tsx:427"
+			},
+			{
+				"text": "Hide",
+				"at": "src/components/title/title-actions.tsx:427"
+			},
+			{
+				"text": "Public",
+				"at": "src/components/tracker/edit-note-modal.tsx:149"
+			},
+			{
+				"text": "Private",
+				"at": "src/components/tracker/edit-note-modal.tsx:149"
+			},
+			{
+				"text": "Public",
+				"at": "src/components/tracker/journal-entry-card.tsx:171"
+			},
+			{
+				"text": "Private",
+				"at": "src/components/tracker/journal-entry-card.tsx:176"
+			},
+			{
+				"text": "Public",
+				"at": "src/components/tracker/write-about-modal.tsx:611"
+			},
+			{
+				"text": "Private",
+				"at": "src/components/tracker/write-about-modal.tsx:611"
+			},
+			{
+				"text": "Public",
+				"at": "src/components/watched/visibility-selector.tsx:20"
+			},
+			{
+				"text": "Visible to all your friends",
+				"at": "src/components/watched/visibility-selector.tsx:21"
+			},
+			{
+				"text": "Private",
+				"at": "src/components/watched/visibility-selector.tsx:34"
+			},
+			{
+				"text": "Only visible to you",
+				"at": "src/components/watched/visibility-selector.tsx:35"
+			},
+			{
+				"text": "Who can see this?",
+				"at": "src/components/watched/visibility-selector.tsx:53"
+			},
+			{
+				"text": "Private",
+				"at": "src/components/watched/watch-event-card.tsx:216"
+			},
+			{
+				"text": "Give your watchlist a name, choose its visibility, and add members.",
+				"at": "src/components/watchlist/create-watchlist-dialog.tsx:183"
+			},
+			{
+				"text": "Public",
+				"at": "src/components/watchlist/create-watchlist-dialog.tsx:215"
+			},
+			{
+				"text": "Private",
+				"at": "src/components/watchlist/create-watchlist-dialog.tsx:215"
+			},
+			{
+				"text": "Make private",
+				"at": "src/components/watchlist/watchlist-detail-header.tsx:173"
+			},
+			{
+				"text": "Make public",
+				"at": "src/components/watchlist/watchlist-detail-header.tsx:173"
+			}
+		],
+		"shuffle": [
+			{
+				"text": "No friends match &ldquo;",
+				"at": "src/routes/app/friends.tsx:695"
+			},
+			{
+				"text": "Shuffle",
+				"at": "src/routes/app/route.tsx:131"
+			},
+			{
+				"text": "Shuffle",
+				"at": "src/routes/app/route.tsx:189"
+			},
+			{
+				"text": "Back to Shuffle",
+				"at": "src/routes/app/shuffle/hidden.tsx:39"
+			},
+			{
+				"text": "Unable to load shuffle. Please try again.",
+				"at": "src/routes/app/shuffle/index.tsx:55"
+			},
+			{
+				"text": "Return to Shuffle",
+				"at": "src/routes/app/title.$mediaType.$tmdbId.tsx:92"
+			},
+			{
+				"text": "Return to Shuffle",
+				"at": "src/routes/app/title.$mediaType.$tmdbId.tsx:103"
+			},
+			{
+				"text": "Hidden from Shuffle",
+				"at": "src/routes/app/tracker.$tmdbId.tsx:277"
+			},
+			{
+				"text": "No items match your filters",
+				"at": "src/routes/app/watchlists/$watchlistId.tsx:192"
+			},
+			{
+				"text": "Showtime Shuffle",
+				"at": "src/routes/index.tsx:26"
+			},
+			{
+				"text": "This action is permanent and cannot be undone. All your data including watchlists, swipe history, and preferences will be deleted.",
+				"at": "src/components/settings/delete-account-dialog.tsx:62"
+			},
+			{
+				"text": "Setting up Showtime Shuffle...",
+				"at": "src/components/shuffle/countdown-loader.tsx:137"
+			},
+			{
+				"text": "Shuffle feed",
+				"at": "src/components/shuffle/hide-confirm-dialog.tsx:65"
+			},
+			{
+				"text": "page in Shuffle settings, or from the title's detail page.",
+				"at": "src/components/shuffle/hide-confirm-dialog.tsx:70"
+			},
+			{
+				"text": "Match",
+				"at": "src/components/shuffle/match-celebration.tsx:44"
+			},
+			{
+				"text": "Curtain Call",
+				"at": "src/components/shuffle/match-celebration.tsx:58"
+			},
+			{
+				"text": "MATCH!",
+				"at": "src/components/shuffle/match-celebration.tsx:70"
+			},
+			{
+				"text": "Shuffle watchlist",
+				"at": "src/components/shuffle/mode-pill.tsx:39"
+			},
+			{
+				"text": "SHOWTIME SHUFFLE",
+				"at": "src/components/shuffle/shuffle-marquee.tsx:83"
+			},
+			{
+				"text": "Hidden from Shuffle",
+				"at": "src/components/title/title-actions.tsx:203"
+			},
+			{
+				"text": "Showtime Shuffle",
+				"at": "src/components/watchlist/watchlist-detail-header.tsx:150"
+			}
+		]
+	}
+}

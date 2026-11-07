@@ -1,0 +1,768 @@
+{
+	"cascade": {
+		"/app/search": {
+			"lagoon": "#8de5db",
+			"anchorDefault": "rgb(141, 229, 219)",
+			"links": 25,
+			"linksWithColourUtility": 6,
+			"linksRenderingAnchorDefault": 6,
+			"timedControls": 7,
+			"timedControlsOverridden": 7,
+			"sample": [
+				{
+					"text": "Search",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Shuffle",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Watchlists",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				}
+			],
+			"timedSample": [
+				{
+					"tag": "BUTTON",
+					"cls": "rounded-full outline-none ring-1 ring-cream/10 transition-all hover:ring-2 hover:ring-neon",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				}
+			]
+		},
+		"/app/feed": {
+			"lagoon": "#8de5db",
+			"anchorDefault": "rgb(141, 229, 219)",
+			"links": 11,
+			"linksWithColourUtility": 6,
+			"linksRenderingAnchorDefault": 6,
+			"timedControls": 7,
+			"timedControlsOverridden": 7,
+			"sample": [
+				{
+					"text": "Search",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Shuffle",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Watchlists",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				}
+			],
+			"timedSample": [
+				{
+					"tag": "BUTTON",
+					"cls": "rounded-full outline-none ring-1 ring-cream/10 transition-all hover:ring-2 hover:ring-neon",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				}
+			]
+		},
+		"/app/watchlists": {
+			"lagoon": "#8de5db",
+			"anchorDefault": "rgb(141, 229, 219)",
+			"links": 8,
+			"linksWithColourUtility": 6,
+			"linksRenderingAnchorDefault": 6,
+			"timedControls": 7,
+			"timedControlsOverridden": 7,
+			"sample": [
+				{
+					"text": "Search",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Shuffle",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Watchlists",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				}
+			],
+			"timedSample": [
+				{
+					"tag": "BUTTON",
+					"cls": "rounded-full outline-none ring-1 ring-cream/10 transition-all hover:ring-2 hover:ring-neon",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				}
+			]
+		},
+		"/app/friends": {
+			"lagoon": "#8de5db",
+			"anchorDefault": "rgb(141, 229, 219)",
+			"links": 8,
+			"linksWithColourUtility": 6,
+			"linksRenderingAnchorDefault": 6,
+			"timedControls": 7,
+			"timedControlsOverridden": 7,
+			"sample": [
+				{
+					"text": "Search",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Shuffle",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Watchlists",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				}
+			],
+			"timedSample": [
+				{
+					"tag": "BUTTON",
+					"cls": "rounded-full outline-none ring-1 ring-cream/10 transition-all hover:ring-2 hover:ring-neon",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				}
+			]
+		},
+		"/app/tracker": {
+			"lagoon": "#8de5db",
+			"anchorDefault": "rgb(141, 229, 219)",
+			"links": 8,
+			"linksWithColourUtility": 6,
+			"linksRenderingAnchorDefault": 6,
+			"timedControls": 10,
+			"timedControlsOverridden": 10,
+			"sample": [
+				{
+					"text": "Search",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Shuffle",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Watchlists",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				}
+			],
+			"timedSample": [
+				{
+					"tag": "BUTTON",
+					"cls": "rounded-full outline-none ring-1 ring-cream/10 transition-all hover:ring-2 hover:ring-neon",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				}
+			]
+		},
+		"/app/settings": {
+			"lagoon": "#8de5db",
+			"anchorDefault": "rgb(141, 229, 219)",
+			"links": 8,
+			"linksWithColourUtility": 6,
+			"linksRenderingAnchorDefault": 6,
+			"timedControls": 7,
+			"timedControlsOverridden": 7,
+			"sample": [
+				{
+					"text": "Search",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Shuffle",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Watchlists",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				}
+			],
+			"timedSample": [
+				{
+					"tag": "BUTTON",
+					"cls": "rounded-full outline-none ring-1 ring-cream/10 transition-all hover:ring-2 hover:ring-neon",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				}
+			]
+		},
+		"/app/profile/vp-user-vera": {
+			"lagoon": "#8de5db",
+			"anchorDefault": "rgb(141, 229, 219)",
+			"links": 8,
+			"linksWithColourUtility": 7,
+			"linksRenderingAnchorDefault": 7,
+			"timedControls": 7,
+			"timedControlsOverridden": 7,
+			"sample": [
+				{
+					"text": "Search",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Shuffle",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Watchlists",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				}
+			],
+			"timedSample": [
+				{
+					"tag": "BUTTON",
+					"cls": "rounded-full outline-none ring-1 ring-cream/10 transition-all hover:ring-2 hover:ring-neon",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				}
+			]
+		},
+		"/app/title/movie/603": {
+			"lagoon": "#8de5db",
+			"anchorDefault": "rgb(141, 229, 219)",
+			"links": 8,
+			"linksWithColourUtility": 7,
+			"linksRenderingAnchorDefault": 7,
+			"timedControls": 8,
+			"timedControlsOverridden": 8,
+			"sample": [
+				{
+					"text": "Search",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Shuffle",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				},
+				{
+					"text": "Watchlists",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"color": "rgb(141, 229, 219)"
+				}
+			],
+			"timedSample": [
+				{
+					"tag": "BUTTON",
+					"cls": "rounded-full outline-none ring-1 ring-cream/10 transition-all hover:ring-2 hover:ring-neon",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				},
+				{
+					"tag": "A",
+					"cls": "uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underli",
+					"duration": "0.18s, 0.18s, 0.18s, 0.18s",
+					"property": "background-color, color, border-color, transform"
+				}
+			]
+		}
+	},
+	"schemes": {
+		"light": {
+			"routes": {
+				"/app/search": {
+					"htmlClass": "light",
+					"colorScheme": "light",
+					"bodyBgColor": "rgba(0, 0, 0, 0)",
+					"bodyBgImage": "radial-gradient(1100px 620px at -8% -10%, rgba(79, 184, 178, 0.36), rgba(0, 0, 0",
+					"bodyColor": "rgb(23, 58, 64)",
+					"shellBg": "rgb(5, 5, 8)"
+				},
+				"/app/settings": {
+					"htmlClass": "light",
+					"colorScheme": "light",
+					"bodyBgColor": "rgba(0, 0, 0, 0)",
+					"bodyBgImage": "radial-gradient(1100px 620px at -8% -10%, rgba(79, 184, 178, 0.36), rgba(0, 0, 0",
+					"bodyColor": "rgb(23, 58, 64)",
+					"shellBg": "rgb(5, 5, 8)"
+				},
+				"/app/title/movie/603": {
+					"htmlClass": "light",
+					"colorScheme": "light",
+					"bodyBgColor": "rgba(0, 0, 0, 0)",
+					"bodyBgImage": "radial-gradient(1100px 620px at -8% -10%, rgba(79, 184, 178, 0.36), rgba(0, 0, 0",
+					"bodyColor": "rgb(23, 58, 64)",
+					"shellBg": "rgb(5, 5, 8)"
+				}
+			},
+			"layers": {
+				"watchlistPopover": {
+					"bg": "rgb(10, 10, 30)",
+					"color": "oklch(0.141 0.005 285.823)",
+					"border": "rgb(26, 26, 46)",
+					"cls": "z-50 origin-(--radix-popover-content-transform-origin) text-popover-foreground outline-hidden data-[side=bottom]:slide-i"
+				},
+				"settingsDialog": {
+					"bg": "rgb(10, 10, 30)",
+					"color": "rgb(23, 58, 64)",
+					"closeColor": "rgb(23, 58, 64)"
+				},
+				"toast": {
+					"present": true,
+					"theme": "light",
+					"bg": "oklch(1 0 0)",
+					"color": "oklch(0.141 0.005 285.823)",
+					"text": "Unhidden"
+				}
+			},
+			"nav": {
+				"rest": {
+					"text": "Shuffle",
+					"color": "rgb(50, 143, 151)",
+					"border": "rgba(0, 0, 0, 0)",
+					"cls": true
+				},
+				"active": {
+					"text": "Search",
+					"color": "rgb(50, 143, 151)",
+					"border": "rgb(255, 45, 120)",
+					"cls": true
+				},
+				"hover": {
+					"text": "Shuffle",
+					"color": "rgb(36, 111, 118)",
+					"border": "rgba(0, 0, 0, 0)",
+					"cls": true
+				}
+			},
+			"contrast": {
+				"/app/search": {
+					"total": 49,
+					"below3": 0,
+					"low": []
+				},
+				"/app/feed": {
+					"total": 10,
+					"below3": 0,
+					"low": []
+				},
+				"/app/watchlists": {
+					"total": 11,
+					"below3": 0,
+					"low": []
+				},
+				"/app/friends": {
+					"total": 12,
+					"below3": 0,
+					"low": []
+				},
+				"/app/tracker": {
+					"total": 11,
+					"below3": 1,
+					"low": [
+						{
+							"ratio": 2.07,
+							"text": "Journal",
+							"color": "rgba(255, 255, 240, 0.25)",
+							"tag": "BUTTON",
+							"cls": "relative flex flex-1 items-center justify-center gap-2 px-4 py-2.5 fon"
+						}
+					]
+				},
+				"/app/settings": {
+					"total": 9,
+					"below3": 0,
+					"low": []
+				},
+				"/app/profile/vp-user-vera": {
+					"total": 7,
+					"below3": 0,
+					"low": []
+				},
+				"/app/title/movie/603": {
+					"total": 13,
+					"below3": 0,
+					"low": []
+				}
+			}
+		},
+		"dark": {
+			"routes": {
+				"/app/search": {
+					"htmlClass": "dark",
+					"colorScheme": "dark",
+					"bodyBgColor": "rgba(0, 0, 0, 0)",
+					"bodyBgImage": "radial-gradient(1100px 620px at -8% -10%, rgba(96, 215, 207, 0.18), rgba(0, 0, 0",
+					"bodyColor": "rgb(215, 236, 232)",
+					"shellBg": "rgb(5, 5, 8)"
+				},
+				"/app/settings": {
+					"htmlClass": "dark",
+					"colorScheme": "dark",
+					"bodyBgColor": "rgba(0, 0, 0, 0)",
+					"bodyBgImage": "radial-gradient(1100px 620px at -8% -10%, rgba(96, 215, 207, 0.18), rgba(0, 0, 0",
+					"bodyColor": "rgb(215, 236, 232)",
+					"shellBg": "rgb(5, 5, 8)"
+				},
+				"/app/title/movie/603": {
+					"htmlClass": "dark",
+					"colorScheme": "dark",
+					"bodyBgColor": "rgba(0, 0, 0, 0)",
+					"bodyBgImage": "radial-gradient(1100px 620px at -8% -10%, rgba(96, 215, 207, 0.18), rgba(0, 0, 0",
+					"bodyColor": "rgb(215, 236, 232)",
+					"shellBg": "rgb(5, 5, 8)"
+				}
+			},
+			"layers": {
+				"watchlistPopover": {
+					"bg": "rgb(10, 10, 30)",
+					"color": "oklch(0.985 0 0)",
+					"border": "rgb(26, 26, 46)",
+					"cls": "z-50 origin-(--radix-popover-content-transform-origin) text-popover-foreground outline-hidden data-[side=bottom]:slide-i"
+				},
+				"settingsDialog": {
+					"bg": "rgb(10, 10, 30)",
+					"color": "rgb(215, 236, 232)",
+					"closeColor": "rgb(215, 236, 232)"
+				},
+				"toast": {
+					"present": true,
+					"theme": "dark",
+					"bg": "oklch(0.141 0.005 285.823)",
+					"color": "oklch(0.985 0 0)",
+					"text": "Hidden from Shuffle"
+				}
+			},
+			"nav": {
+				"rest": {
+					"text": "Shuffle",
+					"color": "rgb(141, 229, 219)",
+					"border": "rgba(0, 0, 0, 0)",
+					"cls": true
+				},
+				"active": {
+					"text": "Search",
+					"color": "rgb(141, 229, 219)",
+					"border": "rgb(255, 45, 120)",
+					"cls": true
+				},
+				"hover": {
+					"text": "Shuffle",
+					"color": "rgb(36, 111, 118)",
+					"border": "rgba(0, 0, 0, 0)",
+					"cls": true
+				}
+			},
+			"contrast": {
+				"/app/search": {
+					"total": 49,
+					"below3": 0,
+					"low": []
+				},
+				"/app/feed": {
+					"total": 10,
+					"below3": 0,
+					"low": []
+				},
+				"/app/watchlists": {
+					"total": 11,
+					"below3": 0,
+					"low": []
+				},
+				"/app/friends": {
+					"total": 12,
+					"below3": 0,
+					"low": []
+				},
+				"/app/tracker": {
+					"total": 11,
+					"below3": 1,
+					"low": [
+						{
+							"ratio": 2.07,
+							"text": "Journal",
+							"color": "rgba(255, 255, 240, 0.25)",
+							"tag": "BUTTON",
+							"cls": "relative flex flex-1 items-center justify-center gap-2 px-4 py-2.5 fon"
+						}
+					]
+				},
+				"/app/settings": {
+					"total": 9,
+					"below3": 0,
+					"low": []
+				},
+				"/app/profile/vp-user-vera": {
+					"total": 7,
+					"below3": 0,
+					"low": []
+				},
+				"/app/title/movie/603": {
+					"total": 13,
+					"below3": 1,
+					"low": [
+						{
+							"ratio": 2.52,
+							"text": "Hide",
+							"color": "rgba(255, 255, 240, 0.3)",
+							"tag": "BUTTON",
+							"cls": "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] fo"
+						}
+					]
+				}
+			}
+		}
+	},
+	"reducedMotion": {
+		"no-preference": {
+			"/app/search": {
+				"landedOn": "/app/search",
+				"styleMutations": 0,
+				"elementsMoved": 0,
+				"cssAnimationsAtStart": 104,
+				"runningAfterWindow": 104,
+				"infinite": 104,
+				"names": [
+					"twinkle",
+					"grain",
+					"vhs-scan",
+					"neon-cycle",
+					"go3931151311"
+				]
+			},
+			"/app/shuffle": {
+				"landedOn": "/app/shuffle",
+				"styleMutations": 0,
+				"elementsMoved": 0,
+				"cssAnimationsAtStart": 169,
+				"runningAfterWindow": 169,
+				"infinite": 169,
+				"names": [
+					"twinkle",
+					"grain",
+					"vhs-scan",
+					"neon-cycle",
+					"projector-flicker",
+					"dust-float",
+					"fog-crawl",
+					"fog-drift-2",
+					"fog-drift-3",
+					"chase",
+					"go3931151311"
+				]
+			},
+			"/app/tracker": {
+				"landedOn": "/app/tracker",
+				"styleMutations": 0,
+				"elementsMoved": 0,
+				"cssAnimationsAtStart": 145,
+				"runningAfterWindow": 145,
+				"infinite": 145,
+				"names": [
+					"twinkle",
+					"grain",
+					"vhs-scan",
+					"neon-cycle",
+					"chase",
+					"neon-flicker",
+					"go3931151311"
+				]
+			},
+			"/app/watchlists": {
+				"landedOn": "/app/watchlists",
+				"styleMutations": 0,
+				"elementsMoved": 0,
+				"cssAnimationsAtStart": 148,
+				"runningAfterWindow": 148,
+				"infinite": 148,
+				"names": [
+					"twinkle",
+					"grain",
+					"vhs-scan",
+					"neon-cycle",
+					"fog-drift-1",
+					"fog-drift-2",
+					"fog-drift-3",
+					"chase",
+					"shimmer-sweep",
+					"go3931151311"
+				]
+			},
+			"/app/profile/vp-user-vera": {
+				"landedOn": "/app/profile/vp-user-vera",
+				"styleMutations": 0,
+				"elementsMoved": 0,
+				"cssAnimationsAtStart": 135,
+				"runningAfterWindow": 135,
+				"infinite": 135,
+				"names": [
+					"twinkle",
+					"grain",
+					"vhs-scan",
+					"neon-cycle",
+					"scanline-scroll",
+					"projector-sweep",
+					"grain-profile",
+					"bulb-chase-profile",
+					"go3931151311"
+				]
+			},
+			"/app/title/movie/603": {
+				"landedOn": "/app/title/movie/603",
+				"styleMutations": 0,
+				"elementsMoved": 0,
+				"cssAnimationsAtStart": 144,
+				"runningAfterWindow": 144,
+				"infinite": 144,
+				"names": [
+					"twinkle",
+					"grain",
+					"vhs-scan",
+					"neon-cycle",
+					"chase",
+					"go3931151311"
+				]
+			}
+		},
+		"reduce": {
+			"/app/search": {
+				"landedOn": "/app/search",
+				"styleMutations": 0,
+				"elementsMoved": 0,
+				"cssAnimationsAtStart": 0,
+				"runningAfterWindow": 0,
+				"infinite": 0,
+				"names": []
+			},
+			"/app/shuffle": {
+				"landedOn": "/app/shuffle",
+				"styleMutations": 0,
+				"elementsMoved": 0,
+				"cssAnimationsAtStart": 0,
+				"runningAfterWindow": 0,
+				"infinite": 0,
+				"names": []
+			},
+			"/app/tracker": {
+				"landedOn": "/app/tracker",
+				"styleMutations": 0,
+				"elementsMoved": 0,
+				"cssAnimationsAtStart": 0,
+				"runningAfterWindow": 0,
+				"infinite": 0,
+				"names": []
+			},
+			"/app/watchlists": {
+				"landedOn": "/app/watchlists",
+				"styleMutations": 0,
+				"elementsMoved": 0,
+				"cssAnimationsAtStart": 0,
+				"runningAfterWindow": 0,
+				"infinite": 0,
+				"names": []
+			}
+		}
+	}
+}

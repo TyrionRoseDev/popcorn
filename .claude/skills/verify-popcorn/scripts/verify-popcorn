@@ -1,0 +1,308 @@
+#!/usr/bin/env bash
+# verify-popcorn: launch, inspect, drive and tear down a disposable Popcorn instance.
+# Run with no arguments for usage. Everything this script starts is recorded in the run's
+# state dir and only those pids/containers are ever stopped.
+set -euo pipefail
+
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO="$(cd "$SKILL_DIR/../../.." && pwd)"
+VP_HOME="${VERIFY_POPCORN_HOME:-$HOME/.cache/verify-popcorn}"
+TOOLS_DIR="$VP_HOME/tools"
+PLAYWRIGHT_VERSION="1.64.1"
+PG_IMAGE="postgres:17"   # matches docker-compose.yml
+
+die() { echo "verify-popcorn: $*" >&2; exit 1; }
+log() { echo "[verify-popcorn] $*" >&2; }
+
+usage() {
+	cat <<EOF
+usage: verify-popcorn <command>
+
+  up                 start disposable DB + mail sink + vite dev server, migrate, seed; prints RUN_ID
+  doctor             read-only health check of the current run (exit 0 = worth driving)
+  drive <journey>    run journeys/<journey>.ts (or a path) in headless Chromium; evidence is saved
+  login [email]      sign in through the real /login magic-link UI (default vera@popcorn.test)
+  sql "<query>"      run SQL against the run's disposable DB (psql -At)
+  mail [--last]      list captured outgoing emails (or print the newest one)
+  logs [app|mail]    tail the app (default) or mail-sink log
+  env                print the run's env file (ports, urls, dirs)
+  down               stop everything this run started; evidence is kept
+  runs               list known runs and whether their processes are alive
+
+Target a run with VP_RUN_ID=<id>; default is the last run started by 'up'.
+State:    $VP_HOME/runs/<RUN_ID>/
+Evidence: $VP_HOME/evidence/<RUN_ID>/   (never deleted by 'down')
+EOF
+}
+
+free_port() {
+	bun -e 'const s=Bun.listen({hostname:"127.0.0.1",port:0,socket:{data(){}}});console.log(s.port);s.stop(true)'
+}
+
+resolve_run() {
+	RUN_ID="${VP_RUN_ID:-}"
+	if [[ -z "$RUN_ID" && -f "$VP_HOME/current" ]]; then RUN_ID="$(cat "$VP_HOME/current")"; fi
+	[[ -n "$RUN_ID" ]] || die "no run selected; run 'verify-popcorn up' first or set VP_RUN_ID"
+	STATE="$VP_HOME/runs/$RUN_ID"
+	[[ -f "$STATE/env" ]] || die "run $RUN_ID has no state at $STATE (already torn down?)"
+	# shellcheck disable=SC1091
+	source "$STATE/env"
+}
+
+alive() { [[ -n "${1:-}" ]] && kill -0 "$1" 2>/dev/null; }
+
+descendants() {
+	local p
+	for p in $(pgrep -P "$1" 2>/dev/null || true); do
+		echo "$p"
+		descendants "$p"
+	done
+}
+
+kill_tree() {
+	local root="$1" pids p
+	alive "$root" || return 0
+	pids="$(descendants "$root") $root"
+	for p in $pids; do kill -TERM "$p" 2>/dev/null || true; done
+	for _ in $(seq 1 20); do
+		local any=0
+		for p in $pids; do alive "$p" && any=1; done
+		[[ $any == 0 ]] && return 0
+		sleep 0.25
+	done
+	for p in $pids; do kill -KILL "$p" 2>/dev/null || true; done
+}
+
+read_dotenv_key() {
+	# Read a single key from the repo .env without sourcing the file.
+	[[ -f "$REPO/.env" ]] || return 0
+	grep -E "^$1=" "$REPO/.env" | tail -1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/'
+}
+
+ensure_tools() {
+	if [[ ! -f "$TOOLS_DIR/node_modules/playwright-core/package.json" ]] ||
+		[[ "$(jq -r .version "$TOOLS_DIR/node_modules/playwright-core/package.json")" != "$PLAYWRIGHT_VERSION" ]]; then
+		log "installing playwright-core@$PLAYWRIGHT_VERSION into $TOOLS_DIR (outside the repo)"
+		mkdir -p "$TOOLS_DIR"
+		[[ -f "$TOOLS_DIR/package.json" ]] || echo '{"name":"verify-popcorn-tools","private":true}' >"$TOOLS_DIR/package.json"
+		(cd "$TOOLS_DIR" && bun add "playwright-core@$PLAYWRIGHT_VERSION" >/dev/null)
+	fi
+	export VP_PLAYWRIGHT="$TOOLS_DIR/node_modules/playwright-core/index.mjs"
+	if [[ -z "${VP_CHROMIUM:-}" ]]; then
+		local cache="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/Library/Caches/ms-playwright}"
+		[[ -d "$cache" ]] || cache="$HOME/.cache/ms-playwright"
+		VP_CHROMIUM="$(find "$cache" -maxdepth 4 -type f \( -name chrome-headless-shell -o -name headless_shell \) 2>/dev/null | sort -V | tail -1 || true)"
+	fi
+	[[ -n "${VP_CHROMIUM:-}" && -x "$VP_CHROMIUM" ]] ||
+		die "no headless Chromium found. Install one with: bunx playwright-core@$PLAYWRIGHT_VERSION install chromium-headless-shell"
+	export VP_CHROMIUM
+}
+
+cmd_up() {
+	command -v docker >/dev/null || die "docker CLI not found"
+	docker info >/dev/null 2>&1 || die "Docker daemon not running (OrbStack: 'orb start')"
+	command -v jq >/dev/null || die "jq not found"
+	ensure_tools
+
+	RUN_ID="${VP_RUN_ID:-vp-$(date +%Y%m%d-%H%M%S)}"
+	STATE="$VP_HOME/runs/$RUN_ID"
+	EVIDENCE="$VP_HOME/evidence/$RUN_ID"
+	[[ -e "$STATE" ]] && die "run $RUN_ID already exists at $STATE"
+	mkdir -p "$STATE/mail" "$EVIDENCE"
+
+	local db_port app_port mail_port container secret
+	db_port="$(free_port)"
+	mail_port="$(free_port)"
+	app_port="${VP_APP_PORT:-$(free_port)}"
+	container="popcorn-verify-$RUN_ID"
+	secret="$(openssl rand -hex 32)"
+
+	cat >"$STATE/env" <<EOF
+RUN_ID=$RUN_ID
+STATE=$STATE
+EVIDENCE=$EVIDENCE
+REPO=$REPO
+CONTAINER=$container
+DB_PORT=$db_port
+DB_URL=postgresql://popcorn:popcorn@127.0.0.1:$db_port/popcorn_verify
+APP_PORT=$app_port
+APP_URL=http://localhost:$app_port
+MAIL_PORT=$mail_port
+MAIL_DIR=$STATE/mail
+EOF
+	echo "$RUN_ID" >"$VP_HOME/current"
+	# shellcheck disable=SC1091
+	source "$STATE/env"
+	log "run $RUN_ID  state=$STATE  evidence=$EVIDENCE"
+
+	log "starting $PG_IMAGE as $CONTAINER on 127.0.0.1:$DB_PORT (tmpfs, no volume)"
+	docker run -d --name "$CONTAINER" --label verify-popcorn.run="$RUN_ID" \
+		-e POSTGRES_USER=popcorn -e POSTGRES_PASSWORD=popcorn -e POSTGRES_DB=popcorn_verify \
+		-p "127.0.0.1:$DB_PORT:5432" --tmpfs /var/lib/postgresql/data "$PG_IMAGE" >/dev/null
+	# During initdb the server only listens on the unix socket; TCP readiness means init finished.
+	local ok=0
+	for _ in $(seq 1 60); do
+		if docker exec "$CONTAINER" pg_isready -h 127.0.0.1 -U popcorn -d popcorn_verify >/dev/null 2>&1 &&
+			docker exec "$CONTAINER" psql -h 127.0.0.1 -U popcorn -d popcorn_verify -Atc 'select 1' >/dev/null 2>&1; then
+			ok=1
+			break
+		fi
+		sleep 1
+	done
+	[[ $ok == 1 ]] || die "postgres never became ready; see: docker logs $CONTAINER"
+
+	log "applying drizzle migrations"
+	(cd "$REPO" && DATABASE_URL="$DB_URL" bun run db:migrate) >"$STATE/migrate.log" 2>&1 ||
+		{ cat "$STATE/migrate.log" >&2; die "migration failed"; }
+	log "seeding baseline users"
+	docker exec -i "$CONTAINER" psql -v ON_ERROR_STOP=1 -q -h 127.0.0.1 -U popcorn -d popcorn_verify \
+		<"$SKILL_DIR/scripts/seed.sql" >"$STATE/seed.log" 2>&1 || { cat "$STATE/seed.log" >&2; die "seed failed"; }
+
+	log "starting mail sink on 127.0.0.1:$MAIL_PORT"
+	VP_MAIL_DIR="$MAIL_DIR" nohup bun "$SKILL_DIR/scripts/mail-sink.ts" "$MAIL_PORT" >"$STATE/mail.log" 2>&1 &
+	echo "MAIL_PID=$!" >>"$STATE/env"
+
+	local tmdb="${TMDB_READ_ACCESS_TOKEN:-$(read_dotenv_key TMDB_READ_ACCESS_TOKEN)}"
+	[[ -n "$tmdb" ]] || log "WARNING: TMDB_READ_ACCESS_TOKEN is empty; search/title journeys will fail"
+
+	log "starting vite dev on $APP_URL"
+	# Every app secret is overridden so nothing reaches the user's DB, Resend, or UploadThing.
+	# TMDB is the one real external service (read-only).
+	(
+		cd "$REPO"
+		env DATABASE_URL="$DB_URL" \
+			BETTER_AUTH_URL="$APP_URL" \
+			BETTER_AUTH_SECRET="$secret" \
+			PORT="$APP_PORT" \
+			RESEND_API_KEY="re_verify_popcorn_dummy" \
+			RESEND_BASE_URL="http://127.0.0.1:$MAIL_PORT" \
+			RESEND_FROM_EMAIL="verify@popcorn.test" \
+			UPLOADTHING_TOKEN="placeholder" \
+			CRON_SECRET="verify-popcorn-cron" \
+			TMDB_READ_ACCESS_TOKEN="$tmdb" \
+			nohup bun x vite dev --port "$APP_PORT" --strictPort >"$STATE/app.log" 2>&1 &
+		echo "APP_PID=$!" >>"$STATE/env"
+	)
+	# shellcheck disable=SC1091
+	source "$STATE/env"
+
+	# Ready = health route answers AND the login page server-renders (first SSR compile is slow).
+	ok=0
+	for _ in $(seq 1 180); do
+		alive "$APP_PID" || { tail -40 "$STATE/app.log" >&2; die "app exited during startup"; }
+		if [[ "$(curl -s -o /dev/null -w '%{http_code}' "$APP_URL/api/health")" == 200 ]] &&
+			curl -s "$APP_URL/login" | grep -q "Send Magic Link"; then
+			ok=1
+			break
+		fi
+		sleep 1
+	done
+	[[ $ok == 1 ]] || { tail -40 "$STATE/app.log" >&2; die "app not ready after 180s"; }
+	log "ready: $APP_URL"
+	echo "$RUN_ID"
+}
+
+cmd_doctor() {
+	resolve_run
+	local fail=0
+	check() { if eval "$2" >/dev/null 2>&1; then echo "ok    $1"; else echo "FAIL  $1"; fail=1; fi; }
+	echo "run $RUN_ID  app=$APP_URL  db=127.0.0.1:$DB_PORT  evidence=$EVIDENCE"
+	echo "repo $(git -C "$REPO" rev-parse --short HEAD) dirty_files=$(git -C "$REPO" status --porcelain | wc -l | tr -d ' ')"
+	check "db container $CONTAINER running" \
+		"[[ \$(docker inspect -f '{{.State.Running}} {{index .Config.Labels \"verify-popcorn.run\"}}' $CONTAINER) == 'true $RUN_ID' ]]"
+	local applied expected
+	applied="$(docker exec "$CONTAINER" psql -h 127.0.0.1 -U popcorn -d popcorn_verify -Atc 'select count(*) from drizzle.__drizzle_migrations' 2>/dev/null || echo 0)"
+	expected="$(jq '.entries|length' "$REPO/drizzle/meta/_journal.json")"
+	check "migrations applied ($applied/$expected)" "[[ '$applied' == '$expected' ]]"
+	check "seed user vera@popcorn.test present" \
+		"[[ \$(docker exec $CONTAINER psql -h 127.0.0.1 -U popcorn -d popcorn_verify -Atc \"select count(*) from \\\"user\\\" where email='vera@popcorn.test'\") == 1 ]]"
+	check "mail sink pid $MAIL_PID alive + answering" "alive $MAIL_PID && curl -sf http://127.0.0.1:$MAIL_PORT/__health"
+	check "app pid $APP_PID alive" "alive $APP_PID"
+	local owner
+	owner="$(lsof -nP -iTCP:"$APP_PORT" -sTCP:LISTEN -t 2>/dev/null | head -1 || true)"
+	check "port $APP_PORT owned by this run (listener pid ${owner:-none})" \
+		"[[ -n '$owner' ]] && { [[ '$owner' == '$APP_PID' ]] || descendants $APP_PID | grep -qx '$owner'; }"
+	check "GET /api/health == 200" "[[ \$(curl -s -o /dev/null -w '%{http_code}' $APP_URL/api/health) == 200 ]]"
+	if [[ -f "$STATE/auth.json" ]]; then
+		local cookie
+		cookie="$(jq -r '[.cookies[] | "\(.name)=\(.value)"] | join("; ")' "$STATE/auth.json")"
+		check "saved session resolves to a user in THIS run's DB" \
+			"curl -sf -H 'cookie: $cookie' $APP_URL/api/auth/get-session | jq -e '.user.email | endswith(\"@popcorn.test\")'"
+	else
+		echo "info  no saved session yet (journeys sign in themselves; 'login' saves one)"
+	fi
+	return $fail
+}
+
+cmd_drive() {
+	resolve_run
+	ensure_tools
+	local j="${1:-}"
+	[[ -n "$j" ]] || die "usage: verify-popcorn drive <journey|path.ts> [args...]"
+	shift
+	[[ -f "$j" ]] || j="$SKILL_DIR/journeys/$j.ts"
+	[[ -f "$j" ]] || die "journey not found: $j (see $SKILL_DIR/journeys/)"
+	VP_STATE="$STATE" VP_EVIDENCE="$EVIDENCE" VP_APP_URL="$APP_URL" VP_CONTAINER="$CONTAINER" \
+		VP_MAIL_DIR="$MAIL_DIR" bun "$SKILL_DIR/scripts/drive.ts" "$j" "$@"
+}
+
+cmd_sql() {
+	resolve_run
+	[[ $# -ge 1 ]] || die "usage: verify-popcorn sql \"<query>\""
+	docker exec "$CONTAINER" psql -h 127.0.0.1 -U popcorn -d popcorn_verify -v ON_ERROR_STOP=1 -At -F $'\t' -c "$1"
+}
+
+cmd_mail() {
+	resolve_run
+	if [[ "${1:-}" == "--last" ]]; then
+		local f
+		f="$(find "$MAIL_DIR" -name '*.json' | sort | tail -1)"
+		[[ -n "$f" ]] || die "no mail captured"
+		jq '{id, receivedAt, to, subject, link}' "$f"
+	else
+		find "$MAIL_DIR" -name '*.json' | sort | while read -r f; do jq -c '{receivedAt, to, subject, link}' "$f"; done
+	fi
+}
+
+cmd_down() {
+	resolve_run
+	log "tearing down $RUN_ID"
+	kill_tree "${APP_PID:-}"
+	kill_tree "${MAIL_PID:-}"
+	if docker inspect -f '{{index .Config.Labels "verify-popcorn.run"}}' "$CONTAINER" 2>/dev/null | grep -qx "$RUN_ID"; then
+		docker rm -f "$CONTAINER" >/dev/null
+	fi
+	# Keep a copy of the logs alongside the evidence, then drop scratch state.
+	mkdir -p "$EVIDENCE/logs"
+	cp "$STATE"/*.log "$EVIDENCE/logs/" 2>/dev/null || true
+	cp -R "$STATE/mail" "$EVIDENCE/logs/mail" 2>/dev/null || true
+	rm -rf "$STATE"
+	[[ "$(cat "$VP_HOME/current" 2>/dev/null)" == "$RUN_ID" ]] && rm -f "$VP_HOME/current"
+	log "done; evidence kept at $EVIDENCE"
+}
+
+cmd_runs() {
+	[[ -d "$VP_HOME/runs" ]] || { echo "no runs"; return 0; }
+	for d in "$VP_HOME"/runs/*/; do
+		[[ -f "$d/env" ]] || continue
+		(
+			# shellcheck disable=SC1091
+			source "$d/env"
+			echo "$RUN_ID app=$APP_URL app_alive=$(alive "${APP_PID:-}" && echo y || echo n) mail_alive=$(alive "${MAIL_PID:-}" && echo y || echo n) db=$(docker inspect -f '{{.State.Status}}' "$CONTAINER" 2>/dev/null || echo gone)"
+		)
+	done
+}
+
+case "${1:-}" in
+up) shift; cmd_up "$@" ;;
+doctor) shift; cmd_doctor "$@" ;;
+drive) shift; cmd_drive "$@" ;;
+login) shift; cmd_drive "$SKILL_DIR/journeys/sign-in.ts" "$@" ;;
+sql) shift; cmd_sql "$@" ;;
+mail) shift; cmd_mail "$@" ;;
+logs) shift; resolve_run; tail -n 80 "$STATE/${1:-app}.log" ;;
+env) resolve_run; cat "$STATE/env" ;;
+down) shift; cmd_down "$@" ;;
+runs) cmd_runs ;;
+*) usage; [[ -z "${1:-}" || "${1:-}" == -h || "${1:-}" == --help ]] || exit 2 ;;
+esac
