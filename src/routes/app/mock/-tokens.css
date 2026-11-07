@@ -1,0 +1,28 @@
+.pc {
+	--pc-bg: #08080f;
+	--pc-surface-1: #11111d;
+	--pc-surface-2: #1a1a2a;
+	--pc-surface-3: #24243a;
+	--pc-border: #2c2c44;
+	--pc-border-strong: #6a6888;
+	--pc-text-1: #f4efe3;
+	--pc-text-2: #c4beb0;
+	--pc-text-3: #9d988d;
+	--pc-accent: #ffb800;
+	--pc-accent-text: #ffc53d;
+	--pc-on-accent: #1b1300;
+	--pc-danger: #ff7a7a;
+	--pc-on-danger: #1f0606;
+	--pc-success: #5dd39e;
+	--pc-focus: #00e5ff;
+	--pc-neon-pink: #ff2d78;
+	--pc-neon-cyan: #00e5ff;
+	--pc-bulb: #ffb800;
+	--pc-bulb-off: #5a4515;
+	--pc-marquee-panel: #f6efd9;
+	--pc-marquee-letter: #14110a;
+	--pc-marquee-letter-red: #a3121a;
+	--pc-ticket: #efd9a0;
+	--pc-ticket-ink: #2a1c02;
+	--pc-ticket-ink-2: #6a5020;
+}

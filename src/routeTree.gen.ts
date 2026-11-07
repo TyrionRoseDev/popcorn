@@ -19,6 +19,7 @@ import { Route as AppSearchRouteImport } from './routes/app/search'
 import { Route as AppFriendsRouteImport } from './routes/app/friends'
 import { Route as AppFeedRouteImport } from './routes/app/feed'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as AppMockRouteRouteImport } from './routes/app/mock/route'
 import { Route as AppWatchlistsIndexRouteImport } from './routes/app/watchlists/index'
 import { Route as AppTrackerIndexRouteImport } from './routes/app/tracker.index'
 import { Route as AppShuffleIndexRouteImport } from './routes/app/shuffle/index'
@@ -27,6 +28,9 @@ import { Route as AppTrackerTmdbIdRouteImport } from './routes/app/tracker.$tmdb
 import { Route as AppShuffleHiddenRouteImport } from './routes/app/shuffle/hidden'
 import { Route as AppSettingsBlockedRouteImport } from './routes/app/settings/blocked'
 import { Route as AppProfileUserIdRouteImport } from './routes/app/profile.$userId'
+import { Route as AppMockTitleRouteImport } from './routes/app/mock/title'
+import { Route as AppMockFeedRouteImport } from './routes/app/mock/feed'
+import { Route as AppMockDiaryRouteImport } from './routes/app/mock/diary'
 import { Route as ApiUploadthingSplatRouteImport } from './routes/api/uploadthing/$'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 import { Route as ApiCronReviewRemindersRouteImport } from './routes/api/cron/review-reminders'
@@ -83,6 +87,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppMockRouteRoute = AppMockRouteRouteImport.update({
+  id: '/mock',
+  path: '/mock',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppWatchlistsIndexRoute = AppWatchlistsIndexRouteImport.update({
   id: '/watchlists/',
   path: '/watchlists/',
@@ -124,6 +133,21 @@ const AppProfileUserIdRoute = AppProfileUserIdRouteImport.update({
   path: '/profile/$userId',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppMockTitleRoute = AppMockTitleRouteImport.update({
+  id: '/title',
+  path: '/title',
+  getParentRoute: () => AppMockRouteRoute,
+} as any)
+const AppMockFeedRoute = AppMockFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => AppMockRouteRoute,
+} as any)
+const AppMockDiaryRoute = AppMockDiaryRouteImport.update({
+  id: '/diary',
+  path: '/diary',
+  getParentRoute: () => AppMockRouteRoute,
+} as any)
 const ApiUploadthingSplatRoute = ApiUploadthingSplatRouteImport.update({
   id: '/api/uploadthing/$',
   path: '/api/uploadthing/$',
@@ -155,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/mock': typeof AppMockRouteRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/app/feed': typeof AppFeedRoute
   '/app/friends': typeof AppFriendsRoute
@@ -165,6 +190,9 @@ export interface FileRoutesByFullPath {
   '/api/cron/review-reminders': typeof ApiCronReviewRemindersRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/mock/diary': typeof AppMockDiaryRoute
+  '/app/mock/feed': typeof AppMockFeedRoute
+  '/app/mock/title': typeof AppMockTitleRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/settings/blocked': typeof AppSettingsBlockedRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
@@ -179,6 +207,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/mock': typeof AppMockRouteRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/app/feed': typeof AppFeedRoute
   '/app/friends': typeof AppFriendsRoute
@@ -189,6 +218,9 @@ export interface FileRoutesByTo {
   '/api/cron/review-reminders': typeof ApiCronReviewRemindersRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/mock/diary': typeof AppMockDiaryRoute
+  '/app/mock/feed': typeof AppMockFeedRoute
+  '/app/mock/title': typeof AppMockTitleRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/settings/blocked': typeof AppSettingsBlockedRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
@@ -205,6 +237,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/mock': typeof AppMockRouteRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/app/feed': typeof AppFeedRoute
   '/app/friends': typeof AppFriendsRoute
@@ -215,6 +248,9 @@ export interface FileRoutesById {
   '/api/cron/review-reminders': typeof ApiCronReviewRemindersRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploadthing/$': typeof ApiUploadthingSplatRoute
+  '/app/mock/diary': typeof AppMockDiaryRoute
+  '/app/mock/feed': typeof AppMockFeedRoute
+  '/app/mock/title': typeof AppMockTitleRoute
   '/app/profile/$userId': typeof AppProfileUserIdRoute
   '/app/settings/blocked': typeof AppSettingsBlockedRoute
   '/app/shuffle/hidden': typeof AppShuffleHiddenRoute
@@ -232,6 +268,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/onboarding'
     | '/login'
+    | '/app/mock'
     | '/api/health'
     | '/app/feed'
     | '/app/friends'
@@ -242,6 +279,9 @@ export interface FileRouteTypes {
     | '/api/cron/review-reminders'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/mock/diary'
+    | '/app/mock/feed'
+    | '/app/mock/title'
     | '/app/profile/$userId'
     | '/app/settings/blocked'
     | '/app/shuffle/hidden'
@@ -256,6 +296,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/login'
+    | '/app/mock'
     | '/api/health'
     | '/app/feed'
     | '/app/friends'
@@ -266,6 +307,9 @@ export interface FileRouteTypes {
     | '/api/cron/review-reminders'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/mock/diary'
+    | '/app/mock/feed'
+    | '/app/mock/title'
     | '/app/profile/$userId'
     | '/app/settings/blocked'
     | '/app/shuffle/hidden'
@@ -281,6 +325,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/onboarding'
     | '/login'
+    | '/app/mock'
     | '/api/health'
     | '/app/feed'
     | '/app/friends'
@@ -291,6 +336,9 @@ export interface FileRouteTypes {
     | '/api/cron/review-reminders'
     | '/api/trpc/$'
     | '/api/uploadthing/$'
+    | '/app/mock/diary'
+    | '/app/mock/feed'
+    | '/app/mock/title'
     | '/app/profile/$userId'
     | '/app/settings/blocked'
     | '/app/shuffle/hidden'
@@ -386,6 +434,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/mock': {
+      id: '/app/mock'
+      path: '/mock'
+      fullPath: '/app/mock'
+      preLoaderRoute: typeof AppMockRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/watchlists/': {
       id: '/app/watchlists/'
       path: '/watchlists'
@@ -442,6 +497,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileUserIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/mock/title': {
+      id: '/app/mock/title'
+      path: '/title'
+      fullPath: '/app/mock/title'
+      preLoaderRoute: typeof AppMockTitleRouteImport
+      parentRoute: typeof AppMockRouteRoute
+    }
+    '/app/mock/feed': {
+      id: '/app/mock/feed'
+      path: '/feed'
+      fullPath: '/app/mock/feed'
+      preLoaderRoute: typeof AppMockFeedRouteImport
+      parentRoute: typeof AppMockRouteRoute
+    }
+    '/app/mock/diary': {
+      id: '/app/mock/diary'
+      path: '/diary'
+      fullPath: '/app/mock/diary'
+      preLoaderRoute: typeof AppMockDiaryRouteImport
+      parentRoute: typeof AppMockRouteRoute
+    }
     '/api/uploadthing/$': {
       id: '/api/uploadthing/$'
       path: '/api/uploadthing/$'
@@ -480,6 +556,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppMockRouteRouteChildren {
+  AppMockDiaryRoute: typeof AppMockDiaryRoute
+  AppMockFeedRoute: typeof AppMockFeedRoute
+  AppMockTitleRoute: typeof AppMockTitleRoute
+}
+
+const AppMockRouteRouteChildren: AppMockRouteRouteChildren = {
+  AppMockDiaryRoute: AppMockDiaryRoute,
+  AppMockFeedRoute: AppMockFeedRoute,
+  AppMockTitleRoute: AppMockTitleRoute,
+}
+
+const AppMockRouteRouteWithChildren = AppMockRouteRoute._addFileChildren(
+  AppMockRouteRouteChildren,
+)
+
 interface AppSettingsRouteChildren {
   AppSettingsBlockedRoute: typeof AppSettingsBlockedRoute
 }
@@ -493,6 +585,7 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
 )
 
 interface AppRouteRouteChildren {
+  AppMockRouteRoute: typeof AppMockRouteRouteWithChildren
   AppFeedRoute: typeof AppFeedRoute
   AppFriendsRoute: typeof AppFriendsRoute
   AppSearchRoute: typeof AppSearchRoute
@@ -508,6 +601,7 @@ interface AppRouteRouteChildren {
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppMockRouteRoute: AppMockRouteRouteWithChildren,
   AppFeedRoute: AppFeedRoute,
   AppFriendsRoute: AppFriendsRoute,
   AppSearchRoute: AppSearchRoute,
