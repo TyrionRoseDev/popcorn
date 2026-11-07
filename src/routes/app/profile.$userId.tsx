@@ -1336,7 +1336,7 @@ function FriendExpandedSections({
 	const maxGenreCount = genreStats.length > 0 ? genreStats[0].count : 0;
 
 	return (
-		<div className="mt-8 grid gap-8 lg:grid-cols-2">
+		<div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
 			{/* ══ Left column: achievements, favourite, genres ══ */}
 			<div className="flex flex-col gap-6">
 				{/* ── Achievements ── */}
@@ -1565,7 +1565,7 @@ function FriendExpandedSections({
 						transition={{ duration: 0.2 }}
 						className="flex min-h-0 flex-1 flex-col pt-4"
 					>
-						<div className="relative min-h-0 flex-1">
+						<div className="relative min-h-96 flex-1 lg:min-h-0">
 							<div className="absolute inset-0 overflow-y-auto overflow-x-hidden">
 								{activeTab === "activity" && (
 									<ActivityTab userId={profile.id} isOwn={isSelf} />

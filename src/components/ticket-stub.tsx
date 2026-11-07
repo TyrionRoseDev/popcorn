@@ -1,4 +1,9 @@
-import { motion, useScroll, useTransform } from "motion/react";
+import {
+	motion,
+	useReducedMotion,
+	useScroll,
+	useTransform,
+} from "motion/react";
 import { useRef } from "react";
 
 export function TicketStub() {
@@ -8,9 +13,10 @@ export function TicketStub() {
 		offset: ["start end", "center center"],
 	});
 
-	const rotateX = useTransform(scrollYProgress, [0, 1], [35, 0]);
-	const scale = useTransform(scrollYProgress, [0, 1], [0.85, 1]);
-	const y = useTransform(scrollYProgress, [0, 1], [60, 0]);
+	const still = useReducedMotion();
+	const rotateX = useTransform(scrollYProgress, [0, 1], [still ? 0 : 35, 0]);
+	const scale = useTransform(scrollYProgress, [0, 1], [still ? 1 : 0.85, 1]);
+	const y = useTransform(scrollYProgress, [0, 1], [still ? 0 : 60, 0]);
 	const glowOpacity = useTransform(scrollYProgress, [0.3, 1], [0, 1]);
 
 	return (

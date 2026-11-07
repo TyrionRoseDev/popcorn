@@ -1,4 +1,5 @@
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
+import { MotionConfig } from "motion/react";
 import { getContext } from "./integrations/tanstack-query/root-provider";
 import { routeTree } from "./routeTree.gen";
 
@@ -11,6 +12,10 @@ export function getRouter() {
 		scrollRestoration: true,
 		defaultPreload: "intent",
 		defaultPreloadStaleTime: 0,
+
+		Wrap: ({ children }) => (
+			<MotionConfig reducedMotion="user">{children}</MotionConfig>
+		),
 	});
 
 	return router;

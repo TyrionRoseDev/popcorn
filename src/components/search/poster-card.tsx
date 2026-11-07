@@ -25,7 +25,7 @@ export function PosterCard({ item }: PosterCardProps) {
 						No Image
 					</div>
 				)}
-				<div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+				<div className="absolute top-2 left-2 transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100">
 					<AddToWatchlistDropdown
 						tmdbId={item.tmdbId}
 						mediaType={item.mediaType as "movie" | "tv"}

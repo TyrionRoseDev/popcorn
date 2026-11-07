@@ -71,7 +71,7 @@ function AppLayout() {
 	const navigate = useNavigate();
 
 	return (
-		<div className="relative min-h-screen bg-drive-in-bg">
+		<div className="relative min-h-screen overflow-x-clip bg-drive-in-bg">
 			<RetroOverlays />
 
 			{/* Header */}
