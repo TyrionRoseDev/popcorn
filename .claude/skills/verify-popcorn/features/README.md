@@ -38,6 +38,7 @@ Each feature file starts with an H1 and one paragraph describing the behavior th
 - [Search](./search.md): title search with filters, empty state and clear. No journey script yet.
 - [Watchlists](./watchlists.md): create a watchlist and add a title from the title page. No journey script yet.
 - [Series tracker](./tracker.md): track a TV show and mark episodes or seasons. No journey script yet.
+- Layout and motion: no sideways scroll or split words at 320, 390 and 1440 on every app route, link and button classes win the cascade, profile tabs work on touch, the search bookmark has a touch path, and nothing moves under reduced motion. Journey: `journeys/layout.ts` (proven, needs a fresh run because it logs the first watch).
 - Bad URLs and server rendering: hard loads of shuffle, settings and title pages, designed not-found and private states with HTTP 404, and the sign-in return path. Journey: `journeys/bad-urls.ts [viewportWidth]` (proven).
 
 Not mapped yet: onboarding steps (username, avatar, taste, favourite, genre, bio), friends and requests, feed, shuffle swiping and matches, recommendations and notifications, profile and achievements pages, settings and blocking, journal entries, and the review-reminder cron (`/api/cron/review-reminders`, guarded by `CRON_SECRET=verify-popcorn-cron` in verify runs).

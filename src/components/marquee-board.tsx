@@ -1,4 +1,9 @@
-import { motion, useScroll, useTransform } from "motion/react";
+import {
+	motion,
+	useReducedMotion,
+	useScroll,
+	useTransform,
+} from "motion/react";
 import { useRef } from "react";
 
 const BULBS = Array.from({ length: 20 }, (_, i) => ({
@@ -21,8 +26,9 @@ export function MarqueeBoard({
 		offset: ["start end", "start 0.35"],
 	});
 
-	const rotateX = useTransform(scrollYProgress, [0, 1], [12, 0]);
-	const scale = useTransform(scrollYProgress, [0, 1], [0.95, 1]);
+	const still = useReducedMotion();
+	const rotateX = useTransform(scrollYProgress, [0, 1], [still ? 0 : 12, 0]);
+	const scale = useTransform(scrollYProgress, [0, 1], [still ? 1 : 0.95, 1]);
 	const opacity = useTransform(scrollYProgress, [0, 0.4], [0, 1]);
 
 	return (
@@ -145,7 +151,12 @@ export function MarqueeBoardRow({
 
 	const start = Math.min(index * 0.08, 0.3);
 	const opacity = useTransform(scrollYProgress, [start, start + 0.4], [0, 1]);
-	const x = useTransform(scrollYProgress, [start, start + 0.5], [-20, 0]);
+	const still = useReducedMotion();
+	const x = useTransform(
+		scrollYProgress,
+		[start, start + 0.5],
+		[still ? 0 : -20, 0],
+	);
 	const statusOpacity = useTransform(
 		scrollYProgress,
 		[start + 0.2, start + 0.6],

@@ -45,7 +45,7 @@ export const Route = createFileRoute("/app")({
 });
 
 const tabClass =
-	"uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/35 no-underline transition-all duration-200 px-4 py-2.5 border-b-2 border-transparent hover:text-cream/60";
+	"uppercase text-[11px] tracking-[0.12em] font-mono-retro font-bold text-cream/60 no-underline transition-all duration-200 px-4 py-2.5 border-b-2 border-transparent hover:text-cream";
 
 const neonTab = {
 	pink: "[&.active]:text-neon-pink [&.active]:border-neon-pink [&.active]:[box-shadow:0_4px_12px_-2px_rgba(255,45,120,0.5)]",
@@ -73,7 +73,7 @@ function AppLayout() {
 	const navigate = useNavigate();
 
 	return (
-		<div className="relative min-h-screen bg-drive-in-bg">
+		<div className="relative min-h-screen overflow-x-clip bg-drive-in-bg">
 			<RetroOverlays />
 
 			{/* Header */}

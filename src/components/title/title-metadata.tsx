@@ -62,9 +62,9 @@ export function TitleMetadata({
 			{/* Top inner wash */}
 			<div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-[rgba(255,255,240,0.02)] to-transparent pointer-events-none" />
 
-			<div className="flex">
+			<div className="flex flex-col sm:flex-row">
 				{/* Main body */}
-				<div className="flex-1 p-8">
+				<div className="flex-1 p-5 sm:p-8">
 					{/* Header */}
 					<div className="mb-6 pb-4 border-b border-cream/6">
 						<span
@@ -109,7 +109,7 @@ export function TitleMetadata({
 				</div>
 
 				{/* Perforation column */}
-				<div className="w-8 flex flex-col items-center justify-around border-l border-dashed border-[rgba(255,255,240,0.08)] py-4">
+				<div className="flex h-8 items-center justify-around border-t border-dashed border-[rgba(255,255,240,0.08)] px-4 sm:h-auto sm:w-8 sm:flex-col sm:border-t-0 sm:border-l sm:px-0 sm:py-4">
 					{["p1", "p2", "p3", "p4", "p5"].map((id) => (
 						<div
 							key={id}
@@ -119,7 +119,7 @@ export function TitleMetadata({
 				</div>
 
 				{/* Rating tear-off */}
-				<div className="w-[110px] flex flex-col items-center justify-center gap-1 [background:rgba(255,184,0,0.03)] py-8 px-4">
+				<div className="w-full sm:w-[110px] flex flex-col items-center justify-center gap-1 [background:rgba(255,184,0,0.03)] py-8 px-4">
 					<div className="font-logo text-4xl text-neon-amber [text-shadow:0_0_20px_rgba(255,184,0,0.4)]">
 						{rating.toFixed(1)}
 					</div>

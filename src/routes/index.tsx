@@ -84,7 +84,7 @@ function LandingPage() {
 
 				{/* POPCORN logo */}
 				<h1
-					className="relative z-10 font-logo text-[clamp(4rem,16vw,10rem)] leading-none"
+					className="relative z-10 font-logo text-[clamp(3rem,16vw,10rem)] leading-none"
 					style={{
 						animationName: "neon-cycle",
 						animationDuration: "6s",

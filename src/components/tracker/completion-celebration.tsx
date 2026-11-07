@@ -14,29 +14,32 @@ interface CompletionCelebrationProps {
 }
 
 function fireConfetti() {
-	const colors = ["#FFB800", "#00E5FF", "#FF2D78"];
+	const shared = {
+		colors: ["#FFB800", "#00E5FF", "#FF2D78"],
+		disableForReducedMotion: true,
+	};
 
 	confetti({
+		...shared,
 		particleCount: 100,
 		spread: 70,
 		origin: { y: 0.6 },
-		colors,
 	});
 
 	setTimeout(() => {
 		confetti({
+			...shared,
 			particleCount: 50,
 			angle: 60,
 			spread: 55,
 			origin: { x: 0 },
-			colors,
 		});
 		confetti({
+			...shared,
 			particleCount: 50,
 			angle: 120,
 			spread: 55,
 			origin: { x: 1 },
-			colors,
 		});
 	}, 250);
 }
