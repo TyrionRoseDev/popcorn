@@ -182,18 +182,14 @@ function ShowTracker() {
 					setShowCelebration(true);
 				}
 
-				// Prompt for episode review (last episode in batch)
+				// Prompt for episode review only when a single episode was marked.
+				// Bulk marks skip this — the show-complete celebration handles
+				// the review flow for whole-show completion.
 				if (variables.episodes.length === 1) {
 					const ep = variables.episodes[0];
 					setReviewPromptEpisode({
 						seasonNumber: ep.seasonNumber,
 						episodeNumber: ep.episodeNumber,
-					});
-				} else if (variables.episodes.length > 1) {
-					const lastEp = variables.episodes[variables.episodes.length - 1];
-					setReviewPromptEpisode({
-						seasonNumber: lastEp.seasonNumber,
-						episodeNumber: lastEp.episodeNumber,
 					});
 				}
 			},
