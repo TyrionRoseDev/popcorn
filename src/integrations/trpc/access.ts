@@ -44,3 +44,26 @@ export function watchEventVisibleTo(viewerId: string) {
 		))`,
 	);
 }
+
+export async function hideInvisibleOrigins<
+	E extends { originEventId: string | null; originEvent: unknown },
+>(viewerId: string, events: E[]): Promise<E[]> {
+	const originIds = [
+		...new Set(
+			events.flatMap((e) => (e.originEventId ? [e.originEventId] : [])),
+		),
+	];
+	if (originIds.length === 0) return events;
+	const visible = await db
+		.select({ id: watchEvent.id })
+		.from(watchEvent)
+		.where(
+			and(inArray(watchEvent.id, originIds), watchEventVisibleTo(viewerId)),
+		);
+	const visibleIds = new Set(visible.map((r) => r.id));
+	return events.map((e) =>
+		e.originEventId && !visibleIds.has(e.originEventId)
+			? { ...e, originEvent: null }
+			: e,
+	);
+}

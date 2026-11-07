@@ -17,6 +17,7 @@ import {
 } from "#/db/schema";
 import {
 	ensureAreFriends,
+	hideInvisibleOrigins,
 	watchEventVisibleTo,
 } from "#/integrations/trpc/access";
 import { protectedProcedure } from "#/integrations/trpc/init";
@@ -614,7 +615,7 @@ export const watchEventRouter = {
 					desc(sql`COALESCE(${e.watchedAt}, ${e.createdAt})`),
 				],
 			});
-			return events;
+			return hideInvisibleOrigins(ctx.userId, events);
 		}),
 
 	getUserEvents: protectedProcedure
@@ -685,7 +686,7 @@ export const watchEventRouter = {
 			});
 
 			return {
-				items,
+				items: await hideInvisibleOrigins(ctx.userId, items),
 				nextCursor: hasMore ? items[items.length - 1]?.id : undefined,
 			};
 		}),
@@ -781,7 +782,9 @@ export const watchEventRouter = {
 			});
 
 			// Filter review content based on visibility
-			const filteredWatchEvents = watchEvents.map((event) => {
+			const filteredWatchEvents = (
+				await hideInvisibleOrigins(ctx.userId, watchEvents)
+			).map((event) => {
 				if (event.userId === ctx.userId) return event;
 				if (event.visibility === "public") return event;
 				if (event.visibility === "companion") {
