@@ -73,10 +73,9 @@ jobs:
           - suite: journeys
             journeys: sign-in mark-watched onboarding-rerun
             allow-failure: false
-          # Fails until the F52/F57 privacy fix lands; reported, not blocking.
           - suite: privacy-repro
             journeys: privacy-repro
-            allow-failure: true
+            allow-failure: false
 
     services:
       postgres:
