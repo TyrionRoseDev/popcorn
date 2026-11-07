@@ -19,12 +19,15 @@ usage() {
 usage: verify-popcorn <command>
 
   up                 start disposable DB + mail sink + vite dev server, migrate, seed; prints RUN_ID
+                     VP_TMDB=live (default) | stub (replay tests/fixtures/tmdb) | record (save fixtures)
+                     VP_DATABASE_URL=<local empty postgres> skips the docker container (CI service)
+                     VP_SERVER=dev (default, vite dev) | build (vite build, then serve .output like prod)
   doctor             read-only health check of the current run (exit 0 = worth driving)
   drive <journey>    run journeys/<journey>.ts (or a path) in headless Chromium; evidence is saved
   login [email]      sign in through the real /login magic-link UI (default vera@popcorn.test)
   sql "<query>"      run SQL against the run's disposable DB (psql -At)
   mail [--last]      list captured outgoing emails (or print the newest one)
-  logs [app|mail]    tail the app (default) or mail-sink log
+  logs [app|mail|tmdb]  tail the app (default), mail-sink or TMDB stub log
   env                print the run's env file (ports, urls, dirs)
   down               stop everything this run started; evidence is kept
   runs               list known runs and whether their processes are alive
@@ -50,6 +53,15 @@ resolve_run() {
 }
 
 alive() { [[ -n "${1:-}" ]] && kill -0 "$1" 2>/dev/null; }
+
+# psql against the run DB: inside the run's container, or directly when VP_DATABASE_URL supplied one.
+psql_db() {
+	if [[ -n "${CONTAINER:-}" ]]; then
+		docker exec -i "$CONTAINER" psql -h 127.0.0.1 -U popcorn -d popcorn_verify "$@"
+	else
+		psql "$DB_URL" "$@"
+	fi
+}
 
 descendants() {
 	local p
@@ -99,8 +111,17 @@ ensure_tools() {
 }
 
 cmd_up() {
-	command -v docker >/dev/null || die "docker CLI not found"
-	docker info >/dev/null 2>&1 || die "Docker daemon not running (OrbStack: 'orb start')"
+	local external_db="${VP_DATABASE_URL:-}" tmdb_mode="${VP_TMDB:-live}"
+	if [[ -n "$external_db" ]]; then
+		[[ "$external_db" =~ ^postgres(ql)?://[^@]+@(127\.0\.0\.1|localhost): ]] ||
+			die "VP_DATABASE_URL must point at a local throwaway postgres (127.0.0.1 or localhost)"
+		command -v psql >/dev/null || die "psql not found (needed with VP_DATABASE_URL)"
+	else
+		command -v docker >/dev/null || die "docker CLI not found"
+		docker info >/dev/null 2>&1 || die "Docker daemon not running (OrbStack: 'orb start')"
+	fi
+	[[ "$tmdb_mode" =~ ^(live|stub|record)$ ]] || die "VP_TMDB must be live, stub or record"
+	[[ "${VP_SERVER:-dev}" =~ ^(dev|build)$ ]] || die "VP_SERVER must be dev or build"
 	command -v jq >/dev/null || die "jq not found"
 	ensure_tools
 
@@ -110,11 +131,19 @@ cmd_up() {
 	[[ -e "$STATE" ]] && die "run $RUN_ID already exists at $STATE"
 	mkdir -p "$STATE/mail" "$EVIDENCE"
 
-	local db_port app_port mail_port container secret
-	db_port="$(free_port)"
+	local db_port db_url app_port mail_port tmdb_port container secret
+	if [[ -n "$external_db" ]]; then
+		container=""
+		db_url="$external_db"
+		db_port="$(sed -E 's#.*@[^:]+:([0-9]+)/.*#\1#' <<<"$external_db")"
+	else
+		container="popcorn-verify-$RUN_ID"
+		db_port="$(free_port)"
+		db_url="postgresql://popcorn:popcorn@127.0.0.1:$db_port/popcorn_verify"
+	fi
 	mail_port="$(free_port)"
+	tmdb_port="$(free_port)"
 	app_port="${VP_APP_PORT:-$(free_port)}"
-	container="popcorn-verify-$RUN_ID"
 	secret="$(openssl rand -hex 32)"
 
 	cat >"$STATE/env" <<EOF
@@ -124,50 +153,73 @@ EVIDENCE=$EVIDENCE
 REPO=$REPO
 CONTAINER=$container
 DB_PORT=$db_port
-DB_URL=postgresql://popcorn:popcorn@127.0.0.1:$db_port/popcorn_verify
+DB_URL=$db_url
 APP_PORT=$app_port
 APP_URL=http://localhost:$app_port
 MAIL_PORT=$mail_port
 MAIL_DIR=$STATE/mail
+TMDB_MODE=$tmdb_mode
+TMDB_PORT=$tmdb_port
 EOF
 	echo "$RUN_ID" >"$VP_HOME/current"
 	# shellcheck disable=SC1091
 	source "$STATE/env"
 	log "run $RUN_ID  state=$STATE  evidence=$EVIDENCE"
 
-	log "starting $PG_IMAGE as $CONTAINER on 127.0.0.1:$DB_PORT (tmpfs, no volume)"
-	docker run -d --name "$CONTAINER" --label verify-popcorn.run="$RUN_ID" \
-		-e POSTGRES_USER=popcorn -e POSTGRES_PASSWORD=popcorn -e POSTGRES_DB=popcorn_verify \
-		-p "127.0.0.1:$DB_PORT:5432" --tmpfs /var/lib/postgresql/data "$PG_IMAGE" >/dev/null
+	if [[ -n "$CONTAINER" ]]; then
+		log "starting $PG_IMAGE as $CONTAINER on 127.0.0.1:$DB_PORT (tmpfs, no volume)"
+		docker run -d --name "$CONTAINER" --label verify-popcorn.run="$RUN_ID" \
+			-e POSTGRES_USER=popcorn -e POSTGRES_PASSWORD=popcorn -e POSTGRES_DB=popcorn_verify \
+			-p "127.0.0.1:$DB_PORT:5432" --tmpfs /var/lib/postgresql/data "$PG_IMAGE" >/dev/null
+	else
+		log "using the external database on 127.0.0.1:$DB_PORT"
+	fi
 	# During initdb the server only listens on the unix socket; TCP readiness means init finished.
 	local ok=0
 	for _ in $(seq 1 60); do
-		if docker exec "$CONTAINER" pg_isready -h 127.0.0.1 -U popcorn -d popcorn_verify >/dev/null 2>&1 &&
-			docker exec "$CONTAINER" psql -h 127.0.0.1 -U popcorn -d popcorn_verify -Atc 'select 1' >/dev/null 2>&1; then
+		if psql_db -Atc 'select 1' >/dev/null 2>&1; then
 			ok=1
 			break
 		fi
 		sleep 1
 	done
-	[[ $ok == 1 ]] || die "postgres never became ready; see: docker logs $CONTAINER"
+	[[ $ok == 1 ]] || die "postgres never became ready${CONTAINER:+; see: docker logs $CONTAINER}"
 
 	log "applying drizzle migrations"
 	(cd "$REPO" && DATABASE_URL="$DB_URL" bun run db:migrate) >"$STATE/migrate.log" 2>&1 ||
 		{ cat "$STATE/migrate.log" >&2; die "migration failed"; }
 	log "seeding baseline users"
-	docker exec -i "$CONTAINER" psql -v ON_ERROR_STOP=1 -q -h 127.0.0.1 -U popcorn -d popcorn_verify \
-		<"$SKILL_DIR/scripts/seed.sql" >"$STATE/seed.log" 2>&1 || { cat "$STATE/seed.log" >&2; die "seed failed"; }
+	psql_db -v ON_ERROR_STOP=1 -q <"$SKILL_DIR/scripts/seed.sql" >"$STATE/seed.log" 2>&1 ||
+		{ cat "$STATE/seed.log" >&2; die "seed failed"; }
 
 	log "starting mail sink on 127.0.0.1:$MAIL_PORT"
 	VP_MAIL_DIR="$MAIL_DIR" nohup bun "$SKILL_DIR/scripts/mail-sink.ts" "$MAIL_PORT" >"$STATE/mail.log" 2>&1 &
 	echo "MAIL_PID=$!" >>"$STATE/env"
 
-	local tmdb="${TMDB_READ_ACCESS_TOKEN:-$(read_dotenv_key TMDB_READ_ACCESS_TOKEN)}"
-	[[ -n "$tmdb" ]] || log "WARNING: TMDB_READ_ACCESS_TOKEN is empty; search/title journeys will fail"
+	local tmdb="" tmdb_base=""
+	if [[ "$TMDB_MODE" != stub ]]; then
+		tmdb="${TMDB_READ_ACCESS_TOKEN:-$(read_dotenv_key TMDB_READ_ACCESS_TOKEN)}"
+		[[ -n "$tmdb" ]] || log "WARNING: TMDB_READ_ACCESS_TOKEN is empty; search/title journeys will fail"
+	fi
+	if [[ "$TMDB_MODE" != live ]]; then
+		local fixtures="${VP_TMDB_FIXTURES:-$REPO/tests/fixtures/tmdb}"
+		log "starting TMDB $TMDB_MODE on 127.0.0.1:$TMDB_PORT (fixtures=$fixtures)"
+		nohup bun "$SKILL_DIR/scripts/tmdb-stub.ts" "$TMDB_PORT" "$fixtures" \
+			$([[ "$TMDB_MODE" == record ]] && echo --record) >"$STATE/tmdb.log" 2>&1 &
+		echo "TMDB_PID=$!" >>"$STATE/env"
+		tmdb_base="http://127.0.0.1:$TMDB_PORT/3"
+		[[ "$TMDB_MODE" == stub ]] && tmdb="verify-popcorn-tmdb-stub"
+	fi
 
-	log "starting vite dev on $APP_URL"
+	local serve=(bun x vite dev --port "$APP_PORT" --strictPort)
+	if [[ "${VP_SERVER:-dev}" == build ]]; then
+		log "building the app (vite build)"
+		(cd "$REPO" && bun run build) >"$STATE/build.log" 2>&1 || { tail -40 "$STATE/build.log" >&2; die "build failed"; }
+		serve=(bun .output/server/index.mjs)
+	fi
+	log "starting ${VP_SERVER:-dev} server on $APP_URL"
 	# Every app secret is overridden so nothing reaches the user's DB, Resend, or UploadThing.
-	# TMDB is the one real external service (read-only).
+	# TMDB is real (read-only) unless VP_TMDB routes it through the stub.
 	(
 		cd "$REPO"
 		env DATABASE_URL="$DB_URL" \
@@ -180,7 +232,8 @@ EOF
 			UPLOADTHING_TOKEN="placeholder" \
 			CRON_SECRET="verify-popcorn-cron" \
 			TMDB_READ_ACCESS_TOKEN="$tmdb" \
-			nohup bun x vite dev --port "$APP_PORT" --strictPort >"$STATE/app.log" 2>&1 &
+			TMDB_BASE_URL="$tmdb_base" \
+			nohup "${serve[@]}" >"$STATE/app.log" 2>&1 &
 		echo "APP_PID=$!" >>"$STATE/env"
 	)
 	# shellcheck disable=SC1091
@@ -208,15 +261,20 @@ cmd_doctor() {
 	check() { if eval "$2" >/dev/null 2>&1; then echo "ok    $1"; else echo "FAIL  $1"; fail=1; fi; }
 	echo "run $RUN_ID  app=$APP_URL  db=127.0.0.1:$DB_PORT  evidence=$EVIDENCE"
 	echo "repo $(git -C "$REPO" rev-parse --short HEAD) dirty_files=$(git -C "$REPO" status --porcelain | wc -l | tr -d ' ')"
-	check "db container $CONTAINER running" \
-		"[[ \$(docker inspect -f '{{.State.Running}} {{index .Config.Labels \"verify-popcorn.run\"}}' $CONTAINER) == 'true $RUN_ID' ]]"
+	if [[ -n "$CONTAINER" ]]; then
+		check "db container $CONTAINER running" \
+			"[[ \$(docker inspect -f '{{.State.Running}} {{index .Config.Labels \"verify-popcorn.run\"}}' $CONTAINER) == 'true $RUN_ID' ]]"
+	fi
 	local applied expected
-	applied="$(docker exec "$CONTAINER" psql -h 127.0.0.1 -U popcorn -d popcorn_verify -Atc 'select count(*) from drizzle.__drizzle_migrations' 2>/dev/null || echo 0)"
+	applied="$(psql_db -Atc 'select count(*) from drizzle.__drizzle_migrations' 2>/dev/null || echo 0)"
 	expected="$(jq '.entries|length' "$REPO/drizzle/meta/_journal.json")"
 	check "migrations applied ($applied/$expected)" "[[ '$applied' == '$expected' ]]"
 	check "seed user vera@popcorn.test present" \
-		"[[ \$(docker exec $CONTAINER psql -h 127.0.0.1 -U popcorn -d popcorn_verify -Atc \"select count(*) from \\\"user\\\" where email='vera@popcorn.test'\") == 1 ]]"
+		"[[ \$(psql_db -Atc \"select count(*) from \\\"user\\\" where email='vera@popcorn.test'\") == 1 ]]"
 	check "mail sink pid $MAIL_PID alive + answering" "alive $MAIL_PID && curl -sf http://127.0.0.1:$MAIL_PORT/__health"
+	if [[ "$TMDB_MODE" != live ]]; then
+		check "TMDB $TMDB_MODE pid $TMDB_PID alive + answering" "alive $TMDB_PID && curl -sf http://127.0.0.1:$TMDB_PORT/__health"
+	fi
 	check "app pid $APP_PID alive" "alive $APP_PID"
 	local owner
 	owner="$(lsof -nP -iTCP:"$APP_PORT" -sTCP:LISTEN -t 2>/dev/null | head -1 || true)"
@@ -243,13 +301,13 @@ cmd_drive() {
 	[[ -f "$j" ]] || j="$SKILL_DIR/journeys/$j.ts"
 	[[ -f "$j" ]] || die "journey not found: $j (see $SKILL_DIR/journeys/)"
 	VP_STATE="$STATE" VP_EVIDENCE="$EVIDENCE" VP_APP_URL="$APP_URL" VP_CONTAINER="$CONTAINER" \
-		VP_MAIL_DIR="$MAIL_DIR" bun "$SKILL_DIR/scripts/drive.ts" "$j" "$@"
+		VP_DB_URL="$DB_URL" VP_MAIL_DIR="$MAIL_DIR" bun "$SKILL_DIR/scripts/drive.ts" "$j" "$@"
 }
 
 cmd_sql() {
 	resolve_run
 	[[ $# -ge 1 ]] || die "usage: verify-popcorn sql \"<query>\""
-	docker exec "$CONTAINER" psql -h 127.0.0.1 -U popcorn -d popcorn_verify -v ON_ERROR_STOP=1 -At -F $'\t' -c "$1"
+	psql_db -v ON_ERROR_STOP=1 -At -F $'\t' -c "$1"
 }
 
 cmd_mail() {
@@ -269,7 +327,8 @@ cmd_down() {
 	log "tearing down $RUN_ID"
 	kill_tree "${APP_PID:-}"
 	kill_tree "${MAIL_PID:-}"
-	if docker inspect -f '{{index .Config.Labels "verify-popcorn.run"}}' "$CONTAINER" 2>/dev/null | grep -qx "$RUN_ID"; then
+	kill_tree "${TMDB_PID:-}"
+	if [[ -n "$CONTAINER" ]] && docker inspect -f '{{index .Config.Labels "verify-popcorn.run"}}' "$CONTAINER" 2>/dev/null | grep -qx "$RUN_ID"; then
 		docker rm -f "$CONTAINER" >/dev/null
 	fi
 	# Keep a copy of the logs alongside the evidence, then drop scratch state.

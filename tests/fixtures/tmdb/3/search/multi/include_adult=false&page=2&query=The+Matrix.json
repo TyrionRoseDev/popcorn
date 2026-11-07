@@ -1,0 +1,409 @@
+{
+	"status": 200,
+	"body": {
+		"page": 2,
+		"results": [
+			{
+				"adult": false,
+				"backdrop_path": "/oIfSEQveCEk8W7FZPiGigwYM6Vh.jpg",
+				"id": 1712133,
+				"title": "Exit the matrix",
+				"original_title": "Exit the matrix",
+				"overview": "",
+				"poster_path": "/fVgzuNUOmsJUYpCmvmMQjNtL3ZZ.jpg",
+				"media_type": "movie",
+				"original_language": "es",
+				"genre_ids": [
+					878
+				],
+				"popularity": 0.1675,
+				"release_date": "2026-06-15",
+				"softcore": false,
+				"video": true,
+				"vote_average": 5,
+				"vote_count": 1
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 684731,
+				"title": "The Matrix Reloaded: Pre-Load",
+				"original_title": "The Matrix Reloaded: Pre-Load",
+				"overview": "This making-of piece offers the standard mix of movie snippets, behind the scenes materials, and interviews from cast and crew on the making of the film.",
+				"poster_path": null,
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					99
+				],
+				"popularity": 0.8755,
+				"release_date": "2003-10-14",
+				"softcore": false,
+				"video": false,
+				"vote_average": 6.1,
+				"vote_count": 21
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/b7PwOBkdEQJ1NSk06BvgRe2jhtc.jpg",
+				"id": 919064,
+				"title": "Me and The Matrix",
+				"original_title": "Me and The Matrix",
+				"overview": "Filmmaker Cressa Maeve Beer recalls her experience growing up as a fan of the Matrix movies, in celebration of the upcoming release of The Matrix Resurrections.",
+				"poster_path": "/i9A8PKfzxyp4HxjqoEupKcZfofr.jpg",
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					16,
+					99
+				],
+				"popularity": 0.361,
+				"release_date": "2021-12-22",
+				"softcore": false,
+				"video": false,
+				"vote_average": 5,
+				"vote_count": 5
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 1568732,
+				"title": "The Matrix REdeZIONized",
+				"original_title": "The Matrix REdeZIONized",
+				"overview": "This combines Matrix Reloaded and Matrix Revolutions to one improved movie, leaving out all scenes on and about Zion.  A worthy sequel to a masterpiece.",
+				"poster_path": "/6MA2V52jvL89cFE1kjkw4B2gdTx.jpg",
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [],
+				"popularity": 0.0853,
+				"release_date": "2022-01-01",
+				"softcore": false,
+				"video": false,
+				"vote_average": 0,
+				"vote_count": 0
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/htYaLEQ41N2Ls7mhWvgP8JD21E3.jpg",
+				"id": 505806,
+				"title": "A Glitch in the Matrix",
+				"original_title": "A Glitch in the Matrix",
+				"overview": "In 'A Glitch in the Matrix', journalist David Fuller analyzes and assesses Dr. Jordan B Peterson's recent viral interview with Cathy Newman, unpacking the deeper political, psychological and archetypal levels of the clash.",
+				"poster_path": "/qtbYBuXIYKRaajfrjTR3zp4TuBf.jpg",
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					99
+				],
+				"popularity": 0.5769,
+				"release_date": "2018-02-17",
+				"softcore": false,
+				"video": false,
+				"vote_average": 7.3,
+				"vote_count": 3
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 684729,
+				"title": "The Matrix Reloaded: Car Chase",
+				"original_title": "The Matrix Reloaded: Car Chase",
+				"overview": "This thirty-minute documentary follows the Wachowski sisters and the film's crew through production on the film's famed highway chase sequence. We get interviews with the visual effects supervisors, the stunt coordinators and even are taken through aspects of pre-production and planning for the scene. Then the documentary moves into production, the scariest aspect of which is certainly Carrie Anne-Moss trying to learn to ride a motorcycle good enough to do so safely without helmet for the scene. We also watch as the stretch of freeway used in the film is being built.",
+				"poster_path": "/sWcSPivHUVSAYVLMXksvECeQbe.jpg",
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					99
+				],
+				"popularity": 0.6692,
+				"release_date": "2004-12-07",
+				"softcore": false,
+				"video": false,
+				"vote_average": 7,
+				"vote_count": 7
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 647777,
+				"title": "Exit The Matrix",
+				"original_title": "Выход из Матрицы",
+				"overview": "In the Absheron region of the Krasnodar Territory, among the majestic Caucasus Mountains and impenetrable forests, small villages were lost. They are connected to the rest of the world only by a thin thread of a narrow gauge railway winding through the gorges - and this is the only way from there and the only way there. A small old trolley - a motor-car, nicknamed by the locals \"Matrix\", delivers food, fuel and other benefits of civilization every day. People who, for one reason or another, prefer loneliness and unity with nature to noisy city life, make their journey on it.",
+				"poster_path": "/6K8XMPENGGht4MGfbOaKy8fOHwj.jpg",
+				"media_type": "movie",
+				"original_language": "ru",
+				"genre_ids": [
+					99
+				],
+				"popularity": 0.1185,
+				"release_date": "2019-09-03",
+				"softcore": false,
+				"video": false,
+				"vote_average": 6,
+				"vote_count": 6
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/mfPup8TitefIGDqfjoUz2aD8w0U.jpg",
+				"id": 1731594,
+				"title": "How Do You Remember The Matrix?",
+				"original_title": "How Do You Remember The Matrix?",
+				"overview": "In the year 2073, where all copies of films have been lost in a sea of AI-generated replicas, two detectives seek out the original copy of 'The Matrix'.",
+				"poster_path": "/3Ju2UcOtyPJXxKHrj7dLGDOLC7H.jpg",
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					878,
+					18
+				],
+				"popularity": 0.9859,
+				"release_date": "2026-06-27",
+				"softcore": false,
+				"video": false,
+				"vote_average": 0,
+				"vote_count": 0
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 1184991,
+				"title": "zzirGrizz - The Matrix Montage",
+				"original_title": "zzirGrizz - The Matrix Montage",
+				"overview": "",
+				"poster_path": null,
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [],
+				"popularity": 0.1036,
+				"release_date": "",
+				"softcore": false,
+				"video": false,
+				"vote_average": 0,
+				"vote_count": 0
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 1038494,
+				"title": "Panopticon Destiny – The Matrix Files",
+				"original_title": "Panopticon Destiny – The Matrix Files",
+				"overview": "On August 6th 1977, the world’s first DOCTOR WHO convention was held at a church hall in Battersea, South London.  Organised by The Doctor Who Appreciation Society (DWAS) , Convention ’77 was ground breaking – featuring sta appearances from the (then) current Doctor Tom baker with his latest companion Louise Jameson (Leela) and former Doctor Jon Pertwee.  40 years later, stars, fans and organisers returned to the church hall to reminisce about that special day!  In this second volume celebrating the anniversary, we feature a convention panel with organiser Keith Barnfather, contributor Kevin Davies and attendee Andrew Beech, held at another DWAS event The Capitol II on the 7th May 2017.",
+				"poster_path": "/r1fOhVtFRMqFkG8I6MaK6eDvX8r.jpg",
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					99
+				],
+				"popularity": 0.3941,
+				"release_date": "2021-05-07",
+				"softcore": false,
+				"video": false,
+				"vote_average": 0.5,
+				"vote_count": 1
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 684744,
+				"title": "The Matrix Revolutions: Double Agent Smith",
+				"original_title": "The Matrix Revolutions: Double Agent Smith",
+				"overview": "The special effects of the Agent Smith scenes in Matrix Revolutions",
+				"poster_path": "/kV1R7YBFFDWLt3X5bAVJU6ldzXV.jpg",
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					99
+				],
+				"popularity": 0.6988,
+				"release_date": "2004-04-06",
+				"softcore": false,
+				"video": false,
+				"vote_average": 5.3,
+				"vote_count": 3
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/2WtGZrNxYItKG8Sh518fpUhJTJJ.jpg",
+				"id": 1223598,
+				"title": "Free Your Mind: The Matrix Now",
+				"original_title": "Free Your Mind: The Matrix Now",
+				"overview": "Experience the classic sci-fi film The Matrix like never before in this spectacular live show brought to life through mind-expanding dance and the latest immersive design.",
+				"poster_path": "/nw4cbGwILICx8DaNgZT8HYj6TbX.jpg",
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					10770
+				],
+				"popularity": 0.5461,
+				"release_date": "2023-12-31",
+				"softcore": false,
+				"video": false,
+				"vote_average": 4,
+				"vote_count": 2
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 408912,
+				"title": "The Zionist Matrix of Power",
+				"original_title": "The Zionist Matrix of Power",
+				"overview": "The Zionist Matrix of Power is an amazing video that exposes the real seats of power in the world. It demonstrates the three most important, Media, Finance, and Politics. This video shows the extremists that now dominate this matrix that leads the West the destruction and the World to war and degeneracy.",
+				"poster_path": null,
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					99
+				],
+				"popularity": 0.2771,
+				"release_date": "2010-12-18",
+				"softcore": false,
+				"video": false,
+				"vote_average": 0,
+				"vote_count": 0
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 684721,
+				"title": "The Matrix Revolutions: Super Big Mini Models",
+				"original_title": "The Matrix Revolutions: Super Big Mini Models",
+				"overview": "This making-of piece includes remarks from production designer Owen Paterson, concept artist George Hull, visual effects supervisor John Gaeta, US unit production manager L. Dean Jones Jr., US model unit special effects coordinator Geoffrey Heron, Zion unit sequence lead Rodney Iwashina, high speed first assistant camera Paul Sanchez, US model unit art director Nanci Noblett, conceptual designer Geofrey Darrow, model shop supervisor Michael Lynch, US model unit producer David Dranitzke, prop maker foremen Dave Fogler and Fon Davis, and visual effects supervisor John \"DJ\" Des Jardin.",
+				"poster_path": "/aFSXTzdOYevM3jytFNySwvzYE9q.jpg",
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					99
+				],
+				"popularity": 0.4489,
+				"release_date": "2004-04-06",
+				"softcore": false,
+				"video": false,
+				"vote_average": 6.9,
+				"vote_count": 4
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 26214,
+				"title": "The American Matrix - Age Of Deception",
+				"original_title": "The American Matrix - Age Of Deception",
+				"overview": "A shocking new 2 hour film by B.A. Brooks. This 2010 release is a follow up to \"The Decline And Fall Of America\" which was released in 2008. \"The American Matrix - Age Of Deception\" details news items that all people should be aware of such as the economic collapse of The United States and the formation of the a New World Order. See what has really been going on in America today.",
+				"poster_path": null,
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					99
+				],
+				"popularity": 0.46,
+				"release_date": "2010-01-01",
+				"softcore": false,
+				"video": false,
+				"vote_average": 4.4,
+				"vote_count": 11
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 371610,
+				"title": "David Icke: Secrets of the Matrix",
+				"original_title": "David Icke: Secrets of the Matrix",
+				"overview": "Since 1990 David Icke has been on an amazing journey of self and collective discovery to establish the real power behind apparently \"random\" world events like 9/11 and the \"war on terrorism\".  Here he reveals that a network of interbreeding bloodlines manipulating through their web of interconnecting secret societies have been pursuing an agenda for thousands of years to impose a globally centralized fascist state with total control and surveillance of the population.  The attacks of September 11th - not the work of \"bin Laden\" - and the subsequent \"war on terrorism\" are a means through which this is designed to be achieved.  Over more than six hours and with hundreds of illustrations, David Icke also reveals the illusion that is life in this \"physical\" reality. How is the \"world\" a provable illusion - just a lucid dream? How do we create it and how can we change the dream to one that we would like to experience?",
+				"poster_path": "/tKSN5gR14arHAVWDaqHa2LPQdoJ.jpg",
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					99
+				],
+				"popularity": 0.6084,
+				"release_date": "2004-10-05",
+				"softcore": false,
+				"video": false,
+				"vote_average": 1.2,
+				"vote_count": 2
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/67f5CCagGUV48d0Y4FVU1lAOJNm.jpg",
+				"id": 1384469,
+				"title": "Finger Lickin the SHOW - \"The Matrix\"",
+				"original_title": "Finger Lickin the SHOW - \"The Matrix\"",
+				"overview": "Travis and Seamus’s new show has begun filming.\r While the guys are getting ready, Seamus’s conspiracy becomes a reality and the two have to find a way to fix it. So sit down, grab your beef jerky (and eat the \"do not eat\" packet) cause here is Finger Lickin the SHOW Episode 1!",
+				"poster_path": "/dauZtuMTyxBOCmO0IzfCpYqAZCN.jpg",
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					35,
+					99
+				],
+				"popularity": 0.1713,
+				"release_date": "2020-01-21",
+				"softcore": false,
+				"video": false,
+				"vote_average": 0,
+				"vote_count": 0
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 174615,
+				"title": "Return to Source: The Philosophy of The Matrix",
+				"original_title": "Return to Source: The Philosophy of The Matrix",
+				"overview": "An hour long discussion on the philosophical concepts that inspired, and are presented in the trilogy. This is one of the two feature-length documentaries on disc number 8 of the 10-Disc Ultimate Set.",
+				"poster_path": "/8y6mcZbXxL0IIV4GJJ4whLwApow.jpg",
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					99
+				],
+				"popularity": 0.7103,
+				"release_date": "2004-12-07",
+				"softcore": false,
+				"video": false,
+				"vote_average": 7.4,
+				"vote_count": 18
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 684709,
+				"title": "Mind Over Matter: The Physicality of the Matrix Future",
+				"original_title": "Mind Over Matter: The Physicality of the Matrix Future",
+				"overview": "A look at the stunts of The Matrix Revolutions",
+				"poster_path": null,
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					99
+				],
+				"popularity": 0.5508,
+				"release_date": "2004-04-06",
+				"softcore": false,
+				"video": false,
+				"vote_average": 6.8,
+				"vote_count": 8
+			},
+			{
+				"adult": false,
+				"backdrop_path": null,
+				"id": 684428,
+				"title": "The Matrix: What Is Bullet-Time?",
+				"original_title": "The Matrix: What Is Bullet-Time?",
+				"overview": "Special Effects wizard John Gaeta demonstrates how the \"Bullet-Time\" effects were created for the film The Matrix (1999).",
+				"poster_path": null,
+				"media_type": "movie",
+				"original_language": "en",
+				"genre_ids": [
+					99
+				],
+				"popularity": 0.5734,
+				"release_date": "1999-09-21",
+				"softcore": false,
+				"video": false,
+				"vote_average": 5.8,
+				"vote_count": 11
+			}
+		],
+		"total_pages": 3,
+		"total_results": 60
+	}
+}

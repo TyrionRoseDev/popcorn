@@ -46,3 +46,62 @@ jobs:
 
       - name: Run tests
         run: bun run test
+
+  e2e:
+    name: E2E ${{ matrix.suite }}${{ matrix.allow-failure && ' (allowed to fail)' || '' }}
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.allow-failure }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: journeys
+            journeys: sign-in mark-watched onboarding-rerun
+            allow-failure: false
+          # Fails until the F52/F57 privacy fix lands; reported, not blocking.
+          - suite: privacy-repro
+            journeys: privacy-repro
+            allow-failure: true
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: popcorn
+          POSTGRES_PASSWORD: popcorn
+          POSTGRES_DB: popcorn_verify
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U popcorn -d popcorn_verify"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      VP_DATABASE_URL: postgresql://popcorn:popcorn@127.0.0.1:5432/popcorn_verify
+      VP_TMDB: stub
+      VP_SERVER: build
+      VERIFY_POPCORN_HOME: /tmp/verify-popcorn
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install headless Chromium
+        run: bunx playwright-core@1.64.1 install --with-deps chromium-headless-shell
+
+      - name: Run journeys
+        run: .claude/skills/verify-popcorn/scripts/run-journeys ${{ matrix.journeys }}
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-${{ matrix.suite }}
+          path: /tmp/verify-popcorn/evidence
+          if-no-files-found: ignore
