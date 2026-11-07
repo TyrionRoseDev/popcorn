@@ -38,7 +38,10 @@ export function AchievementCelebrationProvider({
 		...trpc.achievement.myAchievements.queryOptions(),
 		refetchInterval: 30_000,
 	});
-	const earnedTotal = (achievementData?.earned.length ?? 0) + pendingIds.length;
+	const earnedTotal = new Set([
+		...(achievementData?.earned ?? []).map((a) => a.id),
+		...pendingIds,
+	]).size;
 
 	// Tracks achievement IDs already seen this session so we never double-celebrate.
 	// Populated on first fetch (baseline) and updated whenever we fire a celebration.
