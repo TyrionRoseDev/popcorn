@@ -1294,6 +1294,7 @@ function FriendExpandedSections({
 }: {
 	profile: {
 		id: string;
+		username: string | null;
 		publicWatchlists: Array<{
 			id: string;
 			name: string;
@@ -1343,6 +1344,7 @@ function FriendExpandedSections({
 					userId={profile.id}
 					isFriend={!isSelf}
 					isOwnProfile={isSelf}
+					friendName={profile.username ?? undefined}
 				/>
 
 				{/* ── Rating Distribution ── */}
