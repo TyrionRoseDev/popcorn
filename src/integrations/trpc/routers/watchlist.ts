@@ -173,13 +173,9 @@ export const watchlistRouter = {
 
 		const countMap = new Map(itemCounts.map((c) => [c.watchlistId, c.count]));
 
-		// Filter out shuffle watchlists and empty watchlists (0 items total)
-		const visibleIds = watchlistIds.filter((id) => (countMap.get(id) ?? 0) > 0);
-		if (visibleIds.length === 0) return [];
-
 		const watchlists = await db.query.watchlist.findMany({
 			where: (wl, { inArray, and, ne }) =>
-				and(inArray(wl.id, visibleIds), ne(wl.type, "shuffle")),
+				and(inArray(wl.id, watchlistIds), ne(wl.type, "shuffle")),
 			with: {
 				items: {
 					columns: {

@@ -301,7 +301,8 @@ export function ReviewModal({
 											<Calendar
 												mode="single"
 												disabled={{ after: new Date() }}
-												toDate={new Date()}
+												startMonth={new Date(1950, 0)}
+												endMonth={new Date()}
 												selected={watchedAt ? new Date(watchedAt) : undefined}
 												onSelect={(date) => {
 													if (!date) return;
