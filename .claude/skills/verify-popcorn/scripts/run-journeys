@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Bring up one fresh run, drive each journey in order, print every RESULT line, tear the run down.
+# Exits non-zero when any journey fails. Settings pass through to 'verify-popcorn up'
+# (VP_RUN_ID, VP_TMDB, VP_DATABASE_URL). CI calls this; it works the same locally:
+#   VP_TMDB=stub run-journeys sign-in mark-watched onboarding-rerun
+set -uo pipefail
+
+VP="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/verify-popcorn"
+[[ $# -ge 1 ]] || { echo "usage: run-journeys <journey>..." >&2; exit 2; }
+
+export VP_RUN_ID="${VP_RUN_ID:-vp-$(date +%Y%m%d-%H%M%S)}"
+RUN_ID="$VP_RUN_ID"
+[[ ! -e "${VERIFY_POPCORN_HOME:-$HOME/.cache/verify-popcorn}/runs/$RUN_ID" ]] ||
+	{ echo "run-journeys: run $RUN_ID already exists; pick another VP_RUN_ID" >&2; exit 2; }
+finish() {
+	local state
+	state="$("$VP" env 2>/dev/null | sed -n 's/^STATE=//p')"
+	[[ -n "$state" ]] || return 0
+	grep -h '^MISS ' "$state/tmdb.log" >&2 2>/dev/null || true
+	"$VP" down
+}
+trap finish EXIT
+
+"$VP" up >/dev/null || exit 1
+EVIDENCE="$("$VP" env | sed -n 's/^EVIDENCE=//p')"
+"$VP" doctor || exit 1
+
+status=0
+results=()
+for journey in "$@"; do
+	"$VP" drive "$journey" || status=1
+	result="$journey: $(grep '^RESULT ' "$EVIDENCE/$journey/steps.log" 2>/dev/null || echo 'RESULT FAIL (no steps.log)')"
+	results+=("$result")
+done
+
+printf '%s\n' "${results[@]}"
+if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+	{
+		echo "### Journeys on $RUN_ID"
+		printf -- '- `%s`\n' "${results[@]}"
+	} >>"$GITHUB_STEP_SUMMARY"
+fi
+exit $status

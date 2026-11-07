@@ -15,6 +15,11 @@ import {
 	watchlistItem,
 	watchlistMember,
 } from "#/db/schema";
+import {
+	ensureAreFriends,
+	hideInvisibleOrigins,
+	watchEventVisibleTo,
+} from "#/integrations/trpc/access";
 import { protectedProcedure } from "#/integrations/trpc/init";
 import { evaluateAchievements } from "#/lib/evaluate-achievements";
 import { fetchTitleDetails } from "#/lib/tmdb-title";
@@ -24,6 +29,12 @@ const companionSchema = z.object({
 	friendId: z.string().optional(),
 	name: z.string().min(1).max(100),
 });
+
+const COMPANIONS_FRIENDS_ONLY = "Companions must be your friends";
+
+function companionFriendIds(companions: { friendId?: string }[] | undefined) {
+	return companions?.flatMap((c) => (c.friendId ? [c.friendId] : [])) ?? [];
+}
 
 export const watchEventRouter = {
 	create: protectedProcedure
@@ -54,6 +65,12 @@ export const watchEventRouter = {
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			await ensureAreFriends(
+				ctx.userId,
+				companionFriendIds(input.companions),
+				COMPANIONS_FRIENDS_ONLY,
+			);
+
 			// Get current watch number for TV shows
 			let watchNum = 1;
 			if (input.mediaType === "tv") {
@@ -329,6 +346,25 @@ export const watchEventRouter = {
 				throw new TRPCError({ code: "NOT_FOUND" });
 			}
 
+			const oldCompanions =
+				input.companions === undefined
+					? []
+					: await db.query.watchEventCompanion.findMany({
+							where: eq(watchEventCompanion.watchEventId, input.id),
+						});
+			const oldFriendIds = new Set(
+				oldCompanions
+					.filter((c) => c.friendId)
+					.map((c) => c.friendId as string),
+			);
+			await ensureAreFriends(
+				ctx.userId,
+				companionFriendIds(input.companions).filter(
+					(id) => !oldFriendIds.has(id),
+				),
+				COMPANIONS_FRIENDS_ONLY,
+			);
+
 			const [updated] = await db
 				.update(watchEvent)
 				.set({
@@ -352,16 +388,6 @@ export const watchEventRouter = {
 				.returning();
 
 			if (input.companions !== undefined) {
-				// Get old companions before deleting
-				const oldCompanions = await db.query.watchEventCompanion.findMany({
-					where: eq(watchEventCompanion.watchEventId, input.id),
-				});
-				const oldFriendIds = new Set(
-					oldCompanions
-						.filter((c) => c.friendId)
-						.map((c) => c.friendId as string),
-				);
-
 				// Replace companions
 				await db
 					.delete(watchEventCompanion)
@@ -589,7 +615,7 @@ export const watchEventRouter = {
 					desc(sql`COALESCE(${e.watchedAt}, ${e.createdAt})`),
 				],
 			});
-			return events;
+			return hideInvisibleOrigins(ctx.userId, events);
 		}),
 
 	getUserEvents: protectedProcedure
@@ -660,7 +686,7 @@ export const watchEventRouter = {
 			});
 
 			return {
-				items,
+				items: await hideInvisibleOrigins(ctx.userId, items),
 				nextCursor: hasMore ? items[items.length - 1]?.id : undefined,
 			};
 		}),
@@ -727,15 +753,7 @@ export const watchEventRouter = {
 				where: and(
 					inArray(watchEvent.userId, userIds),
 					...(cursorDate ? [sql`${watchEvent.createdAt} < ${cursorDate}`] : []),
-					or(
-						eq(watchEvent.userId, ctx.userId),
-						eq(watchEvent.visibility, "public"),
-						sql`(${watchEvent.visibility} = 'companion' AND EXISTS (
-							SELECT 1 FROM watch_event_companion
-							WHERE watch_event_companion.watch_event_id = ${watchEvent.id}
-							AND watch_event_companion.friend_id = ${ctx.userId}
-						))`,
-					),
+					watchEventVisibleTo(ctx.userId),
 				),
 				with: {
 					companions: true,
@@ -764,7 +782,9 @@ export const watchEventRouter = {
 			});
 
 			// Filter review content based on visibility
-			const filteredWatchEvents = watchEvents.map((event) => {
+			const filteredWatchEvents = (
+				await hideInvisibleOrigins(ctx.userId, watchEvents)
+			).map((event) => {
 				if (event.userId === ctx.userId) return event;
 				if (event.visibility === "public") return event;
 				if (event.visibility === "companion") {

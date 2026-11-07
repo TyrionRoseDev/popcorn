@@ -24,8 +24,12 @@ export interface Vp {
 	capture(name: string): Promise<void>;
 	/** psql -At against the run's DB; returns rows as arrays of strings. Writes query+result to evidence. */
 	sql(query: string, label?: string): string[][];
-	/** Newest captured email for an address, waiting up to timeoutMs. */
-	waitForMail(to: string, timeoutMs?: number): Promise<{ subject: string; link: string | null; html: string }>;
+	/** Newest captured email for an address sent after `since` (epoch ms), waiting up to timeoutMs. */
+	waitForMail(
+		to: string,
+		timeoutMs?: number,
+		since?: number,
+	): Promise<{ subject: string; link: string | null; html: string }>;
 	/** Navigate and wait until React has hydrated (dev SSR pages ignore input until then). */
 	goto(path: string): Promise<void>;
 	/** Wait for network idle + React hydration on the current page. */
@@ -37,7 +41,10 @@ export interface Vp {
 export async function createVp(journey: string): Promise<{ vp: Vp; close: (ok: boolean) => Promise<void> }> {
 	const appUrl = need("VP_APP_URL");
 	const state = need("VP_STATE");
-	const container = need("VP_CONTAINER");
+	const container = process.env.VP_CONTAINER;
+	const psql = container
+		? { cmd: "docker", args: ["exec", container, "psql", "-h", "127.0.0.1", "-U", "popcorn", "-d", "popcorn_verify"] }
+		: { cmd: "psql", args: [need("VP_DB_URL")] };
 	const mailDir = need("VP_MAIL_DIR");
 	const dir = join(need("VP_EVIDENCE"), journey);
 	mkdirSync(dir, { recursive: true });
@@ -85,24 +92,19 @@ export async function createVp(journey: string): Promise<{ vp: Vp; close: (ok: b
 			appendFileSync(stepsLog, `CAPTURE ${base} url=${page.url()}\n`);
 		},
 		sql(query, label = "query") {
-			const out = execFileSync(
-				"docker",
-				["exec", container, "psql", "-h", "127.0.0.1", "-U", "popcorn", "-d", "popcorn_verify", "-At", "-F", "\t", "-c", query],
-				{ encoding: "utf8" },
-			);
+			const out = execFileSync(psql.cmd, [...psql.args, "-At", "-F", "\t", "-c", query], { encoding: "utf8" });
 			appendFileSync(join(dir, "db.log"), `-- ${label}\n${query}\n${out}\n`);
 			return out
 				.split("\n")
 				.filter(Boolean)
 				.map((r) => r.split("\t"));
 		},
-		async waitForMail(to, timeoutMs = 15000) {
+		async waitForMail(to, timeoutMs = 15000, since = Date.now() - 1000) {
 			const deadline = Date.now() + timeoutMs;
-			const startedAt = Date.now() - 1000;
 			while (Date.now() < deadline) {
 				const files = readdirSync(mailDir).filter((f) => f.endsWith(".json")).sort().reverse();
 				for (const f of files) {
-					if (Number(f.split("-")[0]) < startedAt) continue;
+					if (Number(f.split("-")[0]) < since) continue;
 					const m = JSON.parse(readFileSync(join(mailDir, f), "utf8"));
 					const rcpt = Array.isArray(m.to) ? m.to : [m.to];
 					if (rcpt.includes(to)) {
@@ -134,11 +136,12 @@ export async function createVp(journey: string): Promise<{ vp: Vp; close: (ok: b
 		async signIn(email = "vera@popcorn.test") {
 			await vp.goto("/login");
 			await page.getByPlaceholder("you@email.com").fill(email);
+			const requestedAt = Date.now();
 			await page.getByRole("button", { name: "Send Magic Link" }).click();
 			await page.getByRole("heading", { name: "Magic link sent!" }).waitFor();
 			vp.step(`magic link requested for ${email}`);
 			await vp.capture("magic-link-sent");
-			const mail = await vp.waitForMail(email);
+			const mail = await vp.waitForMail(email, 15000, requestedAt);
 			vp.expect(mail.link?.startsWith(`${appUrl}/api/auth/magic-link/verify`), "email contains a magic-link verify URL for this instance");
 			await page.goto(mail.link as string);
 			await page.waitForURL((u) => !u.pathname.startsWith("/api/auth") && u.pathname !== "/login", { timeout: 30000 });

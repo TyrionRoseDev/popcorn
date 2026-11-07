@@ -1,0 +1,458 @@
+{
+	"status": 200,
+	"body": {
+		"page": 1,
+		"results": [
+			{
+				"adult": false,
+				"backdrop_path": "/31o1Ufd7bStD5dGEcpzapOjwaqx.jpg",
+				"genre_ids": [
+					10765,
+					18
+				],
+				"id": 213375,
+				"origin_country": [
+					"US"
+				],
+				"original_language": "en",
+				"original_name": "VisionQuest",
+				"overview": "With a bounty on his head, Vision must confront his nature and resist Ultron's influence to survive.",
+				"popularity": 236.327,
+				"poster_path": "/WGyAyBPncfuu8MZhLY9RtfZPM0.jpg",
+				"first_air_date": "2026-10-13",
+				"softcore": false,
+				"name": "VisionQuest",
+				"vote_average": 8.6,
+				"vote_count": 268
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/1ptukf8gx19U1HcBv3aRzzlXuyJ.jpg",
+				"genre_ids": [
+					18,
+					10765
+				],
+				"id": 279246,
+				"origin_country": [
+					"KR"
+				],
+				"original_language": "ko",
+				"original_name": "재혼 황후",
+				"overview": "Beloved Empress Navier rules the Eastern Empire alongside Emperor Sovieshu. But when Sovieshu falls for a runaway slave and demands a divorce, Navier will agree on one condition: that she's given approval to remarry rival Prince Heinrey of the Western Kingdom.",
+				"popularity": 174.8184,
+				"poster_path": "/zn3IXZzGavH3qle3o3g1r32eXDy.jpg",
+				"first_air_date": "2026-11-03",
+				"softcore": false,
+				"name": "The Remarried Empress",
+				"vote_average": 8.188,
+				"vote_count": 16
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/gWedDgBsZkuOho2qe3q2sTQmbpO.jpg",
+				"genre_ids": [
+					9648,
+					18
+				],
+				"id": 289517,
+				"origin_country": [
+					"KR"
+				],
+				"original_language": "ko",
+				"original_name": "꿀알바",
+				"overview": "Drowning in debt, a young man takes lucrative part-time jobs from a mysterious agency — only to find his hustle for more money turning nightmarish.",
+				"popularity": 130.5209,
+				"poster_path": "/wUvzMC7EToPgci31ZZRCeqCmQ6d.jpg",
+				"first_air_date": "2026-10-30",
+				"softcore": false,
+				"name": "Dead-End Job",
+				"vote_average": 7.6,
+				"vote_count": 54
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/VgW1XPEFiwEZgYuR2Wl204DxGL.jpg",
+				"genre_ids": [
+					18,
+					9648,
+					10765
+				],
+				"id": 330613,
+				"origin_country": [
+					"TH"
+				],
+				"original_language": "th",
+				"original_name": "กฎหลังเที่ยงคืน",
+				"overview": "Metha, a man burdened by a buried past, attempts to start over by taking a night shift job at a mysterious convenience store. However, the store operates under a set of strange, inviolable rules—rules that, when broken, unleash supernatural death. Night after night, Metha is forced to confront the uncanny forces within the store… and the sins he once committed, from which there is no escape.",
+				"popularity": 109.0094,
+				"poster_path": "/IECgq0Hd4ezuyGhbQgQawURGKT.jpg",
+				"first_air_date": "2026-10-28",
+				"softcore": false,
+				"name": "The Rules",
+				"vote_average": 8.5,
+				"vote_count": 2
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/t2KFGH07Al4XuIZLHRlF1Hj9IJB.jpg",
+				"genre_ids": [
+					16,
+					10759,
+					10765,
+					10751
+				],
+				"id": 284833,
+				"origin_country": [
+					"US"
+				],
+				"original_language": "en",
+				"original_name": "Avatar: Seven Havens",
+				"overview": "In a world shattered by a devastating cataclysm, a young Earthbender discovers she's the new Avatar after Korra. But in this dangerous era, that title marks her as humanity's destroyer, not its savior. Hunted by both human and spirit enemies, she and her long-lost twin must uncover their mysterious origins and save the Seven Havens before civilization's last strongholds collapse.",
+				"popularity": 86.1407,
+				"poster_path": "/u62d0BPqsdv2TUDifcMmoePbHPL.jpg",
+				"first_air_date": "2026-10-09",
+				"softcore": false,
+				"name": "Avatar: Seven Havens",
+				"vote_average": 8.9,
+				"vote_count": 184
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/8phLVFEXOe02JgFmH9ldn3j4tXW.jpg",
+				"genre_ids": [
+					16,
+					10759,
+					10765
+				],
+				"id": 312359,
+				"origin_country": [
+					"JP"
+				],
+				"original_language": "ja",
+				"original_name": "ドラゴンボール超 ビルス",
+				"overview": "When Beerus, the God of Destruction, awakens in search of a worthy rival, Goku and his friends face an epic battle to stop him from destroying Earth.\n\nRemastered and re-edited version of Dragon Ball Super.",
+				"popularity": 94.9897,
+				"poster_path": "/AojgldgsOlzZV8ahyOzaiAjJWvV.jpg",
+				"first_air_date": "2026-10-11",
+				"softcore": false,
+				"name": "Dragon Ball Super: Beerus",
+				"vote_average": 9.641,
+				"vote_count": 393
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/oaWJm4brEMSWBmQIB73DFxsU683.jpg",
+				"genre_ids": [
+					18
+				],
+				"id": 303044,
+				"origin_country": [
+					"FR"
+				],
+				"original_language": "fr",
+				"original_name": "Campus Drivers",
+				"overview": "Lois arrives in Belrose with Max, the love of her life. Lane, the creator of Campus Drivers, the hottest app on campus, is known for never getting attached. Their paths were never meant to cross. But some encounters change everything, reopening old wounds. And when love appears unexpectedly, nothing is certain anymore.",
+				"popularity": 93.5108,
+				"poster_path": "/oPltcyfWWfVmxB6lV8JZZJV3m7Q.jpg",
+				"first_air_date": "2026-11-06",
+				"softcore": false,
+				"name": "Campus Drivers",
+				"vote_average": 7.8,
+				"vote_count": 7
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/614k6C9doThoMe6GyH0nTnGgLXt.jpg",
+				"genre_ids": [
+					80,
+					18,
+					9648
+				],
+				"id": 292741,
+				"origin_country": [
+					"US"
+				],
+				"original_language": "en",
+				"original_name": "Nocturne",
+				"overview": "When a victim of notorious serial killer Jurek Walter unexpectedly turns up alive, detective Jonah Lynn races against time to find the one person still missing, while his protégé Saga Bauer goes undercover to get answers from the killer himself.",
+				"popularity": 91.5011,
+				"poster_path": "/nyvXVcPnHEwVmqCdzjjCsu1jqhm.jpg",
+				"first_air_date": "2026-10-29",
+				"softcore": false,
+				"name": "Nocturne",
+				"vote_average": 7.7,
+				"vote_count": 35
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/32g5MD6eHPAZ5NAgkNAURb4eupm.jpg",
+				"genre_ids": [
+					35,
+					18,
+					80,
+					10759
+				],
+				"id": 303745,
+				"origin_country": [
+					"KR"
+				],
+				"original_language": "ko",
+				"original_name": "나의 유죄인간",
+				"overview": "Taekang Group's successor, Yoon Yi-jun, is the prime suspect of a shocking murder. To uncover the truth, Kang Jae-hee goes undercover as a male secretary to keep an eye on Yi-jun. The closer they get to what really happened, the closer Yi-jun and Jae-hee become. Will Jae-hee, who is hiding her identity, and Yi-jun, who is hiding a secret, be able to let their true feelings be known to one another?",
+				"popularity": 81.2236,
+				"poster_path": "/kSAXIAovLC4z7Wp2Hy8oqLmpkox.jpg",
+				"first_air_date": "2026-10-19",
+				"softcore": false,
+				"name": "Love in Disguise",
+				"vote_average": 9,
+				"vote_count": 52
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/q6VPQREsEGFccpWVF7wFvy9oc25.jpg",
+				"genre_ids": [
+					18
+				],
+				"id": 300146,
+				"origin_country": [
+					"CN"
+				],
+				"original_language": "zh",
+				"original_name": "嫁金钗",
+				"overview": "An ambitious street urchin seizes the chance to impersonate a noblewoman and becomes a warlord's bride, but when her comatose husband awakens, she must navigate deadly schemes, win his heart through cunning, and uncover her royal heritage to triumph over rivals and rise from gutter to glory.",
+				"popularity": 83.7515,
+				"poster_path": "/cE9Og0lCCRCP2RArarzJXmu6xEB.jpg",
+				"first_air_date": "2026-10-16",
+				"softcore": false,
+				"name": "Where the Mask Ends",
+				"vote_average": 7.036,
+				"vote_count": 14
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/wxiBsKFEOOFK8eQStWOykNORlXY.jpg",
+				"genre_ids": [
+					18,
+					9648
+				],
+				"id": 213562,
+				"origin_country": [
+					"US"
+				],
+				"original_language": "en",
+				"original_name": "Crystal Lake",
+				"overview": "Single mother Pam Voorhees has been unable to shake her grief after her young, sickly son Jason tragically drowned in the town lake almost a year before. When two strangers arrive at Pam's door digging into her past, a disturbing chain of events is set into motion, leaving the townspeople of Crystal Lake wondering: just who is Pam Voorhees?",
+				"popularity": 71.3866,
+				"poster_path": "/3ENhExiD2fcjk5FX0AcAXcvLu9N.jpg",
+				"first_air_date": "2026-10-15",
+				"softcore": false,
+				"name": "Crystal Lake",
+				"vote_average": 8.633,
+				"vote_count": 331
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/cVUKFfws4upCB4ytz5uGIONIiRc.jpg",
+				"genre_ids": [
+					18,
+					80
+				],
+				"id": 243555,
+				"origin_country": [
+					"IN"
+				],
+				"original_language": "ta",
+				"original_name": "அக்கா",
+				"overview": "In a kingdom ruled by women, matriarch Bhavani faces her biggest threat in Rudra, a ruthless rebel eyeing her land and legacy.",
+				"popularity": 71.5739,
+				"poster_path": "/tdnHaR0vlKMQbjmaCs2V3LDmzSd.jpg",
+				"first_air_date": "2026-10-30",
+				"softcore": false,
+				"name": "Akka",
+				"vote_average": 6.25,
+				"vote_count": 4
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/b57tPAE2rpUoNpa63o7U2sFvIZs.jpg",
+				"genre_ids": [
+					18
+				],
+				"id": 258989,
+				"origin_country": [
+					"CA",
+					"US"
+				],
+				"original_language": "en",
+				"original_name": "The Greatest",
+				"overview": "Fresh off gold at the 1960 Olympics, young boxer Muhammad Ali (then known as Cassius Clay) sets his sights on the Heavyweight Championship. Contending with newfound fame, self-doubt, family conflict and a politically charged America, the once-in-a-generation prodigy discovers his greatest opponent won't be in the ring, but in a society that isn't ready for him to become his own man.",
+				"popularity": 44.6969,
+				"poster_path": "/hu4jco5AOs8NSIctuc9KsRyuSg8.jpg",
+				"first_air_date": "2026-11-04",
+				"softcore": false,
+				"name": "The Greatest",
+				"vote_average": 5.3,
+				"vote_count": 14
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/mDYIV71RL3mkaW8IfSGNthuVB7l.jpg",
+				"genre_ids": [
+					9648,
+					18,
+					80
+				],
+				"id": 293610,
+				"origin_country": [
+					"KR"
+				],
+				"original_language": "ko",
+				"original_name": "닥터X: 하얀 마피아의 시대",
+				"overview": "In a hospital dominated by ego and corruption, an enigmatic but brilliant surgeon arrives — taking on seemingly impossible cases amid fierce opposition.",
+				"popularity": 48.1435,
+				"poster_path": "/nDDVzQfv95PGwj9nV2fJvUrkcvU.jpg",
+				"first_air_date": "2026-10-09",
+				"softcore": false,
+				"name": "Doctor X: Mafia in White",
+				"vote_average": 9,
+				"vote_count": 41
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/gpp6NcgfSrxKDivWskRxLp9UadU.jpg",
+				"genre_ids": [
+					16,
+					37,
+					10765
+				],
+				"id": 314271,
+				"origin_country": [
+					"US"
+				],
+				"original_language": "en",
+				"original_name": "Bass X Machina",
+				"overview": "In a steampunk West overrun by outlaws, machines and supernatural forces, a father is forced to become judge, jury and executioner to protect his family.",
+				"popularity": 41.8834,
+				"poster_path": "/y9c1AwrldWRsY9edSf21cOgbI0h.jpg",
+				"first_air_date": "2026-11-03",
+				"softcore": false,
+				"name": "Bass X Machina",
+				"vote_average": 7.7,
+				"vote_count": 7
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/geSUajSeWBu14vLk0NyuR1OnrX7.jpg",
+				"genre_ids": [
+					18
+				],
+				"id": 298550,
+				"origin_country": [
+					"DE"
+				],
+				"original_language": "de",
+				"original_name": "Friends Sex and Games",
+				"overview": "A group of friends starts a daring game. Everyone throws their keys into a bowl—whoever picks one spends the night with the owner of that key.",
+				"popularity": 37.1063,
+				"poster_path": "/zijeb3WqqTIYJm3mmp1sb0uNGUj.jpg",
+				"first_air_date": "2026-10-16",
+				"softcore": false,
+				"name": "Friends Sex and Games",
+				"vote_average": 8.143,
+				"vote_count": 7
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/cnb3SelfQKewpo0bw4HCNRHjwY4.jpg",
+				"genre_ids": [
+					10765,
+					35,
+					18
+				],
+				"id": 289423,
+				"origin_country": [
+					"KR"
+				],
+				"original_language": "ko",
+				"original_name": "나를 충전해줘",
+				"overview": "A corporate heir with an artificial heart meets a woman who's literally electric. They strike a deal that makes his heart beat — in more ways than one.",
+				"popularity": 32.4283,
+				"poster_path": "/ecRrKGXfflZmDZBD4irdkybClT.jpg",
+				"first_air_date": "2026-10-09",
+				"softcore": false,
+				"name": "Take Charge of My Heart",
+				"vote_average": 8.766,
+				"vote_count": 62
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/3SvKCITqMtjgPIhFBjRc4yTAc4H.jpg",
+				"genre_ids": [
+					10759,
+					18
+				],
+				"id": 293607,
+				"origin_country": [
+					"KR"
+				],
+				"original_language": "ko",
+				"original_name": "100일의 거짓말",
+				"overview": "Hoping for freedom, Gyeongseong's top pickpocket infiltrates the Japanese colonial government to steal secrets — only to fall for her target's son.",
+				"popularity": 29.3155,
+				"poster_path": "/bZHEU42QynnMrHUWK1Hhvj2cdPA.jpg",
+				"first_air_date": "2026-10-10",
+				"softcore": false,
+				"name": "100 Days of Deception",
+				"vote_average": 8.5,
+				"vote_count": 13
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/ir485FZlwSPuTIiw1KEZRlFjV3x.jpg",
+				"genre_ids": [
+					18,
+					10751
+				],
+				"id": 287556,
+				"origin_country": [
+					"AR"
+				],
+				"original_language": "es",
+				"original_name": "Mírame así, el camino de Noa",
+				"overview": "Noa visits her boyfriend in Argentina, where she meets Tomy. As she explores her musical identity under parental pressure, Tomy tries to leave his musical past behind while both navigate life in Buenos Aires.",
+				"popularity": 32.911,
+				"poster_path": "/raDCgg7Yej6sFwIYKSxOf8tO6yI.jpg",
+				"first_air_date": "2026-10-09",
+				"softcore": false,
+				"name": "Mírame así, el camino de Noa",
+				"vote_average": 9.333,
+				"vote_count": 9
+			},
+			{
+				"adult": false,
+				"backdrop_path": "/cn0feYcDvVzVjUDoXa1O8sRgzz.jpg",
+				"genre_ids": [
+					18,
+					9648
+				],
+				"id": 285322,
+				"origin_country": [
+					"CA",
+					"GB"
+				],
+				"original_language": "en",
+				"original_name": "Below",
+				"overview": "When a mysterious sea creature terrorizes a small Newfoundland town, a hard-bitten fisherman and his family fight to protect their close-knit community.",
+				"popularity": 30.4454,
+				"poster_path": "/vgLqqhMUbljp585qPp1EFCyJtcz.jpg",
+				"first_air_date": "2026-10-08",
+				"softcore": false,
+				"name": "Below",
+				"vote_average": 7.145,
+				"vote_count": 265
+			}
+		],
+		"total_pages": 67,
+		"total_results": 1336
+	}
+}
