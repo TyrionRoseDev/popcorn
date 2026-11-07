@@ -44,8 +44,8 @@ export function NotFoundState({
 	children: ReactNode;
 }) {
 	return (
-		<div className="relative z-10 flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
-			<div className="font-mono-retro text-[11px] text-neon-amber uppercase tracking-[3px] mb-3 [text-shadow:0_0_10px_rgba(255,184,0,0.3)]">
+		<div className="relative z-10 flex flex-col items-center justify-center min-h-96 px-4 text-center">
+			<div className="font-mono-retro text-xs text-neon-amber uppercase tracking-widest mb-3 [text-shadow:0_0_10px_rgba(255,184,0,0.3)]">
 				{eyebrow}
 			</div>
 			<h1 className="font-display text-2xl md:text-3xl text-cream mb-2">

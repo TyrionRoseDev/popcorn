@@ -134,6 +134,7 @@ export async function createVp(journey: string): Promise<{ vp: Vp; close: (ok: b
 			await vp.settled();
 		},
 		async signIn(email = "vera@popcorn.test") {
+			await context.clearCookies();
 			await vp.goto("/login");
 			await page.getByPlaceholder("you@email.com").fill(email);
 			const requestedAt = Date.now();

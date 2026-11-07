@@ -14,7 +14,17 @@ const DEFAULT_DESTINATION = "/app/search";
 const loginSearchSchema = z.object({
 	redirect: z
 		.string()
-		.regex(/^\/app(?:[/?#]|$)/)
+		.transform((value, ctx) => {
+			const url = new URL(value, "http://popcorn.invalid");
+			if (
+				url.origin !== "http://popcorn.invalid" ||
+				!/^\/app(?:\/|$)/.test(url.pathname)
+			) {
+				ctx.addIssue({ code: "custom", message: "redirect must stay in /app" });
+				return z.NEVER;
+			}
+			return `${url.pathname}${url.search}${url.hash}`;
+		})
 		.optional()
 		.catch(undefined),
 });
