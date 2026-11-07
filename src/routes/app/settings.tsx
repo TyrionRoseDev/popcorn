@@ -36,8 +36,10 @@ function SettingsLayout() {
 }
 
 function SettingsPage() {
+	const { user: serverUser } = Route.useRouteContext();
 	const { data: session } = authClient.useSession();
-	const user = session?.user;
+	const liveUser = session?.user;
+	const user = liveUser ?? serverUser;
 	const trpc = useTRPC();
 
 	// Dialog states
@@ -53,11 +55,12 @@ function SettingsPage() {
 	// Fetch user genres
 	const userGenres = useQuery(trpc.tasteProfile.getUserGenres.queryOptions());
 
-	// Fetch favourite film details (for title + poster)
+	// Keyed on the browser session, not the server session. The server's query cache
+	// is shared across requests, so a server render could show a film the client lacks.
 	const filmDetails = useQuery(
 		trpc.title.details.queryOptions(
-			{ mediaType: "movie", tmdbId: user?.favouriteFilmTmdbId ?? 0 },
-			{ enabled: !!user?.favouriteFilmTmdbId },
+			{ mediaType: "movie", tmdbId: liveUser?.favouriteFilmTmdbId ?? 0 },
+			{ enabled: !!liveUser?.favouriteFilmTmdbId },
 		),
 	);
 
@@ -76,8 +79,6 @@ function SettingsPage() {
 			},
 		}),
 	);
-
-	if (!user) return null;
 
 	const genreIds = userGenres.data ?? [];
 	const genreNames = genreIds

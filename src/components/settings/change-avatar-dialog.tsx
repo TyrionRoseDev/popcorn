@@ -1,5 +1,4 @@
 import { generateReactHelpers } from "@uploadthing/react";
-import heic2any from "heic2any";
 import { useState } from "react";
 import {
 	Dialog,
@@ -76,6 +75,7 @@ export function ChangeAvatarDialog({
 			file.name.toLowerCase().endsWith(".heif")
 		) {
 			try {
+				const { default: heic2any } = await import("heic2any");
 				const blob = await heic2any({
 					blob: file,
 					toType: "image/jpeg",

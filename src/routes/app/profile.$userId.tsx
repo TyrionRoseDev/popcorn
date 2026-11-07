@@ -26,6 +26,11 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { AchievementGrid } from "#/components/achievements/achievement-grid";
+import {
+	NotFoundState,
+	notFoundLinkClass,
+	orNotFound,
+} from "#/components/not-found";
 import { FeedJournalCard } from "#/components/tracker/feed-journal-card";
 import { Dialog, DialogContent, DialogTitle } from "#/components/ui/dialog";
 import { ReviewModal } from "#/components/watched/review-modal";
@@ -35,10 +40,28 @@ import { useTRPC } from "#/integrations/trpc/react";
 import { ACHIEVEMENTS } from "#/lib/achievements";
 import { getUnifiedGenreById } from "#/lib/genre-map";
 import { getTmdbImageUrl } from "#/lib/tmdb";
+import { ensureProfile } from "./-protected-queries";
 
 export const Route = createFileRoute("/app/profile/$userId")({
+	loader: async ({ context, params }) => {
+		await orNotFound(() => ensureProfile(context, { userId: params.userId }));
+	},
+	notFoundComponent: ProfileNotFound,
 	component: ProfilePage,
 });
+
+function ProfileNotFound() {
+	return (
+		<NotFoundState
+			title="User not found"
+			message="This profile doesn't exist or may have been removed."
+		>
+			<Link to="/app/friends" className={notFoundLinkClass}>
+				Back to friends
+			</Link>
+		</NotFoundState>
+	);
+}
 
 // ── Marquee bulbs ──────────────────────────────────────────────
 const MARQUEE_BULB_COUNT = 28;

@@ -1,14 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type React from "react";
 import { useState } from "react";
 import { z } from "zod";
 import { Atmosphere } from "#/components/atmosphere";
+import {
+	NotFoundState,
+	notFoundLinkClass,
+	orNotFound,
+	unavailableReason,
+} from "#/components/not-found";
 import { InviteMemberModal } from "#/components/watchlist/invite-member-modal";
 import { WatchlistDetailHeader } from "#/components/watchlist/watchlist-detail-header";
 import { WatchlistFilters } from "#/components/watchlist/watchlist-filters";
 import { WatchlistItemCard } from "#/components/watchlist/watchlist-item-card";
 import { useTRPC } from "#/integrations/trpc/react";
+import { ensureWatchlist } from "../-protected-queries";
 
 const watchlistAtmosphere: React.ComponentProps<typeof Atmosphere> = {
 	glowColor: "rgba(236,72,153,0.15)",
@@ -25,8 +32,33 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/app/watchlists/$watchlistId")({
 	validateSearch: (search) => searchSchema.parse(search),
+	loader: async ({ context, params }) => {
+		await orNotFound(() =>
+			ensureWatchlist(context, { watchlistId: params.watchlistId }),
+		);
+	},
+	notFoundComponent: WatchlistUnavailable,
 	component: WatchlistDetailPage,
 });
+
+function WatchlistUnavailable({ data }: { data?: unknown }) {
+	const isPrivate = unavailableReason(data) === "private";
+	return (
+		<NotFoundState
+			eyebrow={isPrivate ? "Private" : "404"}
+			title={isPrivate ? "This watchlist is private" : "Watchlist not found"}
+			message={
+				isPrivate
+					? "Only its members can see it. Ask the owner to invite you."
+					: "It may have been deleted, or the link may be wrong."
+			}
+		>
+			<Link to="/app/watchlists" className={notFoundLinkClass}>
+				Your watchlists
+			</Link>
+		</NotFoundState>
+	);
+}
 
 function WatchlistDetailPage() {
 	const { watchlistId } = Route.useParams();

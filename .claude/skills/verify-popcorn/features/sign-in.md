@@ -1,10 +1,12 @@
 # Sign in
 
-A visitor enters their email on `/login` and receives a magic link. Opening the link signs them in. An onboarded user lands on `/app/search` and a new user lands on `/onboarding`. Anonymous visits to any `/app/*` page redirect to `/login`.
+A visitor enters their email on `/login` and receives a magic link. Opening the link signs them in. An onboarded user lands on the page they were trying to open, or on `/app/search`, and a new user lands on `/onboarding`. Anonymous visits to any `/app/*` page redirect to `/login?redirect=<that page>`. A signed-in user who opens `/` or `/login` goes straight to the app.
 
 ## Sub-features
 
-- `signin-guard`: anonymous `/app/*` redirects to `/login`.
+- `signin-guard`: anonymous `/app/*` redirects to `/login?redirect=<path>`.
+- `signin-return`: the magic link's `callbackURL` is that `redirect`, so the user lands on the deep link. Only `/app` paths are accepted.
+- `signin-skip`: a signed-in user on `/` or `/login` is redirected to `/app/search`, or to `redirect` on `/login`.
 - `signin-request`: submitting the email shows "Magic link sent!" and sends one email.
 - `signin-verify`: opening the emailed link creates a session and lands on `/app/search`.
 - `signin-new-user`: an unknown email creates the account and lands on `/onboarding` (Username step).
@@ -27,6 +29,7 @@ Preconditions:
 - **Request link.** Fill the `you@email.com` placeholder and click the button `Send Magic Link`. The heading `Magic link sent!` appears. `vp mail --last` shows subject `Your Popcorn sign-in link` and a `link` of the form `<APP_URL>/api/auth/magic-link/verify?token=…&callbackURL=/app/search`.
 - **Verify.** Open the captured link. The browser lands on `/app/search?q=&type=all&sort=relevance&page=1`. `vp sql "select count(*) from session s join \"user\" u on u.id=s.user_id where u.email='vera@popcorn.test'"` returns at least 1.
 - **New user (not yet run).** Run `vp login newbie@popcorn.test`. The journey accepts `/onboarding` as a landing page. The page shows the Username step, and `vp sql "select onboarding_completed from \"user\" where email='newbie@popcorn.test'"` returns `f`.
+- **Deep link.** `vp drive bad-urls` opens `/app/title/movie/603` signed out, signs in from the redirected `/login`, and asserts the link's `callbackURL` and the landing URL are the title page.
 - **Proof.** The whole flow is proven by `vp login`. Evidence is `sign-in/01-magic-link-sent.png`, `02-signed-in.png`, `mail.json` and the session-row check in `db.log`. The resend and sign-out paths have no script yet.
 
 ## Gotchas
