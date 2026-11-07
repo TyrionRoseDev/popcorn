@@ -60,6 +60,8 @@ Use these words in UI copy and in code. The right column lists words to retire.
 
 **Consequences.** Migration maps public to Friends, and private to Only me. Companion becomes Only me, and the tagged people keep access through the tagging rule.
 
+**Amendment, 2026-11-07.** A show's progress also has Friends or Only me visibility, so progress lines in the feed respect privacy. Shows with existing progress start as Only me. New shows default to Friends. See `docs/redesign/architecture/DESIGN.md`.
+
 ### DR-5. Journal notes become entries
 
 **Decision.** Each `journal_entry` becomes an entry with the same scope, season, episode, note and watch number. `is_public` true maps to Friends, otherwise Only me. The watched-on date is its creation date. If an entry already exists for the same person, title, scope and watch number, and has no note, the journal text becomes that entry's note instead.
@@ -91,6 +93,8 @@ Use these words in UI copy and in code. The right column lists words to retire.
 **Decision.** Tagging a friend sends them an invitation. If they accept, an entry is created in their own diary. Nobody writes into another person's diary.
 
 **Evidence.** Tagging creates a row in the friend's diary with no consent, and the UI has no word for it (F13). An unvalidated companion id let a stranger write into any account (F57).
+
+**Amendment, 2026-11-07.** This applies to new tags. Rows that tagging already created in a friend's diary stay as accepted entries, because the owner's rule is to lose no user data.
 
 ### DR-10. Celebrations never interrupt a task
 
