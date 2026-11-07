@@ -1,13 +1,42 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Mail } from "lucide-react";
 import { useState } from "react";
+import { z } from "zod";
 import { AuthCard } from "#/components/auth/auth-card";
 import { AuthLayout } from "#/components/auth/auth-layout";
 import { FormError } from "#/components/auth/form-error";
 import { MarqueeBadge } from "#/components/auth/marquee-badge";
 import { authClient } from "#/lib/auth-client";
+import { getSession } from "#/lib/auth-session";
+
+const DEFAULT_DESTINATION = "/app/search";
+
+const loginSearchSchema = z.object({
+	redirect: z
+		.string()
+		.transform((value, ctx) => {
+			const url = new URL(value, "http://popcorn.invalid");
+			if (
+				url.origin !== "http://popcorn.invalid" ||
+				!/^\/app(?:\/|$)/.test(url.pathname)
+			) {
+				ctx.addIssue({ code: "custom", message: "redirect must stay in /app" });
+				return z.NEVER;
+			}
+			return `${url.pathname}${url.search}${url.hash}`;
+		})
+		.optional()
+		.catch(undefined),
+});
 
 export const Route = createFileRoute("/login")({
+	validateSearch: (search) => loginSearchSchema.parse(search),
+	beforeLoad: async ({ search }) => {
+		const session = await getSession();
+		if (session?.user) {
+			throw redirect({ href: search.redirect ?? DEFAULT_DESTINATION });
+		}
+	},
 	component: LoginPage,
 	head: () => ({
 		meta: [{ title: "Sign In — Popcorn" }],
@@ -15,6 +44,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
+	const callbackURL = Route.useSearch().redirect ?? DEFAULT_DESTINATION;
 	const [email, setEmail] = useState("");
 	const [sent, setSent] = useState(false);
 	const [error, setError] = useState("");
@@ -28,7 +58,7 @@ function LoginPage() {
 		try {
 			const { error: authError } = await authClient.signIn.magicLink({
 				email,
-				callbackURL: "/app/search",
+				callbackURL,
 			});
 			if (authError) {
 				setError(authError.message ?? "Something went wrong");
@@ -48,7 +78,7 @@ function LoginPage() {
 		try {
 			const { error: authError } = await authClient.signIn.magicLink({
 				email,
-				callbackURL: "/app/search",
+				callbackURL,
 			});
 			if (authError) {
 				setError(authError.message ?? "Something went wrong");

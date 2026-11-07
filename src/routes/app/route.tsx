@@ -18,6 +18,7 @@ import {
 	Users,
 } from "lucide-react";
 import { useState } from "react";
+import { AppNotFound } from "#/components/not-found";
 import { NotificationBell } from "#/components/notifications/notification-bell";
 import { RetroOverlays } from "#/components/retro-overlays";
 import { Sheet, SheetContent, SheetTitle } from "#/components/ui/sheet";
@@ -26,11 +27,11 @@ import { authClient } from "#/lib/auth-client";
 import { getSession } from "#/lib/auth-session";
 
 export const Route = createFileRoute("/app")({
-	beforeLoad: async () => {
+	beforeLoad: async ({ location }) => {
 		const session = await getSession();
 
 		if (!session?.user) {
-			throw redirect({ to: "/login" });
+			throw redirect({ to: "/login", search: { redirect: location.href } });
 		}
 
 		if (!session.user.onboardingCompleted) {
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/app")({
 		return { user: session.user };
 	},
 	component: AppLayout,
+	notFoundComponent: AppNotFound,
 });
 
 const tabClass =

@@ -1,7 +1,7 @@
 {
 	"totals": {
 		"rawColour": 1144,
-		"arbitraryValue": 1010,
+		"arbitraryValue": 1008,
 		"inlineStyleColour": 496
 	},
 	"hits": {
@@ -2409,9 +2409,7 @@
 				"text-[11px]",
 				"text-[11px]",
 				"text-[11px]",
-				"text-[11px]",
 				"top-[calc(2.5rem+6px)]",
-				"tracking-[3px]",
 				"tracking-[3px]",
 				"w-[280px]",
 				"w-[calc((100%-1100px)/2)]"

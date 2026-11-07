@@ -7,7 +7,7 @@ export default async function signIn(vp: Vp, args: string[]) {
 	await vp.context.clearCookies();
 	vp.step("unauthenticated /app/feed redirects to /login");
 	await vp.goto("/app/feed");
-	await vp.page.waitForURL("**/login");
+	await vp.page.waitForURL((u) => u.pathname === "/login");
 	vp.expect(new URL(vp.page.url()).pathname === "/login", "auth guard sent anonymous user to /login");
 
 	const landed = await vp.signIn(email);

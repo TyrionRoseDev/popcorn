@@ -27,18 +27,20 @@ function ShufflePage() {
 		trpc.shuffle.getOrCreateShuffleWatchlist.queryOptions(),
 	);
 
-	// Show countdown intro only on first visit per session
-	const [showIntro, setShowIntro] = useState(
-		() => sessionStorage.getItem(SHUFFLE_INTRO_KEY) === null,
-	);
+	// Show countdown intro only on first visit per session. The server cannot read
+	// sessionStorage, so both renders start on the countdown and the effect decides.
+	const [showIntro, setShowIntro] = useState(true);
 	useEffect(() => {
-		if (!showIntro) return;
+		if (sessionStorage.getItem(SHUFFLE_INTRO_KEY) !== null) {
+			setShowIntro(false);
+			return;
+		}
 		const timer = setTimeout(() => {
 			sessionStorage.setItem(SHUFFLE_INTRO_KEY, "true");
 			setShowIntro(false);
 		}, 1800);
 		return () => clearTimeout(timer);
-	}, [showIntro]);
+	}, []);
 
 	const resolvedWatchlistId =
 		initialWatchlistId ?? shuffleWatchlist?.id ?? null;

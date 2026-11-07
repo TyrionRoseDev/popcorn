@@ -8,6 +8,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import { AchievementCelebrationProvider } from "#/components/achievements/achievement-celebration-provider";
+import { RootNotFound } from "#/components/not-found";
 import { Toaster } from "#/components/ui/sonner";
 import { TooltipProvider } from "#/components/ui/tooltip";
 import type { TRPCRouter } from "#/integrations/trpc/router";
@@ -63,6 +64,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 		],
 	}),
 	shellComponent: RootDocument,
+	notFoundComponent: RootNotFound,
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {

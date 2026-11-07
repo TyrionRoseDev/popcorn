@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
 	Link,
+	notFound,
 	useLocation,
 	useRouter,
 } from "@tanstack/react-router";
@@ -9,6 +10,11 @@ import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 import { Atmosphere } from "#/components/atmosphere";
+import {
+	NotFoundState,
+	notFoundLinkClass,
+	orNotFound,
+} from "#/components/not-found";
 import { RecommendModal } from "#/components/recommend/recommend-modal";
 import { CarSilhouettes } from "#/components/title/car-silhouettes";
 import { CastList } from "#/components/title/cast-list";
@@ -25,7 +31,7 @@ import { useTRPC } from "#/integrations/trpc/react";
 
 const paramsSchema = z.object({
 	mediaType: z.enum(["movie", "tv"]),
-	tmdbId: z.coerce.number(),
+	tmdbId: z.coerce.number().int().positive(),
 });
 
 const searchSchema = z.object({
@@ -34,23 +40,29 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/app/title/$mediaType/$tmdbId")({
 	params: {
-		parse: (raw) => paramsSchema.parse(raw),
+		parse: (raw) => {
+			const parsed = paramsSchema.safeParse(raw);
+			if (!parsed.success) throw notFound();
+			return parsed.data;
+		},
 		stringify: (params) => ({
 			mediaType: params.mediaType,
 			tmdbId: String(params.tmdbId),
 		}),
 	},
 	validateSearch: (search) => searchSchema.parse(search),
-	loader: async ({ context: { queryClient, trpc }, params }) => {
-		await queryClient.ensureQueryData(
-			trpc.title.details.queryOptions({
-				mediaType: params.mediaType,
-				tmdbId: params.tmdbId,
-			}),
-		);
-	},
+	loader: ({ context: { queryClient, trpc }, params }) =>
+		orNotFound(() =>
+			queryClient.ensureQueryData(
+				trpc.title.details.queryOptions({
+					mediaType: params.mediaType,
+					tmdbId: params.tmdbId,
+				}),
+			),
+		),
 	pendingComponent: TitlePageSkeleton,
 	errorComponent: TitleErrorPage,
+	notFoundComponent: TitleNotFound,
 	component: TitlePage,
 });
 
@@ -64,11 +76,12 @@ function TitlePage() {
 		"shuffle";
 	const trpc = useTRPC();
 	const { data } = useQuery(
-		trpc.title.details.queryOptions({ mediaType, tmdbId }),
+		trpc.title.details.queryOptions(
+			{ mediaType, tmdbId },
+			{ initialData: Route.useLoaderData() },
+		),
 	);
 	const [showRecommend, setShowRecommend] = useState(false);
-
-	if (!data) return <TitlePageSkeleton />;
 
 	return (
 		<div className="relative z-10">
@@ -176,63 +189,51 @@ function TitlePage() {
 	);
 }
 
-function TitleErrorPage({ error }: { error: unknown }) {
-	const isNotFound =
-		error &&
-		typeof error === "object" &&
-		"data" in error &&
-		(error as { data?: { code?: string } }).data?.code === "NOT_FOUND";
+function TitleNotFound() {
+	return (
+		<NotFoundState
+			title="Title not found"
+			message="The title you're looking for doesn't exist or has been removed."
+		>
+			<Link
+				to="/app/search"
+				search={{ q: "", type: "all", sort: "relevance", page: 1 }}
+				className={notFoundLinkClass}
+			>
+				Back to Search
+			</Link>
+		</NotFoundState>
+	);
+}
 
+function TitleErrorPage() {
 	return (
 		<div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
-			{isNotFound ? (
-				<>
-					<div className="font-mono-retro text-[11px] text-neon-amber uppercase tracking-[3px] mb-3 [text-shadow:0_0_10px_rgba(255,184,0,0.3)]">
-						404
-					</div>
-					<h1 className="font-display text-2xl md:text-3xl text-cream mb-2">
-						Title not found
-					</h1>
-					<p className="text-cream/50 text-sm mb-6">
-						The title you're looking for doesn't exist or has been removed.
-					</p>
-					<Link
-						to="/app/search"
-						search={{ q: "", type: "all", sort: "relevance", page: 1 }}
-						className="px-5 py-2.5 rounded-md bg-neon-pink/10 border border-neon-pink/30 text-neon-pink font-mono-retro text-xs tracking-wider uppercase hover:bg-neon-pink/20 hover:border-neon-pink/50 transition-all no-underline"
-					>
-						Back to Search
-					</Link>
-				</>
-			) : (
-				<>
-					<div className="font-mono-retro text-[11px] text-neon-pink uppercase tracking-[3px] mb-3 [text-shadow:0_0_10px_rgba(255,45,120,0.3)]">
-						Error
-					</div>
-					<h1 className="font-display text-2xl md:text-3xl text-cream mb-2">
-						Something went wrong
-					</h1>
-					<p className="text-cream/50 text-sm mb-6">
-						We couldn't load this title. Please try again.
-					</p>
-					<div className="flex items-center gap-3">
-						<button
-							type="button"
-							onClick={() => window.location.reload()}
-							className="px-5 py-2.5 rounded-md bg-neon-pink/10 border border-neon-pink/30 text-neon-pink font-mono-retro text-xs tracking-wider uppercase hover:bg-neon-pink/20 hover:border-neon-pink/50 transition-all cursor-pointer"
-						>
-							Retry
-						</button>
-						<Link
-							to="/app/search"
-							search={{ q: "", type: "all", sort: "relevance", page: 1 }}
-							className="px-5 py-2.5 rounded-md border border-cream/15 text-cream/60 font-mono-retro text-xs tracking-wider uppercase hover:border-cream/30 hover:text-cream/80 transition-all no-underline"
-						>
-							Back to Search
-						</Link>
-					</div>
-				</>
-			)}
+			<div className="font-mono-retro text-[11px] text-neon-pink uppercase tracking-[3px] mb-3 [text-shadow:0_0_10px_rgba(255,45,120,0.3)]">
+				Error
+			</div>
+			<h1 className="font-display text-2xl md:text-3xl text-cream mb-2">
+				Something went wrong
+			</h1>
+			<p className="text-cream/50 text-sm mb-6">
+				We couldn't load this title. Please try again.
+			</p>
+			<div className="flex items-center gap-3">
+				<button
+					type="button"
+					onClick={() => window.location.reload()}
+					className="px-5 py-2.5 rounded-md bg-neon-pink/10 border border-neon-pink/30 text-neon-pink font-mono-retro text-xs tracking-wider uppercase hover:bg-neon-pink/20 hover:border-neon-pink/50 transition-all cursor-pointer"
+				>
+					Retry
+				</button>
+				<Link
+					to="/app/search"
+					search={{ q: "", type: "all", sort: "relevance", page: 1 }}
+					className="px-5 py-2.5 rounded-md border border-cream/15 text-cream/60 font-mono-retro text-xs tracking-wider uppercase hover:border-cream/30 hover:text-cream/80 transition-all no-underline"
+				>
+					Back to Search
+				</Link>
+			</div>
 		</div>
 	);
 }
